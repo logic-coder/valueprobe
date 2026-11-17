@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build
+      - run: npx playwright install --with-deps --no-shell chromium
+      - run: npx playwright test
+      - name: Contrast audit (light and dark)
+        run: npm run audit:contrast
+      - name: Static-host smoke (base prefix, snapshots, fallback)
+        run: npm run smoke:pages
+      - name: E2E base-path gate (Pages mode)
+        run: npm run test:e2e:base
+        env:
+          PW_BASE: '1'
+      - name: Pages rehearsal (snapshot on and off)
+        run: npm run rehearse:pages
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

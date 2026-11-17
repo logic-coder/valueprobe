@@ -1,0 +1,177 @@
+/* Valuation workspace: inputs on the left, the result strip on the right. */
+
+.dcf__card {
+  padding: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+.dcf__card > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-areas:
+    'head head'
+    'form strip'
+    'sens sens'
+    'evidence evidence';
+  gap: 20px;
+  padding: 16px 20px 18px;
+}
+/* Quasar primary blue is too dark on the dark theme; the strong accent passes AA. */
+.dcf .text-primary { color: var(--accent-strong) !important; }
+.dcf__rating .q-rating__icon.text-orange { color: var(--accent-strong) !important; }
+.basis-row { align-items: center; gap: 16px; flex-wrap: wrap; }
+.basis-option { display: inline-flex; align-items: center; gap: 2px; }
+.basis-option__choice { display: inline-flex; align-items: center; cursor: pointer; }
+.dcf .text-grey-7, .dcf .text-grey-8 { color: var(--text-muted) !important; }
+.dcf__head-hint { font-size: 11.5px; margin-right: 4px; }
+.dcf__head { grid-area: head; padding: 0 0 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.dcf__head h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 650; }
+
+.dcf__strip-title { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 6px; }
+.dcf__strip {
+  grid-area: strip;
+  align-self: start;
+  position: sticky;
+  top: 76px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.dcf__block { display: flex; align-items: center; gap: 10px; }
+.dcf__block > .button-font-weight, .dcf__block > .text-h6 { margin-left: auto; text-align: right; padding-right: 1px; }
+.dcf__label { font-size: 12px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
+.dcf__label-text { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-muted); border-bottom: 1px dashed var(--border-strong); padding-bottom: 1px; }
+.dcf__fair { padding-top: 2px; }
+.dcf__fair .text-h6 { font-size: 30px; line-height: 1.15; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.dcf__mos { margin-top: 10px; }
+.dcf__mos .button-font-weight { font-size: 17px; font-weight: 650; }
+.dcf__meter { height: 6px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; margin: 8px 0 10px; }
+.dcf__meter span { display: block; height: 100%; border-radius: 999px; transition: width 0.25s ease; }
+
+.dcf__form { grid-area: form; min-width: 0; }
+.dcf__toggle { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted); cursor: pointer; }
+.dcf__row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.dcf__row:last-child { border-bottom: 0; }
+.dcf__warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dcf__warn .q-icon { margin-top: 1px; flex: none; }
+.dcf__wacc-btn { color: var(--text-muted); font-size: 12px; margin-left: 4px; }
+.dcf__scenario { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 2px 4px 10px; }
+.dcf__scenario-label { font-size: 12px; color: var(--text-muted); }
+.dcf__scenario-btns { display: inline-flex; gap: 2px; padding: 2px; background: var(--bg-soft); border: 1px solid var(--border); border-radius: 999px; }
+.dcf__scenario-btns .q-btn { min-height: 22px; font-size: 11.5px; border-radius: 999px; color: var(--text-muted); }
+.dcf__scenario-btns .q-btn.is-active { background: var(--surface); color: var(--text); }
+.dcf__scenario-note { font-size: 11px; }
+.dcf__rate-note { display: flex; align-items: center; gap: 5px; padding: 2px 4px 8px; font-size: 11.5px; color: var(--text-faint); }
+.dcf__row > .text-left, .dcf__row > .text-subtitle2 { font-size: 13px; color: var(--text-muted); }
+
+/* the two growth windows sit side by side as sub-panels */
+.dcf__form .row.text-center.text-caption { gap: 12px; }
+.dcf__form .row.text-center.text-caption > .col-6 { flex: 1 1 0; max-width: none; }
+.dcf__form .row.text-center.text-caption [style*='border: 1px solid #ccc'] { border: 1px solid var(--border) !important; border-radius: var(--radius-sm); background: var(--surface-2); }
+
+.input-section {
+  height: 30px;
+  width: 64px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.input-section:focus { border-color: var(--accent); outline: none; }
+
+.dcf .q-btn.input-step, .dcf .q-btn[style*='border-radius: 0'] { border-radius: var(--radius-sm) !important; border: 1px solid var(--border); background: var(--bg-soft); min-height: 26px; }
+.dcf .q-btn[style*='border-radius: 0']:hover { background: var(--accent-soft); color: var(--accent-strong); }
+
+.dcf__table { margin-top: 20px; }
+
+/* SENS: display-only matrix; every cell is the kernel re-run. */
+.dcf__sens { grid-area: sens; border-top: 1px solid var(--border); padding-top: 14px; }
+/* The two read-only cross-checks share one row on wide screens instead of
+   stacking into a wall of tables. */
+.dcf__evidence { grid-area: evidence; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.sens__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.sens__title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; }
+.sens__scroll { overflow-x: auto; }
+.sens__grid { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; min-width: 420px; width: 100%; }
+.sens__grid th, .sens__grid td { border: 1px solid var(--border); padding: 5px 8px; text-align: right; white-space: nowrap; }
+.sens__grid thead th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; }
+.sens__grid tbody th { background: var(--surface-2); color: var(--text-muted); font-weight: 600; }
+.sens__corner { text-align: left !important; font-size: 11px; }
+.sens__grid .is-center { outline: 2px solid var(--accent); outline-offset: -2px; }
+.sens__grid td.cell--good { background: var(--good-bg); color: var(--good-text); font-weight: 650; }
+.sens__grid td.cell--ok { background: var(--accent-soft); color: var(--accent-strong); }
+.sens__grid td.cell--thin { background: var(--warn-soft); color: var(--warn); }
+.sens__grid td.cell--bad { background: var(--danger-soft); color: var(--danger-text); }
+.sens__grid td.cell--na { color: var(--text-muted); }
+
+/* Peer comparison: fourth derivation, also display-only. */
+.dcf__peers { border-top: 1px solid var(--border); padding-top: 14px; min-width: 0; }
+.peers__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.peers__title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; }
+.peers__table { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; max-width: 640px; }
+.peers__table th, .peers__table td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: right; }
+.peers__table thead th { color: var(--text-muted); font-weight: 600; }
+.peers__table tbody th, .peers__table tfoot th { text-align: left; font-weight: 500; color: var(--text-muted); }
+.peers__table tfoot th, .peers__table tfoot td { border-top: 1px solid var(--border); border-bottom: 0; }
+.peers__link { background: none; border: 0; padding: 0; font: inherit; color: var(--accent-strong); cursor: pointer; text-align: left; }
+.peers__link:hover { text-decoration: underline; }
+.peers__empty { text-align: left !important; color: var(--text-faint); }
+.peers__verdict { margin: 8px 0 0; font-size: 12px; }
+
+/* Multiple cross-check: third derivation, also display-only. */
+.dcf__mcheck { border-top: 1px solid var(--border); padding-top: 14px; min-width: 0; }
+.mcheck__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.mcheck__title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); display: inline-flex; align-items: center; gap: 5px; }
+.mcheck__table { border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; width: 100%; max-width: 640px; }
+.mcheck__table th, .mcheck__table td { border-bottom: 1px solid var(--border); padding: 6px 8px; text-align: right; }
+.mcheck__table thead th { color: var(--text-muted); font-weight: 600; }
+.mcheck__table tbody th { text-align: left; color: var(--text-muted); }
+.mcheck__input { width: 72px; height: 26px; font-size: 12px; }
+.mcheck__good { color: var(--accent-strong); }
+.mcheck__bad { color: var(--danger); }
+
+.dcf__actions { border-top: 1px solid var(--border); margin-top: 6px; }
+.dcf__actions .q-btn { color: var(--accent-strong); font-weight: 600; }
+.dcf__actions .q-btn + .q-btn { color: var(--text-muted); font-weight: 500; }
+
+/* legacy hooks kept for tests/behaviour */
+.dcf .q-card__section { padding: 0; }
+.bg-indigo-1 { background: transparent !important; }
+.line-height-2 > div { line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .dcf__form .row.text-center.text-caption { flex-direction: column; }
+  .dcf__form .row.text-center.text-caption > .col-6 { width: 100%; }
+  .dcf__row { flex-wrap: wrap; }
+  .dcf__fair .text-h6 { font-size: 24px; }
+  .dcf__card > div { padding: 14px 14px 16px; gap: 14px; }
+}
+
+@media (max-width: 1023px) {
+  .dcf__card > div {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'strip' 'form' 'sens' 'evidence';
+  }
+  .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
+  .dcf__strip { position: static; }
+  .dcf__fair .text-h6 { font-size: 26px; }
+}

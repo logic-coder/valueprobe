@@ -1,0 +1,86 @@
+# 度量框架
+
+估值记录不是只有一张表：它可以回答“这个判断后来怎么样”。度量层同样按
+[wealthfolio](https://github.com/wealthfolio/wealthfolio) 的 `crates/portfolio-engine`
+语义写：**每个指标要么是一个数，要么是 `null` 加一个稳定原因**，界面显示 `n/a` 与原因，
+而不是 `NaN` 或 `Infinity`。公式内核 `src/lib/dcf.js` 不在这条链上，红线不变。
+
+## 文件
+
+| 文件 | 作用 |
+| --- | --- |
+| `src/lib/arith.js` | 有界算术：越界返回 `null`，零除返回一 `null` |
+| `src/lib/measure.js` | 价值回报 / TWR / XIRR / 回撤 / 波动率 + 质量状态 |
+| `src/lib/fx.js` | 展示货币汇率（ECB 日频参考价，两镜像 + 缓存 + 过期兜底） |
+| `src/lib/archive.js` | 记录存取与“记录 → 度量输入”的转换 |
+
+## 两种口径
+
+- **价格口径**（记录里没有股数）：只按价格序列算价值回报与风险；XIRR 标 `不适用`
+  （没有资金流），并给 `PRICE_ONLY` 提示。
+- **持仓口径**（记录填了股数）：点位＝股数×价格，股数变化折算为外部资金流，
+  TWR 用资金流修正，XIRR 解真实资金流。
+
+## 公式
+
+设相邻点位 `V[t-1]`、`V[t]`，区间流入 `in`、流出 `out`：
+
+```
+step    = (V[t] + out - V[t-1] - in) / (V[t-1] + in)
+TWR     = Π (1 + step) - 1
+XIRR    = 解 NPV(r) = Σ cf_i / (1+r)^(days_i/365.25) = 0（二分，-99.9999% 起，上界倍增）
+回撤     = min((累计 / 历史峰值) - 1)，同时记录峰值日、谷底日、修复日、持续天数
+波动率   = 对数收益样本标准差 × sqrt(每年样本数)，每年样本数由实际覆盖天数推出
+年化     = (1 + 总回报)^(365.25 / 天数) - 1，跨度不足 30 天不给年化
+```
+
+所有乘除走 `arith.mul/div`：绝对值超过 `1e15`、除数为 0、结果非有限都判为不可用并记原因。
+
+## 质量状态与原因码
+
+状态：`ok` / `partial` / `no_data` / `not_applicable`。
+
+| 原因码 | 含义 |
+| --- | --- |
+| `TWO_POINTS_REQUIRED` | 至少两条点位 |
+| `NON_POSITIVE_START` | 起始值非正 |
+| `NEGATIVE_DENOMINATOR` | 区间基数非正（存疑区间） |
+| `OUT_OF_RANGE` | 数值越界 |
+| `NO_SIGN_CHANGE` | 资金流同号，IRR 无解 |
+| `NO_CONVERGENCE` | IRR 不收敛 |
+| `ANNUALIZATION_TOO_SHORT` | 跨度太短不给年化 |
+| `PRICE_ONLY` | 价格口径，IRR 不适用 |
+| `NO_RETURNS` | 没有可用收益步 |
+
+浮点噪声按相对误差处理（峰值判定用 `1e-12` 容差），避免 0.9×1.3333 这种步长把修复日判丢。
+
+## 与展示货币的关系
+
+展示货币只影响**只读结果**（`CALCULATION` 之外的 `DEVIATIONS` D6）：换算加 `≈` 前缀，
+缺汇率显示 `≈ n/a`；可编辑输入始终是原币。度量数字始终按原币计算，不参与折算。
+
+## 测试
+
+`tests/unit/{arith,measure,fx}.test.js` 覆盖越界拒绝、资金流修正、回撤日期、年化门槛、
+IRR 收敛与不收敛、缺失汇率。E2E 只验证界面显示 `n/a` 与原因，不重复算公式。
+
+
+## 敏感性矩阵
+
+中心为当前折现率/增长率，两轴各 ±2 个百分点（折现率夹在 0–50、增长率夹在 -20–60）。
+25 格和头条、反推用的是同一个 `presentValue`：第一阶段增速线性降到第二阶段增速，
+再折现有限年。`calGr2fv` 仍是增速不变的闭式，只留给对照测试。非有限结果记 `null` 并显示 `n/a`。
+
+- 实现：`src/lib/sensitivity.js`（`buildSensitivityGrid`、`marginBucket`）。
+- 着色阈值（安全边际 = 1 − 价格 / 内在价值）：≥30% 深绿、≥0 浅绿、≥-20% 黄、其余红。
+- 倍数对照（`src/lib/multiples.js`）：当前倍数 = 价格 / 每股基数，隐含价 = 基数 × 目标倍数，
+  与 DCF 内在价值的差以百分比列出；基数缺失即 `n/a`，单测 `tests/unit/multiples.test.js`。
+
+- 情景预设（`src/lib/scenarios.js`）只做固定增量：牛市 折现率 −1 / 增长率 +2 / 第二阶段增速 +1，
+  熊市取反；折现率仍夹在 0–50。切「基准」恢复进入情景前的那组数（单测 `tests/unit/scenarios.test.js`）。
+
+- 折现率可先用「推导」对话框按无风险 + β × 股权溢价 + 规模溢价算好再填入（`src/lib/wacc.js`，
+  单测 `tests/unit/wacc.test.js`）；填进去的值仍走 0–50 的夹取。
+
+- 单测：`tests/unit/sensitivity.test.js`（中心格等于 `presentValue`、边界夹取、非有限格）；E2E：
+  25 格、中心格等于头条内在价值、改折现率后矩阵跟随。

@@ -1,0 +1,56 @@
+{
+  "name": "valueprobe",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Open-source, local-first intrinsic-value calculator: DCF, margin of safety, reverse DCF.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/logic-coder/valueprobe"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --port 4173",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:unit": "vitest run tests/unit",
+    "e2e:install": "playwright install --no-shell chromium",
+    "pretest:e2e": "playwright install --no-shell chromium",
+    "test:e2e": "playwright test",
+    "build:base": "node scripts/build-base.mjs",
+    "preview:base": "node scripts/build-base.mjs --preview",
+    "snapshot": "vite-node scripts/snapshot.mjs",
+    "icons": "node scripts/icons.mjs",
+    "smoke:pages": "node scripts/pages-smoke.mjs",
+    "test:e2e:base": "node scripts/build-base.mjs && playwright test tests/e2e/base-path.spec.js",
+    "rehearse:pages": "node scripts/rehearse-pages.mjs",
+    "audit:contrast": "node scripts/contrast-audit.mjs"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-3": "^5.3.1",
+    "@fontsource/source-serif-4": "^5.3.1",
+    "@quasar/extras": "^1.16.12",
+    "axios": "^1.7.7",
+    "echarts": "^5.5.1",
+    "pinia": "^2.2.6",
+    "quasar": "^2.17.0",
+    "vue": "^3.5.13",
+    "vue-i18n": "^9.14.1",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.48.0",
+    "@vitejs/plugin-vue": "^5.2.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-vue": "^9.33.0",
+    "globals": "^17.14.0",
+    "jsdom": "^29.1.1",
+    "terser": "^5.51.2",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.4"
+  }
+}

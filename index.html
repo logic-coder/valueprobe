@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="canonical" href="__SITE_URL__" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <meta name="theme-color" content="#0f9d6e" />
+    <script>
+      // Paint the saved (or system) theme before the bundle mounts: dark users should not
+      // get a white flash on every navigation.
+      try {
+        const saved = localStorage.getItem('fv-theme')
+        const dark = saved === 'dark' || saved === 'light'
+          ? saved === 'dark'
+          : window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (dark) document.documentElement.dataset.theme = 'dark'
+      } catch (error) { /* storage blocked */ }
+    </script>
+    <meta
+      name="description"
+      content="valueprobe：开源、本地优先的股票内在价值计算器。两阶段有限折现，第一阶段增速逐年降到第二阶段。"
+    />
+    <meta property="og:title" content="valueprobe · 开源股票估值工具" />
+    <meta property="og:description" content="本地优先的 DCF 计算器：内在价值、安全边际、反 DCF，公式内核有测试锁住。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="__SITE_URL__og.png" />
+    <title>valueprobe · 开源股票估值工具</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>
+      <div style="max-width: 560px; margin: 80px auto; padding: 0 20px; font: 15px/1.7 system-ui, sans-serif; color: #101828">
+        <p><strong>valueprobe</strong> 是纯前端页面，需要 JavaScript 才能计算。</p>
+        <p>打开后按 <code>交易所:代码</code> 查询，例如 <code>SHSE:601398</code>、<code>NASDAQ:AAPL</code>；支持 SHSE、SZSE、HKSE、NYSE、NASDAQ、AMEX。</p>
+        <p style="color: #475467">valueprobe needs JavaScript; it is a static, local-first page with no backend.</p>
+      </div>
+    </noscript>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

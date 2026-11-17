@@ -1,0 +1,97 @@
+{
+ "id": 1983,
+ "name": "dcf_financial_view",
+ "display_name": "Stock DCF Financial Data",
+ "display_name_en": "Stock DCF Financial Data",
+ "is_basic": false,
+ "is_predefined": false,
+ "basic_type": "stock",
+ "data_type": "group",
+ "children": [
+  {
+   "id": 1426,
+   "name": "eps_without_nri",
+   "display_name": "持续经营每股收益",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "EPS without NRI",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "扣除与主营业务无关的一次性损益后的净利润，除以发行在外的稀释性潜在普通股平均股数从而计算出的每股收益。"
+  },
+  {
+   "id": 1231,
+   "name": "revenue_per_share",
+   "display_name": "每股收入",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "Revenue per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "由总收入除以发行在外的稀释性潜在普通股平均股数计算而得。"
+  },
+  {
+   "id": 1454,
+   "name": "operating_income_per_share",
+   "display_name": "每股营业利润",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "Operating Income per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "由营业利润除以发行在外的稀释性潜在普通股平均股数计算而得。"
+  },
+  {
+   "id": 1050,
+   "name": "ebitda_per_share",
+   "display_name": "每股税息折旧及摊销前利润",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "EBITDA per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "由税息折旧及摊销前利润除以发行在外的稀释性潜在普通股平均股数计算而得。"
+  },
+  {
+   "id": 1439,
+   "name": "free_cash_flow_per_share",
+   "display_name": "每股自由现金流",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "Free Cash Flow per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "由自由现金流除以发行在外的稀释性潜在普通股平均股数计算而得。"
+  },
+  {
+   "id": 1322,
+   "name": "dividends_per_share",
+   "display_name": "每股股息",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "Dividends per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "股份公司按每股股份向股东派发的盈余。"
+  },
+  {
+   "id": 1288,
+   "name": "book_value_per_share",
+   "display_name": "每股账面价值",
+   "is_basic": true,
+   "is_predefined": true,
+   "display_name_en": "Book Value per Share",
+   "basic_type": "financial",
+   "data_type": "number",
+   "options": null,
+   "description": "也称普通股每股净资产,是指普通股权益与流通在外普通股股数的比值。"
+  }
+ ],
+ "options": null
+}

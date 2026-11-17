@@ -1,0 +1,134 @@
+/* Design tokens. One place to retune the whole interface. */
+:root {
+  color-scheme: light;
+  --bg: #f6f7f9;
+  --bg-soft: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #fbfcfd;
+  --border: #e3e7ed;
+  --border-strong: #cfd6df;
+  --text: #101828;
+  --text-muted: #475467;
+  --text-faint: #667085;
+  --accent: #0f9d6e;
+  --accent-soft: #e7f6ef;
+  --accent-strong: #0b7d57;
+  --danger: #d92d20;
+  --danger-text: #b42318;
+  --danger-soft: #fef3f2;
+  --warn: #b54708;
+  --warn-soft: #fffaeb;
+  --good-bg: #065f46;
+  --good-text: #ecfdf5;
+  --focus: #0b7d57;
+
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow: 0 8px 24px -12px rgba(16, 24, 40, 0.18);
+
+  --font: "Source Sans 3", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  --display: "Source Serif 4", "Songti SC", "Noto Serif SC", "Source Sans 3", serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --page-width: 1280px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+  --bg: #0b0f14;
+    --bg-soft: #11171e;
+    --surface: #141b23;
+    --surface-2: #182129;
+    --border: #24303b;
+    --border-strong: #35424f;
+    --text: #e7edf3;
+    --text-muted: #93a1b0;
+    --text-faint: #8b98a6;
+    --accent: #34d399;
+    --accent-soft: #12281f;
+    --accent-strong: #6ee7b7;
+    --danger: #f87171;
+    --danger-text: #fca5a5;
+    --danger-soft: #2a1616;
+    --warn: #fbbf24;
+    --warn-soft: #2a2312;
+    --good-bg: #064e3b;
+    --good-text: #d1fae5;
+    --focus: #6ee7b7;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.8);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --bg-soft: #11171e;
+  --surface: #141b23;
+  --surface-2: #182129;
+  --border: #24303b;
+  --border-strong: #35424f;
+  --text: #e7edf3;
+  --text-muted: #93a1b0;
+  --text-faint: #8b98a6;
+  --accent: #34d399;
+  --accent-soft: #12281f;
+  --accent-strong: #6ee7b7;
+  --danger: #f87171;
+  --danger-text: #fca5a5;
+  --danger-soft: #2a1616;
+  --warn: #fbbf24;
+  --warn-soft: #2a2312;
+  --good-bg: #064e3b;
+  --good-text: #d1fae5;
+  --focus: #6ee7b7;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.8);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent-strong); text-decoration: none; }
+/* Quasar's grey label steps are too light/dark per theme; follow the app's muted ink. */
+.q-field__label { color: var(--text-muted) !important; }
+.q-field__native, .q-field__input { color: var(--text) !important; }
+.q-field__native::placeholder, .q-field__input::placeholder { color: var(--text-muted); opacity: 1; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3, h4, h5 { margin: 0; font-weight: 650; letter-spacing: -0.01em; color: var(--text); }
+h1, h2, .ticker__name, .dcf__fair .text-h6, .brand__name { font-family: var(--display); font-weight: 600; }
+
+code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
+
+/* Quasar resets that fight the theme */
+.q-card { background: var(--surface); color: var(--text); }
+.q-separator { background: var(--border); }
+.q-field__control { color: var(--text); }
+.q-field--outlined .q-field__control:before { border-color: var(--border); }
+.q-field--outlined:hover .q-field__control:before { border-color: var(--border-strong); }
+.q-menu { background: var(--surface); color: var(--text); box-shadow: var(--shadow); border: 1px solid var(--border); }
+
+.q-btn.bg-primary {
+  background: var(--accent-strong) !important;
+  color: var(--good-text) !important;
+}
+.q-btn.bg-primary .q-icon { color: inherit !important; }
+
+*:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
