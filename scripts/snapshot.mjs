@@ -11,8 +11,8 @@
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fromAshareReports, fromHkReports } from '../src/data/providers/eastmoney-statements.js'
-import { financialsFromFacts, profileFromFacts } from '../src/data/providers/edgar-xbrl.js'
+import { fromAshareReports, fromHkReports, convertReportingCurrency } from '../src/data/providers/eastmoney-statements.js'
+import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -42,13 +42,13 @@ function priceOf (quote, market) {
   const price = Math.round((Number(quote.f43) / scale) * 100) / 100
   if (!Number.isFinite(price)) throw new Error('empty quote')
   const currency = market === 'HKSE' ? 'HK$' : US.has(market) ? '$' : '¥'
-  return { price: currency + price, currency, company: quote.f58 || '' }
+  return { price: currency + price, currency, company: quote.f58 || '', marketCap: Number(quote.f116) }
 }
 
 async function quoteFor (market, code) {
   const secid = SECID[market]
   if (!secid) throw new Error('market not on the quote feed')
-  const url = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59'
+  const url = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116'
   const quote = (await getJson(url))?.data
   if (!quote) throw new Error('empty quote')
   return priceOf(quote, market)
@@ -85,9 +85,7 @@ async function edgarFor (market, code) {
   if (!entry) throw new Error('unknown US ticker')
   const cik = String(entry.cik_str).padStart(10, '0')
   const facts = await getJson('https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json')
-  const profile = profileFromFacts(market + ':' + code, facts)
-  const financials = financialsFromFacts(facts)
-  return { fields: profile, financials }
+  return fundamentalsFromFacts(market + ':' + code, facts)
 }
 
 function historyFrom (financials) {
@@ -132,15 +130,33 @@ function recordFrom (market, code, quote, pack) {
 }
 
 let written = 0
+const fxBody = await getJson('https://api.frankfurter.dev/v1/latest?from=CNY')
+const hkdPerYuan = Number(fxBody?.rates?.HKD)
+if (!(hkdPerYuan > 1.05 && hkdPerYuan < 1.3)) throw new Error('unexpected CNY to HKD rate ' + hkdPerYuan)
+
 for (const symbol of symbols) {
   const [market, code] = String(symbol).split(':')
   try {
     const quote = await quoteFor(market, code)
-    const pack = US.has(market) ? await edgarFor(market, code) : await statementsFor(market, code)
-    const record = recordFrom(market, code, quote, pack)
+    let pack = US.has(market) ? await edgarFor(market, code) : await statementsFor(market, code)
+    const note = {}
+    if (market === 'HKSE' && pack) {
+      pack = convertReportingCurrency(pack, hkdPerYuan)
+      note.report_currency = 'CNY'
+      note.fx_to_quote = Math.round(hkdPerYuan * 10000) / 10000
+    }
+    if (US.has(market) && pack) {
+      const price = Number(String(quote.price).replace(/[^0-9.-]/g, ''))
+      const factor = quoteSplitFactor(price, quote.marketCap, pack.filingShares)
+      if (factor !== 1) {
+        pack = scalePerShare(pack, factor)
+        note.split_to_quote = factor
+      }
+    }
+    const record = { ...recordFrom(market, code, quote, pack), ...note }
     await writeFile(resolve(OUT, market + '-' + code + '.json'), JSON.stringify(record, null, 2) + '\n')
     written++
-    console.log('wrote', market + '-' + code + '.json', record.price, 'eps', record.ttm_eps)
+    console.log('wrote', market + '-' + code + '.json', record.price, 'eps', record.ttm_eps, note.split_to_quote ? 'split ' + note.split_to_quote : '')
   } catch (error) {
     console.error('skip', symbol, '-', error.message)
   }

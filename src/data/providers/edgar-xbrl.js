@@ -16,6 +16,16 @@ const TICKER_KEY = 'fv-edgar-tickers'
 const TICKER_TTL = 7 * 24 * 3600e3
 
 const YEAR_LIMIT = 10
+const FORMS = new Set(['10-K', '20-F', '40-F'])
+const SPLITS = [2, 3, 4, 5, 10, 20, 25, 50]
+const EPS_CONCEPTS = ['EarningsPerShareDiluted', 'EarningsPerShareBasicAndDiluted', 'EarningsPerShareBasic']
+const REVENUE_CONCEPTS = ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues', 'SalesRevenueNet', 'RevenueFromContractWithCustomerIncludingAssessedTax']
+const CAPEX_CONCEPTS = [
+  'PaymentsToAcquirePropertyPlantAndEquipment',
+  'PaymentsToAcquireProductiveAssets',
+  'PaymentsToAcquireOtherPropertyPlantAndEquipment',
+  'PurchaseOfPropertyAndEquipment',
+]
 
 async function tickerMap () {
   try {
@@ -38,24 +48,72 @@ function taxonomy (facts) {
   return facts || {}
 }
 
-/** Annual (10-K) values of one us-gaap concept, oldest first. */
-function annual (facts, concepts, unit) {
-  const usGaap = taxonomy(facts)['us-gaap'] || {}
-  for (const concept of concepts) {
-    const entries = usGaap[concept]?.units?.[unit]
-    if (!entries) continue
-    const byYear = new Map()
-    for (const item of entries) {
-      if (item.form !== '10-K' || item.fp !== 'FY' || !Number.isFinite(item.val)) continue
-      // Later filings of the same fiscal year are restatements. Keep the latest.
-      const prev = byYear.get(item.fy)
-      const filed = String(item.filed || item.end || '')
-      if (!prev || filed >= prev.filed) byYear.set(item.fy, { val: item.val, filed })
-    }
-    if (byYear.size < 2) continue
-    return [...byYear.entries()].sort((a, b) => a[0] - b[0]).slice(-YEAR_LIMIT).map(([fy, item]) => ({ fy, val: item.val }))
+function durationDays (item) {
+  const start = Date.parse(item.start || '')
+  const end = Date.parse(item.end || '')
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null
+  return (end - start) / 86400000
+}
+
+/** Comparative columns in a 10-K reuse the filing's fy. The period end is the year. */
+function periodYear (item) {
+  const end = Number(String(item.end || '').slice(0, 4))
+  if (end > 1980 && end < 2100) return end
+  return Number.isFinite(item.fy) ? item.fy : null
+}
+
+/** One concept, one unit. A full fiscal year beats a later stub with the same period end. */
+function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap') {
+  const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.[unit]
+  if (!entries) return []
+  const byYear = new Map()
+  for (const item of entries) {
+    if (!FORMS.has(item.form) || item.fp !== 'FY' || !Number.isFinite(item.val)) continue
+    const days = durationDays(item)
+    const full = days == null || days >= 300
+    const filed = String(item.filed || item.end || '')
+    const year = periodYear(item)
+    if (!year) continue
+    const prev = byYear.get(year)
+    const better = !prev || (full && !prev.full) || (full === prev.full && filed >= prev.filed)
+    if (better) byYear.set(year, { val: item.val, full })
   }
-  return []
+  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val }))
+}
+
+/**
+ * Freshest concept that can support a history. The first concept with two
+ * points used to win even when those points stopped a decade ago.
+ */
+function annual (facts, concepts, unit, taxonomyName = 'us-gaap') {
+  let best = []
+  for (const concept of concepts) {
+    const series = annualConcept(facts, concept, unit, taxonomyName)
+    if (series.length < 2) continue
+    const newer = (series.at(-1)?.fy || 0) > (best.at(-1)?.fy || 0)
+    const longer = (series.at(-1)?.fy || 0) === (best.at(-1)?.fy || 0) && series.length > best.length
+    if (newer || longer) best = series
+  }
+  return best.slice(-YEAR_LIMIT)
+}
+
+/** EPS is sometimes filed under a unit other than USD/shares. */
+function earningsPerShare (facts) {
+  const direct = annual(facts, EPS_CONCEPTS, 'USD/shares')
+  if (direct.length >= 2) return direct
+  const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
+  const ifrs = annual(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
+  if (ifrs.length >= 2) return ifrs
+  const usGaap = taxonomy(facts)['us-gaap'] || {}
+  for (const concept of EPS_CONCEPTS) {
+    const units = usGaap[concept]?.units || {}
+    for (const unit of Object.keys(units)) {
+      const series = annualConcept(facts, concept, unit).slice(-YEAR_LIMIT)
+      const scale = median(series.map((point) => Math.abs(point.val)).filter((value) => value > 0))
+      if (series.length >= 2 && scale != null && scale < 5000) return series
+    }
+  }
+  return direct
 }
 
 const deiValue = (facts, concept) => {
@@ -72,12 +130,163 @@ const SHARE_CONCEPTS = [
   'WeightedAverageNumberOfSharesOutstandingBasic',
 ]
 
-/** Diluted shares for the same fiscal year as the flow being divided. */
-function sharesFor (facts, fy) {
-  const series = annual(facts, SHARE_CONCEPTS, 'shares')
-  const match = [...series].reverse().find((item) => item.fy <= fy)
-  if (match) return match.val
-  return deiValue(facts, 'EntityCommonStockSharesOutstanding')
+const median = (values) => {
+  if (!values.length) return null
+  const sorted = [...values].sort((a, b) => a - b)
+  return sorted[Math.floor(sorted.length / 2)]
+}
+
+/** 730 next to 730,000,000 is the same count reported in millions. */
+function normalizeShareUnits (series) {
+  const big = series.map((point) => point.val).filter((value) => value >= 1e6)
+  const reference = median(big)
+  if (!reference) return series
+  return series.map((point) => {
+    if (!(point.val > 0) || point.val >= reference / 100) return point
+    for (const scale of [1e3, 1e6]) {
+      const scaled = point.val * scale
+      if (Math.abs(scaled - reference) / reference < 0.5) return { ...point, val: scaled }
+    }
+    return point
+  })
+}
+
+/** When reported EPS drops by a split and stays there, older years were not restated. */
+function restateEpsLevels (eps) {
+  const out = eps.map((point) => ({ ...point }))
+  for (let index = 1; index < out.length; index++) {
+    const before = out[index - 1]
+    const after = out[index]
+    if (!(before.val > 0) || !(after.val > 0)) continue
+    const factor = nearestSplitWithin(before.val / after.val, 0.32)
+    if (!factor) continue
+    const later = out[index + 1]
+    if (later && later.val > 0 && (later.val > after.val * 2 || after.val > later.val * 2)) continue
+    for (const point of out) {
+      if (point.fy < after.fy) point.val = Number((point.val / factor).toFixed(4))
+    }
+  }
+  return out
+}
+
+function nearestSplitWithin (ratio, tolerance) {
+  if (!(ratio > 1.6)) return null
+  let best = null
+  let error = tolerance
+  for (const factor of SPLITS) {
+    const gap = Math.abs(ratio - factor) / factor
+    if (gap <= error) {
+      error = gap
+      best = factor
+    }
+  }
+  return best
+}
+
+/**
+ * Share counts in the filing are not restated for later splits. Multiply
+ * older counts when the share count jumps by a split factor and revenue does
+ * not. Returns shares on the latest year's basis.
+ */
+function splitAdjustedShares (shares, revenue) {
+  const years = shares.map((point) => point.fy)
+  const reported = new Map(shares.map((point) => [point.fy, point.val]))
+  const extra = new Map(years.map((year) => [year, 1]))
+  for (let index = 1; index < years.length; index++) {
+    const prev = years[index - 1]
+    const year = years[index]
+    const factor = nearestSplit(reported.get(year) / reported.get(prev))
+    if (!factor) continue
+    const prevRevenue = revenue.get(prev)
+    const revenueNow = revenue.get(year)
+    const revenueRatio = prevRevenue > 0 && revenueNow > 0 ? revenueNow / prevRevenue : 1
+    if (revenueRatio > factor * 0.55) continue
+    for (const older of years) {
+      if (older < year) extra.set(older, extra.get(older) * factor)
+    }
+  }
+  const adjusted = new Map()
+  for (const year of years) adjusted.set(year, reported.get(year) * extra.get(year))
+  return { adjusted, extra }
+}
+
+function nearestSplit (ratio) {
+  return nearestSplitWithin(ratio, 0.18)
+}
+function restateEps (eps, extra) {
+  const years = [...extra.keys()].sort((a, b) => a - b)
+  const out = eps.map((point) => ({ ...point }))
+  for (let index = 1; index < years.length; index++) {
+    const prev = years[index - 1]
+    const year = years[index]
+    const factor = extra.get(prev) / extra.get(year)
+    if (!(factor > 1.5)) continue
+    const before = out.find((point) => point.fy === prev)
+    const after = out.find((point) => point.fy === year)
+    if (!before || !after || !(before.val > 0) || !(after.val > 0)) continue
+    if (Math.abs(before.val / after.val - factor) / factor > 0.45) continue
+    for (const point of out) {
+      if (point.fy < year) point.val = Number((point.val / factor).toFixed(4))
+    }
+  }
+  return out
+}
+
+/** A one-year hole or spike between two consistent years is a mis-tagged fact. */
+function dropCliffs (series) {
+  return series.filter((point, index) => {
+    const prev = series[index - 1]
+    const next = series[index + 1]
+    if (!prev || !next || !(point.val > 0) || !(prev.val > 0) || !(next.val > 0)) return true
+    const dip = point.val < prev.val * 0.45 && point.val < next.val * 0.45
+    const spike = point.val > prev.val * 2.5 && point.val > next.val * 2.5
+    return !dip && !spike
+  })
+}
+
+/**
+ * Quoted shares versus the latest filing. A split after the 10-K leaves the
+ * price on the new basis and the filing on the old one. 1 means no adjustment.
+ */
+export function quoteSplitFactor (price, marketCap, filingShares) {
+  if (!(price > 0) || !(marketCap > 0) || !(filingShares > 0)) return 1
+  const ratio = (marketCap / price) / filingShares
+  const forward = nearestSplit(ratio)
+  if (forward) return forward
+  // An ADR quote is one receipt for several ordinary shares. Multiply per-share
+  // figures (a factor below 1 divides into a larger number).
+  const inverse = nearestSplit(ratio > 0 ? 1 / ratio : 0)
+  if (inverse) return 1 / inverse
+  return 1
+}
+
+const scaleValue = (value, factor) => (value == null || factor === 1 ? value : Number((value / factor).toFixed(4)))
+
+/** Divide every per-share figure by a post-filing split. A factor below 1 scales an ADR up. */
+export function scalePerShare (pack, factor) {
+  if (!(factor > 0) || Math.abs(factor - 1) < 1e-9) return pack
+  const scaleRow = (row) => ({
+    ...row,
+    eps_without_nri: scaleValue(row.eps_without_nri, factor),
+    revenue_per_share: scaleValue(row.revenue_per_share, factor),
+    operating_income_per_share: scaleValue(row.operating_income_per_share, factor),
+    free_cash_flow_per_share: scaleValue(row.free_cash_flow_per_share, factor),
+    book_value_per_share: scaleValue(row.book_value_per_share, factor),
+  })
+  return {
+    ...pack,
+    fields: {
+      ...pack.fields,
+      ttm_eps: scaleValue(pack.fields.ttm_eps, factor),
+      free_cash_flow_per_share: scaleValue(pack.fields.free_cash_flow_per_share, factor),
+      tangible_book: scaleValue(pack.fields.tangible_book, factor),
+    },
+    financials: {
+      annual: (pack.financials?.annual || []).map(scaleRow),
+      ttm: (pack.financials?.ttm || []).map(scaleRow),
+      quarter: pack.financials?.quarter || [],
+    },
+  }
 }
 
 /** Compound annual growth in %, or null when the series cannot support it. */
@@ -122,42 +331,112 @@ async function loadFacts (symbol) {
 
 const findYear = (series, fy) => series.find((item) => item.fy === fy)?.val ?? null
 
-/** Annual per-share rows the financial table and the chart can both read. */
-export function financialsFromFacts (facts) {
-  const eps = annual(facts, ['EarningsPerShareDiluted', 'EarningsPerShareBasicAndDiluted', 'EarningsPerShareBasic'], 'USD/shares')
-  const revenue = annual(facts, ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues', 'SalesRevenueNet'], 'USD')
+function growthSeries (series) {
+  if (series.length < 2) return []
+  if (series[0].val > 0 && series.at(-1).val > 0) return series
+  const positive = series.filter((point) => point.val > 0)
+  return positive.length >= 2 ? positive : []
+}
+
+function assemble (facts) {
+  const reportedEps = earningsPerShare(facts)
+  const revenue = annual(facts, REVENUE_CONCEPTS, 'USD')
   const operating = annual(facts, ['OperatingIncomeLoss'], 'USD')
   const equity = annual(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], 'USD')
   const goodwill = annual(facts, ['Goodwill'], 'USD')
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
   const ocf = annual(facts, ['NetCashProvidedByUsedInOperatingActivities'], 'USD')
-  const capex = annual(facts, ['PaymentsToAcquirePropertyPlantAndEquipment', 'PaymentsToAcquireProductiveAssets'], 'USD')
+  const capex = annual(facts, CAPEX_CONCEPTS, 'USD')
+  const shares = normalizeShareUnits(annual(facts, SHARE_CONCEPTS, 'shares'))
+  const { adjusted, extra } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
+  const aligned = restateEps(reportedEps, extra)
+  const cliffYears = new Set(aligned.map((point) => point.fy))
+  for (const point of dropCliffs(aligned)) cliffYears.delete(point.fy)
+  const keptEps = restateEpsLevels(aligned.filter((point) => !cliffYears.has(point.fy)))
   const ocfByYear = new Map(ocf.map((item) => [item.fy, item.val]))
-  const fcf = capex.filter((item) => ocfByYear.has(item.fy)).map((item) => ({ fy: item.fy, val: ocfByYear.get(item.fy) - item.val }))
-  const years = [...new Set([...eps, ...revenue, ...operating, ...equity, ...fcf].map((item) => item.fy))].sort((a, b) => a - b)
+  const fcf = capex
+    .filter((item) => ocfByYear.has(item.fy))
+    .map((item) => ({ fy: item.fy, val: ocfByYear.get(item.fy) - Math.abs(item.val) }))
+  const years = [...new Set([...keptEps, ...revenue, ...operating, ...equity, ...fcf, ...shares].map((item) => item.fy))].sort((a, b) => a - b)
+  const shareFor = (fy) => {
+    const match = [...adjusted.entries()].reverse().find(([year]) => year <= fy)
+    return match ? match[1] : deiValue(facts, 'EntityCommonStockSharesOutstanding')
+  }
   const perShare = (series, fy) => {
     const total = findYear(series, fy)
-    const shares = sharesFor(facts, fy)
-    if (total == null || !shares) return null
-    return Number((total / shares).toFixed(4))
+    const count = shareFor(fy)
+    if (total == null || !(count > 0)) return null
+    return Number((total / count).toFixed(4))
   }
-  const rows = years.map((fy) => ({
-    date: fy + '-12',
-    eps_without_nri: findYear(eps, fy),
-    revenue_per_share: perShare(revenue, fy),
-    operating_income_per_share: perShare(operating, fy),
-    ebitda_per_share: null,
-    free_cash_flow_per_share: perShare(fcf, fy),
-    dividends_per_share: null,
-    book_value_per_share: (() => {
-      const book = findYear(equity, fy)
-      if (book == null) return null
-      const tangible = book - (findYear(goodwill, fy) || 0) - (findYear(intangibles, fy) || 0)
-      const shares = sharesFor(facts, fy)
-      return shares ? Number((tangible / shares).toFixed(4)) : null
-    })(),
-  }))
-  return { annual: rows, ttm: [], quarter: [] }
+  const rows = years.map((fy) => {
+    const book = findYear(equity, fy)
+    const count = shareFor(fy)
+    const tangible = book == null || !(count > 0)
+      ? null
+      : Number(((book - (findYear(goodwill, fy) || 0) - (findYear(intangibles, fy) || 0)) / count).toFixed(4))
+    return {
+      date: fy + '-12',
+      eps_without_nri: cliffYears.has(fy) ? null : findYear(keptEps, fy),
+      revenue_per_share: perShare(revenue, fy),
+      operating_income_per_share: perShare(operating, fy),
+      ebitda_per_share: null,
+      free_cash_flow_per_share: perShare(fcf, fy),
+      dividends_per_share: null,
+      book_value_per_share: tangible,
+    }
+  })
+  const latestEpsYear = keptEps.at(-1)?.fy || years.at(-1) || 0
+  const fcfHistory = rows
+    .filter((row) => row.free_cash_flow_per_share != null)
+    .map((row) => ({ fy: Number(row.date.slice(0, 4)), val: row.free_cash_flow_per_share }))
+  const recentFcf = [...fcfHistory].reverse().find((point) => point.fy >= latestEpsYear - 1) || null
+  const last = rows.at(-1)
+  return {
+    filingShares: shareFor(latestEpsYear) || null,
+    financials: {
+      annual: rows,
+      ttm: last ? [{
+        date: last.date,
+        eps_without_nri: last.eps_without_nri,
+        free_cash_flow_per_share: recentFcf && Number(last.date.slice(0, 4)) >= latestEpsYear - 1 ? last.free_cash_flow_per_share : null,
+        book_value_per_share: last.book_value_per_share,
+      }] : [],
+      quarter: [],
+    },
+    fields: {
+      ttm_eps: keptEps.at(-1)?.val ?? null,
+      free_cash_flow_per_share: recentFcf?.val ?? null,
+      tangible_book: [...rows].reverse().find((row) => row.book_value_per_share != null)?.book_value_per_share ?? null,
+      earning_growth_10y: growth(growthSeries(keptEps)),
+      cashflow_growth_10y: recentFcf ? growth(growthSeries(fcfHistory)) : null,
+      predictability: predictability(keptEps),
+    },
+  }
+}
+
+/** Annual per-share rows the financial table and the chart can both read. */
+export function financialsFromFacts (facts) {
+  return assemble(facts).financials
+}
+
+export function fundamentalsFromFacts (symbol, facts) {
+  const [market, code] = String(symbol).split(':')
+  const built = assemble(facts)
+  const fields = {
+    symbol: code,
+    exchange_: market,
+    company: facts.entityName || code,
+    currency: '$',
+    eps_period: 'FY',
+    filingShares: built.filingShares,
+    ...built.fields,
+    _partial: true,
+    _sources: ['edgar'],
+    _fiscal: 'FY',
+    _filedThrough: built.financials.annual.at(-1)?.date?.slice(0, 4) || null,
+  }
+  if (fields.ttm_eps == null && fields.tangible_book == null) throw new Error('EDGAR: no fundamentals for ' + code)
+  return { fields, financials: built.financials, filingShares: built.filingShares }
 }
 
 export async function fetchFinancialsFromEdgar (symbol) {
@@ -179,63 +458,7 @@ export async function fetchHistoryFromEdgar (symbol, indicator) {
 
 /** Fundamentals from one companyfacts payload. No network. */
 export function profileFromFacts (symbol, facts) {
-  const [market, code] = String(symbol).split(':')
-  const shares = deiValue(facts, 'EntityCommonStockSharesOutstanding')
-  const eps = annual(facts, ['EarningsPerShareDiluted', 'EarningsPerShareBasicAndDiluted', 'EarningsPerShareBasic'], 'USD/shares')
-  const equity = annual(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], 'USD')
-  const goodwill = annual(facts, ['Goodwill'], 'USD')
-  const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
-  const ocf = annual(facts, ['NetCashProvidedByUsedInOperatingActivities'], 'USD')
-  const capex = annual(facts, ['PaymentsToAcquirePropertyPlantAndEquipment', 'PaymentsToAcquireProductiveAssets'], 'USD')
-
-  const perShare = (series) => {
-    if (!series?.length) return null
-    const last = series[series.length - 1]
-    const yearShares = sharesFor(facts, last.fy) || shares
-    return yearShares ? Number((last.val / yearShares).toFixed(4)) : null
-  }
-
-  // Free cash flow per share from the two matching fiscal years.
-  let fcfPerShare = null
-  let fcfGrowth = null
-  const byFy = new Map(ocf.map((item) => [item.fy, item.val]))
-  const fcfSeries = capex
-    .filter((item) => byFy.has(item.fy))
-    .map((item) => ({ fy: item.fy, val: byFy.get(item.fy) - item.val }))
-  if (fcfSeries.length) {
-    const last = fcfSeries[fcfSeries.length - 1]
-    const yearShares = sharesFor(facts, last.fy) || shares
-    if (yearShares) fcfPerShare = Number((last.val / yearShares).toFixed(4))
-    fcfGrowth = growth(fcfSeries)
-  }
-
-  const tbvSeries = equity
-    .filter((item) => item.val > 0)
-    .map((item) => {
-      const gw = goodwill.find((g) => g.fy === item.fy)?.val || 0
-      const it = intangibles.find((g) => g.fy === item.fy)?.val || 0
-      return { fy: item.fy, val: item.val - gw - it }
-    })
-
-  const stock = {
-    symbol: code,
-    exchange_: market,
-    company: facts.entityName || code,
-    currency: '$',
-    ttm_eps: latest(eps),
-    eps_period: 'FY',
-    free_cash_flow_per_share: fcfPerShare,
-    tangible_book: perShare(tbvSeries),
-    earning_growth_10y: growth(eps),
-    cashflow_growth_10y: fcfGrowth,
-    predictability: predictability(eps),
-    _partial: true,
-    _sources: ['edgar'],
-    _fiscal: 'FY',
-    _filedThrough: eps.length ? eps[eps.length - 1].fy : null,
-  }
-  if (stock.ttm_eps == null && stock.tangible_book == null) throw new Error('EDGAR: no fundamentals for ' + code)
-  return stock
+  return fundamentalsFromFacts(symbol, facts).fields
 }
 
 export async function fetchStockFromEdgar (symbol) {

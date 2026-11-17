@@ -4,7 +4,8 @@ import axios from 'axios'
 import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
 import { transport } from '../transport'
-import { fromAshareReports, fromHkReports } from './eastmoney-statements'
+import { fromAshareReports, fromHkReports, convertReportingCurrency } from './eastmoney-statements'
+import { fx } from '../../lib/fx'
 
 // CN 0/1, HK 128, US 105/106/107. The quote host wants a dot (105.MSFT).
 // A colon is encoded to %3A and the host answers rc 102 with no quote.
@@ -29,6 +30,16 @@ const US = new Set(['NYSE', 'NASDAQ', 'AMEX'])
 const F10 = { id: 'eastmoney', origin: 'https://emweb.securities.eastmoney.com', proxyPath: '/emf10', corsSafe: false }
 const DC = { id: 'eastmoney', origin: 'https://datacenter.eastmoney.com', proxyPath: '/emdc', corsSafe: false }
 const statementCache = new Map()
+
+async function yuanToHkd () {
+  try {
+    const result = await fx.convert(1, 'CNY', 'HKD')
+    if (!result.ok || result.rate < 1.05 || result.rate > 1.3) return null
+    return result.rate
+  } catch (error) {
+    return null
+  }
+}
 
 const optional = (value) => {
   const parsed = Number(value)
@@ -79,6 +90,8 @@ async function loadStatements (symbol) {
       sortColumns: 'REPORT_DATE',
     }))
     pack = fromHkReports(data?.result?.data || [])
+    const rate = await yuanToHkd()
+    if (rate) pack = convertReportingCurrency(pack, rate)
   }
   if (!pack || !pack.financials.annual.length) throw notSupported('eastmoney', 'statements for ' + symbol)
   statementCache.set(symbol, pack)

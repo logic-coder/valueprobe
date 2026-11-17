@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fromAshareReports, fromHkReports, trailingTwelve } from '../../src/data/providers/eastmoney-statements'
+import { fromAshareReports, fromHkReports, trailingTwelve, windowGrowth, convertReportingCurrency } from '../../src/data/providers/eastmoney-statements'
 
 const row = (date, type, extra) => ({ REPORT_DATE: date, REPORT_TYPE: type, ...extra })
 
@@ -52,5 +52,45 @@ describe('Hong Kong statements', () => {
     expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBe(5)
     expect(parsed.financials.annual.at(-1).dividends_per_share).toBe(1.5)
     expect(parsed.financials.annual.at(-1).operating_income_per_share).toBe(5)
+  })
+})
+
+describe('growth windows and cash-flow basis', () => {
+  it('keeps a long window when the ten-year anchor is negative', () => {
+    const rate = windowGrowth([
+      { fy: 2015, val: -1 },
+      { fy: 2016, val: 1 },
+      { fy: 2020, val: 10 },
+      { fy: 2025, val: 12 },
+    ], 10)
+    expect(rate).toBe(31.8)
+  })
+
+  it('does not seed free cash flow from operating cash flow', () => {
+    const parsed = fromAshareReports([], [
+      row('2024-12-31', '年报', { EPSJB: 1, EPSXS: 1, BPS: 8, MGJYXJJE: 20, PER_TOI: 3 }),
+      row('2025-12-31', '年报', { EPSJB: 1.1, EPSXS: 1.1, BPS: 9, MGJYXJJE: 22, PER_TOI: 3.2 }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('ocf')
+    expect(parsed.fields.free_cash_flow_per_share).toBeNull()
+    expect(parsed.fields.cashflow_growth_10y).toBeNull()
+    expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBe(22)
+  })
+
+  it('converts Hong Kong per-share figures into the quote currency and leaves dividends', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: 10, DILUTED_EPS: 10, EPS_TTM: 10, BPS: 40, HOLDER_PROFIT: 100,
+        NETCASH_OPERATE: 30, NETCASH_INVEST: -10, PER_OI: 20, DPS_HKD: 1.5,
+      }),
+      row('2024-12-31', '年报', {
+        BASIC_EPS: 8, DILUTED_EPS: 8, EPS_TTM: 8, BPS: 36, HOLDER_PROFIT: 80,
+        NETCASH_OPERATE: 24, NETCASH_INVEST: -8, PER_OI: 16, DPS_HKD: 1.2,
+      }),
+    ])
+    const converted = convertReportingCurrency(parsed, 1.1)
+    expect(converted.fields.ttm_eps).toBeCloseTo(11)
+    expect(converted.fields.tangible_book).toBeCloseTo(44)
+    expect(converted.financials.annual.at(-1).dividends_per_share).toBe(1.5)
   })
 })

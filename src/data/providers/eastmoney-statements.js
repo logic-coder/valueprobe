@@ -65,12 +65,17 @@ export function windowGrowth (points, yearsWanted) {
   const clean = points.filter((point) => point && Number.isFinite(point.fy) && Number.isFinite(point.val))
   if (clean.length < 2) return null
   const last = clean[clean.length - 1]
-  const start = yearsWanted === 1
+  let start = yearsWanted === 1
     ? clean[clean.length - 2]
     : clean.reduce((chosen, point) => (point.fy <= last.fy - yearsWanted ? point : chosen), clean[0])
-  const span = last.fy - start.fy
   const minimum = yearsWanted === 1 ? 1 : Math.ceil(yearsWanted * 0.7)
-  if (span < minimum) return null
+  // A negative anchor makes the whole window fail. Step forward to the first
+  // positive year that still covers the minimum span, instead of borrowing a
+  // shorter window and labeling it as ten years.
+  if (yearsWanted > 1 && !(start?.val > 0)) {
+    start = clean.find((point) => point.fy < last.fy && point.val > 0 && last.fy - point.fy >= minimum) || null
+  }
+  if (!start || last.fy - start.fy < minimum) return null
   return cagr(start, last)
 }
 
@@ -243,5 +248,41 @@ function pack (input) {
   for (const name of ['earning_growth', 'cashflow_growth']) {
     fields[name + '_10y'] = fields[name + '_10y'] ?? fields[name + '_5y'] ?? fields[name + '_1y']
   }
+  // Operating cash flow of a bank is not owner earnings. Keep it out of the
+  // number the calculator will grow.
+  if (input.basis === 'ocf') {
+    fields.free_cash_flow_per_share = null
+    fields.cashflow_growth_10y = null
+    fields.cashflow_growth_5y = null
+    fields.cashflow_growth_1y = null
+    for (const row of financials.ttm) row.free_cash_flow_per_share = null
+  }
   return { financials, fields }
+}
+
+const SCALE_FIELDS = ['ttm_eps', 'ttm_eps_nri', 'free_cash_flow_per_share', 'tangible_book']
+const SCALE_ROWS = ['eps_without_nri', 'revenue_per_share', 'operating_income_per_share', 'free_cash_flow_per_share', 'book_value_per_share']
+
+/**
+ * Hong Kong indicator rows are in yuan. The quote is in HKD. Dividends are
+ * already DPS_HKD and are left alone. Growth rates are ratios.
+ */
+export function convertReportingCurrency (pack, rate) {
+  if (!(rate > 0) || Math.abs(rate - 1) < 1e-6) return pack
+  const scale = (value) => (value == null ? null : round4(Number(value) * rate))
+  const fields = { ...pack.fields }
+  for (const key of SCALE_FIELDS) fields[key] = scale(fields[key])
+  const mapRow = (row) => {
+    const next = { ...row }
+    for (const key of SCALE_ROWS) next[key] = scale(next[key])
+    return next
+  }
+  return {
+    fields,
+    financials: {
+      annual: (pack.financials?.annual || []).map(mapRow),
+      ttm: (pack.financials?.ttm || []).map(mapRow),
+      quarter: pack.financials?.quarter || [],
+    },
+  }
 }
