@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { decodeState, encodeState, isPresetEmpty } from '../../src/lib/permalink'
+import { decodeState, encodeModel, encodeState, isPresetEmpty } from '../../src/lib/permalink'
 
 const defaults = {
   dcfForm: { eps: 1.08, freecashflow: 2.5, years: 10, discountRate: 12, growthRate: 5, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10 },
@@ -30,6 +30,7 @@ describe('permalink', () => {
       result: { stockPrice: 6.6, tbv: 10 },
       basis: 'freecashflow',
       tbvIn: undefined,
+      model: undefined,
     })
   })
 
@@ -41,6 +42,14 @@ describe('permalink', () => {
 
   it('takes the first entry when a parameter repeats', () => {
     expect(decodeState({ r: ['14', '20'] }).form).toEqual({ discountRate: 14 })
+  })
+
+  it('keeps a model only when it differs from the suggestion', () => {
+    expect(encodeModel('residual', 'residual')).toBeUndefined()
+    expect(encodeModel('owner', 'residual')).toBe('oe')
+    expect(decodeState({ m: 'ri' }).model).toBe('residual')
+    expect(decodeState({ m: 'oe' }).model).toBe('owner')
+    expect(isPresetEmpty(decodeState({ m: 'oe' }))).toBe(false)
   })
 
   it('recognises an empty preset', () => {

@@ -1,5 +1,5 @@
-// Two-stage finite annuity. Fast-growth years, then a second stage of
-// `yearsOfTerminalGrowth` years. Cash flows stop after that; there is no perpetuity.
+// `calGr2fv` is the frozen two-stage finite annuity. `presentValue`, what the page
+// shows, adds a continuing value after the second stage.
 import { adoptGrowth } from './assumptions'
 
 export const round2 = (value) => Math.round(100 * value) / 100
@@ -51,7 +51,12 @@ export function presentValue (tbv, years, discountRate, growthRate, base, termin
   }
 }
 
-// Year 1 grows at g0 and the last fast-growth year at gT.
+// Keeps the capitalization multiple at or under 1 / 2% when terminal growth
+// sits just under the discount rate.
+const CONTINUATION_SPREAD = 0.02
+
+// Year 1 grows at g0 and the last fast-growth year at gT, then gT for the
+// terminal years, then one continuing value for everything after.
 function unroundedPresentValue (tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue) {
   const r = Number(discountRate) / 100
   const g0 = Number(growthRate) / 100
@@ -76,6 +81,14 @@ function unroundedPresentValue (tbv, years, discountRate, growthRate, base, term
     const discounted = flow / Math.pow(1 + r, n + k)
     if (!Number.isFinite(discounted)) return invalid
     terminalValue += discounted
+  }
+  // The business outlives the explicit window: capitalize the following year at
+  // r - g. Without r > g there is no finite multiple, so the annuity stands alone.
+  if (r > gT) {
+    const gc = Math.min(gT, r - CONTINUATION_SPREAD)
+    const continuing = (flow * (1 + gc)) / (r - gc) / Math.pow(1 + r, n + m)
+    if (!Number.isFinite(continuing)) return invalid
+    terminalValue += continuing
   }
   let fairValue = growthValue + terminalValue
   if (addToFairValue) fairValue += Number(tbv) || 0
@@ -137,6 +150,29 @@ export function calculateReverse (tbv, years, discountRate, base, price, termina
   } while (target / fair > 1.00001 || target / fair < 0.99999)
   if (!Number.isFinite(last)) return null
   return last.toFixed(2)
+}
+
+// Growth funded out of earnings: at g = ROE every yuan is retained and nothing is paid.
+const RETENTION_SPREAD = 1
+
+/**
+ * Residual income (justified price to tangible book) for a financial institution:
+ * book × (ROE − g) / (r − g). Book is the equity already owned, so it is not added
+ * again. g is the smallest of the growth input, the terminal input and ROE − 1pp.
+ * @returns {{ fairValue: number, roe: number, growth: number }|null} percent rates;
+ *   null when book or eps is not positive or r ≤ g.
+ */
+export function residualIncomeValue (tbv, eps, discountRate, growthRate, terminalGrowthRate) {
+  const book = Number(tbv)
+  const earnings = Number(eps)
+  const r = Number(discountRate)
+  if (!(book > 0) || !(earnings > 0) || !Number.isFinite(r)) return null
+  const roe = (earnings / book) * 100
+  const growth = Math.min(Number(growthRate), Number(terminalGrowthRate), roe - RETENTION_SPREAD)
+  if (!Number.isFinite(roe) || !Number.isFinite(growth) || roe <= growth || r <= growth) return null
+  const fair = (book * (roe - growth)) / (r - growth)
+  if (!Number.isFinite(fair)) return null
+  return { fairValue: round2(fair), roe, growth }
 }
 
 /** Margin of safety in percent, or "n/a" exactly like the original. */

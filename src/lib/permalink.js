@@ -43,6 +43,14 @@ export function encodeState(form, result, basis, defaults = {}) {
   return out
 }
 
+/** A model travels only when the reader picked something other than the suggestion. */
+export function encodeModel (model, suggested) {
+  if (!model || model === suggested) return undefined
+  if (model === 'residual') return 'ri'
+  if (model === 'owner') return 'oe'
+  return undefined
+}
+
 export function decodeState(query = {}) {
   const form = {}
   const result = {}
@@ -55,11 +63,13 @@ export function decodeState(query = {}) {
   }
   const basis = first(query.b) === 'fcf' ? 'freecashflow' : undefined
   const tbvIn = first(query.tbv1) === '1' ? true : undefined
-  return { form, result, basis, tbvIn }
+  const modelToken = first(query.m)
+  const model = modelToken === 'ri' ? 'residual' : modelToken === 'oe' ? 'owner' : undefined
+  return { form, result, basis, tbvIn, model }
 }
 
 export function isPresetEmpty(preset) {
-  return !preset || (!preset.basis && preset.tbvIn === undefined
+  return !preset || (!preset.basis && !preset.model && preset.tbvIn === undefined
     && Object.keys(preset.form || {}).length === 0
     && Object.keys(preset.result || {}).length === 0)
 }

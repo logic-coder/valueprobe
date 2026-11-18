@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
 test('explains the tool and still renders the default example', async ({ page }) => {
   await expect(page.locator('.home__title')).toContainText('内在价值')
   await expect(page.locator('.site-footer')).toContainText('不构成投资建议')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.45', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('13.49', { timeout: 20000 })
   await expect(page.locator('.ticker')).toHaveCount(0)
   await expect(page.locator('.home__recent')).toContainText('还没有记录')
 })
@@ -23,7 +23,7 @@ test('lists a recently viewed symbol and clears it', async ({ page }) => {
   await page.goto('/#/stock/NYSE:KO/dcf')
   await expect(page).toHaveURL(/#\/stock\/NYSE:KO\/dcf$/)
   await expect(page.locator('.ticker__code')).toContainText('NYSE', { timeout: 20000 })
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.45', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('13.49', { timeout: 20000 })
   await page.goto('/#/')
   const recent = page.locator('.home__recent')
   await expect(recent).toContainText('接着看')

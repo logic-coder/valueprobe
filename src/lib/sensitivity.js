@@ -1,6 +1,6 @@
 // Sensitivity matrix around the current assumptions. Every cell uses the same
 // fading path as the headline, so the centre cell is that fair value.
-import { presentValue } from './dcf'
+import { presentValue, residualIncomeValue } from './dcf'
 
 export const SENS_STEPS = 2
 const DISCOUNT_RANGE = [0, 50]
@@ -30,14 +30,16 @@ const exact = (value) => {
  * @returns {{discounts:number[], growths:number[], rows:(number|null)[][], center:{discountRate:number, growthRate:number}}}
  */
 export function buildSensitivityGrid ({
-  discountRate, growthRate, tbv, years, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue,
+  discountRate, growthRate, tbv, years, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue, residualIncome = false,
 }) {
   const discountCenter = exact(discountRate)
   const growthCenter = exact(growthRate)
   const discounts = axis(discountCenter, DISCOUNT_RANGE, false)
   const growths = axis(growthCenter, GROWTH_RANGE, true)
   const rows = discounts.map((dr) => growths.map((gr) => {
-    const { fairValue } = presentValue(tbv, years, dr, gr, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
+    const fairValue = residualIncome
+      ? residualIncomeValue(tbv, base, dr, gr, terminalGrowthRate)?.fairValue
+      : presentValue(tbv, years, dr, gr, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
     return Number.isFinite(fairValue) ? fairValue : null
   }))
   return {

@@ -57,7 +57,7 @@ const reset = () => {
 .ds-order__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .ds-order__list li { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
 .ds-order__label { font-weight: 600; }
-.ds-order__hint { color: var(--text-faint); font-size: 11.5px; margin-right: auto; }
+.ds-order__hint { color: var(--text-muted); font-size: 13px; margin-right: auto; }
 .ds-order__list button { width: 26px; height: 24px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text-muted); cursor: pointer; }
 .ds-order__list button:disabled { opacity: 0.4; cursor: default; }
 .ds-order__reset { justify-self: start; font-size: 12px; color: var(--text-muted); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }

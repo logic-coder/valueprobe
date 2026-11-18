@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 test('still boots and keeps the watchlist in memory', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('13.49', { timeout: 20000 })
   await page.locator('.star-button').click()
   await expect(page.locator('.watch-link__count')).toHaveText('1')
   await page.locator('.watch-link').click()

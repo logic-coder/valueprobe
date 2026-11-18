@@ -177,7 +177,18 @@ export function fromAshareReports (recent, annualReports) {
   })
 }
 
-const isHkFinancial = (row) => num(row?.NET_INTEREST_INCOME) != null || num(row?.PREMIUM_INCOME) != null
+// Ordinary companies also earn interest on cash, so a net-interest line alone does
+// not make a bank: it has to be a large part of revenue.
+const BANK_INTEREST_SHARE = 0.3
+const isHkFinancial = (row) => {
+  if (num(row?.PREMIUM_INCOME) > 0) return true
+  const interest = num(row?.NET_INTEREST_INCOME)
+  if (interest == null) return false
+  const count = shares(row.HOLDER_PROFIT, row.BASIC_EPS)
+  const revenue = num(row.OPERATE_INCOME) ?? (count && num(row.PER_OI) != null ? num(row.PER_OI) * count : null)
+  if (!(revenue > 0)) return true
+  return interest >= revenue * BANK_INTEREST_SHARE
+}
 
 /** Hong Kong main-indicator rows. EPS_TTM is already trailing; cash flow is reconstructed per year. */
 export function fromHkReports (rows) {
@@ -216,7 +227,9 @@ export function fromHkReports (rows) {
     ttmDiluted: num(latest?.EPS_TTM),
     ttmFcf: fcfOf(annual.at(-1)),
     book: num(latest?.BPS),
-    basis: usedFlow ? 'fcf' : 'ocf',
+    // A non-financial whose rows carry no operating and investing cash flow is not
+    // a bank; it simply has no free cash flow to show.
+    basis: usedFlow ? 'fcf' : financial ? 'ocf' : 'none',
     table,
     epsPoints: series(annual, epsOf),
     cashPoints: series(annual, fcfOf),
@@ -260,9 +273,10 @@ function pack (input) {
     ...growthSet('rvn_growth', input.revenuePoints),
     ...growthSet('ebit_growth', input.ebitPoints),
   }
-  // Operating cash flow of a bank is not owner earnings. Keep it out of the
-  // number the calculator will grow and out of the free-cash-flow history.
-  if (input.basis === 'ocf') {
+  // Operating cash flow of a bank is not owner earnings, and operating cash flow
+  // without capital spending is not free cash flow. Keep both out of the number
+  // the calculator will grow and out of the free-cash-flow history.
+  if (input.basis === 'ocf' || input.basis === 'none') {
     fields.free_cash_flow_per_share = null
     fields.cashflow_growth_10y = null
     fields.cashflow_growth_5y = null

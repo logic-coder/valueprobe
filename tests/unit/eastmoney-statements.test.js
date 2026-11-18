@@ -131,6 +131,27 @@ describe('growth windows and cash-flow basis', () => {
     expect(parsed.reportCurrency).toBe('CNY')
   })
 
+  it('does not call an ordinary company with some interest income a bank', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: 20, DILUTED_EPS: 20, EPS_TTM: 20, BPS: 100, HOLDER_PROFIT: 200, OPERATE_INCOME: 700,
+        NET_INTEREST_INCOME: 15, NETCASH_OPERATE: 260, NETCASH_INVEST: -90,
+      }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('fcf')
+    expect(parsed.fields.free_cash_flow_per_share).toBe(17)
+  })
+
+  it('labels a non-financial without capital spending as having no free cash flow, not as a bank', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', { BASIC_EPS: 7, DILUTED_EPS: 7, EPS_TTM: 7, BPS: 70, PER_OI: 50, PER_NETCASH_OPERATE: 15 }),
+      row('2024-12-31', '年报', { BASIC_EPS: 6.5, DILUTED_EPS: 6.5, EPS_TTM: 6.5, BPS: 66, PER_OI: 48, PER_NETCASH_OPERATE: 14 }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('none')
+    expect(parsed.fields.free_cash_flow_per_share).toBeNull()
+    expect(parsed.financials.annual.every((item) => item.free_cash_flow_per_share === null)).toBe(true)
+  })
+
   it('keeps a loss-making Hong Kong company on free cash flow', () => {
     const parsed = fromHkReports([
       row('2025-12-31', '年报', {

@@ -20,6 +20,27 @@
           />
 
           <div class="line-height-2 dcf__form">
+            <div class="dcf__scenario">
+              <a-popover placement="top">
+                <span class="dcf__scenario-label">{{ t('model') }} <q-icon class="text-grey-7" name="help" size="14px" /></span>
+                <template #content>{{ t('model_help') }}</template>
+              </a-popover>
+              <div class="dcf__scenario-btns" role="group" :aria-label="t('model')">
+                <q-btn
+                  v-for="key in models"
+                  :key="key"
+                  dense
+                  flat
+                  size="sm"
+                  padding="xs md"
+                  :class="{ 'is-active': model === key }"
+                  :label="t('model_' + key)"
+                  :title="t('model_' + key + '_tip')"
+                  @click="model = key"
+                />
+              </div>
+              <span class="faint dcf__scenario-note dcf__model-note">{{ model === suggested ? t(suggested === 'residual' ? 'model_suggested_residual' : 'model_suggested_owner') : t('model_override') }}</span>
+            </div>
             <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
             <!-- stock price -->
             <div class="dcf__row">
@@ -79,8 +100,9 @@
               </div>
             </div>
             <div v-if="!loading && stock.cashflow_basis" class="dcf__rate-note">
-              {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : t('fcf_basis_equity') }}
+              {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : t('fcf_basis_equity') }}
             </div>
+            <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
             <q-separator />
 
             <div v-if="!isManual" class="dcf__rate-note">
@@ -127,7 +149,7 @@
                   <template #content>{{ t('book_desc') }}</template>
                 </a-popover>
                 <label class="dcf__toggle">
-                  <q-checkbox v-model="result.addToFairValue" size="xs" :aria-label="t('add_to_fair_value')" />
+                  <q-checkbox v-model="result.addToFairValue" size="xs" :disable="residualIncome" :aria-label="t('add_to_fair_value')" />
                   {{ t('add_to_fair_value') }}
                 </label>
               </div>
@@ -141,7 +163,7 @@
                   </q-popup-edit>
                 </template>
               </div>
-              <p v-if="result.addToFairValue" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
+              <p v-if="result.addToFairValue && !residualIncome" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
             </div>
             <q-separator />
 
@@ -321,7 +343,8 @@ import { useDcfStore } from '../store/dcf'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
-import { buildDefaults, impliedGrowth, marginOfSafety, presentValue } from '../lib/dcf'
+import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue } from '../lib/dcf'
+import { suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
 import APopover from './APopover.vue'
@@ -334,7 +357,7 @@ import MultipleCheckPanel from './MultipleCheckPanel.vue'
 import PeerComparePanel from './PeerComparePanel.vue'
 import { buildSensitivityGrid } from '../lib/sensitivity'
 import { peersFor } from '../lib/peers'
-import { decodeState, encodeState, isPresetEmpty } from '../lib/permalink'
+import { decodeState, encodeModel, encodeState, isPresetEmpty } from '../lib/permalink'
 import { ERP_DEFAULT, buildUpRate } from '../lib/wacc'
 import { applyScenario } from '../lib/scenarios'
 import { useRoute, useRouter } from 'vue-router'
@@ -365,7 +388,10 @@ const growthNote = computed(() => {
   const info = adoptGrowth(stock.value?.[historicalField])
   const adopted = dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate
   if (info.reason === 'missing') return t('growth_missing_note', { adopted })
-  return t('growth_adopted_note', { historical: info.historical, adopted })
+  const span = stock.value?.growth_window?.[dcfBasedOn.value === 'eps' ? 'eps' : 'fcf']
+  const window = span ? t('growth_window', span) : ''
+  if (info.reason === 'capped') return t('growth_capped_note', { historical: info.historical, window, cap: info.adopted, adopted })
+  return t('growth_adopted_note', { historical: info.historical, window, adopted })
 })
 const stageNote = computed(() => {
   const years = (Number(form.years) || 0) + (Number(form.yearsOfTerminalGrowth) || 0)
@@ -385,6 +411,10 @@ const freecashflow = computed(() => {
   const row = financials.value?.ttm?.at(-1)
   return finiteOrNull(row?.free_cash_flow_per_share)
 })
+const models = VALUATION_MODELS
+const suggested = computed(() => suggestedModel(stock.value))
+const model = ref('owner')
+const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
 
 const dcfBasedOn = ref('eps')
@@ -441,6 +471,7 @@ const initData = async () => {
     delete preset.form.freecashflow
     delete preset.result.tbv
   }
+  model.value = preset.model || suggested.value
   if (!isPresetEmpty(preset)) {
     if (preset.basis) dcfBasedOn.value = preset.basis
     Object.assign(form, preset.form)
@@ -460,6 +491,8 @@ const initData = async () => {
 // onto the current URL — that keeps the deployment base path intact.
 const shareUrl = () => {
   const query = encodeState(form, result, dcfBasedOn.value, seed.value || {})
+  const modelKey = encodeModel(model.value, suggested.value)
+  if (modelKey) query.m = modelKey
   if (!isManual.value) {
     delete query.eps
     delete query.fcf
@@ -495,6 +528,14 @@ const calculate = () => {
     result.reverseGrowthRate = null
     return
   }
+  if (residualIncome.value) {
+    result.fairValue = residualIncomeValue(result.tbv, base, form.discountRate, growth, form.terminalGrowthRate)?.fairValue ?? null
+    result.growthValue = null
+    result.terminalValue = null
+    result.marginOfSafety = result.fairValue == null ? 'n/a' : marginOfSafety(result.stockPrice, result.fairValue)
+    result.reverseGrowthRate = null
+    return
+  }
   const computedValues = presentValue(result.tbv, form.years, form.discountRate, growth, base, form.terminalGrowthRate, form.yearsOfTerminalGrowth, result.addToFairValue)
   result.fairValue = computedValues.fairValue
   result.growthValue = computedValues.growthValue
@@ -516,6 +557,7 @@ const sensitivityGrid = computed(() => buildSensitivityGrid({
   terminalGrowthRate: form.terminalGrowthRate,
   yearsOfTerminalGrowth: form.yearsOfTerminalGrowth,
   addToFairValue: result.addToFairValue,
+  residualIncome: residualIncome.value,
 }))
 
 // Pin one provider for this code (empty = automatic order).
@@ -617,6 +659,11 @@ watch(() => ({ ...form }), () => {
   calculate()
   persistManual()
 }, { deep: true })
+watch(model, () => {
+  activeScenario.value = 'base'
+  baseAssumptions.value = null
+  calculate()
+})
 watch(dcfBasedOn, () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null

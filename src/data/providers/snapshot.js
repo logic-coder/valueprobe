@@ -5,8 +5,52 @@ import axios from 'axios'
 import { parseSymbol } from '../../config/markets'
 import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
+import { cleanGrowth } from '../../lib/assumptions'
+import { isFinancialInstitution } from '../../lib/financialInstitution'
 
 const http = axios.create({ timeout: 15_000 })
+
+/** One slot per fiscal year, oldest first, null where the year is missing. */
+function yearSeries (annual, field) {
+  const byYear = new Map()
+  for (const row of annual) {
+    const year = Number(String(row?.date || '').slice(0, 4))
+    if (Number.isInteger(year) && year > 0) byYear.set(year, row[field])
+  }
+  if (!byYear.size) return { firstYear: null, values: [] }
+  const years = [...byYear.keys()]
+  const firstYear = Math.min(...years)
+  const values = []
+  for (let year = firstYear; year <= Math.max(...years); year++) values.push(byYear.get(year) ?? null)
+  return { firstYear, values }
+}
+
+/**
+ * The stored 10y CAGR can span a share split (GOOGL: pre-split 27.85 against
+ * post-split 10.81). When the annual series shows such a level shift, the stored
+ * rate is replaced by the rate over the clean suffix only, or by missing when
+ * that suffix is too short. A series without a shift keeps the stored rate.
+ */
+export function applyCleanGrowth (stock, annual) {
+  if (!Array.isArray(annual) || !annual.length) return stock
+  const window = {}
+  const fields = [['eps', 'eps_without_nri', 'earning_growth_10y']]
+  // A bank's operating cash flow is not owner earnings; its growth stays out.
+  if (stock.cashflow_basis !== 'ocf') fields.push(['fcf', 'free_cash_flow_per_share', 'cashflow_growth_10y'])
+  // Revenue per share is restated across splits in the same rows.
+  const revenue = yearSeries(annual, 'revenue_per_share').values
+  for (const [key, rowField, growthField] of fields) {
+    const stored = stock[growthField]
+    if (stored === null || stored === undefined || stored === '') continue
+    const { firstYear, values } = yearSeries(annual, rowField)
+    const clean = cleanGrowth(values, revenue)
+    if (!clean?.shifted) continue
+    stock[growthField] = clean.rate
+    if (clean.rate !== null) window[key] = { from: firstYear + clean.start, to: firstYear + clean.end }
+  }
+  if (Object.keys(window).length) stock.growth_window = window
+  return stock
+}
 const BASE = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 export const SNAPSHOT_DIR = BASE + '/data/'
 export const snapshotPath = (symbol) => {
@@ -40,9 +84,11 @@ export const snapshot = {
     const { market, code } = parseSymbol(symbol)
     const data = await this.load(symbol)
     const stock = { ...data }
+    applyCleanGrowth(stock, data.financials?.annual)
     delete stock.history
     delete stock.financials
     stock.exchange_ = market
+    if (isFinancialInstitution(stock)) stock.financial_institution = true
     stock.symbol = stock.symbol || code
     stock._provider = 'snapshot'
     stock._as_of = data.as_of || null

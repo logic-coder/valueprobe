@@ -34,14 +34,66 @@ describe('calGr2fv', () => {
 
 describe('presentValue', () => {
   it('fades a high historical rate instead of holding it above the discount rate', () => {
-    // Tencent: EPS 25.9021, 10y CAGR 21.05%, discount 10%, terminal 4% for 10 years.
-    // The constant-rate annuity prices that at 957.27. A straight-line fade does not.
-    expect(presentValue(0, 10, 10, 21.05, 25.9021, 4, 10, false).fairValue).toBe(574.99)
-    expect(presentValue(0, 10, 10, 40.71, 17.95, 4, 10, false).fairValue).toBe(799)
+    // Tencent: EPS 25.9021, 10y CAGR 21.05%, discount 10%, terminal 4% for 10 years,
+    // then capitalized at 4%. The faded path is 574.99 of explicit years plus
+    // 317.76 of continuing value.
+    expect(presentValue(0, 10, 10, 21.05, 25.9021, 4, 10, false).fairValue).toBe(892.75)
+    expect(presentValue(0, 10, 10, 40.71, 17.95, 4, 10, false).fairValue).toBe(1290.55)
   })
 
-  it('leaves a low growth rate close to the constant annuity', () => {
-    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false).fairValue).toBe(10.45)
+  it('values the ICBC defaults with the continuing value', () => {
+    // 10.45 of finite annuity plus 3.04 for the years after the second stage.
+    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false)).toEqual({ fairValue: 13.49, growthValue: 7.11, terminalValue: 6.38 })
+  })
+
+  it('adds the capitalized year after the second stage when discount exceeds terminal growth', () => {
+    const flow = 1.04
+    const finite = flow / 1.1
+    const continuing = (flow * 1.04) / (0.10 - 0.04) / 1.1
+    const result = presentValue(0, 0, 10, 20, 1, 4, 1, false)
+    expect(result.terminalValue).toBe(round2(finite + continuing))
+    expect(result.fairValue).toBeGreaterThan(round2(finite))
+  })
+
+  const finiteAnnuity = (r, g0, gT, base) => {
+    let flow = base
+    let sum = 0
+    for (let t = 1; t <= 10; t++) {
+      flow *= 1 + g0 + (gT - g0) * (t - 1) / 9
+      sum += flow / Math.pow(1 + r, t)
+    }
+    for (let k = 1; k <= 10; k++) {
+      flow *= 1 + gT
+      sum += flow / Math.pow(1 + r, 10 + k)
+    }
+    return { sum, flow }
+  }
+
+  it('is above the finite annuity alone for a positive base', () => {
+    const { sum, flow } = finiteAnnuity(0.10, 0.08, 0.04, 2)
+    const continuing = (flow * 1.04) / 0.06 / Math.pow(1.1, 20)
+    const fair = presentValue(0, 10, 10, 8, 2, 4, 10, false).fairValue
+    expect(fair).toBeGreaterThan(round2(sum))
+    expect(fair).toBe(round2(sum + continuing))
+  })
+
+  it('keeps only the finite annuity when terminal growth meets the discount rate', () => {
+    expect(presentValue(0, 10, 10, 8, 2, 10, 10, false).fairValue).toBe(round2(finiteAnnuity(0.10, 0.08, 0.10, 2).sum))
+  })
+
+  it('does not explode when terminal growth meets or passes the discount rate', () => {
+    const at = presentValue(0, 10, 5, 5, 1, 5, 10, false).fairValue
+    const above = presentValue(0, 10, 5, 5, 1, 6, 10, false).fairValue
+    expect(Number.isFinite(at)).toBe(true)
+    expect(Number.isFinite(above)).toBe(true)
+    expect(at).toBeLessThan(25)
+    expect(above).toBeLessThan(30)
+  })
+
+  it('caps the capitalization growth two points under the discount rate', () => {
+    // Terminal 4, discount 5: capitalized at 3%, a multiple of 1.03 / 0.02, not 1.04 / 0.01.
+    const result = presentValue(0, 0, 5, 0, 1, 4, 0, false)
+    expect(result.terminalValue).toBe(round2(1.03 / 0.02))
   })
 
   it('grows year one at the entered rate and the last fast year at the terminal rate', () => {
@@ -57,11 +109,16 @@ describe('presentValue', () => {
   it('skips the fast loop for zero fast years and grows the base at the terminal rate', () => {
     const result = presentValue(0, 0, 10, 20, 1, 4, 1, false)
     expect(result.growthValue).toBe(0)
-    expect(result.terminalValue).toBe(round2(1.04 / 1.1))
+    expect(result.terminalValue).toBe(round2(1.04 / 1.1 + (1.04 * 1.04) / 0.06 / 1.1))
   })
 
   it('solves the starting growth that the fading path needs to match a price', () => {
-    expect(impliedGrowth(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-1.38')
+    expect(impliedGrowth(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-7.34')
+  })
+
+  it('inverts the fair value the page shows', () => {
+    const fair = presentValue(0, 10, 10, 15, 10.81, 4, 10, false).fairValue
+    expect(parseFloat(impliedGrowth(0, 10, 10, 10.81, fair, 4, null, 10, false))).toBeCloseTo(15, 1)
   })
 
   it('reprices to the target at the solved growth', () => {
@@ -125,11 +182,11 @@ describe('buildDefaults', () => {
     expect(dcfForm.yearsOfTerminalGrowth).toBe(10)
   })
 
-  it('keeps a high reported growth rate and uses eight percent without an indicator', () => {
+  it('caps a high reported growth rate at fifteen and uses eight percent without an indicator', () => {
     const { dcfForm } = buildDefaults(null, { ttm_eps: 1, earning_growth_10y: 44, cashflow_growth_10y: 30, price: '1' }, 1)
     expect(dcfForm.discountRate).toBe(8)
-    expect(dcfForm.growthRate).toBe(44)
-    expect(dcfForm.freecashflowGrowthRate).toBe(30)
+    expect(dcfForm.growthRate).toBe(15)
+    expect(dcfForm.freecashflowGrowthRate).toBe(15)
   })
 
   it('uses the placeholder only when history is missing', () => {

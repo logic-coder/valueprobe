@@ -1,6 +1,7 @@
 // One line of the watchlist's valuation overview. Display-only: it seeds and computes
 // exactly like the stock page's defaults would, and never writes back.
-import { buildDefaults, marginOfSafety, presentValue } from './dcf'
+import { buildDefaults, marginOfSafety, presentValue, residualIncomeValue } from './dcf'
+import { suggestedModel } from './valuationModel'
 import { parseAmount } from './format'
 
 const num = (value) => {
@@ -22,8 +23,10 @@ export function defaultView (stock, indicator = null) {
   const result = defaults.dcfResultForm
   let fair
   try {
-    fair = presentValue(num(result.tbv) ?? 0, form.years, form.discountRate, form.growthRate, form.eps,
-      form.terminalGrowthRate, form.yearsOfTerminalGrowth, false).fairValue
+    fair = suggestedModel(stock) === 'residual'
+      ? residualIncomeValue(num(result.tbv), form.eps, form.discountRate, form.growthRate, form.terminalGrowthRate)?.fairValue ?? null
+      : presentValue(num(result.tbv) ?? 0, form.years, form.discountRate, form.growthRate, form.eps,
+        form.terminalGrowthRate, form.yearsOfTerminalGrowth, false).fairValue
   } catch {
     return { fairValue: null, mos: null }
   }
