@@ -59,11 +59,11 @@ describe('growth windows and cash-flow basis', () => {
   it('keeps a long window when the ten-year anchor is negative', () => {
     const rate = windowGrowth([
       { fy: 2015, val: -1 },
-      { fy: 2016, val: 1 },
+      { fy: 2016, val: 8 },
       { fy: 2020, val: 10 },
       { fy: 2025, val: 12 },
     ], 10)
-    expect(rate).toBe(31.8)
+    expect(rate).toBe(4.61)
   })
 
   it('does not seed free cash flow from operating cash flow', () => {
@@ -74,7 +74,75 @@ describe('growth windows and cash-flow basis', () => {
     expect(parsed.fields.cashflow_basis).toBe('ocf')
     expect(parsed.fields.free_cash_flow_per_share).toBeNull()
     expect(parsed.fields.cashflow_growth_10y).toBeNull()
-    expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBe(22)
+    expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBeNull()
+  })
+
+  it('leaves a firm-cash-flow year without a usable figure empty instead of using operating cash flow', () => {
+    const parsed = fromAshareReports([], [
+      row('2024-12-31', '年报', { EPSJB: 1, EPSXS: 1, BPS: 8, PARENTNETPROFIT: 100, MGJYXJJE: 20 }),
+      row('2025-12-31', '年报', { EPSJB: 1.1, EPSXS: 1.1, BPS: 9, PARENTNETPROFIT: 110, FCFF_BACK: 55, MGJYXJJE: 22 }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('fcff')
+    expect(parsed.financials.annual.map((item) => item.free_cash_flow_per_share)).toEqual([null, 0.55])
+    expect(parsed.fields.free_cash_flow_per_share).toBeCloseTo(0.55)
+  })
+
+  it('does not take trailing free cash flow from operating cash flow on a firm basis', () => {
+    const parsed = fromAshareReports([], [
+      row('2024-12-31', '年报', { EPSJB: 1, EPSXS: 1, BPS: 8, PARENTNETPROFIT: 100, FCFF_BACK: 50, MGJYXJJE: 20 }),
+      row('2025-12-31', '年报', { EPSJB: 1.1, EPSXS: 1.1, BPS: 9, PARENTNETPROFIT: 110, MGJYXJJE: 22 }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('fcff')
+    expect(parsed.fields.free_cash_flow_per_share).toBeNull()
+    expect(parsed.financials.ttm[0].free_cash_flow_per_share).toBeNull()
+  })
+
+  it('leaves ten-year growth empty when only a one-year window exists', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: 10, DILUTED_EPS: 10, EPS_TTM: 10, BPS: 40, HOLDER_PROFIT: 100,
+        NETCASH_OPERATE: 30, NETCASH_INVEST: -10,
+      }),
+      row('2024-12-31', '年报', {
+        BASIC_EPS: 8, DILUTED_EPS: 8, EPS_TTM: 8, BPS: 36, HOLDER_PROFIT: 80,
+        NETCASH_OPERATE: 24, NETCASH_INVEST: -8,
+      }),
+    ])
+    expect(parsed.fields.earning_growth_1y).toBe(25)
+    expect(parsed.fields.earning_growth_10y).toBeNull()
+    expect(parsed.fields.cashflow_growth_10y).toBeNull()
+  })
+
+  it('treats a Hong Kong bank as operating-cash basis with no free cash flow', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: 1, DILUTED_EPS: 1, EPS_TTM: 1, BPS: 8, HOLDER_PROFIT: 300,
+        NET_INTEREST_INCOME: 600, NETCASH_OPERATE: 900, NETCASH_INVEST: -200, CURRENCY: 'CNY',
+      }),
+      row('2024-12-31', '年报', {
+        BASIC_EPS: 0.9, DILUTED_EPS: 0.9, EPS_TTM: 0.9, BPS: 7.5, HOLDER_PROFIT: 270,
+        NET_INTEREST_INCOME: 580, NETCASH_OPERATE: -400, NETCASH_INVEST: 150, CURRENCY: 'CNY',
+      }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('ocf')
+    expect(parsed.fields.free_cash_flow_per_share).toBeNull()
+    expect(parsed.financials.ttm[0].free_cash_flow_per_share).toBeNull()
+    expect(parsed.financials.annual.every((item) => item.free_cash_flow_per_share === null)).toBe(true)
+    expect(parsed.reportCurrency).toBe('CNY')
+  })
+
+  it('keeps a loss-making Hong Kong company on free cash flow', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: -10, DILUTED_EPS: -10, EPS_TTM: -10, BPS: 40, HOLDER_PROFIT: -100,
+        NETCASH_OPERATE: 30, NETCASH_INVEST: -10, OPERATE_PROFIT: -50, CURRENCY: 'HKD',
+      }),
+    ])
+    expect(parsed.fields.cashflow_basis).toBe('fcf')
+    // shares = -100 / -10 = 10, fcf = (30 - 10) / 10 = 2
+    expect(parsed.fields.free_cash_flow_per_share).toBe(2)
+    expect(parsed.financials.annual.at(-1).operating_income_per_share).toBe(-5)
+    expect(parsed.reportCurrency).toBe('HKD')
   })
 
   it('converts Hong Kong per-share figures into the quote currency and leaves dividends', () => {

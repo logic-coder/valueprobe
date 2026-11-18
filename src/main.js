@@ -4,7 +4,7 @@ import {
   Quasar, Notify, Dialog as DialogPlugin,
   QBtn, QCard, QCardActions, QCardSection, QCheckbox, QDialog, QIcon, QInput,
   QItem, QItemLabel, QItemSection, QList, QMarkupTable, QMenu, QPopupEdit,
-  QRadio, QRating, QSelect, QSeparator, QSkeleton, QSpace, QSpinnerDots, QTab, QTabs,
+  QRadio, QRating, QSelect, QSeparator, QSkeleton, QSpace, QSpinnerDots, QTab, QTabs, QTooltip,
 } from 'quasar'
 import { createI18n } from 'vue-i18n'
 import '@quasar/extras/material-icons/material-icons.css'
@@ -39,7 +39,7 @@ const i18n = createI18n({
 const components = {
   QBtn, QCard, QCardActions, QCardSection, QCheckbox, QDialog, QIcon, QInput,
   QItem, QItemLabel, QItemSection, QList, QMarkupTable, QMenu, QPopupEdit,
-  QRadio, QRating, QSelect, QSeparator, QSkeleton, QSpace, QSpinnerDots, QTab, QTabs,
+  QRadio, QRating, QSelect, QSeparator, QSkeleton, QSpace, QSpinnerDots, QTab, QTabs, QTooltip,
 }
 
 const app = createApp(App)

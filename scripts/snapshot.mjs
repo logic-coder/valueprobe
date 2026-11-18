@@ -8,7 +8,7 @@
 // Each file keeps a seed price (editable on the page) plus the statement fields
 // that change only when a new report arrives: earnings, cash flow, book, growth,
 // the annual table and the chart series.
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fromAshareReports, fromHkReports, convertReportingCurrency } from '../src/data/providers/eastmoney-statements.js'
@@ -130,9 +130,25 @@ function recordFrom (market, code, quote, pack) {
 }
 
 let written = 0
-const fxBody = await getJson('https://api.frankfurter.dev/v1/latest?from=CNY')
-const hkdPerYuan = Number(fxBody?.rates?.HKD)
-if (!(hkdPerYuan > 1.05 && hkdPerYuan < 1.3)) throw new Error('unexpected CNY to HKD rate ' + hkdPerYuan)
+const hkSymbols = symbols.filter((symbol) => String(symbol).startsWith('HKSE:'))
+let hkdPerYuan = null
+if (hkSymbols.length) {
+  try {
+    const fxBody = await getJson('https://api.frankfurter.dev/v1/latest?from=CNY')
+    hkdPerYuan = Number(fxBody?.rates?.HKD)
+  } catch { /* try the mirror */ }
+  if (!(hkdPerYuan > 1.05 && hkdPerYuan < 1.3)) {
+    const mirror = await getJson('https://open.er-api.com/v6/latest/CNY')
+    hkdPerYuan = mirror?.result === 'success' ? Number(mirror.rates?.HKD) : NaN
+  }
+  if (!(hkdPerYuan > 1.05 && hkdPerYuan < 1.3)) throw new Error('unexpected CNY to HKD rate ' + hkdPerYuan)
+}
+
+const usable = (pack) => {
+  const fields = pack?.fields || {}
+  const annual = pack?.financials?.annual || []
+  return fields.ttm_eps != null || fields.tangible_book != null || annual.some((row) => row.eps_without_nri != null || row.book_value_per_share != null)
+}
 
 for (const symbol of symbols) {
   const [market, code] = String(symbol).split(':')
@@ -141,8 +157,11 @@ for (const symbol of symbols) {
     let pack = US.has(market) ? await edgarFor(market, code) : await statementsFor(market, code)
     const note = {}
     if (market === 'HKSE' && pack) {
+      const reportCurrency = String(pack.reportCurrency || 'CNY').toUpperCase()
+      // This feed labels yuan figures as HKD. Only a real third currency is refused.
+      if (!['CNY', 'RMB', 'HKD', ''].includes(reportCurrency)) throw new Error('statement currency ' + reportCurrency)
       pack = convertReportingCurrency(pack, hkdPerYuan)
-      note.report_currency = 'CNY'
+      note.report_currency = reportCurrency
       note.fx_to_quote = Math.round(hkdPerYuan * 10000) / 10000
     }
     if (US.has(market) && pack) {
@@ -153,8 +172,13 @@ for (const symbol of symbols) {
         note.split_to_quote = factor
       }
     }
+    const file = resolve(OUT, market + '-' + code + '.json')
+    if (!usable(pack)) {
+      await unlink(file).catch(() => {})
+      throw new Error('no fundamentals')
+    }
     const record = { ...recordFrom(market, code, quote, pack), ...note }
-    await writeFile(resolve(OUT, market + '-' + code + '.json'), JSON.stringify(record, null, 2) + '\n')
+    await writeFile(file, JSON.stringify(record, null, 2) + '\n')
     written++
     console.log('wrote', market + '-' + code + '.json', record.price, 'eps', record.ttm_eps, note.split_to_quote ? 'split ' + note.split_to_quote : '')
   } catch (error) {
@@ -167,6 +191,7 @@ const catalog = []
 for (const name of names.sort()) {
   try {
     const row = JSON.parse(await readFile(resolve(OUT, name), 'utf8'))
+    if (row.ttm_eps == null && row.tangible_book == null && !(row.financials?.annual || []).some((item) => item.eps_without_nri != null || item.book_value_per_share != null)) continue
     catalog.push({ symbol: row.exchange_ + ':' + row.symbol, name: row.company || row.symbol, market: row.exchange_ })
   } catch { /* skip a broken file */ }
 }

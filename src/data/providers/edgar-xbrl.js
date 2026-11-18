@@ -76,7 +76,7 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap') {
     if (!year) continue
     const prev = byYear.get(year)
     const better = !prev || (full && !prev.full) || (full === prev.full && filed >= prev.filed)
-    if (better) byYear.set(year, { val: item.val, full })
+    if (better) byYear.set(year, { val: item.val, full, filed })
   }
   return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val }))
 }
@@ -97,23 +97,12 @@ function annual (facts, concepts, unit, taxonomyName = 'us-gaap') {
   return best.slice(-YEAR_LIMIT)
 }
 
-/** EPS is sometimes filed under a unit other than USD/shares. */
+/** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
 function earningsPerShare (facts) {
   const direct = annual(facts, EPS_CONCEPTS, 'USD/shares')
   if (direct.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  const ifrs = annual(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
-  if (ifrs.length >= 2) return ifrs
-  const usGaap = taxonomy(facts)['us-gaap'] || {}
-  for (const concept of EPS_CONCEPTS) {
-    const units = usGaap[concept]?.units || {}
-    for (const unit of Object.keys(units)) {
-      const series = annualConcept(facts, concept, unit).slice(-YEAR_LIMIT)
-      const scale = median(series.map((point) => Math.abs(point.val)).filter((value) => value > 0))
-      if (series.length >= 2 && scale != null && scale < 5000) return series
-    }
-  }
-  return direct
+  return annual(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
 }
 
 const deiValue = (facts, concept) => {
@@ -121,8 +110,6 @@ const deiValue = (facts, concept) => {
   if (!entries?.length) return null
   return [...entries].sort((a, b) => String(b.end).localeCompare(String(a.end)))[0].val
 }
-
-const latest = (series) => (series.length ? series[series.length - 1].val : null)
 
 const SHARE_CONCEPTS = [
   'WeightedAverageNumberOfDilutedSharesOutstanding',
@@ -149,24 +136,6 @@ function normalizeShareUnits (series) {
     }
     return point
   })
-}
-
-/** When reported EPS drops by a split and stays there, older years were not restated. */
-function restateEpsLevels (eps) {
-  const out = eps.map((point) => ({ ...point }))
-  for (let index = 1; index < out.length; index++) {
-    const before = out[index - 1]
-    const after = out[index]
-    if (!(before.val > 0) || !(after.val > 0)) continue
-    const factor = nearestSplitWithin(before.val / after.val, 0.32)
-    if (!factor) continue
-    const later = out[index + 1]
-    if (later && later.val > 0 && (later.val > after.val * 2 || after.val > later.val * 2)) continue
-    for (const point of out) {
-      if (point.fy < after.fy) point.val = Number((point.val / factor).toFixed(4))
-    }
-  }
-  return out
 }
 
 function nearestSplitWithin (ratio, tolerance) {
@@ -212,24 +181,6 @@ function splitAdjustedShares (shares, revenue) {
 
 function nearestSplit (ratio) {
   return nearestSplitWithin(ratio, 0.18)
-}
-function restateEps (eps, extra) {
-  const years = [...extra.keys()].sort((a, b) => a - b)
-  const out = eps.map((point) => ({ ...point }))
-  for (let index = 1; index < years.length; index++) {
-    const prev = years[index - 1]
-    const year = years[index]
-    const factor = extra.get(prev) / extra.get(year)
-    if (!(factor > 1.5)) continue
-    const before = out.find((point) => point.fy === prev)
-    const after = out.find((point) => point.fy === year)
-    if (!before || !after || !(before.val > 0) || !(after.val > 0)) continue
-    if (Math.abs(before.val / after.val - factor) / factor > 0.45) continue
-    for (const point of out) {
-      if (point.fy < year) point.val = Number((point.val / factor).toFixed(4))
-    }
-  }
-  return out
 }
 
 /** A one-year hole or spike between two consistent years is a mis-tagged fact. */
@@ -289,17 +240,22 @@ export function scalePerShare (pack, factor) {
   }
 }
 
-/** Compound annual growth in %, or null when the series cannot support it. */
-function growth (series) {
-  if (series.length < 2) return null
-  const first = series[0].val
-  const last = latest(series)
-  const years = series[series.length - 1].fy - series[0].fy
-  if (!years || years < 1) return null
-  let pct
-  if (first > 0 && last > 0) pct = (Math.pow(last / first, 1 / years) - 1) * 100
-  else if (first < 0 && last > 0) pct = ((last - first) / Math.abs(first) / years) * 100
-  else pct = ((last - first) / Math.max(Math.abs(first), 1e-9) / years) * 100
+const MIN_GROWTH_SPAN = 7
+
+/**
+ * Ten-year compound growth in %, from the first positive year to the latest.
+ * Null when the latest year is not positive or the span is under seven years.
+ */
+function growth10y (series) {
+  const last = series.at(-1)
+  if (!last || !(last.val > 0)) return null
+  const first = series.find((point) => point.val > 0)
+  const years = last.fy - first.fy
+  if (years < MIN_GROWTH_SPAN) return null
+  const positives = series.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
+  const median = positives[Math.floor(positives.length / 2)]
+  if (positives.length >= 3 && first.val < median * 0.2) return null
+  const pct = (Math.pow(last.val / first.val, 1 / years) - 1) * 100
   if (!Number.isFinite(pct)) return null
   return Number(Math.max(-100, Math.min(200, pct)).toFixed(2))
 }
@@ -331,13 +287,6 @@ async function loadFacts (symbol) {
 
 const findYear = (series, fy) => series.find((item) => item.fy === fy)?.val ?? null
 
-function growthSeries (series) {
-  if (series.length < 2) return []
-  if (series[0].val > 0 && series.at(-1).val > 0) return series
-  const positive = series.filter((point) => point.val > 0)
-  return positive.length >= 2 ? positive : []
-}
-
 function assemble (facts) {
   const reportedEps = earningsPerShare(facts)
   const revenue = annual(facts, REVENUE_CONCEPTS, 'USD')
@@ -348,11 +297,12 @@ function assemble (facts) {
   const ocf = annual(facts, ['NetCashProvidedByUsedInOperatingActivities'], 'USD')
   const capex = annual(facts, CAPEX_CONCEPTS, 'USD')
   const shares = normalizeShareUnits(annual(facts, SHARE_CONCEPTS, 'shares'))
-  const { adjusted, extra } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
-  const aligned = restateEps(reportedEps, extra)
-  const cliffYears = new Set(aligned.map((point) => point.fy))
-  for (const point of dropCliffs(aligned)) cliffYears.delete(point.fy)
-  const keptEps = restateEpsLevels(aligned.filter((point) => !cliffYears.has(point.fy)))
+  // Filed EPS is already on each filing's share basis and later filings restate
+  // it, so it is not rescaled by the share-count split factors.
+  const { adjusted } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
+  const cliffYears = new Set(reportedEps.map((point) => point.fy))
+  for (const point of dropCliffs(reportedEps)) cliffYears.delete(point.fy)
+  const keptEps = reportedEps.filter((point) => !cliffYears.has(point.fy))
   const ocfByYear = new Map(ocf.map((item) => [item.fy, item.val]))
   const fcf = capex
     .filter((item) => ocfByYear.has(item.fy))
@@ -407,8 +357,8 @@ function assemble (facts) {
       ttm_eps: keptEps.at(-1)?.val ?? null,
       free_cash_flow_per_share: recentFcf?.val ?? null,
       tangible_book: [...rows].reverse().find((row) => row.book_value_per_share != null)?.book_value_per_share ?? null,
-      earning_growth_10y: growth(growthSeries(keptEps)),
-      cashflow_growth_10y: recentFcf ? growth(growthSeries(fcfHistory)) : null,
+      earning_growth_10y: growth10y(keptEps),
+      cashflow_growth_10y: recentFcf ? growth10y(fcfHistory) : null,
       predictability: predictability(keptEps),
     },
   }

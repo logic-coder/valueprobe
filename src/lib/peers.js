@@ -42,6 +42,6 @@ export function peerSummary(rows, basisValue, fairValue) {
   const basis = num(basisValue)
   const implied = medianPe !== null && basis !== null ? medianPe * basis : null
   const fair = num(fairValue)
-  const gap = implied !== null && fair !== null ? 1 - implied / fair : null
+  const gap = implied !== null && fair !== null ? (implied - fair) / fair : null
   return { medianPe, medianPb: median(rows.map((row) => row.pb)), implied, gap }
 }

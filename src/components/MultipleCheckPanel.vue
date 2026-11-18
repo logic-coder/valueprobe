@@ -62,14 +62,14 @@ const targets = reactive(seeded())
 
 const rows = computed(() => MULTIPLES.map((item) => {
   const implied = impliedPrice(props.bases[item.baseField], targets[item.key])
-  const fair = Number(props.fairValue)
-  const gap = Number.isFinite(fair) && fair > 0 && implied !== null ? 1 - implied / fair : null
+  const price = Number(String(props.price).replace(/[^0-9.+-]/g, ''))
+  const margin = implied !== null && implied > 0 && price > 0 ? 1 - price / implied : null
   return {
     ...item,
     current: currentMultiple(props.bases[item.baseField], props.price),
     implied,
-    margin: gap === null ? 'n/a' : (100 * gap).toFixed(1) + '%',
-    marginClass: gap === null ? 'faint' : gap >= 0 ? 'mcheck__good' : 'mcheck__bad',
+    margin: margin === null ? 'n/a' : (100 * margin).toFixed(1) + '%',
+    marginClass: margin === null ? 'faint' : margin >= 0 ? 'mcheck__good' : 'mcheck__bad',
   }
 }))
 </script>

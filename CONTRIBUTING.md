@@ -32,7 +32,7 @@ growth history and predictability come from the committed quarterly snapshots un
 (discount rate, growth, terminal growth, horizons, target multiples) stay editable — that is
 the user's judgment, not a fact. See the data contract in README.
 
-The e2e suite is a contract: its locators (tabs, calculator order, archive dialog, record list) are pinned on purpose.
+The e2e suite is a contract: its locators (calculator order, source list, empty states) are pinned on purpose.
 New UI gets a test; if a change must move a locator, update the spec in the same commit.
 
 ## Style

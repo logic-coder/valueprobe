@@ -28,6 +28,24 @@ describe('sensitivity grid', () => {
     expect(high.growths.at(-1)).toBe(60)
   })
 
+  it('centres on the exact inputs instead of rounding them', () => {
+    const grid = buildSensitivityGrid({ ...base, discountRate: 10.6, growthRate: 21.05 })
+    expect(grid.center).toEqual({ discountRate: 10.6, growthRate: 21.05 })
+    expect(grid.discounts).toContain(10.6)
+    expect(grid.growths).toContain(21.05)
+    expect(grid.growths).toHaveLength(5)
+    const row = grid.discounts.indexOf(grid.center.discountRate)
+    const column = grid.growths.indexOf(grid.center.growthRate)
+    expect(grid.rows[row][column]).toBe(presentValue(0, 10, 10.6, 21.05, 1, 4, 10, false).fairValue)
+  })
+
+  it('keeps a growth column for a rate above the range', () => {
+    const grid = buildSensitivityGrid({ ...base, discountRate: 12, growthRate: 164 })
+    expect(grid.growths).toEqual([164])
+    expect(grid.center.growthRate).toBe(164)
+    expect(grid.rows.every((cells) => cells.length === 1)).toBe(true)
+  })
+
   it('drops non-finite cells instead of leaking Infinity', () => {
     const grid = buildSensitivityGrid({ ...base, discountRate: 0, growthRate: 5 })
     expect(grid.rows[0].every((value) => value === null || Number.isFinite(value))).toBe(true)

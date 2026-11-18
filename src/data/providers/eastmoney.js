@@ -90,8 +90,14 @@ async function loadStatements (symbol) {
       sortColumns: 'REPORT_DATE',
     }))
     pack = fromHkReports(data?.result?.data || [])
+    const reportCurrency = String(pack.reportCurrency || 'CNY').toUpperCase()
+    // Eastmoney stamps HKD on this table even when the figures are already in yuan.
+    if (!['CNY', 'RMB', 'HKD', ''].includes(reportCurrency)) {
+      throw notSupported('eastmoney', 'statement currency ' + reportCurrency + ' for ' + symbol)
+    }
     const rate = await yuanToHkd()
-    if (rate) pack = convertReportingCurrency(pack, rate)
+    if (!rate) throw notSupported('eastmoney', 'no CNYHKD rate for ' + symbol)
+    pack = convertReportingCurrency(pack, rate)
   }
   if (!pack || !pack.financials.annual.length) throw notSupported('eastmoney', 'statements for ' + symbol)
   statementCache.set(symbol, pack)

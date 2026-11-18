@@ -76,7 +76,16 @@ export function windowGrowth (points, yearsWanted) {
     start = clean.find((point) => point.fy < last.fy && point.val > 0 && last.fy - point.fy >= minimum) || null
   }
   if (!start || last.fy - start.fy < minimum) return null
+  // A start that is a small fraction of the typical year is a trough, not a base.
+  if (yearsWanted > 1 && startIsTrough(clean, start)) return null
   return cagr(start, last)
+}
+
+function startIsTrough (points, start) {
+  const positives = points.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
+  if (positives.length < 3) return false
+  const median = positives[Math.floor(positives.length / 2)]
+  return start.val < median * 0.2
 }
 
 function series (rows, read) {
@@ -91,11 +100,13 @@ function growthSet (prefix, points) {
   }
 }
 
+/** Profit over EPS. A loss over a negative EPS is still a positive share count. */
 function shares (profit, eps) {
   const earnings = num(profit)
   const each = num(eps)
-  if (!(earnings > 0) || !(each > 0)) return null
-  return earnings / each
+  if (earnings == null || !each) return null
+  const count = earnings / each
+  return Number.isFinite(count) && count > 0 ? count : null
 }
 
 function dateLabel (row) {
@@ -115,20 +126,22 @@ export function fromAshareReports (recent, annualReports) {
   const mixed = newest([...(recent || []), ...(annualReports || [])])
   const epsOf = (row) => num(row?.EPSKCJB ?? row?.EPSXS ?? row?.EPSJB)
   const dilutedOf = (row) => num(row?.EPSXS ?? row?.EPSJB)
-  const fcfOf = (row) => {
+  // Banks often publish a firm free-cash-flow figure that rounds to nothing
+  // per share. Such a row has no usable firm figure.
+  const firmOf = (row) => {
     if (!row) return null
     const count = shares(row.PARENTNETPROFIT, row.EPSJB || row.EPSXS)
     const firm = num(row.FCFF_BACK)
-    // Banks often publish a firm free-cash-flow figure that rounds to nothing
-    // per share. Operating cash flow per share is the usable line then.
-    if (count && firm != null && Math.abs(firm / count) >= 0.01) return firm / count
+    return count && firm != null && Math.abs(firm / count) >= 0.01 ? firm / count : null
+  }
+  const usedFirm = annual.some((row) => firmOf(row) != null)
+  // Once any year is on firm free cash flow, operating cash flow in another
+  // year would mix two bases in one series.
+  const fcfOf = (row) => {
+    if (!row) return null
+    if (usedFirm) return firmOf(row)
     return num(row.MGJYXJJE)
   }
-  const usedFirm = annual.some((row) => {
-    const count = shares(row.PARENTNETPROFIT, row.EPSJB || row.EPSXS)
-    const firm = num(row.FCFF_BACK)
-    return count && firm != null && Math.abs(firm / count) >= 0.01
-  })
   const ttmEps = trailingTwelve(mixed, epsOf)
   const ttmDiluted = trailingTwelve(mixed, dilutedOf)
   const ttmFcf = trailingTwelve(mixed, fcfOf) ?? fcfOf(annual.at(-1))
@@ -164,14 +177,18 @@ export function fromAshareReports (recent, annualReports) {
   })
 }
 
+const isHkFinancial = (row) => num(row?.NET_INTEREST_INCOME) != null || num(row?.PREMIUM_INCOME) != null
+
 /** Hong Kong main-indicator rows. EPS_TTM is already trailing; cash flow is reconstructed per year. */
 export function fromHkReports (rows) {
   const list = newest(rows || [])
   const annual = annualRows(list)
   const latest = list[0]
   const epsOf = (row) => num(row?.DILUTED_EPS ?? row?.BASIC_EPS)
+  // Banks and insurers: investing cash flow is their lending and float, not capex.
+  const financial = list.some(isHkFinancial)
   const fcfOf = (row) => {
-    if (!row) return null
+    if (!row || financial) return null
     const count = shares(row.HOLDER_PROFIT, row.BASIC_EPS)
     const operate = num(row.NETCASH_OPERATE)
     const invest = num(row.NETCASH_INVEST)
@@ -181,7 +198,7 @@ export function fromHkReports (rows) {
     }
     return num(row.PER_NETCASH_OPERATE)
   }
-  const usedFlow = annual.some((row) => shares(row.HOLDER_PROFIT, row.BASIC_EPS) && num(row.NETCASH_OPERATE) != null)
+  const usedFlow = !financial && annual.some((row) => shares(row.HOLDER_PROFIT, row.BASIC_EPS) && num(row.NETCASH_OPERATE) != null)
   const table = annual.map((row) => ({
     date: dateLabel(row),
     eps_without_nri: round4(epsOf(row)),
@@ -243,21 +260,17 @@ function pack (input) {
     ...growthSet('rvn_growth', input.revenuePoints),
     ...growthSet('ebit_growth', input.ebitPoints),
   }
-  // The calculator reads the 10-year slot. If that span does not exist, use the
-  // longest window that does. The 5-year and 1-year slots stay on their own spans.
-  for (const name of ['earning_growth', 'cashflow_growth']) {
-    fields[name + '_10y'] = fields[name + '_10y'] ?? fields[name + '_5y'] ?? fields[name + '_1y']
-  }
   // Operating cash flow of a bank is not owner earnings. Keep it out of the
-  // number the calculator will grow.
+  // number the calculator will grow and out of the free-cash-flow history.
   if (input.basis === 'ocf') {
     fields.free_cash_flow_per_share = null
     fields.cashflow_growth_10y = null
     fields.cashflow_growth_5y = null
     fields.cashflow_growth_1y = null
     for (const row of financials.ttm) row.free_cash_flow_per_share = null
+    for (const row of financials.annual) row.free_cash_flow_per_share = null
   }
-  return { financials, fields }
+  return { financials, fields, reportCurrency: input.currency || null }
 }
 
 const SCALE_FIELDS = ['ttm_eps', 'ttm_eps_nri', 'free_cash_flow_per_share', 'tangible_book']

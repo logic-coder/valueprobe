@@ -3,9 +3,9 @@
   :root { color-scheme: light; }
   body { background: #fff; }
   .skip-link, .site-header, .site-footer, .ticker-tabs, .ticker__price, .star-button, .print-button,
-  .icon-button, .q-btn, .panel__head .faint, .dcf__actions,
-  .sens, .record-panel__tools, .peers__head .faint { display: none !important; }
-  .app-shell, .workspace, .page-width-1440 { display: block; width: auto; max-width: none; padding: 0; }
+  .icon-button, .q-btn, .panel__head .faint,
+  .sens, .peers__head .faint { display: none !important; }
+  .app-shell, .workspace, .app-shell .page-width-1440 { display: block; width: auto; max-width: none; padding: 0; }
   .panel { border: 1px solid #d0d5dd; box-shadow: none; margin-bottom: 10pt; break-inside: avoid; }
   .ticker { padding: 0 0 6pt; }
   .stock-head { border: 0; }

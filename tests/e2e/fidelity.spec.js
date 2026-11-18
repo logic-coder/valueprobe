@@ -9,7 +9,7 @@ const DISCOUNT = '.input-section'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
 })
 
 test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
@@ -19,7 +19,7 @@ test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
   await page.locator(DISCOUNT).first().blur()
   await page.locator(DISCOUNT).nth(4).fill('0')
   await page.locator(DISCOUNT).nth(4).blur()
-  await expect(page.locator(FAIR)).toContainText('¥ 24.26')
+  await expect(page.locator(FAIR)).toContainText('¥ 24.58')
   await expect(page.locator(FAIR)).not.toContainText('Infinity')
   await expect(page.locator('.dcf__mos')).not.toContainText('Infinity')
 })
@@ -72,10 +72,10 @@ test('D7: an unreachable source set says so instead of leaving a skeleton', asyn
 })
 
 test('D6: the display currency converts results and says the inputs stay native', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 10.49')
+  await expect(page.locator(FAIR)).toContainText('¥ 10.45')
   await page.locator('.currency-select').click()
   await page.locator('.q-menu .q-item', { hasText: 'USD' }).click()
-  await expect(page.locator(FAIR)).toContainText('$1.47')
+  await expect(page.locator(FAIR)).toContainText('$1.46')
   await expect(page.locator('.dcf')).toContainText('输入仍为 ¥原币')
   // The editable rows keep the native currency.
   await expect(page.locator('.dcf')).toContainText('¥ 8.85')

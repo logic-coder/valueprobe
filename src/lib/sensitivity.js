@@ -6,14 +6,24 @@ export const SENS_STEPS = 2
 const DISCOUNT_RANGE = [0, 50]
 const GROWTH_RANGE = [-20, 60]
 
-/** Five centred values, clamped to the accepted input ranges. */
-function axis (center, [min, max]) {
-  const value = Math.round(Number(center) || 0)
-  const low = Math.max(min, value - SENS_STEPS)
-  const high = Math.min(max, value + SENS_STEPS)
+/**
+ * Five values around the exact centre, one point apart. Neighbours outside the
+ * range are dropped. The centre itself is kept when `keepCenter` is set, so a
+ * growth rate the range does not cover still gets a column.
+ */
+function axis (center, [min, max], keepCenter) {
   const values = []
-  for (let current = low; current <= high; current++) values.push(current)
+  for (let offset = -SENS_STEPS; offset <= SENS_STEPS; offset++) {
+    const value = offset === 0 ? center : center + offset
+    const inside = value >= min && value <= max
+    if (inside || (offset === 0 && keepCenter)) values.push(value)
+  }
   return values
+}
+
+const exact = (value) => {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
 }
 
 /**
@@ -22,8 +32,10 @@ function axis (center, [min, max]) {
 export function buildSensitivityGrid ({
   discountRate, growthRate, tbv, years, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue,
 }) {
-  const discounts = axis(discountRate, DISCOUNT_RANGE)
-  const growths = axis(growthRate, GROWTH_RANGE)
+  const discountCenter = exact(discountRate)
+  const growthCenter = exact(growthRate)
+  const discounts = axis(discountCenter, DISCOUNT_RANGE, false)
+  const growths = axis(growthCenter, GROWTH_RANGE, true)
   const rows = discounts.map((dr) => growths.map((gr) => {
     const { fairValue } = presentValue(tbv, years, dr, gr, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
     return Number.isFinite(fairValue) ? fairValue : null
@@ -32,7 +44,7 @@ export function buildSensitivityGrid ({
     discounts,
     growths,
     rows,
-    center: { discountRate: Math.round(Number(discountRate) || 0), growthRate: Math.round(Number(growthRate) || 0) },
+    center: { discountRate: discountCenter, growthRate: growthCenter },
   }
 }
 

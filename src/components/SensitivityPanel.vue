@@ -17,14 +17,14 @@
           <tr>
             <th scope="col" class="sens__corner">{{ t('discount_rate') }} \ {{ t('growth_rate') }}</th>
             <th v-for="growth in grid.growths" :key="'g' + growth" scope="col" :class="{ 'is-center': growth === grid.center.growthRate }">
-              {{ growth }}%
+              {{ axisLabel(growth) }}%
             </th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, rowIndex) in grid.rows" :key="'r' + rowIndex">
             <th scope="row" :class="{ 'is-center': grid.discounts[rowIndex] === grid.center.discountRate }">
-              {{ grid.discounts[rowIndex] }}%
+              {{ axisLabel(grid.discounts[rowIndex]) }}%
             </th>
             <td
               v-for="(value, columnIndex) in row"
@@ -56,5 +56,10 @@ const props = defineProps({
 const { t } = useI18n()
 const { moneyIn } = useMoney()
 const bucket = (value) => 'cell--' + marginBucket(value, Number(props.price))
+const axisLabel = (value) => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return ''
+  return String(Math.round(n * 100) / 100)
+}
 const percent = (value) => (Number.isFinite(value) ? (100 * value).toFixed(1) + '%' : 'n/a')
 </script>

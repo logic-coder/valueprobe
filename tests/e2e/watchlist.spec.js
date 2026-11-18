@@ -7,7 +7,7 @@ const FAIR = '.text-h6.button-font-weight'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
 })
 
 test('stars a stock, lists it, keeps it across a reload and removes it', async ({ page }) => {
@@ -21,7 +21,7 @@ test('stars a stock, lists it, keeps it across a reload and removes it', async (
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
   await expect(page.locator('.wl__table tbody tr')).toContainText('SHSE:601398')
   // Same defaults as the calculator: the overview is the page's own seed, not a second model.
-  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.49')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.45')
   await expect(page.locator('.wl__table tbody tr')).toContainText('15.63%')
 
   await page.reload()
@@ -37,7 +37,7 @@ test('shows an empty state that links back', async ({ page }) => {
   await expect(page.locator('.watchlist .muted')).toContainText('还没有自选股')
   await expect(page.locator('.ticker')).toHaveCount(0)
   await page.locator('.watchlist .muted a').click()
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
 })
 
 test('exports the list and imports it back', async ({ page }) => {
@@ -97,5 +97,5 @@ test('opens a watched stock from the list', async ({ page }) => {
   await page.locator('.watch-link').click()
   await page.locator('.wl__table tbody th a').click()
   await expect(page).toHaveURL(/SHSE:601398/)
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
 })

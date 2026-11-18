@@ -108,7 +108,13 @@ a { color: var(--accent-strong); text-decoration: none; }
 .q-field__native::placeholder, .q-field__input::placeholder { color: var(--text-muted); opacity: 1; }
 a:hover { text-decoration: underline; }
 
-h1, h2, h3, h4, h5 { margin: 0; font-weight: 650; letter-spacing: -0.01em; color: var(--text); }
+h1, h2, h3, h4, h5, h6 { margin: 0; font-weight: 650; letter-spacing: -0.01em; line-height: 1.25; color: var(--text); }
+h1 { font-size: 26px; }
+h2 { font-size: 22px; }
+h3 { font-size: 18px; }
+h4 { font-size: 16px; }
+h5 { font-size: 14px; }
+h6 { font-size: 13px; }
 h1, h2, .ticker__name, .dcf__fair .text-h6, .brand__name { font-family: var(--display); font-weight: 600; }
 
 code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
@@ -120,6 +126,7 @@ code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
 .q-field--outlined .q-field__control:before { border-color: var(--border); }
 .q-field--outlined:hover .q-field__control:before { border-color: var(--border-strong); }
 .q-menu { background: var(--surface); color: var(--text); box-shadow: var(--shadow); border: 1px solid var(--border); }
+.a-popover__card { width: max-content; max-width: min(400px, calc(100vw - 32px)); }
 
 .q-btn.bg-primary {
   background: var(--accent-strong) !important;

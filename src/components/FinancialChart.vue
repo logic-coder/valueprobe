@@ -80,6 +80,8 @@ const chartOptions = computed(() => {
     yAxis: {
       type: 'value',
       scale: true,
+      // The padded extent puts raw floats (13.0000001) on the end ticks, wider than the grid gutter.
+      axisLabel: { formatter: (value) => String(Number(Number(value).toPrecision(4))) },
       ...(extent ? { min: extent.min, max: extent.max } : {}),
     },
     series: [

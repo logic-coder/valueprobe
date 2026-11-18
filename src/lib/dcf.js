@@ -43,61 +43,70 @@ export function calGr2fv (tbv, years, discountRate, growthRate, base, terminalGr
  * `calGr2fv` stays the constant-rate closed form.
  */
 export function presentValue (tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue) {
+  const { fairValue, growthValue, terminalValue } = unroundedPresentValue(tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
+  return {
+    fairValue: round2(fairValue),
+    growthValue: round2(growthValue),
+    terminalValue: round2(terminalValue),
+  }
+}
+
+// Year 1 grows at g0 and the last fast-growth year at gT.
+function unroundedPresentValue (tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue) {
   const r = Number(discountRate) / 100
   const g0 = Number(growthRate) / 100
   const gT = Number(terminalGrowthRate) / 100
   const n = Math.max(0, Math.round(Number(years) || 0))
   const m = Math.max(0, Math.round(Number(yearsOfTerminalGrowth) || 0))
   const start = Number(base)
-  if (!(r > -1) || !Number.isFinite(g0) || !Number.isFinite(gT) || !Number.isFinite(start)) {
-    return { fairValue: NaN, growthValue: NaN, terminalValue: NaN }
-  }
+  const invalid = { fairValue: NaN, growthValue: NaN, terminalValue: NaN }
+  if (!(r > -1) || !Number.isFinite(g0) || !Number.isFinite(gT) || !Number.isFinite(start)) return invalid
   let flow = start
   let growthValue = 0
   let terminalValue = 0
   for (let t = 1; t <= n; t++) {
-    flow *= 1 + g0 + (gT - g0) * (t / n)
+    const weight = n <= 1 ? 0 : (t - 1) / (n - 1)
+    flow *= 1 + g0 + (gT - g0) * weight
     const discounted = flow / Math.pow(1 + r, t)
-    if (!Number.isFinite(discounted)) return { fairValue: NaN, growthValue: NaN, terminalValue: NaN }
+    if (!Number.isFinite(discounted)) return invalid
     growthValue += discounted
   }
   for (let k = 1; k <= m; k++) {
     flow *= 1 + gT
     const discounted = flow / Math.pow(1 + r, n + k)
-    if (!Number.isFinite(discounted)) return { fairValue: NaN, growthValue: NaN, terminalValue: NaN }
+    if (!Number.isFinite(discounted)) return invalid
     terminalValue += discounted
   }
-  let fair = growthValue + terminalValue
-  if (addToFairValue) fair += Number(tbv) || 0
-  return {
-    fairValue: round2(fair),
-    growthValue: round2(growthValue),
-    terminalValue: round2(terminalValue),
-  }
+  let fairValue = growthValue + terminalValue
+  if (addToFairValue) fairValue += Number(tbv) || 0
+  return { fairValue, growthValue, terminalValue }
 }
+
+const IMPLIED_LOW = -99
+const IMPLIED_HIGH = 200
+const IMPLIED_ITERATIONS = 60
 
 /** Starting growth whose fading path is worth the market price. */
 export function impliedGrowth (tbv, years, discountRate, base, price, terminalGrowthRate, priceAgain, yearsOfTerminalGrowth, addToFairValue) {
-  let iterations = 0
-  let last = 0
-  let h = 75
   const supplied = priceAgain !== undefined && priceAgain !== null && priceAgain !== '' ? priceAgain : price
   const target = parseFloat(supplied)
   const baseNum = Number(base)
   if (!(baseNum > 0) || !(target > 0)) return null
-  let fair = 0
-  do {
-    iterations++
-    if (iterations > 2e6) return null
-    const candidate = h - 50
-    fair = presentValue(tbv, years, discountRate, candidate, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
-    last = candidate
-    if (!Number.isFinite(fair) || fair <= 0) return null
-    if (fair < target) h += h / 2
-    else h -= h / 2
-  } while (target / fair > 1.00001 || target / fair < 0.99999)
-  if (!Number.isFinite(last)) return null
-  return last.toFixed(2)
+  const fairAt = (growth) => unroundedPresentValue(tbv, years, discountRate, growth, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
+  const lowFair = fairAt(IMPLIED_LOW)
+  const highFair = fairAt(IMPLIED_HIGH)
+  if (!Number.isFinite(lowFair) || !Number.isFinite(highFair)) return null
+  if (lowFair > target || highFair < target) return null
+  let low = IMPLIED_LOW
+  let high = IMPLIED_HIGH
+  for (let i = 0; i < IMPLIED_ITERATIONS; i++) {
+    const mid = (low + high) / 2
+    const fair = fairAt(mid)
+    if (!Number.isFinite(fair)) return null
+    if (fair < target) low = mid
+    else high = mid
+  }
+  return ((low + high) / 2).toFixed(2)
 }
 
 /**
@@ -152,13 +161,13 @@ export const DCF_DEFAULTS = {
  */
 export function buildDefaults (indicator, stock, freeCashFlow) {
   const discountRate = indicator ? Math.ceil(indicator) + 6 : 8
-  const eps = stock.ttm_eps_nri ? stock.ttm_eps_nri : (stock.ttm_eps ? stock.ttm_eps : 0)
+  const eps = stock.ttm_eps_nri ? stock.ttm_eps_nri : (stock.ttm_eps ?? stock.ttm_eps_nri ?? null)
   const earnings = adoptGrowth(stock.earning_growth_10y)
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {
     dcfForm: {
       eps,
-      freecashflow: freeCashFlow || 0,
+      freecashflow: freeCashFlow ?? null,
       years: DCF_DEFAULTS.years,
       growthRate: earnings.adopted,
       freecashflowGrowthRate: cash.adopted,

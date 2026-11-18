@@ -82,7 +82,7 @@ const proxy = {
   '^/fx/': {
     target: 'https://api.frankfurter.dev',
     changeOrigin: true,
-    rewrite: (path) => path.replace(/^\/fx/, '/v1'),
+    rewrite: (path) => path.replace(/^\/fx/, ''),
     headers: { 'User-Agent': EDGAR_UA },
   },
 }

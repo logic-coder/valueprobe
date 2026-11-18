@@ -30,7 +30,7 @@ describe('peers', () => {
     const summary = peerSummary(rows, 2, 20)
     expect(summary.medianPe).toBe(9)
     expect(summary.implied).toBe(18)
-    expect(summary.gap).toBeCloseTo(0.1)
+    expect(summary.gap).toBeCloseTo(-0.1)
   })
 
   it('reports no implication without a basis', () => {

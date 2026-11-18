@@ -36,16 +36,52 @@ describe('presentValue', () => {
   it('fades a high historical rate instead of holding it above the discount rate', () => {
     // Tencent: EPS 25.9021, 10y CAGR 21.05%, discount 10%, terminal 4% for 10 years.
     // The constant-rate annuity prices that at 957.27. A straight-line fade does not.
-    expect(presentValue(0, 10, 10, 21.05, 25.9021, 4, 10, false).fairValue).toBe(540.11)
-    expect(presentValue(0, 10, 10, 40.71, 17.95, 4, 10, false).fairValue).toBe(704.17)
+    expect(presentValue(0, 10, 10, 21.05, 25.9021, 4, 10, false).fairValue).toBe(574.99)
+    expect(presentValue(0, 10, 10, 40.71, 17.95, 4, 10, false).fairValue).toBe(799)
   })
 
   it('leaves a low growth rate close to the constant annuity', () => {
-    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false).fairValue).toBe(10.49)
+    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false).fairValue).toBe(10.45)
+  })
+
+  it('grows year one at the entered rate and the last fast year at the terminal rate', () => {
+    // Two fast years, no terminal years: year 1 at 20%, year 2 at 4%.
+    const expected = 1.2 / 1.1 + (1.2 * 1.04) / (1.1 * 1.1)
+    expect(presentValue(0, 2, 10, 20, 1, 4, 0, false).growthValue).toBe(round2(expected))
+  })
+
+  it('uses the entered rate, not the terminal rate, for a single fast year', () => {
+    expect(presentValue(0, 1, 10, 20, 1, 4, 0, false).growthValue).toBe(round2(1.2 / 1.1))
+  })
+
+  it('skips the fast loop for zero fast years and grows the base at the terminal rate', () => {
+    const result = presentValue(0, 0, 10, 20, 1, 4, 1, false)
+    expect(result.growthValue).toBe(0)
+    expect(result.terminalValue).toBe(round2(1.04 / 1.1))
   })
 
   it('solves the starting growth that the fading path needs to match a price', () => {
-    expect(impliedGrowth(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-1.99')
+    expect(impliedGrowth(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-1.38')
+  })
+
+  it('reprices to the target at the solved growth', () => {
+    const solved = parseFloat(impliedGrowth(0, 10, 10, 25.9021, 600, 4, null, 10, false))
+    expect(presentValue(0, 10, 10, solved, 25.9021, 4, 10, false).fairValue).toBeCloseTo(600, 0)
+  })
+
+  it('returns null at once when book value alone is above the price', () => {
+    const started = Date.now()
+    expect(impliedGrowth(50, 10, 12, 1, 20, 4, 20, 10, true)).toBeNull()
+    expect(Date.now() - started).toBeLessThan(50)
+  })
+
+  it('returns null when even the top of the range cannot reach the price', () => {
+    expect(impliedGrowth(0, 10, 12, 0.01, 1e9, 4, null, 10, false)).toBeNull()
+  })
+
+  it('returns null when the base or price is not positive', () => {
+    expect(impliedGrowth(0, 10, 12, 0, 10, 4, null, 10, false)).toBeNull()
+    expect(impliedGrowth(0, 10, 12, 1, 0, 4, null, 10, false)).toBeNull()
   })
 })
 
@@ -100,5 +136,18 @@ describe('buildDefaults', () => {
     const { dcfForm } = buildDefaults(4, { ttm_eps: 1, price: '1' }, 1)
     expect(dcfForm.growthRate).toBe(5)
     expect(dcfForm.freecashflowGrowthRate).toBe(5)
+  })
+
+  it('leaves missing earnings and free cash flow empty instead of zero', () => {
+    const { dcfForm } = buildDefaults(4, { ttm_eps: null, ttm_eps_nri: undefined, price: '1' }, null)
+    expect(dcfForm.eps).toBeNull()
+    expect(dcfForm.freecashflow).toBeNull()
+    expect(buildDefaults(4, { price: '1' }, undefined).dcfForm.freecashflow).toBeNull()
+  })
+
+  it('keeps a reported zero', () => {
+    const { dcfForm } = buildDefaults(4, { ttm_eps: 0, ttm_eps_nri: null, price: '1' }, 0)
+    expect(dcfForm.eps).toBe(0)
+    expect(dcfForm.freecashflow).toBe(0)
   })
 })

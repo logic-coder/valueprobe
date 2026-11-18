@@ -1,13 +1,14 @@
 <template>
-  <span class="a-popover" @mouseenter="open = true" @mouseleave="open = false" @click="toggle">
+  <span class="a-popover" @mouseenter="open = true" @click="toggle">
     <slot />
     <q-menu
       v-model="open"
+      hover
       :anchor="anchor"
-      self="bottom middle"
+      :self="self"
       :offset="[0, 8]"
       class="a-popover__card"
-      :style="{ maxWidth: maxWidth }"
+      :max-width="maxWidth"
     >
       <div class="q-pa-sm text-body2"><slot name="content" /></div>
     </q-menu>
@@ -19,7 +20,12 @@ import { computed, ref } from 'vue'
 
 const props = defineProps({ placement: { type: String, default: 'top' }, maxWidth: { type: String, default: '400px' } })
 const open = ref(false)
-const anchor = computed(() => (props.placement === 'top' ? 'bottom middle' : 'top middle'))
+const above = computed(() => !String(props.placement).startsWith('bottom'))
+// Anchor an edge to an edge. Pairing two "middle" origins makes Quasar's
+// CSS anchor path set left and right to 0, which stretches the card across
+// the column and drops it on top of the icon.
+const anchor = computed(() => (above.value ? 'top left' : 'bottom left'))
+const self = computed(() => (above.value ? 'bottom left' : 'top left'))
 // A radio or button inside the trigger must receive the click. Toggling the
 // menu from that same click opens a layer over the control, so the choice never lands.
 const toggle = (event) => {
@@ -29,6 +35,5 @@ const toggle = (event) => {
 </script>
 
 <style scoped>
-.a-popover { display: inline-flex; align-items: center; }
-.a-popover__card { max-width: 400px; }
+.a-popover { display: inline-flex; align-items: center; cursor: help; }
 </style>

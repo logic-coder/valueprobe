@@ -116,7 +116,12 @@ const load = async () => {
 }
 
 const summary = computed(() => peerSummary(rows.value, props.basisValue, props.fairValue))
-const gapText = computed(() => (summary.value.gap === null ? 'n/a' : (100 * summary.value.gap).toFixed(1) + '%'))
+const gapText = computed(() => {
+  const gap = summary.value.gap
+  if (gap === null) return 'n/a'
+  const pct = (100 * gap).toFixed(1)
+  return (gap > 0 ? '+' : '') + pct + '%'
+})
 
 // Quoting four peers costs eight requests; on the landing page that is a lot to
 // spend before the reader scrolls, so the panel waits until it is near the viewport.

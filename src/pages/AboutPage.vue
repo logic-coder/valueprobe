@@ -66,4 +66,5 @@ const security = REPO_SECURITY
 .about__title { font-size: 24px; }
 .about__block { overflow: hidden; }
 .about p { margin: 0 0 8px; font-size: 13.5px; line-height: 1.7; }
+.about .panel__body > p:last-child { margin-bottom: 0; }
 </style>

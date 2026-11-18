@@ -53,6 +53,7 @@ const reset = () => {
 
 <style scoped>
 .ds-order { display: grid; gap: 10px; }
+.ds-order > p { margin: 0; }
 .ds-order__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .ds-order__list li { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
 .ds-order__label { font-weight: 600; }

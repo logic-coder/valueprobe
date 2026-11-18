@@ -72,33 +72,37 @@
           <a href="#/">{{ t('stocks') }}</a> / {{ stock.company || t('default_company') }}
         </div>
         <div class="ticker__line">
-          <h1 class="ticker__name" :title="t('name_as_reported')">{{ stock.company || t('default_company') }}</h1>
-          <span class="ticker__code">{{ stock.symbol || '601398' }} · {{ stock.exchange_ || 'SHSE' }}</span>
-          <button
-            v-if="currentSymbol"
-            type="button"
-            class="star-button"
-            :class="{ 'is-on': watched }"
-            :aria-pressed="watched"
-            :aria-label="watched ? t('watch_remove') : t('watch_add')"
-            @click="toggleWatch"
-          >
-            <q-icon :name="watched ? 'star' : 'star_border'" size="18px" />
-          </button>
-          <button
-            v-if="currentSymbol"
-            type="button"
-            class="compare-button icon-button"
-            :class="{ 'is-on': comparing }"
-            :aria-pressed="comparing"
-            :aria-label="comparing ? t('compare_remove_one') : t('compare_add_one')"
-            :title="comparing ? t('compare_remove_one') : t('compare_add_one')"
-            @click="toggleCompare"
-          >
-            <q-icon name="compare_arrows" size="18px" />
-          </button>
+          <div class="ticker__identity">
+            <h1 class="ticker__name" :title="t('name_as_reported')">{{ stock.company || t('default_company') }}</h1>
+            <div class="ticker__meta">
+              <span class="ticker__code">{{ stock.symbol || '601398' }} · {{ stock.exchange_ || 'SHSE' }}</span>
+              <button
+                v-if="currentSymbol"
+                type="button"
+                class="star-button"
+                :class="{ 'is-on': watched }"
+                :aria-pressed="watched"
+                :aria-label="watched ? t('watch_remove') : t('watch_add')"
+                @click="toggleWatch"
+              >
+                <q-icon :name="watched ? 'star' : 'star_border'" size="18px" />
+              </button>
+              <button
+                v-if="currentSymbol"
+                type="button"
+                class="compare-button icon-button"
+                :class="{ 'is-on': comparing }"
+                :aria-pressed="comparing"
+                :aria-label="comparing ? t('compare_remove_one') : t('compare_add_one')"
+                :title="comparing ? t('compare_remove_one') : t('compare_add_one')"
+                @click="toggleCompare"
+              >
+                <q-icon name="compare_arrows" size="18px" />
+              </button>
+            </div>
+          </div>
           <div class="ticker__price">
-            {{ moneyIn(stock.currency, priceValue) }}
+            <div class="ticker__quote">{{ moneyIn(stock.currency, priceValue) }}</div>
             <div class="ticker__aside">{{ t('price_native_note') }}</div>
           </div>
         </div>
@@ -184,7 +188,8 @@ const pageTitle = computed(() => {
 })
 watch(pageTitle, (value) => { document.title = value }, { immediate: true })
 
-const showTicker = computed(() => !['home', 'about', 'watchlist', 'compare'].includes(String(route.name)))
+// A bad or unrelated path renders the not-found page; the last stock's hero must not stay above it.
+const showTicker = computed(() => Boolean(currentSymbol.value))
 const repoUrl = REPO_URL
 const issuesUrl = REPO_ISSUES_URL
 

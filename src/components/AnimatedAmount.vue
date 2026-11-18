@@ -64,6 +64,10 @@ watch(() => props.value, (next, prev) => {
   run(displayed ?? prevNum, nextNum)
 }, { immediate: true })
 
+watch(() => props.format(props.value), (next) => {
+  if (!frame) text.value = next
+})
+
 onBeforeUnmount(stop)
 </script>
 

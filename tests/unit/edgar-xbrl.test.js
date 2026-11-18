@@ -73,6 +73,11 @@ describe('EDGAR per-share facts', () => {
   it('drops a one-year earnings hole', () => {
     const stock = profileFromFacts('NASDAQ:EX', facts({
       EarningsPerShareDiluted: ['USD/shares', [
+        year(2017, 2.4),
+        year(2018, 2.5),
+        year(2019, 2.6),
+        year(2020, 2.8),
+        year(2021, 2.9),
         year(2022, 3),
         year(2023, 3.2),
         year(2024, 0.7),
@@ -82,6 +87,42 @@ describe('EDGAR per-share facts', () => {
     expect(stock.ttm_eps).toBe(3.6)
     expect(stock.earning_growth_10y).toBeGreaterThan(0)
     expect(stock.earning_growth_10y).toBeLessThan(15)
+  })
+
+  it('keeps the later of two full-year filings for the same period', () => {
+    const original = year(2024, 6)
+    const restated = year(2024, 6.5, { filed: '2026-02-01' })
+    const forward = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2023, 5), original, restated]],
+    }))
+    const reverse = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2023, 5), restated, original]],
+    }))
+    expect(forward.annual.at(-1).eps_without_nri).toBe(6.5)
+    expect(reverse.annual.at(-1).eps_without_nri).toBe(6.5)
+  })
+
+  it('leaves ten-year growth empty when only a one-year window exists', () => {
+    const stock = profileFromFacts('NASDAQ:EX', facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2024, 5), year(2025, 6)]],
+      NetCashProvidedByUsedInOperatingActivities: ['USD', [year(2024, 10e9), year(2025, 12e9)]],
+      PaymentsToAcquirePropertyPlantAndEquipment: ['USD', [year(2024, 2e9), year(2025, 2e9)]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [year(2024, 1e9), year(2025, 1e9)]],
+    }))
+    expect(stock.free_cash_flow_per_share).toBe(10)
+    expect(stock.earning_growth_10y).toBeNull()
+    expect(stock.cashflow_growth_10y).toBeNull()
+  })
+
+  it('does not report growth from older positives when the latest year is a loss', () => {
+    const stock = profileFromFacts('NASDAQ:EX', facts({
+      EarningsPerShareDiluted: ['USD/shares', [
+        year(2015, 1), year(2016, 1.2), year(2017, 1.4), year(2018, 1.6), year(2019, 1.8),
+        year(2020, 2), year(2021, 2.2), year(2022, 2.4), year(2023, 2.6), year(2024, -1),
+      ]],
+    }))
+    expect(stock.ttm_eps).toBe(-1)
+    expect(stock.earning_growth_10y).toBeNull()
   })
 
   it('ignores a free-cash-flow series that stopped years ago', () => {
@@ -112,16 +153,24 @@ describe('EDGAR per-share facts', () => {
     expect(table.annual.map((row) => row.eps_without_nri)).toEqual([6.08, 7.46, 8.98])
   })
 
-  it('restates earnings that drop by a split and stay down', () => {
-    const stock = profileFromFacts('NASDAQ:EX', facts({
+  it('does not divide a fifty percent earnings drop as if it were a split', () => {
+    const table = financialsFromFacts(facts({
       EarningsPerShareDiluted: ['USD/shares', [
-        year(2021, 100),
-        year(2022, 4),
-        year(2023, 5),
-        year(2024, 6),
+        year(2021, 4),
+        year(2022, 2),
+        year(2023, 2.1),
+        year(2024, 2.2),
       ]],
     }))
-    expect(stock.ttm_eps).toBe(6)
-    expect(stock.earning_growth_10y).toBeGreaterThan(0)
+    expect(table.annual.map((row) => row.eps_without_nri)).toEqual([4, 2, 2.1, 2.2])
+  })
+
+  it('does not rescale filed EPS by a share-count split', () => {
+    const table = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2023, 4), year(2024, 1.05), year(2025, 1.1)]],
+      Revenues: ['USD', [year(2023, 100e9), year(2024, 104e9), year(2025, 110e9)]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [year(2023, 5e9), year(2024, 20e9), year(2025, 20e9)]],
+    }))
+    expect(table.annual.map((row) => row.eps_without_nri)).toEqual([4, 1.05, 1.1])
   })
 })

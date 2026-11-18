@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { readFile } from 'node:fs/promises'
 import { mockApi } from './support/api-mock'
 import { STOCK } from './support/pages/stock'
 
@@ -8,11 +7,11 @@ const FAIR = STOCK.fairValue
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
 })
 
 test('renders the calculator with the live defaults', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 10.49')
+  await expect(page.locator(FAIR)).toContainText('¥ 10.45')
   await expect(page.locator('.input-section').first()).toHaveValue('12')
   await expect(page.locator('text=当公司可预测性评级为一颗星')).toBeVisible()
   await expect(page.locator('.dcf__warn')).toBeVisible()
@@ -21,7 +20,7 @@ test('renders the calculator with the live defaults', async ({ page }) => {
 test('recalculates when the discount rate changes', async ({ page }) => {
   await page.locator('.input-section').first().fill('10')
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('10.49')
+  await expect(page.locator(FAIR)).not.toContainText('10.45')
   await page.locator('.q-btn:has(i:has-text("add"))').first().click()
   await page.waitForTimeout(300)
   await expect(page.locator('.input-section').first()).toHaveValue('11')
@@ -30,16 +29,16 @@ test('recalculates when the discount rate changes', async ({ page }) => {
 test('switches between eps and free cash flow bases', async ({ page }) => {
   await page.locator('.q-radio').nth(1).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('49.38')
+  await expect(page.locator(FAIR)).toContainText('47.74')
   await page.locator('.q-radio').nth(0).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.49')
+  await expect(page.locator(FAIR)).toContainText('10.45')
 })
 
 test('adds tangible book value to the fair value', async ({ page }) => {
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('21.73')
+  await expect(page.locator(FAIR)).toContainText('21.69')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
@@ -69,7 +68,7 @@ test('switches the interface language', async ({ page }) => {
   await expect(page.locator('h3:has-text("Fair Value")')).toBeVisible()
   // Banner copy, panel titles and the About page are translated too.
   await expect(page.locator('.dcf__head-hint')).toHaveText('every field recalculates live')
-  await expect(page.locator('.dcf__export')).toContainText('Export report')
+  await expect(page.locator('.dcf__form')).toContainText('quarterly snapshot')
   await page.goto('/#/about')
   await expect(page.locator('.about__title')).toHaveText('About valueprobe')
   await expect(page.locator('.ds-order__hint').first()).toHaveText('quotes; CN and HK statements (needs a gateway)')
@@ -99,7 +98,7 @@ test('keeps the console clean', async ({ page }) => {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.reload()
-  await expect(page.locator(FAIR)).toContainText('10.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.45', { timeout: 20000 })
   await page.waitForTimeout(1200)
   expect(errors).toEqual([])
 })
@@ -136,10 +135,10 @@ test('builds the discount rate from its parts', async ({ page }) => {
 test('scenario presets move the assumptions and restore the base', async ({ page }) => {
   await page.locator('.dcf__scenario-btns button', { hasText: '牛市' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('10.49')
+  await expect(page.locator(FAIR)).not.toContainText('10.45')
   await page.locator('.dcf__scenario-btns button', { hasText: '基准' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.49')
+  await expect(page.locator(FAIR)).toContainText('10.45')
   await expect(page.locator('.input-section').first()).toHaveValue('12')
 })
 
@@ -152,7 +151,7 @@ test('pins a source for the symbol and releases it again', async ({ page }) => {
   await page.locator('.dcf .q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item', { hasText: '自动选择' }).click()
   await expect(page.locator('.data-banner--published')).toContainText('季度快照', { timeout: 20000 })
-  await expect(page.locator(FAIR)).toContainText('10.49')
+  await expect(page.locator(FAIR)).toContainText('10.45')
 })
 
 test('cross-checks the price against peer multiples', async ({ page }) => {
@@ -172,7 +171,7 @@ test('restores the assumptions from a shared link', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf?r=15&g=7&tbv1=1')
   await expect(page.locator('.input-section').first()).toHaveValue('15', { timeout: 20000 })
   await expect(page.locator('.input-section').nth(2)).toHaveValue('7')
-  await expect(page.locator(FAIR)).toContainText('20.98')
+  await expect(page.locator(FAIR)).toContainText('21.09')
 })
 
 test('ignores junk parameters in a shared link', async ({ page }) => {
@@ -201,18 +200,5 @@ test('does not ask a quote host for peers that have no local file', async ({ pag
   await page.locator(STOCK.peers).scrollIntoViewIfNeeded()
   await expect(page.locator('.peers__empty')).toContainText('同行报价暂时取不到', { timeout: 20000 })
   expect(hits).toHaveLength(0)
-})
-
-test('exports the valuation as a markdown report', async ({ page }) => {
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.locator('.dcf__export').click(),
-  ])
-  expect(download.suggestedFilename()).toMatch(/^valuation-SHSE-601398-.+\.md$/)
-  await expect(page.locator('.q-notification')).toContainText('报告已导出')
-  const text = await readFile(await download.path(), 'utf8')
-  expect(text).toContain('工商银行')
-  expect(text).toContain('| 内在价值 |')
-  expect(text).toContain('## 敏感度')
 })
 
