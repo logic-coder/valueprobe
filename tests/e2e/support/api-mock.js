@@ -33,11 +33,15 @@ const snapshotFixture = {
   as_of: '2026-09-30',
 }
 
+// Eight fiscal years: growth10y needs a span of at least seven. A shorter slice
+// leaves earnings growth empty, and the page then shows fair value as n/a.
+// 2026 stays at 7.1 so the displayed trailing EPS remains $ 7.10.
+const fiscalYears = [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
 const edgarFixture = {
   entityName: 'Apple Inc.',
   dei: { EntityCommonStockSharesOutstanding: { units: { shares: [{ end: '2026-09-30', val: 15_000_000_000 }] } } },
   'us-gaap': {
-    EarningsPerShareDiluted: concept('USD/shares', [2022, 2023, 2024, 2025, 2026].map((y, i) => year(y, 'USD/shares', 5.5 + i * 0.4))),
+    EarningsPerShareDiluted: concept('USD/shares', fiscalYears.map((y) => year(y, 'USD/shares', 4.3 + (y - 2019) * 0.4))),
     StockholdersEquity: concept('USD', [2022, 2023, 2024, 2025, 2026].map((y, i) => year(y, 'USD', 5e10 + i * 1e10))),
     Goodwill: concept('USD', [2022, 2023, 2024, 2025, 2026].map((y) => year(y, 'USD', 1e9))),
     NetCashProvidedByUsedInOperatingActivities: concept('USD', [2022, 2023, 2024, 2025, 2026].map((y, i) => year(y, 'USD', 9e10 + i * 1e9))),
@@ -101,8 +105,7 @@ export async function mockApi (page, options = {}) {
     })
   })
 
-  // SEC EDGAR: a five-year companyfacts slice so the fundamentals fallback can
-  // be exercised without the network.
+  // SEC EDGAR: companyfacts for the US fundamentals fallback, without the network.
   const secHandler = async (route) => {
     if (state.fail || state.down.has('edgar')) return route.fulfill({ status: 503, body: '{}' })
     if (route.request().url().includes('company_tickers')) {
