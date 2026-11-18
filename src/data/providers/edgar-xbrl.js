@@ -26,6 +26,16 @@ const CAPEX_CONCEPTS = [
   'PaymentsToAcquireOtherPropertyPlantAndEquipment',
   'PurchaseOfPropertyAndEquipment',
 ]
+const IFRS_EQUITY_CONCEPTS = ['EquityAttributableToOwnersOfParent']
+const IFRS_OCF_CONCEPTS = ['CashFlowsFromUsedInOperatingActivities']
+const IFRS_CAPEX_CONCEPTS = [
+  'PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities',
+  'PurchaseOfPropertyAndEquipment',
+]
+const IFRS_SHARE_CONCEPTS = [
+  'AdjustedWeightedAverageShares',
+  'WeightedAverageShares',
+]
 
 async function tickerMap () {
   try {
@@ -96,6 +106,14 @@ function annual (facts, concepts, unit, taxonomyName = 'us-gaap', preferEarliest
     if (newer || longer) best = series
   }
   return best.slice(-YEAR_LIMIT)
+}
+
+/** Prefer a US-GAAP series when it can support a history; otherwise IFRS/20-F. */
+function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest = false) {
+  const gaap = annual(facts, gaapConcepts, unit, 'us-gaap', preferEarliest)
+  if (gaap.length >= 2) return gaap
+  if (ifrsConcepts?.length) return annual(facts, ifrsConcepts, unit, 'ifrs-full', preferEarliest)
+  return gaap
 }
 
 /** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
@@ -281,15 +299,59 @@ export function rescaleFiledEps (eps, splits) {
   })
 }
 
-/** A one-year hole or spike between two consistent years is a mis-tagged fact. */
-function dropCliffs (series) {
+function neighborsConsistent (prev, next) {
+  if (!(prev.val > 0) || !(next.val > 0)) return false
+  const ratio = next.val / prev.val
+  return ratio >= 0.4 && ratio <= 2.5
+}
+
+function ratioNearSplit (ratio) {
+  if (!(ratio > 0)) return null
+  return nearestSplitWithin(ratio, 0.18) || nearestSplitWithin(1 / ratio, 0.18)
+}
+
+/** Revenue or operating income moved the same way: this is a real year, not a bad tag. */
+function companionConfirms (point, prev, next, companions) {
+  for (const series of companions) {
+    const older = series.find((item) => item.fy === prev.fy)?.val
+    const mid = series.find((item) => item.fy === point.fy)?.val
+    const newer = series.find((item) => item.fy === next.fy)?.val
+    if (!(older > 0) || !Number.isFinite(mid) || !(newer > 0)) continue
+    const epsDown = point.val < prev.val && point.val < next.val
+    const epsUp = point.val > prev.val && point.val > next.val
+    const otherDown = mid < older && mid < newer
+    const otherUp = mid > older && mid > newer
+    if ((epsDown && otherDown) || (epsUp && otherUp)) return true
+  }
+  return false
+}
+
+/**
+ * A one-year hole is only dropped when it looks like a missed split or a
+ * unit error: both neighbours sit near the same split factor, or both are
+ * off by 20x or more, and those neighbours are consistent with each other.
+ * A genuine downturn that later recovered (NVIDIA FY2023) must stay visible.
+ */
+function isolatedTagError (point, prev, next) {
+  if (!neighborsConsistent(prev, next)) return false
+  const left = prev.val / point.val
+  const right = next.val / point.val
+  const leftSplit = ratioNearSplit(left)
+  const rightSplit = ratioNearSplit(right)
+  if (leftSplit && leftSplit === rightSplit) return true
+  return Math.max(left, 1 / left) >= 20 && Math.max(right, 1 / right) >= 20
+}
+
+function dropCliffs (series, companions = []) {
   return series.filter((point, index) => {
     const prev = series[index - 1]
     const next = series[index + 1]
     if (!prev || !next || !(point.val > 0) || !(prev.val > 0) || !(next.val > 0)) return true
     const dip = point.val < prev.val * 0.45 && point.val < next.val * 0.45
     const spike = point.val > prev.val * 2.5 && point.val > next.val * 2.5
-    return !dip && !spike
+    if (!dip && !spike) return true
+    if (companionConfirms(point, prev, next, companions)) return true
+    return !isolatedTagError(point, prev, next)
   })
 }
 
@@ -338,28 +400,39 @@ export function scalePerShare (pack, factor) {
   }
 }
 
-const MIN_GROWTH_SPAN = 7
+const WINDOW_SPAN = { 10: 7, 5: 4, 1: 1 }
 
 /**
- * Ten-year compound growth in %, from the first positive year to the latest.
- * Null when the latest year is not positive or the span is under seven years.
+ * Compound annual growth in percent over a 10-, 5- or 1-year window.
+ * Same product contract as A/H statements: no invented default; a loss at
+ * the end of the window means no growth; a 10-year label needs at least
+ * seven years of span, a 5-year label at least four. A 1-year rate needs
+ * the immediately preceding fiscal year (a hole is not stretched into a
+ * two-year CAGR). A trough at the first year is not used as the base; the
+ * start walks forward while the minimum span still holds, instead of
+ * dropping the whole window.
  */
-function growth10y (series) {
-  const last = series.at(-1)
-  if (!last || !(last.val > 0)) return null
-  const positives = series.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
+export function growthWindow (series, yearsWanted) {
+  const clean = (series || []).filter((point) => point && Number.isFinite(point.fy) && Number.isFinite(point.val))
+  if (clean.length < 2) return null
+  const last = clean[clean.length - 1]
+  if (!(last.val > 0)) return null
+  const minimum = WINDOW_SPAN[yearsWanted] ?? Math.ceil(yearsWanted * 0.7)
+  const positives = clean.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
   const typical = positives[Math.floor(positives.length / 2)]
-  // A trough is not a base, but a later year in the same series still can be.
-  // After split restatement, genuine high-growth names often start well below
-  // the median; dropping the whole window left growth empty.
-  const first = series.find((point) => (
-    point.val > 0
-    && last.fy - point.fy >= MIN_GROWTH_SPAN
-    && !(positives.length >= 3 && point.val < typical * 0.2)
-  ))
-  if (!first) return null
-  const years = last.fy - first.fy
-  const pct = (Math.pow(last.val / first.val, 1 / years) - 1) * 100
+  const isTrough = (point) => yearsWanted > 1 && positives.length >= 3 && point.val < typical * 0.2
+  let start
+  if (yearsWanted === 1) {
+    start = clean.find((point) => point.fy === last.fy - 1) || null
+  } else {
+    const target = last.fy - yearsWanted
+    start = clean.reduce((chosen, point) => (point.fy <= target ? point : chosen), clean[0])
+    if (!start || !(start.val > 0) || isTrough(start)) {
+      start = clean.find((point) => point.val > 0 && last.fy - point.fy >= minimum && !isTrough(point)) || null
+    }
+  }
+  if (!start || !(start.val > 0) || last.fy - start.fy < minimum) return null
+  const pct = (Math.pow(last.val / start.val, 1 / (last.fy - start.fy)) - 1) * 100
   if (!Number.isFinite(pct)) return null
   return Number(Math.max(-100, Math.min(200, pct)).toFixed(2))
 }
@@ -393,22 +466,23 @@ const findYear = (series, fy) => series.find((item) => item.fy === fy)?.val ?? n
 
 function assemble (facts) {
   const reportedEps = earningsPerShare(facts)
-  const revenue = annual(facts, REVENUE_CONCEPTS, 'USD')
-  const operating = annual(facts, ['OperatingIncomeLoss'], 'USD')
-  const equity = annual(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], 'USD')
+  const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], 'USD')
+  const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], 'USD')
+  const equity = annualPrefer(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS, 'USD')
   const goodwill = annual(facts, ['Goodwill'], 'USD')
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
-  const ocf = annual(facts, ['NetCashProvidedByUsedInOperatingActivities'], 'USD')
-  const capex = annual(facts, CAPEX_CONCEPTS, 'USD')
+  const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], 'USD', 'ifrs-full')
+  const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, 'USD')
+  const capex = annualPrefer(facts, CAPEX_CONCEPTS, IFRS_CAPEX_CONCEPTS, 'USD')
   // Later 10-Ks sometimes restate older share counts onto a post-split basis.
   // Keep the original filing so the jump stays in the split year; otherwise
   // the same split is also detected from EPS and applied twice.
-  const shares = normalizeShareUnits(annual(facts, SHARE_CONCEPTS, 'shares', 'us-gaap', true))
+  const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
   const { adjusted, splits: shareSplits } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
   const splits = mergeSplits(shareSplits, restatementSplits(facts))
   const restatedEps = rescaleFiledEps(reportedEps, splits)
   const cliffYears = new Set(restatedEps.map((point) => point.fy))
-  for (const point of dropCliffs(restatedEps)) cliffYears.delete(point.fy)
+  for (const point of dropCliffs(restatedEps, [revenue, operating])) cliffYears.delete(point.fy)
   const keptEps = restatedEps.filter((point) => !cliffYears.has(point.fy))
   const ocfByYear = new Map(ocf.map((item) => [item.fy, item.val]))
   const fcf = capex
@@ -425,12 +499,16 @@ function assemble (facts) {
     if (total == null || !(count > 0)) return null
     return Number((total / count).toFixed(4))
   }
+  const useIfrsDeduct = goodwill.length < 2 && intangibles.length < 2
   const rows = years.map((fy) => {
     const book = findYear(equity, fy)
     const count = shareFor(fy)
+    const deduct = useIfrsDeduct
+      ? (findYear(ifrsIntangibles, fy) || 0)
+      : ((findYear(goodwill, fy) || 0) + (findYear(intangibles, fy) || 0))
     const tangible = book == null || !(count > 0)
       ? null
-      : Number(((book - (findYear(goodwill, fy) || 0) - (findYear(intangibles, fy) || 0)) / count).toFixed(4))
+      : Number(((book - deduct) / count).toFixed(4))
     return {
       date: fy + '-12',
       eps_without_nri: cliffYears.has(fy) ? null : findYear(keptEps, fy),
@@ -464,8 +542,12 @@ function assemble (facts) {
       ttm_eps: keptEps.at(-1)?.val ?? null,
       free_cash_flow_per_share: recentFcf?.val ?? null,
       tangible_book: [...rows].reverse().find((row) => row.book_value_per_share != null)?.book_value_per_share ?? null,
-      earning_growth_10y: growth10y(keptEps),
-      cashflow_growth_10y: recentFcf ? growth10y(fcfHistory) : null,
+      earning_growth_10y: growthWindow(keptEps, 10),
+      earning_growth_5y: growthWindow(keptEps, 5),
+      earning_growth_1y: growthWindow(keptEps, 1),
+      cashflow_growth_10y: recentFcf ? growthWindow(fcfHistory, 10) : null,
+      cashflow_growth_5y: recentFcf ? growthWindow(fcfHistory, 5) : null,
+      cashflow_growth_1y: recentFcf ? growthWindow(fcfHistory, 1) : null,
       predictability: predictability(keptEps),
     },
   }

@@ -43,6 +43,29 @@
     <div class="dcf__meter" aria-hidden="true">
       <span :style="{ width: safetyWidth, background: safetyIsNeutral ? 'var(--text-faint)' : safetyColor }" />
     </div>
+    <div v-if="showImplied" class="dcf__block dcf__implied">
+      <div class="dcf__label">
+        <a-popover placement="top">
+          <h3 class="dcf__label-text">
+            {{ t('rdcf_implied') }}
+            <q-icon class="faint" name="help" size="14px" />
+          </h3>
+          <template #content>{{ t('rdcf_implied_desc') }}</template>
+        </a-popover>
+      </div>
+      <q-space />
+      <q-skeleton v-if="loading" type="rect" height="22px" width="50px" />
+      <div
+        v-else-if="result.reverseGrowthRate != null"
+        class="dcf__implied-value"
+        data-testid="reverse-growth"
+      >
+        {{ percent(result.reverseGrowthRate) }}
+      </div>
+      <div v-else class="dcf__implied-empty" data-testid="reverse-growth">
+        {{ t('reverse_no_solution') }}
+      </div>
+    </div>
     <span class="sr-only" role="status" aria-live="polite">{{ liveSummary }}</span>
   </div>
 </template>
@@ -60,6 +83,7 @@ const props = defineProps({
   stock: { type: Object, default: () => ({}) },
   result: { type: Object, required: true },
   liveSummary: { type: String, default: '' },
+  showImplied: { type: Boolean, default: false },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()

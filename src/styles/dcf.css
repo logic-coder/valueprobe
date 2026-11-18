@@ -54,6 +54,9 @@
 .dcf__mos .button-font-weight { display: inline-flex; align-items: center; gap: 4px; font-size: 24px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
 .dcf__meter { height: 6px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; margin: 8px 0 10px; }
 .dcf__meter span { display: block; height: 100%; border-radius: 999px; transition: width 0.25s ease; }
+.dcf__implied { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border); align-items: flex-start; }
+.dcf__implied-value { margin-left: auto; font-size: 20px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
+.dcf__implied-empty { margin-left: auto; max-width: 16em; font-size: 13px; line-height: 1.4; font-weight: 500; color: var(--text-muted); text-align: right; }
 
 .dcf__form { grid-area: form; min-width: 0; }
 .dcf__toggle { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text-muted); cursor: pointer; }
@@ -201,11 +204,13 @@
   .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
   .dcf__strip { position: static; }
   .dcf__fair .text-h6 { font-size: 34px; }
+  .dcf__implied-value { font-size: 18px; }
 }
 
 @media (max-width: 640px) {
   .stage-grid { grid-template-columns: minmax(0, 1fr); }
   .dcf__fair .text-h6 { font-size: 30px; }
+  .dcf__implied-value { font-size: 18px; }
   .dcf__mos .button-font-weight { font-size: 22px; }
   .dcf__card > div { padding: 14px 14px 16px; gap: 14px; }
 }

@@ -17,6 +17,7 @@
             :stock="stock"
             :result="result"
             :live-summary="liveSummary"
+            :show-implied="!residualIncome"
           />
 
           <div class="line-height-2 dcf__form">
@@ -85,7 +86,12 @@
                 <template v-else>{{ money(stock.currency, form.freecashflow) }}</template>
               </div>
             </div>
-            <div v-if="!loading && stock.cashflow_basis" class="dcf__rate-note">
+            <div
+              v-if="!loading && stock.cashflow_basis"
+              :class="stock.cashflow_basis === 'invest' ? 'dcf__warn' : 'dcf__rate-note'"
+              data-testid="fcf-basis-note"
+            >
+              <q-icon v-if="stock.cashflow_basis === 'invest'" name="warning" size="16px" />
               {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : stock.cashflow_basis === 'invest' ? t('fcf_basis_invest') : t('fcf_basis_equity') }}
             </div>
             <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
@@ -118,10 +124,6 @@
               {{ t(rateNote) }}
             </div>
             <div v-if="!loading && !basisReady" class="dcf__rate-note">{{ t('basis_unavailable') }}</div>
-            <div v-else-if="!loading && result.reverseGrowthRate == null" class="dcf__rate-note">{{ t('reverse_no_solution') }}</div>
-            <div v-else-if="!loading" class="dcf__rate-note" data-testid="reverse-growth">
-              {{ t('rdcf_growth') }} {{ percent(result.reverseGrowthRate) }}
-            </div>
             <q-separator />
 
             <!-- tangible book value -->

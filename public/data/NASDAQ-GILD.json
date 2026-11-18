@@ -10,11 +10,11 @@
   "free_cash_flow_per_share": 7.5347,
   "tangible_book": -0.298,
   "earning_growth_10y": -4.16,
-  "earning_growth_5y": null,
-  "earning_growth_1y": null,
+  "earning_growth_5y": -4.16,
+  "earning_growth_1y": 200,
   "cashflow_growth_10y": 4.03,
-  "cashflow_growth_5y": null,
-  "cashflow_growth_1y": null,
+  "cashflow_growth_5y": 4.83,
+  "cashflow_growth_1y": -8.24,
   "book_growth_10y": null,
   "rvn_growth_10y": null,
   "ebit_growth_10y": null,
@@ -65,7 +65,7 @@
       },
       {
         "date": "2020-12",
-        "eps_without_nri": null,
+        "eps_without_nri": 0.1,
         "revenue_per_share": 19.5479,
         "operating_income_per_share": 3.2233,
         "ebitda_per_share": null,
@@ -105,7 +105,7 @@
       },
       {
         "date": "2024-12",
-        "eps_without_nri": null,
+        "eps_without_nri": 0.38,
         "revenue_per_share": 22.9116,
         "operating_income_per_share": 1.3243,
         "ebitda_per_share": null,
@@ -153,6 +153,10 @@
         4.22
       ],
       [
+        "2020-12",
+        0.1
+      ],
+      [
         "2021-12",
         4.93
       ],
@@ -163,6 +167,10 @@
       [
         "2023-12",
         4.5
+      ],
+      [
+        "2024-12",
+        0.38
       ],
       [
         "2025-12",

@@ -16,14 +16,14 @@ reverse-DCF guard live in the same file and are covered by `tests/unit/dcf.test.
 ## Before you push
 
 ```bash
-npm run lint         # eslint: dead code, Vue essentials
-npm run test         # unit: kernel parity, registry, measurement, formatting
-npm run test:e2e     # playwright, fully offline (intercepted network)
-npm run build && npm run smoke:pages   # static-host contract under a sub-path
+npm run verify       # lint, unit tests, and the pages smoke check — the same gates CI runs on main
+npm run test:e2e     # playwright, fully offline; CI runs this only on pull requests
 ```
 
-These are local gates: Actions runs only the light suite on push and defers the browser suites to
-pull requests, so your machine is where data pushes get validated.
+Do not commit or push until `npm run verify` has passed on the same tree you are sending. Actions
+runs only this light suite on a push to `main` and defers the browser suites to pull requests, so
+a green unit run by itself is not enough: lint is the first CI step, and that is what failed when
+an unused test import slipped through.
 
 **Do not make fundamental fields editable.** EPS, free cash flow per share, tangible book,
 growth history and predictability come from the committed quarterly snapshots under

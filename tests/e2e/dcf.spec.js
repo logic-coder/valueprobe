@@ -47,7 +47,10 @@ test('adds tangible book value to the fair value', async ({ page }) => {
 
 test('shows the reverse DCF expectation', async ({ page }) => {
   await page.getByRole('button', { name: '每股折现' }).click()
-  await expect(page.locator('text=期望每股收益增长率（反DCF模型）')).toBeVisible()
+  await expect(page.locator(STOCK.result)).toContainText('价格隐含增速')
+  await expect(page.getByTestId('reverse-growth')).toBeVisible()
+  await page.locator(STOCK.result + ' .a-popover', { hasText: '价格隐含增速' }).dispatchEvent('mouseenter')
+  await expect(page.locator('.a-popover__card', { hasText: '不是用来计算内在价值的采用增速' })).toBeVisible()
 })
 
 test('reset restores the defaults from the menu', async ({ page }) => {

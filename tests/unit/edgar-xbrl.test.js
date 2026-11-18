@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { financialsFromFacts, profileFromFacts, quoteSplitFactor, rescaleFiledEps } from '../../src/data/providers/edgar-xbrl'
+import { financialsFromFacts, fundamentalsFromFacts, growthWindow, profileFromFacts, quoteSplitFactor, scalePerShare } from '../../src/data/providers/edgar-xbrl'
 
 const year = (fy, val, extra = {}) => ({
   fy,
@@ -70,7 +70,30 @@ describe('EDGAR per-share facts', () => {
     expect(table.annual.at(-1).free_cash_flow_per_share).toBeLessThan(20)
   })
 
-  it('drops a one-year earnings hole', () => {
+  it('drops a one-year earnings hole that looks like a missed 5-for-1', () => {
+    const hole = facts({
+      EarningsPerShareDiluted: ['USD/shares', [
+        year(2017, 2.4),
+        year(2018, 2.5),
+        year(2019, 2.6),
+        year(2020, 2.8),
+        year(2021, 2.9),
+        year(2022, 3),
+        year(2023, 3.2),
+        year(2024, 0.7),
+        year(2025, 3.6),
+      ]],
+      Revenues: ['USD', [
+        year(2017, 24e9), year(2018, 25e9), year(2019, 26e9), year(2020, 28e9),
+        year(2021, 29e9), year(2022, 30e9), year(2023, 32e9), year(2024, 33e9),
+        year(2025, 36e9),
+      ]],
+    })
+    const table = financialsFromFacts(hole)
+    const byYear = Object.fromEntries(table.annual.map((row) => [row.date.slice(0, 4), row.eps_without_nri]))
+    expect(byYear['2023']).toBe(3.2)
+    expect(byYear['2024']).toBeNull()
+    expect(byYear['2025']).toBe(3.6)
     const stock = profileFromFacts('NASDAQ:EX', facts({
       EarningsPerShareDiluted: ['USD/shares', [
         year(2017, 2.4),
@@ -362,5 +385,225 @@ describe('EDGAR per-share facts', () => {
     expect(byYear['2020']).toBe(2.09)
     expect(byYear['2021']).toBe(3.24)
     expect(byYear['2025']).toBe(7.17)
+  })
+})
+
+
+describe('US growth windows', () => {
+  const points = (values, start = 2016) => values.map((val, index) => ({ fy: start + index, val }))
+
+  it('computes 5-year and 1-year earnings growth on the same contract as A/H', () => {
+    // 2016..2026: 1, 1.1, ... wait use a known series
+    const series = points([1, 1.1, 1.2, 1.3, 1.5, 1.8, 2.0, 2.2, 2.5, 3.0, 3.6], 2016)
+    expect(growthWindow(series, 1)).toBeCloseTo((3.6 / 3.0 - 1) * 100, 2)
+    const five = growthWindow(series, 5)
+    expect(five).toBeCloseTo((Math.pow(3.6 / 1.8, 1 / 5) - 1) * 100, 2)
+    const ten = growthWindow(series, 10)
+    expect(ten).toBeCloseTo((Math.pow(3.6 / 1, 1 / 10) - 1) * 100, 2)
+  })
+
+  it('leaves a window empty when the last year is a loss, and does not invent 5%', () => {
+    const series = points([1, 1.2, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, -1], 2015)
+    expect(growthWindow(series, 10)).toBeNull()
+    expect(growthWindow(series, 5)).toBeNull()
+    expect(growthWindow(series, 1)).toBeNull()
+  })
+
+  it('walks a 5-year base forward past a trough instead of dropping the window', () => {
+    // 2020 is a trough relative to the median; 2021 is a usable base with span 5.
+    const series = [
+      { fy: 2020, val: 0.05 },
+      { fy: 2021, val: 1.0 },
+      { fy: 2022, val: 1.1 },
+      { fy: 2023, val: 1.2 },
+      { fy: 2024, val: 1.3 },
+      { fy: 2025, val: 1.5 },
+      { fy: 2026, val: 1.8 },
+    ]
+    expect(growthWindow(series, 5)).toBeCloseTo((Math.pow(1.8 / 1.0, 1 / 5) - 1) * 100, 2)
+  })
+
+  it('does not call a 1-year rate across a missing prior year', () => {
+    expect(growthWindow([{ fy: 2024, val: 2 }, { fy: 2026, val: 3 }], 1)).toBeNull()
+  })
+
+  it('writes 5-year and 1-year fields onto a US profile', () => {
+    const stock = profileFromFacts('NASDAQ:EX', facts({
+      EarningsPerShareDiluted: ['USD/shares', [
+        year(2016, 1), year(2017, 1.1), year(2018, 1.2), year(2019, 1.3),
+        year(2020, 1.5), year(2021, 1.8), year(2022, 2.0), year(2023, 2.2),
+        year(2024, 2.5), year(2025, 3.0), year(2026, 3.6),
+      ]],
+      NetCashProvidedByUsedInOperatingActivities: ['USD', [
+        year(2016, 10e9), year(2017, 11e9), year(2018, 12e9), year(2019, 13e9),
+        year(2020, 15e9), year(2021, 18e9), year(2022, 20e9), year(2023, 22e9),
+        year(2024, 25e9), year(2025, 30e9), year(2026, 36e9),
+      ]],
+      PaymentsToAcquirePropertyPlantAndEquipment: ['USD', [
+        year(2016, 2e9), year(2017, 2e9), year(2018, 2e9), year(2019, 2e9),
+        year(2020, 2e9), year(2021, 2e9), year(2022, 2e9), year(2023, 2e9),
+        year(2024, 2e9), year(2025, 2e9), year(2026, 2e9),
+      ]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [
+        year(2016, 1e9), year(2017, 1e9), year(2018, 1e9), year(2019, 1e9),
+        year(2020, 1e9), year(2021, 1e9), year(2022, 1e9), year(2023, 1e9),
+        year(2024, 1e9), year(2025, 1e9), year(2026, 1e9),
+      ]],
+    }))
+    expect(stock.earning_growth_1y).toBeCloseTo(20, 2)
+    expect(stock.earning_growth_5y).toBeCloseTo((Math.pow(3.6 / 1.8, 1 / 5) - 1) * 100, 2)
+    expect(stock.cashflow_growth_1y).toBeCloseTo((34 / 28 - 1) * 100, 2)
+    expect(stock.cashflow_growth_5y).not.toBeNull()
+  })
+})
+
+describe('NVIDIA fiscal-year EPS holes', () => {
+  it('keeps the restated FY2023 downturn instead of treating it as a tagging error', () => {
+    // NVIDIA fiscal years end in late January. Companyfacts label the year by
+    // period end (FY2023 ended 2023-01-29). The FY2025 10-K restates FY2023
+    // onto the post-10-for-1 basis at 0.17; FY2022 was last filed pre-split
+    // at 3.85. Operating income also fell in FY2023, so this is a real year.
+    const jan = (fy, val, extra = {}) => year(fy, val, {
+      start: (fy - 1) + '-01-31',
+      end: fy + '-01-29',
+      ...extra,
+    })
+    const payload = facts({
+      EarningsPerShareDiluted: ['USD/shares', [
+        jan(2017, 2.57, { filed: '2018-03-01' }),
+        jan(2018, 4.82, { filed: '2019-02-21' }),
+        jan(2019, 6.63, { filed: '2020-02-20' }),
+        jan(2020, 1.13, { filed: '2022-03-18' }),
+        jan(2021, 1.73, { filed: '2022-03-18' }),
+        jan(2022, 3.85, { filed: '2024-02-21' }),
+        jan(2023, 1.74, { filed: '2024-02-21' }),
+        jan(2023, 0.17, { fy: 2025, filed: '2025-02-26' }),
+        jan(2024, 1.19, { filed: '2025-02-26' }),
+        jan(2025, 2.94, { filed: '2026-02-26' }),
+        jan(2026, 4.9, { filed: '2026-02-26' }),
+      ]],
+      Revenues: ['USD', [
+        jan(2017, 6.9e9), jan(2018, 9.7e9), jan(2019, 11.7e9), jan(2020, 10.9e9),
+        jan(2021, 16.7e9), jan(2022, 26.9e9), jan(2023, 27.0e9), jan(2024, 60.9e9),
+        jan(2025, 130.5e9), jan(2026, 187e9),
+      ]],
+      OperatingIncomeLoss: ['USD', [
+        jan(2017, 1.9e9), jan(2018, 3.2e9), jan(2019, 3.8e9), jan(2020, 2.8e9),
+        jan(2021, 4.5e9), jan(2022, 10.0e9), jan(2023, 4.2e9), jan(2024, 33.0e9),
+        jan(2025, 81.0e9), jan(2026, 120e9),
+      ]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [
+        jan(2017, 2.4e9, { filed: '2018-03-01' }),
+        jan(2020, 2.5e9, { filed: '2021-02-26' }),
+        jan(2021, 10e9, { filed: '2022-03-18' }),
+        jan(2022, 10e9, { filed: '2023-02-24' }),
+        jan(2023, 10e9, { filed: '2024-02-21' }),
+        jan(2024, 10e9, { filed: '2024-02-21' }),
+        jan(2025, 100e9, { filed: '2025-02-26' }),
+        jan(2026, 100e9),
+      ]],
+    })
+    const table = financialsFromFacts(payload)
+    const byYear = Object.fromEntries(table.annual.map((row) => [row.date.slice(0, 4), row.eps_without_nri]))
+    expect(byYear['2022']).toBeCloseTo(0.385, 3)
+    expect(byYear['2023']).toBe(0.17)
+    expect(byYear['2024']).toBe(1.19)
+    expect(byYear['2026']).toBe(4.9)
+    // 2016 exists in EDGAR (1.08 pre-split) but sits outside the 10-year
+    // window once FY2026 is the latest year; the parser should not invent it.
+    expect(byYear['2016']).toBeUndefined()
+    const stock = profileFromFacts('NASDAQ:NVDA', payload)
+    expect(stock.ttm_eps).toBe(4.9)
+    expect(stock.earning_growth_1y).not.toBeNull()
+    expect(stock.earning_growth_5y).not.toBeNull()
+  })
+})
+
+describe('IFRS 20-F book value and free cash flow', () => {
+  const year20 = (fy, val, extra = {}) => ({
+    fy,
+    fp: 'FY',
+    form: '20-F',
+    val,
+    filed: (fy + 1) + '-04-17',
+    start: fy + '-01-01',
+    end: fy + '-12-31',
+    ...extra,
+  })
+  const instant = (fy, val, extra = {}) => year20(fy, val, { start: undefined, ...extra })
+
+  function ifrsFacts (map) {
+    const ifrs = {}
+    for (const [concept, rows] of Object.entries(map)) {
+      const [unit, entries] = rows
+      ifrs[concept] = { units: { [unit]: entries } }
+    }
+    return { 'ifrs-full': ifrs, entityName: 'Taiwan Semiconductor Manufacturing Company Limited' }
+  }
+
+  it('reads parent equity and operating cash flow minus capex from a 20-F', () => {
+    const payload = ifrsFacts({
+      DilutedEarningsLossPerShare: ['USD/shares', [
+        year20(2022, 1.25), year20(2023, 1.07), year20(2024, 1.36),
+      ]],
+      Revenue: ['USD', [
+        year20(2022, 75e9), year20(2023, 70e9), year20(2024, 90e9),
+      ]],
+      ProfitLossFromOperatingActivities: ['USD', [
+        year20(2022, 35e9), year20(2023, 30e9), year20(2024, 40e9),
+      ]],
+      EquityAttributableToOwnersOfParent: ['USD', [
+        instant(2022, 94e9), instant(2023, 112e9), instant(2024, 125e9),
+      ]],
+      Equity: ['USD', [
+        instant(2022, 99e9), instant(2023, 118e9), instant(2024, 130e9),
+      ]],
+      NoncontrollingInterests: ['USD', [
+        instant(2022, 5e9), instant(2023, 6e9), instant(2024, 5e9),
+      ]],
+      IntangibleAssetsAndGoodwill: ['USD', [
+        instant(2022, 0.8e9), instant(2023, 0.7e9), instant(2024, 1e9),
+      ]],
+      CashFlowsFromUsedInOperatingActivities: ['USD', [
+        year20(2022, 52e9), year20(2023, 40e9), year20(2024, 50e9),
+      ]],
+      PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities: ['USD', [
+        year20(2022, 35e9), year20(2023, 31e9), year20(2024, 29e9),
+      ]],
+      AdjustedWeightedAverageShares: ['shares', [
+        year20(2022, 25e9), year20(2023, 25e9), year20(2024, 25e9),
+      ]],
+    })
+    const pack = fundamentalsFromFacts('NYSE:TSM', payload)
+    const byYear = Object.fromEntries(pack.financials.annual.map((row) => [row.date.slice(0, 4), row]))
+    // Parent equity minus intangibles, not consolidated equity that includes NCI.
+    expect(byYear['2024'].book_value_per_share).toBeCloseTo((125e9 - 1e9) / 25e9, 3)
+    expect(byYear['2024'].book_value_per_share).not.toBeCloseTo((130e9 - 1e9) / 25e9, 3)
+    expect(byYear['2024'].free_cash_flow_per_share).toBeCloseTo((50e9 - 29e9) / 25e9, 3)
+    expect(byYear['2024'].revenue_per_share).toBeCloseTo(90e9 / 25e9, 3)
+    expect(byYear['2024'].operating_income_per_share).toBeCloseTo(40e9 / 25e9, 3)
+    expect(pack.fields.tangible_book).toBeCloseTo((125e9 - 1e9) / 25e9, 3)
+    expect(pack.fields.free_cash_flow_per_share).toBeCloseTo((50e9 - 29e9) / 25e9, 3)
+    const adr = scalePerShare(pack, 0.2)
+    expect(adr.fields.tangible_book).toBeCloseTo(((125e9 - 1e9) / 25e9) / 0.2, 3)
+    expect(adr.fields.free_cash_flow_per_share).toBeCloseTo(((50e9 - 29e9) / 25e9) / 0.2, 3)
+    expect(adr.fields.ttm_eps).toBeCloseTo(1.36 / 0.2, 3)
+  })
+
+  it('does not let an IFRS alias override a US 10-K equity series', () => {
+    const payload = {
+      'us-gaap': {
+        EarningsPerShareDiluted: { units: { 'USD/shares': [year(2023, 4), year(2024, 5), year(2025, 6)] } },
+        StockholdersEquity: { units: { USD: [year(2023, 80e9), year(2024, 90e9), year(2025, 100e9)] } },
+        WeightedAverageNumberOfDilutedSharesOutstanding: { units: { shares: [year(2023, 10e9), year(2024, 10e9), year(2025, 10e9)] } },
+      },
+      'ifrs-full': {
+        EquityAttributableToOwnersOfParent: { units: { USD: [year(2023, 8e9), year(2024, 9e9), year(2025, 10e9)] } },
+        Equity: { units: { USD: [year(2023, 200e9), year(2024, 220e9), year(2025, 250e9)] } },
+      },
+      entityName: 'Example Inc.',
+    }
+    const table = financialsFromFacts(payload)
+    expect(table.annual.at(-1).book_value_per_share).toBeCloseTo(10, 3)
   })
 })

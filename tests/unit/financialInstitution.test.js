@@ -6,12 +6,17 @@ import { isFinancialInstitution } from '../../src/lib/financialInstitution'
 import { buildSensitivityGrid } from '../../src/lib/sensitivity'
 import { defaultView } from '../../src/lib/watchlistView'
 
-const load = (name) => {
-  const stock = JSON.parse(fs.readFileSync(path.resolve('public/data', name + '.json'), 'utf8'))
+const read = (dir, name) => {
+  const stock = JSON.parse(fs.readFileSync(path.resolve(dir, name + '.json'), 'utf8'))
   stock.exchange_ = name.split('-')[0]
   if (isFinancialInstitution(stock)) stock.financial_institution = true
   return stock
 }
+
+// Price-derived fair values stay on committed fixtures so a quarterly
+// snapshot refresh cannot break CI. Classification only checks flags.
+const loadFixture = (name) => read('tests/fixtures', name)
+const loadSnapshot = (name) => read('public/data', name)
 
 describe('residual income', () => {
   it('equals book when the return on equity is the discount rate', () => {
@@ -41,30 +46,30 @@ describe('residual income', () => {
 describe('financial institution detector', () => {
   it('flags mainland ocf files and names that say bank', () => {
     for (const name of ['SHSE-600036', 'SHSE-601398', 'SHSE-601318', 'SHSE-600030', 'SZSE-000001', 'HKSE-01398', 'NYSE-BAC']) {
-      expect(load(name).financial_institution, name).toBe(true)
+      expect(loadSnapshot(name).financial_institution, name).toBe(true)
     }
   })
 
   it('flags HK insurers and HSBC by name', () => {
     for (const name of ['HKSE-00005', 'HKSE-01299', 'HKSE-02318', 'HKSE-02601', 'HKSE-02628']) {
-      expect(load(name).financial_institution, name).toBe(true)
+      expect(loadSnapshot(name).financial_institution, name).toBe(true)
     }
   })
 
   it('flags US filers with book but no operating income and no cash flow or revenue', () => {
     for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS']) {
-      expect(load(name).financial_institution, name).toBe(true)
+      expect(loadSnapshot(name).financial_institution, name).toBe(true)
     }
   })
 
   it('leaves Hong Kong non-financials and ordinary companies alone', () => {
     for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'HKSE-00388', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'NYSE-CVX', 'NYSE-LLY', 'NYSE-TSM', 'SHSE-600519']) {
-      expect(load(name).financial_institution, name).toBeUndefined()
+      expect(loadSnapshot(name).financial_institution, name).toBeUndefined()
     }
   })
 
   it('reads annual rows passed apart from a payload that dropped them', () => {
-    const { financials, ...jpm } = load('NYSE-JPM')
+    const { financials, ...jpm } = loadSnapshot('NYSE-JPM')
     delete jpm.financial_institution
     expect(isFinancialInstitution(jpm)).toBe(false)
     expect(isFinancialInstitution(jpm, financials.annual)).toBe(true)
@@ -73,16 +78,16 @@ describe('financial institution detector', () => {
 
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
-    expect(defaultView(load('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: '16.92' })
-    expect(defaultView(load('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: '17.26' })
+    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: '16.92' })
+    expect(defaultView(loadFixture('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: '17.26' })
   })
 
   it('prices JPM on residual income, not the 520.84 owner-earnings annuity', () => {
-    expect(defaultView(load('NYSE-JPM'), 4).fairValue).toBe(153.11)
+    expect(defaultView(loadFixture('NYSE-JPM'), 4).fairValue).toBe(153.11)
   })
 
   it('keeps a Tencent-shaped payload (invest, not flagged) on presentValue', () => {
-    const tencent = load('HKSE-00700')
+    const tencent = loadSnapshot('HKSE-00700')
     expect(tencent.cashflow_basis).toBe('invest')
     expect(tencent.financial_institution).toBeUndefined()
     const expected = presentValue(tencent.tangible_book, 10, 10, Math.min(tencent.earning_growth_10y ?? 5, 15), tencent.ttm_eps_nri, 4, 10, false).fairValue

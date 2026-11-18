@@ -5,7 +5,7 @@ Open-source, local-first stock valuation. Ordinary companies are discounted from
 ## Run
 
 ```bash
-npm install --legacy-peer-deps
+npm install
 npm run dev
 ```
 
@@ -18,9 +18,10 @@ Push to `main` with Pages set to GitHub Actions. The workflow is `.github/workfl
 ## Tests
 
 ```bash
-npm test
-npm run test:e2e
+npm run verify
 ```
+
+That is the same set of gates a push to `main` runs: lint, unit tests, and the static-host smoke check. Browser suites still run with `npm run test:e2e`; CI only runs those on pull requests.
 
 `CALCULATION.md` and `DEVIATIONS.md` note where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
 

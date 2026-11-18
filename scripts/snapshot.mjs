@@ -215,15 +215,25 @@ for (const symbol of symbols) {
       note.report_currency = reportCurrency
       note.fx_to_quote = Math.round(hkdPerYuan * 10000) / 10000
     }
+    const file = resolve(OUT, market + '-' + code + '.json')
     if (US.has(market) && pack) {
       const price = Number(String(quote.price).replace(/[^0-9.-]/g, ''))
-      const factor = quoteSplitFactor(price, quote.marketCap, pack.filingShares)
+      let factor = quoteSplitFactor(price, quote.marketCap, pack.filingShares)
+      // A kline fallback has no market cap, so the split/ADR check cannot run.
+      // Reuse the last known factor instead of writing ordinary-share figures
+      // against a post-split or ADR price.
+      if (factor === 1 && !(quote.marketCap > 0)) {
+        try {
+          const prev = JSON.parse(await readFile(file, 'utf8'))
+          const kept = Number(prev.split_to_quote)
+          if (kept > 0 && kept !== 1) factor = kept
+        } catch { /* no previous file */ }
+      }
       if (factor !== 1) {
         pack = scalePerShare(pack, factor)
         note.split_to_quote = factor
       }
     }
-    const file = resolve(OUT, market + '-' + code + '.json')
     if (!usable(pack)) {
       await unlink(file).catch(() => {})
       throw new Error('no fundamentals')
