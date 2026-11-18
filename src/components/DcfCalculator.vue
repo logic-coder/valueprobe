@@ -57,6 +57,7 @@
                 <label class="basis-option__choice">
                   <q-radio v-model="dcfBasedOn" dense val="eps" :aria-label="t('eps')" />
                   {{ t('eps') }}
+                  <span v-if="stock.eps_period === 'FY'" class="faint">{{ t('eps_period_fy') }}</span>
                 </label>
                 <a-popover placement="top">
                   <q-icon class="text-grey-7" name="help" />
@@ -85,7 +86,7 @@
               </div>
             </div>
             <div v-if="!loading && stock.cashflow_basis" class="dcf__rate-note">
-              {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : t('fcf_basis_equity') }}
+              {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : stock.cashflow_basis === 'invest' ? t('fcf_basis_invest') : t('fcf_basis_equity') }}
             </div>
             <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
             <q-separator />
@@ -111,6 +112,9 @@
                 <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.discountRate++" />
                 <q-btn flat dense size="sm" class="dcf__wacc-btn" icon="functions" :label="t('wacc')" :aria-label="t('wacc')" @click="openWacc" />
               </div>
+            </div>
+            <div v-if="!loading && foreignHurdle" class="dcf__rate-note" data-testid="discount-currency-note">
+              {{ t('discount_currency_note') }}
             </div>
             <div v-if="!loading && rateSource === 'bundled'" class="dcf__rate-note">
               <q-icon name="info" size="14px" />
@@ -399,6 +403,10 @@ const freecashflow = computed(() => {
 const models = VALUATION_MODELS
 const suggested = computed(() => suggestedModel(stock.value))
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
+const foreignHurdle = computed(() => {
+  const code = codeOf(stock.value.currency) || stock.value.currency
+  return code === 'CNY' || code === 'HKD'
+})
 const model = ref('owner')
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
@@ -635,14 +643,14 @@ const applyWacc = () => {
   waccVisible.value = false
 }
 
-const incGrowthRate = () => {
-  if (dcfBasedOn.value === 'eps') form.growthRate = Number(form.growthRate) + 1
-  else form.freecashflowGrowthRate = Number(form.freecashflowGrowthRate) + 1
+const stepGrowth = (delta) => {
+  const field = dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate'
+  const current = finiteOrNull(form[field])
+  if (current === null) return
+  form[field] = current + delta
 }
-const decGrowthRate = () => {
-  if (dcfBasedOn.value === 'eps') form.growthRate = Number(form.growthRate) - 1
-  else form.freecashflowGrowthRate = Number(form.freecashflowGrowthRate) - 1
-}
+const incGrowthRate = () => stepGrowth(1)
+const decGrowthRate = () => stepGrowth(-1)
 // D2: the original accepts any discount rate, so 0 or 80 produce -Infinity or
 // nonsense. Bound the input to 0-50; the kernel still sees the bounded number.
 const clampDiscount = () => {

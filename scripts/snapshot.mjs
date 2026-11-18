@@ -48,10 +48,28 @@ function priceOf (quote, market) {
 async function quoteFor (market, code) {
   const secid = SECID[market]
   if (!secid) throw new Error('market not on the quote feed')
-  const url = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116'
-  const quote = (await getJson(url))?.data
-  if (!quote) throw new Error('empty quote')
-  return priceOf(quote, market)
+  const live = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116'
+  try {
+    const quote = (await getJson(live))?.data
+    if (!quote) throw new Error('empty quote')
+    return priceOf(quote, market)
+  } catch (error) {
+    // push2 resets the socket (UND_ERR_SOCKET) after a long run. The daily
+    // kline host still answers; its close is already in quote units, and
+    // without a market cap the split check stays at 1.
+    if (error.message !== 'empty quote' && !/fetch failed|HTTP 5/.test(error.message)) throw error
+    return quoteFromKline(market, code, secid)
+  }
+}
+
+async function quoteFromKline (market, code, secid) {
+  const url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + encodeURIComponent(secid + '.' + code)
+    + '&klt=101&fqt=1&lmt=1&end=20500101&fields1=f1,f2,f3&fields2=f51,f53'
+  const data = (await getJson(url))?.data
+  const close = Number(String(data?.klines?.at(-1) || '').split(',')[1])
+  if (!(close > 0)) throw new Error('empty quote')
+  const currency = market === 'HKSE' ? 'HK$' : US.has(market) ? '$' : '¥'
+  return { price: currency + close, currency, company: data.name || '', marketCap: NaN }
 }
 
 async function statementsFor (market, code) {

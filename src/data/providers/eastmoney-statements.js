@@ -229,7 +229,9 @@ export function fromHkReports (rows) {
     book: num(latest?.BPS),
     // A non-financial whose rows carry no operating and investing cash flow is not
     // a bank; it simply has no free cash flow to show.
-    basis: usedFlow ? 'fcf' : financial ? 'ocf' : 'none',
+    // 'invest' is operating cash flow plus negative investing cash flow, which
+    // includes acquisitions and financial investments, not capital spending alone.
+    basis: usedFlow ? 'invest' : financial ? 'ocf' : 'none',
     table,
     epsPoints: series(annual, epsOf),
     cashPoints: series(annual, fcfOf),

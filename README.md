@@ -1,6 +1,6 @@
 # valueprobe
 
-Open-source, local-first stock valuation. The browser prices ordinary companies on owner earnings and suggests residual income for banks. Not investment advice.
+Open-source, local-first stock valuation. Ordinary companies are discounted from per-share earnings or shareholder free cash flow; banks use residual income. The default discount rate is a US Treasury hurdle plus 6 points, for every currency. Annual per-share earnings stay as filed, not split-adjusted. Not investment advice.
 
 ## Run
 

@@ -4,21 +4,21 @@
   "exchange_": "HKSE",
   "company": "网易",
   "currency": "HK$",
-  "price": "HK$186.2",
+  "price": "HK$188.3",
   "ttm_eps": 11.9258,
   "ttm_eps_nri": 11.9258,
-  "free_cash_flow_per_share": null,
+  "free_cash_flow_per_share": 6.4828,
   "tangible_book": 61.4297,
   "earning_growth_10y": 15.85,
   "earning_growth_5y": 23.83,
   "earning_growth_1y": 14.04,
   "cashflow_growth_10y": null,
-  "cashflow_growth_5y": null,
-  "cashflow_growth_1y": null,
+  "cashflow_growth_5y": 0.64,
+  "cashflow_growth_1y": -55.58,
   "book_growth_10y": 16.97,
   "rvn_growth_10y": 15.89,
   "ebit_growth_10y": 20.31,
-  "cashflow_basis": "ocf",
+  "cashflow_basis": "invest",
   "eps_period": "TTM",
   "predictability": 5,
   "financials": {
@@ -29,7 +29,7 @@
         "revenue_per_share": 12.7616,
         "operating_income_per_share": 0,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": -0.3451,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 16.8131
       },
@@ -39,7 +39,7 @@
         "revenue_per_share": 15.7793,
         "operating_income_per_share": 3.6266,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": -0.0558,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 16.6291
       },
@@ -49,7 +49,7 @@
         "revenue_per_share": 18.4253,
         "operating_income_per_share": 5.0366,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": -1.797,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 22.5931
       },
@@ -59,7 +59,7 @@
         "revenue_per_share": 25.8876,
         "operating_income_per_share": 5.1777,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": -1.5329,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 30.1933
       },
@@ -69,7 +69,7 @@
         "revenue_per_share": 31.4958,
         "operating_income_per_share": 5.8117,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 6.3184,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 35.0467
       },
@@ -79,7 +79,7 @@
         "revenue_per_share": 35.2323,
         "operating_income_per_share": 7.0771,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 7.3334,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 38.5038
       },
@@ -89,7 +89,7 @@
         "revenue_per_share": 37.9291,
         "operating_income_per_share": 10.1444,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 6.6952,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 45.6929
       },
@@ -99,7 +99,7 @@
         "revenue_per_share": 39.1207,
         "operating_income_per_share": 10.8808,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 14.5928,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 50.9869
       },
@@ -109,7 +109,7 @@
         "revenue_per_share": 41.5275,
         "operating_income_per_share": 13.2305,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 6.4828,
         "dividends_per_share": 4.5819,
         "book_value_per_share": 58.9318
       }
@@ -118,7 +118,7 @@
       {
         "date": "2025-12",
         "eps_without_nri": 11.9258,
-        "free_cash_flow_per_share": null,
+        "free_cash_flow_per_share": 6.4828,
         "book_value_per_share": 61.4297,
         "revenue_per_share": null,
         "operating_income_per_share": null
@@ -239,6 +239,44 @@
       [
         "2025-12",
         13.2305
+      ]
+    ],
+    "free_cash_flow_per_share": [
+      [
+        "2017-12",
+        -0.3451
+      ],
+      [
+        "2018-12",
+        -0.0558
+      ],
+      [
+        "2019-12",
+        -1.797
+      ],
+      [
+        "2020-12",
+        -1.5329
+      ],
+      [
+        "2021-12",
+        6.3184
+      ],
+      [
+        "2022-12",
+        7.3334
+      ],
+      [
+        "2023-12",
+        6.6952
+      ],
+      [
+        "2024-12",
+        14.5928
+      ],
+      [
+        "2025-12",
+        6.4828
       ]
     ],
     "dividends_per_share": [

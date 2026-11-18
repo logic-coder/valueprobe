@@ -47,7 +47,7 @@ describe('Hong Kong statements', () => {
       }),
     ])
     expect(parsed.fields.ttm_eps).toBe(21)
-    expect(parsed.fields.cashflow_basis).toBe('fcf')
+    expect(parsed.fields.cashflow_basis).toBe('invest')
     // 2025: shares = 200/20 = 10, fcf = (80-30)/10 = 5
     expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBe(5)
     expect(parsed.financials.annual.at(-1).dividends_per_share).toBe(1.5)
@@ -138,7 +138,7 @@ describe('growth windows and cash-flow basis', () => {
         NET_INTEREST_INCOME: 15, NETCASH_OPERATE: 260, NETCASH_INVEST: -90,
       }),
     ])
-    expect(parsed.fields.cashflow_basis).toBe('fcf')
+    expect(parsed.fields.cashflow_basis).toBe('invest')
     expect(parsed.fields.free_cash_flow_per_share).toBe(17)
   })
 
@@ -159,7 +159,7 @@ describe('growth windows and cash-flow basis', () => {
         NETCASH_OPERATE: 30, NETCASH_INVEST: -10, OPERATE_PROFIT: -50, CURRENCY: 'HKD',
       }),
     ])
-    expect(parsed.fields.cashflow_basis).toBe('fcf')
+    expect(parsed.fields.cashflow_basis).toBe('invest')
     // shares = -100 / -10 = 10, fcf = (30 - 10) / 10 = 2
     expect(parsed.fields.free_cash_flow_per_share).toBe(2)
     expect(parsed.financials.annual.at(-1).operating_income_per_share).toBe(-5)
