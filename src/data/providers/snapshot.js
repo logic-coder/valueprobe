@@ -88,7 +88,7 @@ export const snapshot = {
     delete stock.history
     delete stock.financials
     stock.exchange_ = market
-    if (isFinancialInstitution(stock)) stock.financial_institution = true
+    if (isFinancialInstitution(stock, data.financials?.annual)) stock.financial_institution = true
     stock.symbol = stock.symbol || code
     stock._provider = 'snapshot'
     stock._as_of = data.as_of || null

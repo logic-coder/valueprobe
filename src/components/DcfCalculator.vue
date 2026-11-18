@@ -35,11 +35,10 @@
                   padding="xs md"
                   :class="{ 'is-active': model === key }"
                   :label="t('model_' + key)"
-                  :title="t('model_' + key + '_tip')"
                   @click="model = key"
                 />
               </div>
-              <span class="faint dcf__scenario-note dcf__model-note">{{ model === suggested ? t(suggested === 'residual' ? 'model_suggested_residual' : 'model_suggested_owner') : t('model_override') }}</span>
+              <span class="dcf__scenario-note dcf__model-note">{{ t('model_suggested', { model: t('model_' + suggested) }) }}</span>
             </div>
             <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
             <!-- stock price -->
@@ -47,11 +46,7 @@
               <div class="text-left">{{ t('stock_price') }}</div>
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else class="dcf__value">
-                {{ money(stock.currency, result.stockPrice) }}
-                <q-icon class="text-grey-7" name="edit" />
-                <q-popup-edit v-model="result.stockPrice" buttons>
-                  <q-input v-model.number="result.stockPrice" type="number" dense autofocus />
-                </q-popup-edit>
+                <editable-value v-model="result.stockPrice" :display="money(stock.currency, result.stockPrice)" :label="t('stock_price')" :currency="currencyCode" />
               </div>
             </div>
             <q-separator />
@@ -81,22 +76,12 @@
               <q-space />
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else-if="dcfBasedOn === 'eps'" class="dcf__value">
-                {{ money(stock.currency, form.eps) }}
-                <template v-if="isManual">
-                  <q-icon class="text-grey-7" name="edit" />
-                  <q-popup-edit v-model="form.eps" buttons>
-                    <q-input v-model.number="form.eps" type="number" dense autofocus />
-                  </q-popup-edit>
-                </template>
+                <editable-value v-if="isManual" v-model="form.eps" :display="money(stock.currency, form.eps)" :label="t('eps')" :currency="currencyCode" />
+                <template v-else>{{ money(stock.currency, form.eps) }}</template>
               </div>
               <div v-else class="dcf__value">
-                {{ money(stock.currency, form.freecashflow) }}
-                <template v-if="isManual">
-                  <q-icon class="text-grey-7" name="edit" />
-                  <q-popup-edit v-model="form.freecashflow" buttons>
-                    <q-input v-model.number="form.freecashflow" type="number" dense autofocus />
-                  </q-popup-edit>
-                </template>
+                <editable-value v-if="isManual" v-model="form.freecashflow" :display="money(stock.currency, form.freecashflow)" :label="t('total_freecashflow')" :currency="currencyCode" />
+                <template v-else>{{ money(stock.currency, form.freecashflow) }}</template>
               </div>
             </div>
             <div v-if="!loading && stock.cashflow_basis" class="dcf__rate-note">
@@ -127,9 +112,9 @@
                 <q-btn flat dense size="sm" class="dcf__wacc-btn" icon="functions" :label="t('wacc')" :aria-label="t('wacc')" @click="openWacc" />
               </div>
             </div>
-            <div v-if="!loading" class="dcf__rate-note">
+            <div v-if="!loading && rateSource === 'bundled'" class="dcf__rate-note">
               <q-icon name="info" size="14px" />
-              {{ rateSource === 'cache' ? t('rate_cached_note') : rateSource === 'live' ? t('rate_live_note') : t('rate_bundled_note') }}
+              {{ t('rate_bundled_note') }}
             </div>
             <div v-if="!loading && !basisReady" class="dcf__rate-note">{{ t('basis_unavailable') }}</div>
             <div v-else-if="!loading && result.reverseGrowthRate == null" class="dcf__rate-note">{{ t('reverse_no_solution') }}</div>
@@ -155,13 +140,8 @@
               </div>
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else class="dcf__value">
-                {{ moneyIn(stock.currency, result.tbv) }}
-                <template v-if="isManual">
-                  <q-icon class="text-grey-7" name="edit" />
-                  <q-popup-edit v-model="result.tbv" buttons>
-                    <q-input v-model.number="result.tbv" type="number" dense autofocus />
-                  </q-popup-edit>
-                </template>
+                <editable-value v-if="isManual" v-model="result.tbv" :display="moneyIn(stock.currency, result.tbv)" :label="t('book')" :currency="currencyCode" />
+                <template v-else>{{ moneyIn(stock.currency, result.tbv) }}</template>
               </div>
               <p v-if="result.addToFairValue && !residualIncome" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
             </div>
@@ -335,7 +315,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch, onMounted } from 'vue'
+import { computed, reactive, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useStockStore } from '../store/stock'
@@ -343,11 +323,13 @@ import { useDcfStore } from '../store/dcf'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
-import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue } from '../lib/dcf'
+import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
 import { suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
+import { codeOf } from '../store/display'
 import APopover from './APopover.vue'
+import EditableValue from './EditableValue.vue'
 import DcfHeader from './dcf/DcfHeader.vue'
 import DcfResultBar from './dcf/DcfResultBar.vue'
 import ScenarioBar from './dcf/ScenarioBar.vue'
@@ -379,6 +361,7 @@ const emit = defineEmits(['change', 'change-result', 'reload'])
 const isLoading = ref(true)
 const loading = computed(() => dcfStore.loading)
 const stock = computed(() => stockStore.stock || {})
+const currencyCode = computed(() => codeOf(stock.value.currency) || stock.value.currency || '')
 
 const financials = computed(() => dcfStore.financials.data)
 const indicator = computed(() => dcfStore.indicator.indicator)
@@ -424,7 +407,7 @@ const form = reactive({
 })
 const result = reactive({
   tbv: null, stockPrice: null, growthValue: null, terminalValue: null, reverseGrowthRate: null,
-  marginOfSafety: null, addToFairValue: false, fairValue: null,
+  marginOfSafety: null, addToFairValue: false, fairValue: null, fairLow: null, fairHigh: null,
 })
 const hasPeers = computed(() => peersFor(props.symbol).length > 0)
 // Recalculation is announced, but only after typing pauses: a live region that
@@ -522,14 +505,29 @@ const calculate = () => {
   const growth = dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate
   if (!(base > 0)) {
     result.fairValue = null
+    result.fairLow = null
+    result.fairHigh = null
     result.growthValue = null
     result.terminalValue = null
     result.marginOfSafety = 'n/a'
     result.reverseGrowthRate = null
     return
   }
+  const band = valueBand({
+    residual: residualIncome.value,
+    tbv: result.tbv,
+    base,
+    discountRate: form.discountRate,
+    growthRate: growth,
+    terminalGrowthRate: form.terminalGrowthRate,
+    years: form.years,
+    yearsOfTerminalGrowth: form.yearsOfTerminalGrowth,
+    addToFairValue: result.addToFairValue,
+  })
+  result.fairLow = band.low
+  result.fairHigh = band.high
   if (residualIncome.value) {
-    result.fairValue = residualIncomeValue(result.tbv, base, form.discountRate, growth, form.terminalGrowthRate)?.fairValue ?? null
+    result.fairValue = residualIncomeValue(result.tbv, base, form.discountRate, growth, form.terminalGrowthRate, form.years)?.fairValue ?? null
     result.growthValue = null
     result.terminalValue = null
     result.marginOfSafety = result.fairValue == null ? 'n/a' : marginOfSafety(result.stockPrice, result.fairValue)
@@ -673,6 +671,11 @@ watch(() => [result.stockPrice, result.tbv, result.addToFairValue], () => {
   calculate()
   persistManual()
 })
+watch(() => [props.symbol, result.stockPrice], ([symbol, price]) => dcfStore.setWorkingPrice(symbol, price))
+watch(() => dcfStore.workingPrice, (shared) => {
+  if (shared.symbol === props.symbol && shared.value !== result.stockPrice) result.stockPrice = shared.value
+})
+onBeforeUnmount(() => dcfStore.releaseWorkingPrice(props.symbol))
 watch(() => result.fairValue, () => {
   emit('change-result', result.reverseGrowthRate, dcfBasedOn.value)
 })

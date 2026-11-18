@@ -47,6 +47,8 @@
 .dcf__label { font-size: 14px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; }
 .dcf__label-text { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; line-height: 1.4; font-weight: 600; color: var(--text-muted); border-bottom: 1px dashed var(--border-strong); padding-bottom: 1px; }
 .dcf__fair { padding-top: 2px; }
+.dcf__fair-figures { margin-left: auto; text-align: right; }
+.dcf__range { margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dcf__fair .text-h6 { font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
 .dcf__mos { margin-top: 12px; }
 .dcf__mos .button-font-weight { display: inline-flex; align-items: center; gap: 4px; font-size: 24px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }

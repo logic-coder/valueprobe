@@ -38,7 +38,7 @@ export function buildSensitivityGrid ({
   const growths = axis(growthCenter, GROWTH_RANGE, true)
   const rows = discounts.map((dr) => growths.map((gr) => {
     const fairValue = residualIncome
-      ? residualIncomeValue(tbv, base, dr, gr, terminalGrowthRate)?.fairValue
+      ? residualIncomeValue(tbv, base, dr, gr, terminalGrowthRate, years)?.fairValue
       : presentValue(tbv, years, dr, gr, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
     return Number.isFinite(fairValue) ? fairValue : null
   }))

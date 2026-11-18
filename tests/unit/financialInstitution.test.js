@@ -14,29 +14,27 @@ const load = (name) => {
 }
 
 describe('residual income', () => {
-  it('values CMB on tangible book: book 46.87, eps 5.84, r 10, g 4', () => {
-    const result = residualIncomeValue(46.87, 5.84, 10, 9.44, 4)
-    expect(result.fairValue).toBe(66.09)
-    expect(result.growth).toBe(4)
-    expect(result.roe).toBeCloseTo(12.46, 2)
+  it('equals book when the return on equity is the discount rate', () => {
+    expect(residualIncomeValue(100, 12, 12, 4, 4, 10).fairValue).toBe(100)
   })
 
-  it('takes the lowest of growth, terminal and ROE − 1pp', () => {
-    expect(residualIncomeValue(11.2394, 1.05, 10, 3.15, 4).growth).toBe(3.15)
-    expect(residualIncomeValue(100, 5, 10, 9, 8).growth).toBe(4)
+  it('fades CMB return toward the discount rate instead of keeping it forever', () => {
+    const faded = residualIncomeValue(46.87, 5.84, 10, 9.44, 4, 10)
+    expect(faded.fairValue).toBe(51.9)
+    expect(faded.fairValue).toBeLessThan(66.09)
   })
 
-  it('refuses a value without positive book or eps, or with r ≤ g', () => {
+  it('refuses a value without positive book, earnings, or discount rate', () => {
     expect(residualIncomeValue(46.87, 0, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(46.87, -1, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(0, 5.84, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(-3, 5.84, 10, 4, 4)).toBeNull()
-    expect(residualIncomeValue(46.87, 5.84, 4, 4, 4)).toBeNull()
+    expect(residualIncomeValue(46.87, 5.84, 0, 4, 4)).toBeNull()
   })
 
   it('feeds the sensitivity centre cell', () => {
     const grid = buildSensitivityGrid({ discountRate: 10, growthRate: 9.44, tbv: 46.87, years: 10, base: 5.84, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10, residualIncome: true })
-    expect(grid.rows[2][2]).toBe(66.09)
+    expect(grid.rows[2][2]).toBe(51.9)
   })
 })
 
@@ -47,17 +45,40 @@ describe('financial institution detector', () => {
     }
   })
 
+  it('flags HK insurers and HSBC by name', () => {
+    for (const name of ['HKSE-00005', 'HKSE-01299', 'HKSE-02318', 'HKSE-02601', 'HKSE-02628']) {
+      expect(load(name).financial_institution, name).toBe(true)
+    }
+  })
+
+  it('flags US filers with book but no operating income and no cash flow or revenue', () => {
+    for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS']) {
+      expect(load(name).financial_institution, name).toBe(true)
+    }
+  })
+
   it('leaves wiped-cash-flow HK names and ordinary companies alone', () => {
-    for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'SHSE-600519', 'NYSE-JPM']) {
+    for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'HKSE-00388', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'NYSE-CVX', 'NYSE-LLY', 'NYSE-TSM', 'SHSE-600519']) {
       expect(load(name).financial_institution, name).toBeUndefined()
     }
+  })
+
+  it('reads annual rows passed apart from a payload that dropped them', () => {
+    const { financials, ...jpm } = load('NYSE-JPM')
+    delete jpm.financial_institution
+    expect(isFinancialInstitution(jpm)).toBe(false)
+    expect(isFinancialInstitution(jpm, financials.annual)).toBe(true)
   })
 })
 
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
-    expect(defaultView(load('SHSE-600036'), 4)).toEqual({ fairValue: 66.09, mos: '34.48' })
-    expect(defaultView(load('SHSE-601398'), 4)).toEqual({ fairValue: 10.16, mos: '10.63' })
+    expect(defaultView(load('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: '16.57' })
+    expect(defaultView(load('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: '17.08' })
+  })
+
+  it('prices JPM on residual income, not the 520.84 owner-earnings annuity', () => {
+    expect(defaultView(load('NYSE-JPM'), 4).fairValue).toBe(153.11)
   })
 
   it('keeps a Tencent-shaped payload (ocf, not flagged) on presentValue', () => {

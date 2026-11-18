@@ -11,11 +11,20 @@ export const useDcfStore = defineStore('dcf', {
     view: { loading: false, data: null },
     indicator: { loading: false, indicator: null, source: 'live' },
     chartData: {},
+    // The calculator's price, shared with the page header so both edit one number.
+    // Empty symbol means no calculator is mounted and the header shows the snapshot quote.
+    workingPrice: { symbol: '', value: null },
   }),
   getters: {
     loading: (state) => state.financials.loading || state.view.loading,
   },
   actions: {
+    setWorkingPrice (symbol, value) {
+      this.workingPrice = { symbol, value }
+    },
+    releaseWorkingPrice (symbol) {
+      if (this.workingPrice.symbol === symbol) this.workingPrice = { symbol: '', value: null }
+    },
     async preFetch (symbol) {
       this.symbol = symbol
       await Promise.all([this.loadFinancialData(), this.loadView()])

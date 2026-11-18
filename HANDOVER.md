@@ -27,7 +27,7 @@
 | 2–3 天 | `src/data/*`、DATA_SOURCES、`ATTRIBUTION` | 数据层、CORS 与降级 |
 | 可选 1 天 | DEVIATIONS 全文 | 行为差异依据 |
 
-之后仍需要：改显示层时逐页对照 e2e；改数据层时逐条对照 `DATA_SOURCES.md`；动内核要先证明 `git diff` 为空。
+之后仍需要：改显示层时逐页对照 e2e；改数据层时逐条对照 `DATA_SOURCES.md`；动 `src/lib/dcf.js` 要先让 `kernel-parity` 照旧通过。
 
 ## 3. 发现（按认知成本排序）
 
@@ -100,7 +100,7 @@
 ```
 src/
   config/          markets, site, upstream        # 常量与白名单
-  lib/dcf.js       # 内核，路径与字节都不动
+  lib/dcf.js       # 内核，路径不动；calGr2fv 冻结
   lib/display/     format, money, locale
   lib/domain/      sensitivity, multiples, wacc, peers, measure, report
   lib/persist/     storage, cache, manual, archive, watchlist
@@ -125,8 +125,8 @@ src/
 | 3（2–3 天） | 拆 `DcfCalculator` 与 `StockDcfPage` | class 与文案不变，e2e 不改 |
 | 4（2–3 天，已做） | 术语迁移（source/provider 分离、cloud 改名、bundled 迁移） | 持久化别名迁移测试 |
 
-**护栏**：每次提交前 `git diff <移植提交> -- src/lib/dcf.js` 必须为空；`PW_BASE=1`、`smoke:pages`、`rehearse:pages`、`audit:contrast` 必跑；显示层搬运不改 CSS class 与文案；出现可见差异必须写 DEVIATIONS。**不要现在做**：全量 TypeScript、换 Quasar/Pinia、移动内核文件、重写 measure。
+**护栏**：每次提交前 `kernel-parity` 必须通过（`calGr2fv` 冻结，页面模型是 `presentValue` / `residualIncomeValue`）；`PW_BASE=1`、`smoke:pages`、`rehearse:pages`、`audit:contrast` 必跑；显示层搬运不改 CSS class 与文案；出现可见差异必须写 DEVIATIONS。**不要现在做**：全量 TypeScript、换 Quasar/Pinia、移动内核文件、重写 measure。
 
 ## 6. 值得保留的部分
 
-内核只有 114 行且被 `kernel-parity` 单测锁住；测量模块"数字或 null + 稳定原因"的契约清楚；数据源有跳过原因、熔断、限流、验证与诊断，比多数同类玩具项目扎实；文档和 e2e 覆盖足以支撑重构。**问题集中、不是弥散**——按 P0 顺序做，两周内可把交接成本降一个量级。
+内核只有两百来行，`calGr2fv` 被 `kernel-parity` 单测锁住；测量模块"数字或 null + 稳定原因"的契约清楚；数据源有跳过原因、熔断、限流、验证与诊断，比多数同类玩具项目扎实；文档和 e2e 覆盖足以支撑重构。**问题集中、不是弥散**——按 P0 顺序做，两周内可把交接成本降一个量级。

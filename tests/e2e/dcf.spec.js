@@ -7,11 +7,11 @@ const FAIR = STOCK.fairValue
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('13.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.26', { timeout: 20000 })
 })
 
 test('renders the calculator with the live defaults', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 13.49')
+  await expect(page.locator(FAIR)).toContainText('¥ 10.26')
   await expect(page.locator('.input-section').first()).toHaveValue('12')
   await expect(page.locator('text=当公司可预测性评级为一颗星')).toBeVisible()
   await expect(page.locator('.dcf__warn')).toBeVisible()
@@ -20,7 +20,7 @@ test('renders the calculator with the live defaults', async ({ page }) => {
 test('recalculates when the discount rate changes', async ({ page }) => {
   await page.locator('.input-section').first().fill('10')
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('13.49')
+  await expect(page.locator(FAIR)).not.toContainText('10.26')
   await page.locator('.q-btn:has(i:has-text("add"))').first().click()
   await page.waitForTimeout(300)
   await expect(page.locator('.input-section').first()).toHaveValue('11')
@@ -32,16 +32,18 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
   await expect(page.locator(FAIR)).toContainText('60.42')
   await page.locator('.q-radio').nth(0).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('13.49')
+  await expect(page.locator(FAIR)).toContainText('10.26')
 })
 
 test('adds tangible book value to the fair value', async ({ page }) => {
+  await page.getByRole('button', { name: '所有者收益' }).click()
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('24.73')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
+  await page.getByRole('button', { name: '所有者收益' }).click()
   await expect(page.locator('text=期望每股收益增长率（反DCF模型）')).toBeVisible()
 })
 
@@ -60,6 +62,26 @@ test('shows field help in a popover', async ({ page }) => {
   await growthHelp.dispatchEvent('mouseenter')
   await expect(page.locator('.a-popover__card').first()).toBeVisible()
   await expect(page.locator('.a-popover__card').first()).toContainText('快速成长阶段')
+})
+
+test('the result labels open their help', async ({ page }) => {
+  for (const [label, text] of [['内在价值', '不是目标价'], ['安全边际', '负值表示']]) {
+    await page.locator(STOCK.result + ' .a-popover', { hasText: label }).dispatchEvent('mouseenter')
+    await expect(page.locator('.a-popover__card', { hasText: text })).toBeVisible()
+    await page.keyboard.press('Escape')
+  }
+})
+
+test('the header price is the working price', async ({ page }) => {
+  const header = page.getByRole('button', { name: /^估值用股价/ })
+  await expect(page.locator('.ticker__price')).toContainText('不改快照')
+  const marginBefore = await page.locator(STOCK.margin).innerText()
+  await header.click()
+  await page.getByRole('spinbutton', { name: /估值用股价/ }).fill('7')
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('button', { name: /^股价 ¥ 7\.00/ })).toBeVisible()
+  await expect(page.locator('.ticker__price')).toContainText('快照')
+  await expect(page.locator(STOCK.margin)).not.toHaveText(marginBefore)
 })
 
 test('switches the interface language', async ({ page }) => {
@@ -98,7 +120,7 @@ test('keeps the console clean', async ({ page }) => {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.reload()
-  await expect(page.locator(FAIR)).toContainText('13.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.26', { timeout: 20000 })
   await page.waitForTimeout(1200)
   expect(errors).toEqual([])
 })
@@ -109,6 +131,9 @@ test('shows a sensitivity matrix around the current assumptions', async ({ page 
   const center = page.locator('.sens__grid td.is-center')
   await expect(center).toHaveCount(1)
   await expect(center).toHaveText(await page.locator(FAIR).innerText())
+  // A bank's return fades to the discount rate, so this window stays in one band.
+  // Owner earnings still spreads far enough to tint a cell.
+  await page.getByRole('button', { name: '所有者收益' }).click()
   await expect(page.locator('.sens__grid td.cell--good, .sens__grid td.cell--bad').first()).toBeVisible()
 })
 
@@ -135,10 +160,10 @@ test('builds the discount rate from its parts', async ({ page }) => {
 test('scenario presets move the assumptions and restore the base', async ({ page }) => {
   await page.locator('.dcf__scenario-btns button', { hasText: '牛市' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('13.49')
+  await expect(page.locator(FAIR)).not.toContainText('10.26')
   await page.locator('.dcf__scenario-btns button', { hasText: '基准' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('13.49')
+  await expect(page.locator(FAIR)).toContainText('10.26')
   await expect(page.locator('.input-section').first()).toHaveValue('12')
 })
 
@@ -151,7 +176,7 @@ test('pins a source for the symbol and releases it again', async ({ page }) => {
   await page.locator('.dcf .q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item', { hasText: '自动选择' }).click()
   await expect(page.locator('.data-banner--published')).toContainText('季度快照', { timeout: 20000 })
-  await expect(page.locator(FAIR)).toContainText('13.49')
+  await expect(page.locator(FAIR)).toContainText('10.26')
 })
 
 test('cross-checks the price against peer multiples', async ({ page }) => {
@@ -171,7 +196,7 @@ test('restores the assumptions from a shared link', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf?r=15&g=7&tbv1=1')
   await expect(page.locator('.input-section').first()).toHaveValue('15', { timeout: 20000 })
   await expect(page.locator('.input-section').nth(2)).toHaveValue('7')
-  await expect(page.locator(FAIR)).toContainText('22.67')
+  await expect(page.locator(FAIR)).toContainText('9.05')
 })
 
 test('ignores junk parameters in a shared link', async ({ page }) => {

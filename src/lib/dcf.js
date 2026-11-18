@@ -152,27 +152,81 @@ export function calculateReverse (tbv, years, discountRate, base, price, termina
   return last.toFixed(2)
 }
 
-// Growth funded out of earnings: at g = ROE every yuan is retained and nothing is paid.
-const RETENTION_SPREAD = 1
+const clamp01 = (value) => Math.min(1, Math.max(0, value))
 
 /**
- * Residual income (justified price to tangible book) for a financial institution:
- * book × (ROE − g) / (r − g). Book is the equity already owned, so it is not added
- * again. g is the smallest of the growth input, the terminal input and ROE − 1pp.
- * @returns {{ fairValue: number, roe: number, growth: number }|null} percent rates;
- *   null when book or eps is not positive or r ≤ g.
+ * What the equity is worth if today's return on book never fades.
+ * book × (ROE − g) / (r − g). The range sorts this to whichever end it lands on.
+ * @returns {number|null}
  */
-export function residualIncomeValue (tbv, eps, discountRate, growthRate, terminalGrowthRate) {
+export function enduringBookValue (tbv, eps, discountRate, growthRate, terminalGrowthRate) {
   const book = Number(tbv)
   const earnings = Number(eps)
-  const r = Number(discountRate)
-  if (!(book > 0) || !(earnings > 0) || !Number.isFinite(r)) return null
-  const roe = (earnings / book) * 100
-  const growth = Math.min(Number(growthRate), Number(terminalGrowthRate), roe - RETENTION_SPREAD)
-  if (!Number.isFinite(roe) || !Number.isFinite(growth) || roe <= growth || r <= growth) return null
-  const fair = (book * (roe - growth)) / (r - growth)
-  if (!Number.isFinite(fair)) return null
-  return { fairValue: round2(fair), roe, growth }
+  const r = Number(discountRate) / 100
+  const roe = earnings / book
+  if (!(book > 0) || !(earnings > 0) || !(r > 0)) return null
+  const g = Math.min(Number(growthRate) / 100, Number(terminalGrowthRate) / 100, roe - 0.01)
+  if (!(roe > g) || !(r > g)) return null
+  const fair = book * (roe - g) / (r - g)
+  return Number.isFinite(fair) && fair > 0 ? round2(fair) : null
+}
+
+/**
+ * Residual income for a bank or insurer. Return on book fades in a straight
+ * line from today's ROE to the cost of equity, so the premium does not last
+ * forever. Book grows by retained earnings. When ROE already equals the
+ * discount rate, every excess is zero and the value is the book.
+ * @returns {{ fairValue: number, roe: number, growth: number }|null}
+ */
+export function residualIncomeValue (tbv, eps, discountRate, growthRate, terminalGrowthRate, years = 10) {
+  const book0 = Number(tbv)
+  const earnings0 = Number(eps)
+  const r = Number(discountRate) / 100
+  const n = Math.max(1, Math.round(Number(years) || 10))
+  if (!(book0 > 0) || !(earnings0 > 0) || !(r > 0)) return null
+  const roe0 = earnings0 / book0
+  const gStable = Math.min(Math.max(Number(terminalGrowthRate) / 100, 0), r - 0.005)
+  const retainStable = clamp01(gStable / r)
+  const gHist = Number(growthRate) / 100
+  const retainNow = roe0 > 0 ? clamp01(gHist / roe0) : retainStable
+  let book = book0
+  let pv = 0
+  for (let t = 1; t <= n; t++) {
+    const weight = n <= 1 ? 1 : (t - 1) / (n - 1)
+    const roe = roe0 + (r - roe0) * weight
+    pv += book * (roe - r) / Math.pow(1 + r, t)
+    const retain = retainNow + (retainStable - retainNow) * weight
+    book += book * roe * retain
+  }
+  const fair = book0 + pv
+  if (!Number.isFinite(fair) || fair <= 0) return null
+  return { fairValue: round2(fair), roe: round2(roe0 * 100), growth: round2(gStable * 100) }
+}
+
+/** Low, mid and high from the same model. Mid is the headline. */
+export function valueBand (input) {
+  const years = input.years
+  const terminal = input.terminalGrowthRate
+  const horizon = input.yearsOfTerminalGrowth
+  const add = input.addToFairValue
+  if (input.residual) {
+    const mid = residualIncomeValue(input.tbv, input.base, input.discountRate, input.growthRate, terminal, years)?.fairValue
+    const high = enduringBookValue(input.tbv, input.base, input.discountRate, input.growthRate, terminal)
+    const low = residualIncomeValue(input.tbv, input.base, Number(input.discountRate) + 2, input.growthRate, terminal, years)?.fairValue
+    return orderBand(low, mid, high)
+  }
+  const at = (discount) => presentValue(input.tbv, years, discount, input.growthRate, input.base, terminal, horizon, add).fairValue
+  const mid = at(input.discountRate)
+  const low = at(Number(input.discountRate) + 2)
+  const eased = Math.max(Number(input.discountRate) - 2, Number(terminal) + 2)
+  const high = at(eased)
+  return orderBand(low, mid, high)
+}
+
+function orderBand (low, mid, high) {
+  const values = [low, mid, high].filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
+  if (!values.length || !Number.isFinite(mid)) return { low: null, mid: null, high: null }
+  return { low: round2(values[0]), mid: round2(mid), high: round2(values[values.length - 1]) }
 }
 
 /** Margin of safety in percent, or "n/a" exactly like the original. */

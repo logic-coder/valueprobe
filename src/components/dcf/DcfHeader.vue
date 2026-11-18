@@ -14,12 +14,12 @@
               <q-item-section>{{ t('set_to_default_dcf') }}</q-item-section>
             </q-item>
             <q-separator />
-            <q-item-label header class="text-caption">{{ t('pin_source') }}</q-item-label>
-            <q-item clickable @click="emit('pin', '')">
+            <q-item-label header>{{ t('pin_source') }}</q-item-label>
+            <q-item clickable :active="!pinnedSource" @click="emit('pin', '')">
               <q-item-section>{{ t('auto_source') }}</q-item-section>
               <q-item-section side v-if="!pinnedSource"><q-icon name="check" size="16px" /></q-item-section>
             </q-item>
-            <q-item v-for="provider in providers" :key="provider.id" clickable @click="emit('pin', provider.id)">
+            <q-item v-for="provider in providers" :key="provider.id" clickable :active="pinnedSource === provider.id" @click="emit('pin', provider.id)">
               <q-item-section>{{ provider.label }}</q-item-section>
               <q-item-section side v-if="pinnedSource === provider.id"><q-icon name="check" size="16px" /></q-item-section>
             </q-item>

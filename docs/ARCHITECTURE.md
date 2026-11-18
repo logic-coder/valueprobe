@@ -4,7 +4,7 @@
 
 ## 红线
 
-1. `src/lib/dcf.js` 是逐行移植的公式内核：路径、导出、字节都不变。显示层只读它的结果，不写回。
+1. `src/lib/dcf.js` 的 `calGr2fv` 是逐行移植的闭式解，由 `tests/unit/kernel-parity.test.js` 锁住、不再改动；页面估值用同文件的 `presentValue` 与 `residualIncomeValue`。显示层只读它们的结果，不写回。
 2. 任何用户可见的行为差异必须写进 `DEVIATIONS.md`，并带理由。
 3. 页面/组件可以在显示层格式化内核结果，但不得改写内核输出。测量同理（`lib/measure.js`）。
 
@@ -73,4 +73,4 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 
 - 关键 DOM 点带 `data-testid`（`dcf`、`dcf-result`、`field-discount`、`symbol-input`、`peers`、`data-banner`、`chart-panel`）。新 e2e 优先用 `tests/e2e/support/pages/` 的页面对象。
 - CSS class 仍用于视觉与既有测试；重命名 class 属于可见变更，要同步更新测试与 DEVIATIONS。
-- 门禁：`npm run lint`、`npm run test`、`npx playwright test`、`npm run smoke:pages`、`npm run rehearse:pages`、`npm run audit:contrast`，以及 `PW_BASE=1` 基路径用例。内核改动另跑 `git diff <移植提交> -- src/lib/dcf.js`。
+- 门禁：`npm run lint`、`npm run test`、`npx playwright test`、`npm run smoke:pages`、`npm run rehearse:pages`、`npm run audit:contrast`，以及 `PW_BASE=1` 基路径用例。改 `src/lib/dcf.js` 时 `kernel-parity` 必须照旧通过。

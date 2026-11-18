@@ -8,9 +8,9 @@
       :self="self"
       :offset="[0, 8]"
       class="a-popover__card"
-      :max-width="maxWidth"
+      :max-width="maxWidth || undefined"
     >
-      <div class="q-pa-sm text-body2"><slot name="content" /></div>
+      <slot name="content" />
     </q-menu>
   </span>
 </template>
@@ -18,7 +18,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 
-const props = defineProps({ placement: { type: String, default: 'top' }, maxWidth: { type: String, default: '400px' } })
+const props = defineProps({ placement: { type: String, default: 'top' }, maxWidth: { type: String, default: '' } })
 const open = ref(false)
 const above = computed(() => !String(props.placement).startsWith('bottom'))
 // Anchor an edge to an edge. Pairing two "middle" origins makes Quasar's

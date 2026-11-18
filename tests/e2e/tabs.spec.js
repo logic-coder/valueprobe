@@ -7,7 +7,7 @@ const FAIR = '.text-h6.button-font-weight'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('13.49', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.26', { timeout: 20000 })
 })
 
 test('shows the calculator and no leftover tab strip', async ({ page }) => {

@@ -1,6 +1,11 @@
 <template>
   <stock-not-found-page v-if="!parsed.ok" />
   <div v-else>
+    <header v-if="embedded" class="example-head">
+      <span class="example-head__kicker">{{ t('home_example') }}</span>
+      <a :href="'#/stock/' + symbol + '/dcf'">{{ stockStore.stock?.company || t('default_company') }}</a>
+      <span class="example-head__code">{{ symbol }}</span>
+    </header>
     <data-state-banner
       :state="state"
       :data-at="dataAt"
@@ -55,6 +60,7 @@ const stockStore = useStockStore()
 const dcfStore = useDcfStore()
 const sourceStore = useDataStateStore()
 
+const embedded = computed(() => !route.params.symbol)
 const parsed = computed(() => parseSymbol(route.params.symbol || DEFAULT_SYMBOL))
 const symbol = computed(() => (parsed.value.ok ? parsed.value.symbol : DEFAULT_SYMBOL))
 // A pasted link remounts the calculator so the preset seeds it; plain typing never

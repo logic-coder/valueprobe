@@ -20,6 +20,7 @@
   --warn-soft: #fffaeb;
   --good-bg: #065f46;
   --good-text: #ecfdf5;
+  --on-accent: #ecfdf5;
   --focus: #0b7d57;
 
   --radius-sm: 8px;
@@ -56,6 +57,7 @@
     --warn-soft: #2a2312;
     --good-bg: #064e3b;
     --good-text: #d1fae5;
+    --on-accent: #052e16;
     --focus: #6ee7b7;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
     --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.8);
@@ -83,6 +85,7 @@
   --warn-soft: #2a2312;
   --good-bg: #064e3b;
   --good-text: #d1fae5;
+  --on-accent: #052e16;
   --focus: #6ee7b7;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
   --shadow: 0 12px 32px -16px rgba(0, 0, 0, 0.8);
@@ -125,12 +128,24 @@ code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
 .q-field__control { color: var(--text); }
 .q-field--outlined .q-field__control:before { border-color: var(--border); }
 .q-field--outlined:hover .q-field__control:before { border-color: var(--border-strong); }
+/* Quasar colours active items, radios, checkboxes and focus layers from its own brand variable. */
+body { --q-primary: var(--accent-strong); }
 .q-menu { background: var(--surface); color: var(--text); box-shadow: var(--shadow); border: 1px solid var(--border); }
-.a-popover__card { width: max-content; max-width: min(400px, calc(100vw - 32px)); }
+.a-popover__card {
+  width: max-content;
+  max-width: min(36ch, calc(100vw - 24px));
+  padding: 9px 12px;
+  font-size: 13.5px;
+  line-height: 1.65;
+  hyphens: manual;
+  line-break: strict;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
 
 .q-btn.bg-primary {
   background: var(--accent-strong) !important;
-  color: var(--good-text) !important;
+  color: var(--on-accent) !important;
 }
 .q-btn.bg-primary .q-icon { color: inherit !important; }
 

@@ -102,8 +102,23 @@
             </div>
           </div>
           <div class="ticker__price">
-            <div class="ticker__quote">{{ moneyIn(stock.currency, priceValue) }}</div>
-            <div class="ticker__aside">{{ t('price_native_note') }}</div>
+            <template v-if="workingPrice">
+              <editable-value
+                class="ticker__quote"
+                :model-value="workingPrice.value"
+                :display="moneyIn(stock.currency, workingPrice.value)"
+                :label="t('working_price')"
+                :currency="codeOf(stock.currency) || stock.currency"
+                @update:model-value="dcfStore.setWorkingPrice(currentSymbol, $event)"
+              />
+              <div class="ticker__aside">
+                {{ priceEdited ? t('price_edited_note', { price: money(stock.currency, priceValue) }) : t('price_working_note') }}
+              </div>
+            </template>
+            <template v-else>
+              <div class="ticker__quote">{{ moneyIn(stock.currency, priceValue) }}</div>
+              <div class="ticker__aside">{{ t('price_native_note') }}</div>
+            </template>
           </div>
         </div>
       </div>
@@ -139,8 +154,10 @@ import { REPO_URL, REPO_ISSUES_URL } from './config/site'
 import { useStockStore } from './store/stock'
 import { useCompareStore } from './store/compare'
 import { useWatchlistStore } from './store/watchlist'
-import { useDisplayStore } from './store/display'
-import { parseAmount } from './lib/format'
+import { useDisplayStore, codeOf } from './store/display'
+import { useDcfStore } from './store/dcf'
+import { money, parseAmount } from './lib/format'
+import EditableValue from './components/EditableValue.vue'
 import { useMoney } from './composables/useMoney'
 
 const { locale, t } = useI18n()
@@ -196,6 +213,9 @@ const issuesUrl = REPO_ISSUES_URL
 const ready = ref(true)
 const priceValue = computed(() => String(parseAmount(stockStore.stock?.price) ?? ''))
 const stock = computed(() => stockStore.stock || {})
+const dcfStore = useDcfStore()
+const workingPrice = computed(() => (currentSymbol.value && dcfStore.workingPrice.symbol === currentSymbol.value ? dcfStore.workingPrice : null))
+const priceEdited = computed(() => workingPrice.value !== null && Number(workingPrice.value.value) !== Number(priceValue.value))
 const display = useDisplayStore()
 const { moneyIn } = useMoney()
 

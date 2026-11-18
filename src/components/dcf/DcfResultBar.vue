@@ -14,8 +14,11 @@
       </div>
       <q-space />
       <q-skeleton v-if="loading" type="rect" height="30px" width="50px" />
-      <div v-else class="text-h6 button-font-weight" data-testid="dcf-fair-value">
-        <animated-amount :value="result.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
+      <div v-else class="dcf__fair-figures">
+        <div class="text-h6 button-font-weight" data-testid="dcf-fair-value">
+          <animated-amount :value="result.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
+        </div>
+        <div v-if="hasBand" class="dcf__range" data-testid="dcf-fair-range">{{ bandText }}</div>
       </div>
     </div>
 
@@ -50,6 +53,7 @@ import { useI18n } from 'vue-i18n'
 import { isNum, percent } from '../../lib/format'
 import { useMoney } from '../../composables/useMoney'
 import AnimatedAmount from '../AnimatedAmount.vue'
+import APopover from '../APopover.vue'
 
 const props = defineProps({
   loading: { type: Boolean, default: false },
@@ -60,6 +64,8 @@ const props = defineProps({
 const { t } = useI18n()
 const { moneyIn } = useMoney()
 
+const hasBand = computed(() => Number.isFinite(Number(props.result.fairLow)) && Number.isFinite(Number(props.result.fairHigh)) && props.result.fairLow !== props.result.fairHigh)
+const bandText = computed(() => moneyIn(props.stock.currency, props.result.fairLow) + ' – ' + moneyIn(props.stock.currency, props.result.fairHigh))
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
 const safetyIcon = computed(() => (safetyIsNeutral.value || props.result.marginOfSafety < 0 ? 'thumb_down' : 'thumb_up'))

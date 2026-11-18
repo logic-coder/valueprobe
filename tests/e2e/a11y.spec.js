@@ -8,7 +8,7 @@ import { mockApi } from './support/api-mock'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('13.49', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26', { timeout: 20000 })
 })
 
 test('the skip link comes first and moves focus to the content', async ({ page }) => {
@@ -29,7 +29,7 @@ test('the result is announced through a debounced live region', async ({ page })
   const live = page.locator('.sr-only[aria-live="polite"]')
   await expect(live).toHaveAttribute('role', 'status')
   await page.locator('.input-section').first().fill('15')
-  await expect(live).toContainText('¥ 9.83', { timeout: 3000 })
+  await expect(live).toContainText('¥ 9.21', { timeout: 3000 })
   // Typing on: the announcement keeps up with the last value, not every keystroke.
   await page.locator('.input-section').first().fill('10')
   await expect(live).toContainText('¥', { timeout: 3000 })

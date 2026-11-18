@@ -4,7 +4,7 @@ Thanks for taking a look. This project has one unusual rule, and it shapes every
 
 ## The kernel is a red line
 
-`src/lib/dcf.js` holds the two-stage annuity. `calGr2fv` is pinned by `tests/unit/kernel-parity.test.js`
+`src/lib/dcf.js` holds the page models (`presentValue`, `residualIncomeValue`) and the frozen closed form `calGr2fv`, which is pinned by `tests/unit/kernel-parity.test.js`
 (11.56 / 7.70 / 3.85 / 0.71 / 23.44 / TBV 22.80 for the reference inputs). Growth defaults and the
 reverse-DCF guard live in the same file and are covered by `tests/unit/dcf.test.js`.
 
