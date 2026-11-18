@@ -4,17 +4,11 @@
       <div>
         <q-card-section class="dcf__head">
           <dcf-header
-            :template-label="templateButtonLabel"
-            :templates="userDcfTemplate"
             :providers="providers"
             :pinned-source="pinnedSource || ''"
-            :has-selection="userSelectedTemplate !== 0"
-            @select="userSelectedTemplate = $event"
             @share="copyShare"
-            @action="openDialog"
+            @reset="resetToDefaults"
             @pin="pinSource"
-            @export="exportTemplates"
-            @import="importTemplates"
           />
         </q-card-section>
 
@@ -71,23 +65,33 @@
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else-if="dcfBasedOn === 'eps'" class="line-height-2 text-right">
                 {{ money(stock.currency, form.eps) }}&nbsp;&nbsp;
-                <q-icon class="text-grey-7" name="edit" />
-                <q-popup-edit v-model="form.eps" buttons>
-                  <q-input v-model.number="form.eps" type="number" dense autofocus />
-                </q-popup-edit>
+                <template v-if="isManual">
+                  <q-icon class="text-grey-7" name="edit" />
+                  <q-popup-edit v-model="form.eps" buttons>
+                    <q-input v-model.number="form.eps" type="number" dense autofocus />
+                  </q-popup-edit>
+                </template>
               </div>
               <div v-else class="line-height-2 text-right">
                 <font>
                   {{ money(stock.currency, form.freecashflow) }}&nbsp;&nbsp;
-                  <q-icon class="text-grey-7" name="edit" />
-                  <q-popup-edit v-model="form.freecashflow" buttons>
-                    <q-input v-model.number="form.freecashflow" type="number" dense autofocus />
-                  </q-popup-edit>
+                  <template v-if="isManual">
+                    <q-icon class="text-grey-7" name="edit" />
+                    <q-popup-edit v-model="form.freecashflow" buttons>
+                      <q-input v-model.number="form.freecashflow" type="number" dense autofocus />
+                    </q-popup-edit>
+                  </template>
                 </font>
               </div>
             </div>
             <div v-if="!loading && stock.cashflow_basis" class="dcf__rate-note">
               {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : t('fcf_basis_equity') }}
+            </div>
+            <q-separator />
+
+            <div class="dcf__rate-note">
+              <q-icon name="info" size="14px" />
+              {{ t('fundamentals_readonly') }}
             </div>
             <q-separator />
 
@@ -136,10 +140,12 @@
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else class="text-right">
                 {{ moneyIn(stock.currency, result.tbv) }}&nbsp;&nbsp;
-                <q-icon class="text-grey-7" name="edit" />
-                <q-popup-edit v-model="result.tbv" buttons>
-                  <q-input v-model.number="result.tbv" type="number" dense autofocus />
-                </q-popup-edit>
+                <template v-if="isManual">
+                  <q-icon class="text-grey-7" name="edit" />
+                  <q-popup-edit v-model="result.tbv" buttons>
+                    <q-input v-model.number="result.tbv" type="number" dense autofocus />
+                  </q-popup-edit>
+                </template>
               </div>
             </div>
             <q-separator />
@@ -147,7 +153,7 @@
             <div class="row text-center text-caption">
               <!-- fast growth window -->
               <div class="col-6 line-height-2">
-                <div class="q-mr-xs q-px-sm q-py-xs" style="border: 1px solid #ccc">
+                <div class="q-mr-xs q-px-sm q-py-xs stage-panel">
                   <a-popover placement="top">
                     <font>
                       <h5 class="text-subtitle2 text-bold">
@@ -207,7 +213,7 @@
 
               <!-- terminal value window -->
               <div class="col-6 line-height-2">
-                <div class="q-ml-xs q-px-sm q-py-xs" style="border: 1px solid #ccc">
+                <div class="q-ml-xs q-px-sm q-py-xs stage-panel">
                   <a-popover placement="top">
                     <font>
                       <h5 class="text-subtitle2 text-bold">
@@ -348,21 +354,6 @@
       @changed="archiveTick += 1"
     />
 
-    <dcf-template-dialog
-      v-model:visible="dialogVisible"
-      v-model:name="templateName"
-      :action="dcfParamsAction"
-      :selected="selectedTemplate"
-      :based-on="dcfBasedOn"
-      :form="form"
-      :stock="stock"
-      :result="result"
-      :operating="operating"
-      :operating-label="operatingLabel"
-      @save="saveDcfTemplate"
-      @delete="deleteDcfTemplate"
-    />
-
     <wacc-dialog v-model:visible="waccVisible" v-model:wacc="wacc" :rate="waccRate" @apply="applyWacc" />
   </div>
 </template>
@@ -377,7 +368,6 @@ import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { pushValuation } from '../lib/archive'
 import ValuationRecordPanel from './ValuationRecordPanel.vue'
-import { applyTemplate, downloadTemplates, parseTemplateFile } from '../lib/template-io'
 import { adoptGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue } from '../lib/dcf'
 import { clamp, money, percent } from '../lib/format'
@@ -386,7 +376,6 @@ import APopover from './APopover.vue'
 import DcfHeader from './dcf/DcfHeader.vue'
 import DcfResultBar from './dcf/DcfResultBar.vue'
 import ScenarioBar from './dcf/ScenarioBar.vue'
-import DcfTemplateDialog from './dcf/DcfTemplateDialog.vue'
 import WaccDialog from './dcf/WaccDialog.vue'
 import SensitivityPanel from './SensitivityPanel.vue'
 import MultipleCheckPanel from './MultipleCheckPanel.vue'
@@ -507,29 +496,8 @@ const rowList = (rows, figure) => {
   }
   return list
 }
-const userSelectedTemplate = ref(0)
 // The seeded defaults are the yardstick for a share link: only moves travel in it.
 const seed = ref(null)
-const templates = computed(() => dcfStore.templates.data)
-// D4: a template stores an EPS growth rate or a cash-flow growth rate, so it is
-// only offered for the basis it was saved under (legacy rows default to eps).
-const userDcfTemplate = computed(() => [
-  { name: t('dcf_default'), id: 0 },
-  ...templates.value.filter((item) => (item.basis || 'eps') === dcfBasedOn.value),
-])
-const templateButtonLabel = computed(() => {
-  if (userSelectedTemplate.value !== 0) {
-    const item = userDcfTemplate.value.find((entry) => entry.id === userSelectedTemplate.value)
-    return item ? item.name : t('dcf_default')
-  }
-  return t('dcf_default')
-})
-const selectedTemplate = computed(() => userDcfTemplate.value.find((entry) => entry.id === userSelectedTemplate.value))
-const dialogVisible = ref(false)
-const dcfParamsAction = ref('')
-const templateName = ref('')
-const operating = ref(false)
-const operatingLabel = ref('')
 
 const initData = async () => {
   if (!isManual.value) await dcfStore.loadIndicator()
@@ -689,93 +657,7 @@ const decTerminalYears = () => {
   else form.yearsOfTerminalGrowth = 0
 }
 
-const templatePayload = () => ({
-  name: templateName.value,
-  basis: dcfBasedOn.value,
-  eps: form.eps,
-  freecashflow: form.freecashflow,
-  yGrowth: form.years,
-  ebitda_growth: dcfBasedOn.value === 'freecashflow' ? form.freecashflowGrowthRate : form.growthRate,
-  desiredYield: form.terminalGrowthRate,
-  terminalyear: form.yearsOfTerminalGrowth,
-  discountRate: form.discountRate,
-  book: result.tbv,
-})
-
-const saveDcfTemplate = async () => {
-  operating.value = true
-  operatingLabel.value = t('saving')
-  if (userSelectedTemplate.value) {
-    await updateDcfTemplate()
-    return
-  }
-  if (templateName.value === '') {
-    $q.notify(t('dcf_params_name_is_empty'))
-    operating.value = false
-    operatingLabel.value = ''
-    return
-  }
-  await dcfStore.createTemplate(templatePayload())
-  if (dcfStore.templates.created) {
-    dialogVisible.value = false
-    $q.notify({ message: t('save_dcf_params_template') })
-    dcfStore.templates.created = false
-  } else {
-    $q.notify({ message: t('try_it_again') })
-  }
-  operating.value = false
-  operatingLabel.value = ''
-}
-
-const updateDcfTemplate = async () => {
-  await dcfStore.updateTemplate(userSelectedTemplate.value, templatePayload())
-  if (dcfStore.templates.updated) {
-    $q.notify({ message: t('update_dcf_params_template') })
-    dialogVisible.value = false
-    dcfStore.templates.updated = false
-  } else {
-    $q.notify({ message: t('try_it_again') })
-  }
-  operating.value = false
-  operatingLabel.value = ''
-}
-
-const deleteDcfTemplate = async () => {
-  operating.value = true
-  operatingLabel.value = t('deleting')
-  const id = userSelectedTemplate.value
-  await dcfStore.deleteTemplate(id)
-  if (dcfStore.templates.deleted) {
-    dialogVisible.value = false
-    userSelectedTemplate.value = 0
-    $q.notify({ message: t('delete_dcf_params_template') })
-    dcfStore.templates.deleted = false
-  } else {
-    $q.notify({ message: t('try_it_again') })
-  }
-  operating.value = false
-  operatingLabel.value = ''
-}
-
-const openDialog = (action) => {
-  templateName.value = selectedTemplate.value ? selectedTemplate.value.name : undefined
-  dcfParamsAction.value = action
-  dialogVisible.value = true
-}
-
-const exportTemplates = () => downloadTemplates(templates.value)
-const importTemplates = async (event) => {
-  const file = event.target.files?.[0]
-  if (!file) return
-  const parsed = parseTemplateFile(await file.text())
-  event.target.value = ''
-  if (!parsed.ok) {
-    $q.notify({ message: t('import_templates_failed').replace('{reason}', parsed.reason) })
-    return
-  }
-  for (const row of parsed.templates) await dcfStore.createTemplate(row)
-  $q.notify({ message: t('import_templates_done').replace('{count}', String(parsed.templates.length)) })
-}
+const resetToDefaults = () => initData()
 
 const archiveVisible = ref(false)
 const archiveTick = ref(0)
@@ -833,15 +715,6 @@ watch(() => props.symbol, () => {
   archiveTick.value += 1
   archiveShares.value = 0
 })
-watch(userSelectedTemplate, (value) => {
-  const item = userDcfTemplate.value.find((entry) => entry.id === value)
-  if (!item) return
-  if (item.id === 0) initData()
-  else {
-    if (item.book != null && item.book !== '') result.tbv = item.book
-    Object.assign(form, applyTemplate(form, item))
-  }
-})
 
 // The stock payload arrives after the route resolves, and the calculator mounts
 // first, so seeding has to wait for it instead of reading an empty object.
@@ -855,7 +728,6 @@ const boot = async () => {
   isLoading.value = true
   await initData()
   isLoading.value = false
-  await dcfStore.loadTemplate()
 }
 
 onMounted(boot)

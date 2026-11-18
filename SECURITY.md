@@ -4,7 +4,7 @@
 
 The calculator is a static SPA. It has no backend and no accounts, so there is no server-side attack surface here.
 
-- Everything personal (watchlist, recent list, valuation records, templates, locale) lives in `localStorage` on the device.
+- Everything personal (watchlist, recent list, valuation records, locale) lives in `localStorage` on the device.
 - Financial data is fetched straight from public sources or a CORS gateway configured at build time (`VITE_CORS_GATEWAY`).
   The gateway sees the symbols you type — nothing else.
 - Shared links carry calculator inputs in the hash query; they never carry identifiers.

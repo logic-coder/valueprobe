@@ -81,24 +81,6 @@ test('D6: the display currency converts results and says the inputs stay native'
   await expect(page.locator('.dcf')).toContainText('¥ 8.85')
 })
 
-test('D4: a saved template only shows under the basis it was saved with', async ({ page }) => {
-  await page.locator('.q-btn:has(i:has-text("more_vert"))').first().click()
-  await page.locator('.q-menu .q-item', { hasText: '保存DCF参数' }).click()
-  const dialog = page.locator('.q-dialog')
-  await dialog.locator('input').fill('eps 模版')
-  await page.locator('.q-dialog .q-btn', { hasText: '保存' }).first().click()
-  await expect(dialog).toBeHidden()
-
-  await page.locator('.q-btn', { hasText: '默认' }).first().click()
-  await expect(page.locator('.q-menu .q-item', { hasText: 'eps 模版' })).toHaveCount(1)
-  await page.keyboard.press('Escape')
-
-  await page.locator('.q-radio').nth(1).click()
-  await page.waitForTimeout(300)
-  await page.locator('.q-btn', { hasText: '默认' }).first().click()
-  await expect(page.locator('.q-menu .q-item', { hasText: 'eps 模版' })).toHaveCount(0)
-})
-
 test('quarterly snapshots answer as a fallback and carry their date', async ({ page }) => {
   await mockApi(page)
   page.apiMock.down.add('eastmoney')

@@ -10,8 +10,9 @@ test.beforeEach(async ({ page }) => {
 test('suggests symbols while typing', async ({ page }) => {
   const input = page.locator('.symbol-search input')
   await expect(input).toHaveAttribute('list', 'symbol-suggestions')
-  await expect(page.locator('#symbol-suggestions option')).toHaveCount(10)
-  await expect(page.locator('#symbol-suggestions option').first()).toHaveAttribute('value', 'SHSE:601398')
+  await expect(page.locator('#symbol-suggestions option')).toHaveCount(4)
+  const values = await page.locator('#symbol-suggestions option').evaluateAll((nodes) => nodes.map((node) => node.value).sort())
+  expect(values).toEqual(['HKSE:00700', 'HKSE:00941', 'NASDAQ:AAPL', 'SHSE:601398'])
 })
 
 test('prints the valuation without the chrome', async ({ page }) => {

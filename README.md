@@ -142,16 +142,31 @@ Useful env (see `.env.example`): `VITE_API_MODE=fixture` for a fully offline dem
 
 ## Deploy to GitHub Pages
 
-1. Push to `master` (both workflows also accept `main`) with Pages enabled
-   (Settings → Pages → Source: GitHub Actions).
-2. `.github/workflows/pages.yml` sets `VITE_BASE` and an absolute `VITE_SITE_URL` from the
-   repository for the build (canonical and social-preview tags) and publishes `dist`.
+1. Push to `main` (or `master`) with Pages enabled (Settings → Pages → Source: GitHub Actions).
+2. There is **one workflow**, `.github/workflows/pages.yml`. On push it runs lint, unit tests, a
+   static-host smoke check, a Pages build with `VITE_BASE` / `VITE_SITE_URL` derived from the
+   repository, then deploys `dist`. The heavy browser suites (Playwright, contrast, base-path,
+   rehearsal) run **on pull requests only** — this keeps Actions minutes low on data pushes.
 3. The published site does not call quote or filing hosts. Refresh `public/data/` on your
-   machine with `npm run snapshot`, commit those files, and push. The page calculates
-   fair value in the browser. The price field starts from the file and can be typed over.
-   The US Treasury rate still loads directly when the browser can reach it.
+   machine with `npm run snapshot`, commit those files, and push. Routing uses hash history, so
+   deep links work without rewrite rules.
 
-Routing uses hash history, so deep links work on Pages without rewrite rules.
+### Data contract — read this before adding editable inputs
+
+The committed snapshots in `public/data/` are the **single source of fundamental truth** for the
+published site. They are refreshed locally on a schedule (`npm run snapshot`) and pushed; the
+browser never fetches EPS, cash flow, book value or growth rates from a live source.
+
+| Field group | Editable in the browser? | Where it changes |
+|---|---|---|
+| Price | Yes | Typed over on the page; snapshot price is only a seed |
+| Valuation assumptions — discount rate, growth, terminal growth, horizons, target multiples | Yes | User judgment, recomputed locally |
+| Fundamentals — EPS, free cash flow per share, tangible book, growth history, predictability | **No** | `npm run snapshot` locally, then commit and push |
+| Manual mode | Yes, all fields | Fallback only, when every data source failed |
+
+Do not add an inline editor for a fundamental field. Doing so desynchronises the page from the
+committed snapshot and contradicts the data contract above. If a value is wrong, fix the upstream
+parse in `src/data/providers/` and regenerate the snapshot.
 
 Refresh the published numbers locally, then commit and push:
 
@@ -160,13 +175,13 @@ npm run snapshot
 ```
 
 That rewrites `public/data/<EXCH>-<CODE>.json` and `public/data/catalog.json`. The page shows
-「季度快照 · 数据截至 …」 and still lets you type today's price. Fair value is calculated in the browser.
+「季度快照 · 数据截至 …」 and recalculates fair value in the browser from the current price and
+assumptions. The US Treasury rate still loads directly when the browser can reach it.
 
-Both variants of the deploy are rehearsed on every CI run: `npm run rehearse:pages` builds under
-`/valueprobe/` once with the snapshots and once with `VITE_SNAPSHOT=off`, serves each build and
-asserts that the app still works without any same-origin API, that the offline source is dropped
-from the source list when compiled out, and that a dead primary source ends in a readable banner
-(snapshot fallback when present, an explicit failure banner when not) rather than a skeleton.
+`npm run rehearse:pages` builds under `/valueprobe/` twice — with snapshots and with
+`VITE_SNAPSHOT=off` — and asserts the app still works with no same-origin API, that the offline
+source disappears when compiled out, and that a dead primary source ends in a readable banner
+rather than a skeleton. It runs on PRs, not on every push.
 
 Before publishing a fork, change the repo URL in `src/config/site.js` (footer and About page)
 and the page name in `index.html`. Local development still proxies live quotes; the published
@@ -174,13 +189,16 @@ build does not.
 
 ## Tests
 
+Run these locally before pushing — with the browser gates moved to PRs, your machine is the
+first line of defence on data pushes:
+
 ```bash
 npm run lint         # eslint (flat config): dead code, Vue essentials
 npm run test         # vitest: kernel parity, registry, measurement, FX, formatting
 npm run test:e2e     # playwright, bundled chromium, fully offline; axe on six routes
 npm run smoke:pages  # build under /valueprobe/, serve, assert the static-host contract
 npm run rehearse:pages  # both deploy builds (snapshot on / VITE_SNAPSHOT=off), served and asserted
-npm run audit:contrast  # WCAG AA spot-check of the muted text in both themes (builds on demand, starts its own preview)
+npm run audit:contrast  # WCAG AA spot-check of the muted text in both themes
 npm run build
 ```
 

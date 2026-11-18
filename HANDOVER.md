@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 源码 | 87 文件 / 7,516 行 | 总量小，可整读 |
 | 14 个 >100 行的 JS/Vue 文件 | 3,351 行（约 45% 源码） | 复杂度集中，绕不开 |
-| 最长单文件 `DcfCalculator.vue` | 864 行 | 结果条、情景、WACC、模板对话框已拆到 `components/dcf/` |
+| 最长单文件 `DcfCalculator.vue` | 864 行 | 结果条、情景、WACC 对话框已拆到 `components/dcf/` |
 | 测试 | 38 个单测、18 个 e2e、3,000 行 | 契约多，改 UI 前必须读测试 |
 | e2e 选择器 | 409 处裸 `page.locator`，无页面对象 | 改 class 要全局搜测试 |
 | 必读文档 | README、DESIGN、DEVIATIONS（14 KB）、DATA_SOURCES、CALCULATION、ARCHITECTURE 等 8 份 | 关键规则不在代码里 |
@@ -33,19 +33,19 @@
 
 ### P0-1 `DcfCalculator.vue`：一个组件承担 9 类职责
 
-当前 [864 行](src/components/DcfCalculator.vue)。结果条、情景条、WACC 对话框和模板对话框已在 `src/components/dcf/`。下面是当时的职责清单，行号已过期：
+当前 [864 行](src/components/DcfCalculator.vue)。结果条、情景条、WACC 对话框已在 `src/components/dcf/`，自定义模版功能已移除。下面是当时的职责清单，行号已过期：
 
 - 9 个表单区（fair value L69、margin L87、price L133、basis L148、discount L191、TBV L212、growth L240、terminal L298、predictability L343）
-- 两个对话框（模板 L439、WACC L474）
-- 持久化：估值档案（L901）、手工记录（L920）、模板 CRUD（L810–899）
+- 对话框（WACC L474）
+- 持久化：估值档案（L901）、手工记录（L920）
 - 分享链接与剪贴板（L686）、报告导出（L584）、敏感性网格（L725）、同行加载（L561）、数据源排序/固定（L523、L739）
 - 结果 strip、情景预设、无障碍播报
 
-**成本**：计算器仍然偏大，脚本副作用（URL、localStorage、API）与渲染交错。结果条、情景、WACC、模板对话框已经拆出。
+**成本**：计算器仍然偏大，脚本副作用（URL、localStorage、API）与渲染交错。结果条、情景、WACC 对话框已经拆出。
 
 ### P0-2 `src/api/index.js`：门面兼五种基础设施
 
-已拆完。[24 行](src/api/index.js) 只转出 `client.js`、`degrade.js`、`stock.js`、`indicator.js`、`templates.js`、`manual.js`、`tracking.js`。
+已拆完。[24 行](src/api/index.js) 只转出 `client.js`、`degrade.js`、`stock.js`、`indicator.js`、`manual.js`、`tracking.js`。
 
 ### P0-3 `StockDcfPage.vue`：路由页兼 tab 调度器与数据编排器
 
@@ -103,11 +103,11 @@ src/
   lib/dcf.js       # 内核，路径与字节都不动
   lib/display/     format, money, locale
   lib/domain/      sensitivity, multiples, wacc, peers, measure, report
-  lib/persist/     storage, cache, manual, archive, watchlist, template-io
+  lib/persist/     storage, cache, manual, archive, watchlist
   data/            types.js, registry, coverage, transport, settings
   data/providers/  eastmoney、edgar、snapshot
   data/bundled/    运行期内置数据
-  api/             client, degrade, stock, indicator, templates, index(转出)
+  api/             client, degrade, stock, indicator, index(转出)
   store/           stock, dcf, source, display
   composables/     useStoredPreference, useLocale, usePageTitle, useDcfModel
   components/dcf/  DcfCalculator, DcfForm, DcfResultStrip, ScenarioBar, TemplateMenu, WaccDialog

@@ -161,15 +161,9 @@ const printView = () => window.print()
 // format, and it costs no request.
 const BUILTIN_SUGGESTIONS = [
   { symbol: 'SHSE:601398', name: '工商银行' },
-  { symbol: 'SHSE:600519', name: '贵州茅台' },
-  { symbol: 'SHSE:600036', name: '招商银行' },
-  { symbol: 'SZSE:000858', name: '五粮液' },
   { symbol: 'HKSE:00700', name: '腾讯控股' },
   { symbol: 'HKSE:00941', name: '中国移动' },
-  { symbol: 'NYSE:KO', name: 'Coca-Cola' },
-  { symbol: 'NYSE:PEP', name: 'PepsiCo' },
-  { symbol: 'NASDAQ:AAPL', name: 'Apple' },
-  { symbol: 'NASDAQ:MSFT', name: 'Microsoft' },
+  { symbol: 'NASDAQ:AAPL', name: '苹果' },
 ]
 // Per-route document titles: a stock page names the company, other pages name themselves.
 const ROUTE_TITLES = { home: 'home_title', watchlist: 'watchlist', compare: 'compare_title', about: 'about_title' }

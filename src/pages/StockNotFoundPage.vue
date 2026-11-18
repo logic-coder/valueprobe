@@ -29,8 +29,9 @@ const goDefault = () => router.push('/stock/' + DEFAULT_SYMBOL + '/dcf')
 // A dead end should still offer a way into a real valuation.
 const EXAMPLES = [
   { symbol: 'SHSE:601398', label: '工商银行' },
-  { symbol: 'NASDAQ:AAPL', label: 'Apple' },
-  { symbol: 'NYSE:KO', label: 'Coca-Cola' },
+  { symbol: 'HKSE:00700', label: '腾讯控股' },
+  { symbol: 'HKSE:00941', label: '中国移动' },
+  { symbol: 'NASDAQ:AAPL', label: '苹果' },
 ]
 </script>
 

@@ -35,7 +35,8 @@
 - 大依赖延后：图表组件与 echarts 在面板靠近视口时才挂载，打印前由 `beforeprint` 补挂。
 - 图标用 Material Icons 离线条目；品牌 mark 为内联 SVG（`App.vue`），favicon 同源。
 - 本机状态统一走 `lib/storage.js`：localStorage 被禁用时退化为内存，页面不能因持久化失败白屏。
-- 可访问性是门禁：`axe`（wcag2a/aa，深浅两主题）在 e2e 里跑；对比度取样由 `npm run audit:contrast` 自起预览验，CI 也跑。
+- 可访问性是门禁：`axe`（wcag2a/aa，深浅两主题）在 e2e 里跑；对比度取样由 `npm run audit:contrast` 自起预览验。浏览器门禁在 PR 时由 Actions 跑，数据推送时本地跑。
+- **数据契约**：`public/data/` 的季度快照是线上唯一的基本面事实源。每股收益、自由现金流、有形账面价值、历史增速、可预测性**不提供在线编辑**，只能本地 `npm run snapshot` 后提交推送；现价与估值假设（折现率、增长率、永续、年限、目标倍数）可在线调整。手动模式是全部数据源失败时的兜底，才允许改基本面。不要给基本面字段加 inline 编辑器——见 README「Data contract」。
 - 规范/分享链接：`index.html` 的 canonical 与 OG 用 `__SITE_URL__` 占位，构建时由 `VITE_SITE_URL` 注入绝对地址（Pages 工作流按仓库生成）。
 - 静态托管自保：构建把 `index.html` 复制成 `404.html`（深链回落到 SPA）；旧壳引用已删 chunk 时，`vite:preloadError` 带 `_r` 标记整页重载一次，成功启动后清掉标记，更新后的部署仍能再次自愈。
 

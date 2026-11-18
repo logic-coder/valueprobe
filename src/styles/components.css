@@ -40,7 +40,8 @@
 .home__examples { display: flex; flex-wrap: wrap; gap: 10px; font-size: 13px; margin-top: 4px; }
 .home__examples a { color: var(--accent-strong); }
 .home__recent { margin-top: 12px; padding: 10px 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12.5px; }
-.home__recent--empty { padding: 7px 12px; gap: 6px; }
+.home__recent--empty { display: block; padding: 16px 18px; }
+.home__recent--empty .empty-state { padding: 0; }
 .home__star { color: var(--accent-strong); vertical-align: -2px; margin-right: 3px; }
 .home__clear { background: none; border: 0; padding: 0; color: var(--text-muted); cursor: pointer; text-decoration: underline; font-size: 12px; }
 .home__calc { margin-top: 16px; }

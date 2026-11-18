@@ -22,6 +22,16 @@ npm run test:e2e     # playwright, fully offline (intercepted network)
 npm run build && npm run smoke:pages   # static-host contract under a sub-path
 ```
 
+These are local gates: Actions runs only the light suite on push and defers the browser suites to
+pull requests, so your machine is where data pushes get validated.
+
+**Do not make fundamental fields editable.** EPS, free cash flow per share, tangible book,
+growth history and predictability come from the committed quarterly snapshots under
+`public/data/`. Fix the upstream parse in `src/data/providers/` and regenerate with
+`npm run snapshot` instead of adding an inline editor. Price and valuation assumptions
+(discount rate, growth, terminal growth, horizons, target multiples) stay editable — that is
+the user's judgment, not a fact. See the data contract in README.
+
 The e2e suite is a contract: its locators (tabs, calculator order, archive dialog, record list) are pinned on purpose.
 New UI gets a test; if a change must move a locator, update the spec in the same commit.
 

@@ -33,7 +33,7 @@
       <q-space />
       <q-skeleton v-if="loading" type="rect" height="25px" width="50px" />
       <div v-else class="button-font-weight" data-testid="dcf-margin-of-safety">
-        <q-icon size="xs" :class="safetyIconClass" :name="safetyIcon" />
+        <q-icon size="xs" :name="safetyIcon" :style="{ color: safetyColor }" />
         <animated-amount :value="result.marginOfSafety" :format="percent" />
       </div>
     </div>
@@ -63,7 +63,6 @@ const { moneyIn } = useMoney()
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
 const safetyIcon = computed(() => (safetyIsNeutral.value || props.result.marginOfSafety < 0 ? 'thumb_down' : 'thumb_up'))
-const safetyIconClass = computed(() => (safetyIsNeutral.value ? 'text-indigo-1' : props.result.marginOfSafety < 0 ? 'text-red' : 'text-green'))
 const safetyWidth = computed(() => {
   const mos = Number(props.result.marginOfSafety)
   if (!Number.isFinite(mos)) return '0%'

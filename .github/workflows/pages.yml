@@ -1,8 +1,13 @@
 name: pages
 
+# One workflow for both verification and publishing. A push to main pays for a
+# single npm ci + lightweight gates + deploy; the expensive browser gates run on
+# pull requests only. Two independent workflows used to pay for the same install
+# and the same lint/test/build twice on every push.
 on:
   push:
     branches: [master, main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -26,9 +31,29 @@ jobs:
       - run: npm ci --legacy-peer-deps
       - run: npm run lint
       - run: npm run test
-      - name: Static-host smoke before publishing
+
+      # Browser suites are slow and need a Chromium download. They gate PRs,
+      # not every data snapshot pushed to main.
+      - name: Full browser gates (pull requests only)
+        if: github.event_name == 'pull_request'
+        run: |
+          npx playwright install --with-deps --no-shell chromium
+          npm run test:e2e
+          npm run audit:contrast
+          PW_BASE=1 npm run test:e2e:base
+          npm run rehearse:pages
+      - if: failure() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+      - name: Static-host smoke
         run: npm run smoke:pages
+
       - name: Build for the project sub-path
+        if: github.event_name != 'pull_request'
         run: npm run build
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
@@ -36,11 +61,15 @@ jobs:
           # The published site reads public/data only. Refresh those files locally
           # with npm run snapshot, then push. No browser gateway is baked in.
           VITE_TRANSPORT: direct
-      - uses: actions/upload-pages-artifact@v3
+
+      - name: Upload Pages artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:

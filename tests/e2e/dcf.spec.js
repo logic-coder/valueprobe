@@ -46,21 +46,12 @@ test('shows the reverse DCF expectation', async ({ page }) => {
   await expect(page.locator('text=期望每股收益增长率（反DCF模型）')).toBeVisible()
 })
 
-test('saves, applies and deletes a DCF template', async ({ page }) => {
+test('reset restores the defaults from the menu', async ({ page }) => {
+  await page.locator('.input-section').first().fill('13')
+  await expect(page.locator('.input-section').first()).toHaveValue('13')
   await page.locator('.q-btn:has-text("more_vert")').first().click()
-  await page.locator('.q-menu .q-item:has-text("保存DCF参数")').click()
-  await page.locator('.q-dialog input').first().fill('模板A')
-  await page.locator('.q-dialog .q-btn:has-text("保存")').click()
-  await page.waitForTimeout(600)
-  const stored = await page.evaluate(() => localStorage.getItem('fv-dcf-templates'))
-  expect(stored).toContain('模板A')
-  await page.locator('.q-card .q-btn:has-text("arrow_drop_down")').first().click()
-  await page.locator('.q-menu .q-item:has-text("模板A")').click()
-  await page.locator('.q-btn:has-text("more_vert")').first().click()
-  await page.locator('.q-menu .q-item:has-text("删除DCF参数")').click()
-  await page.locator('.q-dialog .q-btn:has-text("删除")').click()
-  await page.waitForTimeout(600)
-  expect(await page.evaluate(() => localStorage.getItem('fv-dcf-templates'))).toBe('[]')
+  await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
+  await expect(page.locator('.input-section').first()).not.toHaveValue('13')
 })
 
 test('shows field help in a popover', async ({ page }) => {

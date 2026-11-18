@@ -82,7 +82,7 @@
 /* the two growth windows sit side by side as sub-panels */
 .dcf__form .row.text-center.text-caption { gap: 12px; }
 .dcf__form .row.text-center.text-caption > .col-6 { flex: 1 1 0; max-width: none; }
-.dcf__form .row.text-center.text-caption [style*='border: 1px solid #ccc'] { border: 1px solid var(--border) !important; border-radius: var(--radius-sm); background: var(--surface-2); }
+.stage-panel { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); }
 
 .input-section {
   height: 30px;

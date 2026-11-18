@@ -15,14 +15,22 @@
     </section>
 
     <section class="home__recent panel" :class="{ 'home__recent--empty': !continueItems.length }">
+      <template v-if="!continueItems.length">
+        <div class="empty-state">
+          <span class="empty-state__title">{{ t('continue_empty_title') }}</span>
+          <span class="muted">{{ t('continue_empty') }}</span>
+          <p class="empty-state__steps">{{ t('continue_empty_step') }}</p>
+        </div>
+      </template>
+      <template v-else>
       <span class="faint">{{ t('continue_where') }}</span>
-      <span v-if="!continueItems.length" class="faint">{{ t('continue_empty') }}</span>
       <a v-for="entry in continueItems" :key="entry.symbol" class="home__chip" :href="'#/stock/' + entry.symbol + '/dcf'">
         <q-icon v-if="entry.watched" name="star" size="13px" class="home__star" />
         {{ entry.name || entry.symbol }}
       </a>
       <a v-if="continueItems.length" class="home__clear" href="#/watchlist">{{ t('continue_watchlist') }}</a>
       <button v-if="recent.length" type="button" class="home__clear" @click="clear">{{ t('recent_clear') }}</button>
+      </template>
     </section>
 
     <stock-dcf-page class="home__calc" />
@@ -56,20 +64,32 @@ const clear = () => {
   clearRecent()
   recent.value = []
 }
-onMounted(() => { recent.value = readRecent() })
-// A small pool, rotated daily: the landing page does not show the same three names
-// to every visitor forever, while a given day stays stable for screenshots.
-const EXAMPLES = [
-  { symbol: 'NYSE:KO', label: 'Coca-Cola' },
-  { symbol: 'NASDAQ:AAPL', label: 'Apple' },
-  { symbol: 'SHSE:600519', label: '贵州茅台' },
-  { symbol: 'NASDAQ:MSFT', label: 'Microsoft' },
-  { symbol: 'HKSE:00700', label: '腾讯控股' },
-  { symbol: 'NYSE:PEP', label: 'PepsiCo' },
+onMounted(async () => {
+  recent.value = readRecent()
+  try {
+    const response = await fetch(import.meta.env.BASE_URL + 'data/catalog.json')
+    if (!response.ok) return
+    const rows = await response.json()
+    const listed = (Array.isArray(rows) ? rows : [])
+      .filter((row) => row && row.symbol)
+      .map((row) => ({ symbol: row.symbol, label: row.name || row.symbol }))
+    if (listed.length) pool.value = listed
+  } catch { /* the committed four stay */ }
+})
+// Only symbols that have a snapshot. A name without a file opens the failure banner.
+const PUBLISHED = [
   { symbol: 'SHSE:601398', label: '工商银行' },
+  { symbol: 'HKSE:00700', label: '腾讯控股' },
   { symbol: 'HKSE:00941', label: '中国移动' },
+  { symbol: 'NASDAQ:AAPL', label: '苹果' },
 ]
-const offset = new Date().getDate() % EXAMPLES.length
-const examples = EXAMPLES.map((_, index) => EXAMPLES[(offset + index) % EXAMPLES.length]).slice(0, 3)
+const pool = ref(PUBLISHED)
+const examples = computed(() => {
+  const list = pool.value
+  if (!list.length) return []
+  const offset = new Date().getDate() % list.length
+  const count = Math.min(3, list.length)
+  return Array.from({ length: count }, (_, index) => list[(offset + index) % list.length])
+})
 const open = (symbol) => router.push('/stock/' + symbol + '/dcf')
 </script>

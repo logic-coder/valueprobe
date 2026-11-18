@@ -10,7 +10,6 @@ export const useDcfStore = defineStore('dcf', {
     financials: { loading: false, data: null },
     view: { loading: false, data: null },
     indicator: { loading: false, indicator: null, source: 'live' },
-    templates: { loading: false, data: [], created: false, updated: false, deleted: false },
     chartData: {},
   }),
   getters: {
@@ -81,26 +80,6 @@ export const useDcfStore = defineStore('dcf', {
       } finally {
         if (!stale()) this.indicator.dataLoading = false
       }
-    },
-    async loadTemplate () {
-      this.templates.loading = true
-      try {
-        this.templates.data = await api.getUserDcfTemplate()
-      } finally {
-        this.templates.loading = false
-      }
-    },
-    async createTemplate (payload) {
-      this.templates.created = await api.createUserDcfTemplate(payload)
-      if (this.templates.created) await this.loadTemplate()
-    },
-    async updateTemplate (id, payload) {
-      this.templates.updated = await api.updateUserDcfTemplate(id, payload)
-      if (this.templates.updated) await this.loadTemplate()
-    },
-    async deleteTemplate (id) {
-      this.templates.deleted = await api.deleteUserDcfTemplate(id)
-      if (this.templates.deleted) await this.loadTemplate()
     },
   },
 })
