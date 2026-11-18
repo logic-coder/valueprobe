@@ -1,6 +1,7 @@
 // `calGr2fv` is the frozen two-stage finite annuity. `presentValue`, what the page
 // shows, adds a continuing value after the second stage.
 import { adoptGrowth } from './assumptions'
+import { defaultDiscountRate } from './riskFree'
 
 export const round2 = (value) => Math.round(100 * value) / 100
 
@@ -250,7 +251,7 @@ export const DCF_DEFAULTS = {
  * @param {number} freeCashFlow free cash flow per share
  */
 export function buildDefaults (indicator, stock, freeCashFlow) {
-  const discountRate = indicator ? Math.ceil(indicator) + 6 : 8
+  const discountRate = defaultDiscountRate(indicator)
   const eps = stock.ttm_eps_nri ? stock.ttm_eps_nri : (stock.ttm_eps ?? stock.ttm_eps_nri ?? null)
   const earnings = adoptGrowth(stock.earning_growth_10y)
   const cash = adoptGrowth(stock.cashflow_growth_10y)

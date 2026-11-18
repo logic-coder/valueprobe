@@ -7,13 +7,13 @@ const seed = (page) => page.addInitScript(({ sym, stockData }) => {
   const now = Date.now()
   localStorage.setItem('fv-cache:' + sym + ':stock', JSON.stringify({ v: stockData, t: now - 90000000, ttl: 6 * 3600e3 }))
   localStorage.setItem('fv-cache:' + sym + ':financials', JSON.stringify({ v: { annual: [], quarter: [], ttm: [{ free_cash_flow_per_share: '6.64' }] }, t: now - 90000000, ttl: 6 * 3600e3 }))
-  localStorage.setItem('fv-cache:indicator:37', JSON.stringify({ v: 5.14, t: now, ttl: 3600e3 }))
+  localStorage.setItem('fv-cache:rates:10y', JSON.stringify({ v: { USD: { value: 5.1, asOf: '2026-11-17', source: 'live' }, CNY: { value: 1.5892, asOf: '2026-11-18', source: 'live' } }, t: now, ttl: 3600e3 }))
 }, { sym: SYMBOL, stockData: stock })
 
 test('a quarterly file shows its as-of date', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99', { timeout: 20000 })
   await expect(page.locator('.data-banner--published')).toContainText('数据截至')
 })
 
@@ -23,7 +23,7 @@ test('falls back to a stale snapshot and offers recovery', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
   await expect(page.locator('.data-banner--stale')).toBeVisible({ timeout: 20000 })
   await expect(page.locator('.data-banner')).toContainText('离线快照')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('13.49')
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('26.88')
 })
 
 test('retry returns to live', async ({ page }) => {
@@ -41,13 +41,13 @@ test('retry returns to live', async ({ page }) => {
   await expect(retry).toBeEnabled()
   await retry.click()
   await expect(page.locator('.data-banner--published')).toBeVisible({ timeout: 20000 })
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26')
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99')
 })
 
 test('manual mode stops fetching and keeps the numbers editable', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99', { timeout: 20000 })
   await page.locator('.banner-link').first().isVisible().catch(() => {})
   await page.evaluate(() => {})
   await page.locator('.q-card .q-btn:has-text("more_vert")').first().waitFor()

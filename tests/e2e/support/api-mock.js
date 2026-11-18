@@ -50,6 +50,21 @@ const edgarFixture = {
 }
 
 // Deterministic offline API: every suite runs against bundled fixtures.
+export const ratesFixture = {
+  as_of: '2026-11-18',
+  USD: { value: 5.1, as_of: '2026-11-17', tenor: '10Y' },
+  CNY: { value: 1.5892, as_of: '2026-11-18', tenor: '10Y' },
+}
+
+export const yieldFixture = {
+  result: {
+    data: [
+      { SOLAR_DATE: '2026-11-18 00:00:00', EMM00166466: 1.5892, EMG00001310: null },
+      { SOLAR_DATE: '2026-11-17 00:00:00', EMM00166466: 1.6055, EMG00001310: 5.1 },
+    ],
+  },
+}
+
 export async function mockApi (page, options = {}) {
   // Mutable so a test can flip the network from down to up mid-run, and so a
   // test can knock out one provider to see the failover path.
@@ -125,8 +140,25 @@ export async function mockApi (page, options = {}) {
   })
 
   // Quarterly snapshot committed under public/data/ (served from the app origin).
+  await page.route('**/RPTA_WEB_TREASURYYIELD**', async (route) => {
+    if (state.fail) return route.fulfill({ status: 404, body: '{}' })
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(yieldFixture) })
+  })
+  await page.route('**/emdcweb/**', async (route) => {
+    if (state.fail) return route.fulfill({ status: 404, body: '{}' })
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(yieldFixture) })
+  })
+  await page.route('**/datacenter-web.eastmoney.com/**', async (route) => {
+    if (state.fail) return route.fulfill({ status: 404, body: '{}' })
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(yieldFixture) })
+  })
+
   await page.route('**/data/*.json', async (route) => {
     const url = route.request().url()
+    if (url.includes('rates.json')) {
+      if (state.fail) return route.fulfill({ status: 404, body: '{}' })
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ratesFixture) })
+    }
     if (state.fail || state.down.has('snapshot') || !url.includes('SHSE-601398')) return route.fulfill({ status: 404, body: '{}' })
     return route.fulfill({
       status: 200,

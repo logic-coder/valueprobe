@@ -8,7 +8,7 @@ import { mockApi } from './support/api-mock'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99', { timeout: 20000 })
 })
 
 test('the skip link comes first and moves focus to the content', async ({ page }) => {

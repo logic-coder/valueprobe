@@ -61,6 +61,12 @@ const proxy = {
     rewrite: (path) => path.replace(/^\/emf10/, ''),
     headers: { 'User-Agent': EDGAR_UA, Referer: 'https://emweb.securities.eastmoney.com/' },
   },
+  '^/emdcweb/': {
+    target: 'https://datacenter-web.eastmoney.com',
+    changeOrigin: true,
+    rewrite: (path) => path.replace(/^\/emdcweb/, ''),
+    headers: { 'User-Agent': EDGAR_UA, Referer: 'https://data.eastmoney.com/' },
+  },
   '^/emdc/': {
     target: 'https://datacenter.eastmoney.com',
     changeOrigin: true,

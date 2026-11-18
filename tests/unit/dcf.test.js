@@ -182,6 +182,11 @@ describe('buildDefaults', () => {
     expect(dcfForm.yearsOfTerminalGrowth).toBe(10)
   })
 
+  it('uses eight percent for a Chinese ten-year yield below two', () => {
+    const { dcfForm } = buildDefaults(1.5892, { ttm_eps: 1.08, price: '¥8.85' }, 6.64)
+    expect(dcfForm.discountRate).toBe(8)
+  })
+
   it('caps a high reported growth rate at fifteen and uses eight percent without an indicator', () => {
     const { dcfForm } = buildDefaults(null, { ttm_eps: 1, earning_growth_10y: 44, cashflow_growth_10y: 30, price: '1' }, 1)
     expect(dcfForm.discountRate).toBe(8)

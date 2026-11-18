@@ -75,6 +75,7 @@ import { api } from '../api'
 import { peerRow } from '../lib/peers'
 import { exportWatchlist, exportWatchlistCsv, importWatchCsv, importWatchlist } from '../lib/watchlist'
 import { defaultView } from '../lib/watchlistView'
+import { yieldForStock } from '../lib/riskFree'
 import { useWatchlistStore } from '../store/watchlist'
 import { useMoney } from '../composables/useMoney'
 
@@ -87,12 +88,12 @@ const retrying = ref(false)
 
 const load = async () => {
   const symbols = store.symbols.slice()
-  const [{ value: riskFree }, settled] = await Promise.all([
-    api.getLatestIndicator(37).catch(() => ({ value: null })),
+  const [rates, settled] = await Promise.all([
+    api.getRiskFreeRates().catch(() => ({})),
     Promise.allSettled(symbols.map((symbol) => api.getStock(symbol))),
   ])
   rows.value = settled.map((item, index) => (item.status === 'fulfilled' && item.value
-    ? { ...peerRow(item.value, symbols[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, riskFree) }
+    ? { ...peerRow(item.value, symbols[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
     : { symbol: symbols[index], name: symbols[index], price: null, pe: null, currency: '¥', asOf: null, fairValue: null, mos: null }))
 }
 

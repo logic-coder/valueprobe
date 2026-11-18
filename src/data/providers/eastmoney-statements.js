@@ -219,7 +219,8 @@ export function fromHkReports (rows) {
       : null),
     ebitda_per_share: null,
     free_cash_flow_per_share: round4(fcfOf(row)),
-    dividends_per_share: round4(num(row.DPS_HKD)),
+    // DPS_HKD on this feed is a current figure repeated on every row, not a history.
+    dividends_per_share: null,
     book_value_per_share: round4(num(row.BPS)),
   }))
   return pack({
@@ -293,8 +294,8 @@ const SCALE_FIELDS = ['ttm_eps', 'ttm_eps_nri', 'free_cash_flow_per_share', 'tan
 const SCALE_ROWS = ['eps_without_nri', 'revenue_per_share', 'operating_income_per_share', 'free_cash_flow_per_share', 'book_value_per_share']
 
 /**
- * Hong Kong indicator rows are in yuan. The quote is in HKD. Dividends are
- * already DPS_HKD and are left alone. Growth rates are ratios.
+ * Hong Kong indicator rows are in yuan. The quote is in HKD. Growth rates are ratios.
+ * Dividends stay null: the feed's DPS_HKD is not a historical series.
  */
 export function convertReportingCurrency (pack, rate) {
   if (!(rate > 0) || Math.abs(rate - 1) < 1e-6) return pack

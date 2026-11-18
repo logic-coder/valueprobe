@@ -1,6 +1,6 @@
 # valueprobe
 
-Open-source, local-first stock valuation. Ordinary companies are discounted from per-share earnings or shareholder free cash flow; banks use residual income. The default discount rate is a US Treasury hurdle plus 6 points, for every currency. Annual per-share earnings stay as filed, not split-adjusted. Not investment advice.
+Open-source, local-first stock valuation. Ordinary companies are discounted from per-share earnings or shareholder free cash flow; banks use residual income. The default discount rate is the local 10-year government yield for the cash-flow currency, rounded up, plus 6 points. US per-share earnings are restated for later splits when the original 10-K figure was not. Not investment advice.
 
 ## Run
 

@@ -1,7 +1,8 @@
 import { mode } from '../data'
 import { DataError } from '../data/errors'
 import { getStock, getStockFinancial } from './stock'
-import { getIndicatorData, getLatestIndicator, getView } from './indicator'
+import { getIndicatorData, getView } from './indicator'
+import { getRiskFreeRates } from './rates'
 
 // "live" is the default (proxied through the Vite server); "fixture" keeps the
 // bundled demo snapshot for offline demos and deterministic tests.
@@ -12,7 +13,7 @@ export const api = {
   getStock,
   getStockFinancial,
   getView,
-  getLatestIndicator,
+  getRiskFreeRates,
   getIndicatorData,
 }
 

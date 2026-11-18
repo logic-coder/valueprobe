@@ -50,7 +50,8 @@ describe('Hong Kong statements', () => {
     expect(parsed.fields.cashflow_basis).toBe('invest')
     // 2025: shares = 200/20 = 10, fcf = (80-30)/10 = 5
     expect(parsed.financials.annual.at(-1).free_cash_flow_per_share).toBe(5)
-    expect(parsed.financials.annual.at(-1).dividends_per_share).toBe(1.5)
+    expect(parsed.financials.annual.at(-1).dividends_per_share).toBeNull()
+    expect(parsed.financials.annual[0].dividends_per_share).toBeNull()
     expect(parsed.financials.annual.at(-1).operating_income_per_share).toBe(5)
   })
 })
@@ -180,6 +181,6 @@ describe('growth windows and cash-flow basis', () => {
     const converted = convertReportingCurrency(parsed, 1.1)
     expect(converted.fields.ttm_eps).toBeCloseTo(11)
     expect(converted.fields.tangible_book).toBeCloseTo(44)
-    expect(converted.financials.annual.at(-1).dividends_per_share).toBe(1.5)
+    expect(converted.financials.annual.at(-1).dividends_per_share).toBeNull()
   })
 })

@@ -33,7 +33,7 @@ test('the built app renders under /valueprobe/ without same-origin /_api calls',
     await expect(banner).toContainText('所有数据源都失败')
     await expect(banner).not.toContainText('季度快照')
   } else {
-    await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.26', { timeout: 20000 })
+    await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99', { timeout: 20000 })
   }
   await page.waitForTimeout(500)
   await page.screenshot({ path: 'test-results/base-path.png' })

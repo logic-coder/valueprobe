@@ -63,7 +63,7 @@ function periodYear (item) {
 }
 
 /** One concept, one unit. A full fiscal year beats a later stub with the same period end. */
-function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap') {
+function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEarliest = false) {
   const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.[unit]
   if (!entries) return []
   const byYear = new Map()
@@ -75,20 +75,21 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap') {
     const year = periodYear(item)
     if (!year) continue
     const prev = byYear.get(year)
-    const better = !prev || (full && !prev.full) || (full === prev.full && filed >= prev.filed)
+    const newerOrOlder = !prev ? true : (preferEarliest ? filed < prev.filed : filed >= prev.filed)
+    const better = !prev || (full && !prev.full) || (full === prev.full && newerOrOlder)
     if (better) byYear.set(year, { val: item.val, full, filed })
   }
-  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val }))
+  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val, filed: item.filed }))
 }
 
 /**
  * Freshest concept that can support a history. The first concept with two
  * points used to win even when those points stopped a decade ago.
  */
-function annual (facts, concepts, unit, taxonomyName = 'us-gaap') {
+function annual (facts, concepts, unit, taxonomyName = 'us-gaap', preferEarliest = false) {
   let best = []
   for (const concept of concepts) {
-    const series = annualConcept(facts, concept, unit, taxonomyName)
+    const series = annualConcept(facts, concept, unit, taxonomyName, preferEarliest)
     if (series.length < 2) continue
     const newer = (series.at(-1)?.fy || 0) > (best.at(-1)?.fy || 0)
     const longer = (series.at(-1)?.fy || 0) === (best.at(-1)?.fy || 0) && series.length > best.length
@@ -153,14 +154,17 @@ function nearestSplitWithin (ratio, tolerance) {
 }
 
 /**
- * Share counts in the filing are not restated for later splits. Multiply
- * older counts when the share count jumps by a split factor and revenue does
- * not. Returns shares on the latest year's basis.
+ * Original 10-K share counts usually are not restated, but later filings
+ * sometimes rewrite older years onto a post-split basis. assemble keeps the
+ * original count so the jump stays in the split year. Multiply older counts
+ * when the share count jumps by a split factor and revenue does not. Returns
+ * shares on the latest year's basis.
  */
 function splitAdjustedShares (shares, revenue) {
   const years = shares.map((point) => point.fy)
   const reported = new Map(shares.map((point) => [point.fy, point.val]))
   const extra = new Map(years.map((year) => [year, 1]))
+  const splits = []
   for (let index = 1; index < years.length; index++) {
     const prev = years[index - 1]
     const year = years[index]
@@ -170,17 +174,111 @@ function splitAdjustedShares (shares, revenue) {
     const revenueNow = revenue.get(year)
     const revenueRatio = prevRevenue > 0 && revenueNow > 0 ? revenueNow / prevRevenue : 1
     if (revenueRatio > factor * 0.55) continue
+    splits.push({ year, factor, filed: shares.find((point) => point.fy === year)?.filed || '' })
     for (const older of years) {
       if (older < year) extra.set(older, extra.get(older) * factor)
     }
   }
   const adjusted = new Map()
   for (const year of years) adjusted.set(year, reported.get(year) * extra.get(year))
-  return { adjusted, extra }
+  return { adjusted, extra, splits }
 }
 
 function nearestSplit (ratio) {
   return nearestSplitWithin(ratio, 0.18)
+}
+
+/**
+ * When share counts start after a split, there is no jump to see. The same
+ * fiscal year's EPS in a later 10-K is often restated onto the new share
+ * basis; that ratio is the split, and item.fy on the later row is the
+ * split-year filing.
+ */
+function restatementSplits (facts) {
+  const splits = []
+  const seen = new Set()
+  const taxonomies = [
+    ['us-gaap', EPS_CONCEPTS],
+    ['ifrs-full', ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']],
+  ]
+  for (const [taxonomyName, concepts] of taxonomies) {
+    for (const concept of concepts) {
+      const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.['USD/shares']
+      if (!entries) continue
+      const byYear = new Map()
+      for (const item of entries) {
+        if (!FORMS.has(item.form) || item.fp !== 'FY' || !Number.isFinite(item.val)) continue
+        const days = durationDays(item)
+        if (days != null && days < 300) continue
+        const year = periodYear(item)
+        const filed = String(item.filed || '')
+        if (!year || !filed) continue
+        const list = byYear.get(year) || []
+        list.push({ val: item.val, filed, filingYear: Number.isFinite(item.fy) ? item.fy : null })
+        byYear.set(year, list)
+      }
+      for (const [period, list] of byYear) {
+        list.sort((left, right) => left.filed.localeCompare(right.filed) || left.val - right.val)
+        let basis = list[0]
+        for (let index = 1; index < list.length; index++) {
+          const after = list[index]
+          if (!basis || after.filed <= basis.filed) continue
+          const factor = (
+            basis.val > 0 && after.val > 0
+              ? nearestSplitWithin(basis.val / after.val, 0.08)
+              : null
+          )
+          const year = after.filingYear
+          if (factor && year && year > period) {
+            const key = year + ':' + factor
+            if (!seen.has(key)) {
+              seen.add(key)
+              splits.push({ year, factor, filed: after.filed })
+            }
+          }
+          basis = after
+        }
+      }
+    }
+  }
+  return splits.sort((left, right) => left.year - right.year)
+}
+
+function mergeSplits (fromShares, fromRestatement) {
+  const merged = [...fromShares]
+  const seen = new Set(fromShares.map((split) => split.year + ':' + split.factor))
+  for (const split of fromRestatement) {
+    const key = split.year + ':' + split.factor
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(split)
+  }
+  return merged.sort((left, right) => left.year - right.year)
+}
+
+/**
+ * Companyfacts keep each 10-K's original EPS. Later filings restate only a
+ * short comparison window, so years older than that stay on a pre-split basis.
+ * Share counts are not restated either; splitAdjustedShares finds the split
+ * years when the count jumps. restatementSplits covers the case where share
+ * history starts after the split. Apply those factors only to EPS last filed
+ * before that year's 10-K — a comparative column in the split-year filing is
+ * already post-split.
+ */
+export function rescaleFiledEps (eps, splits) {
+  if (!splits?.length) return eps
+  return eps.map((point) => {
+    let factor = 1
+    for (const split of splits) {
+      if (!(point.fy < split.year) || !(split.factor > 1)) continue
+      const filed = String(point.filed || '')
+      const splitFiled = String(split.filed || '')
+      if (!filed || !splitFiled || filed >= splitFiled) continue
+      factor *= split.factor
+    }
+    if (factor === 1 || !Number.isFinite(point.val)) return point
+    return { ...point, val: Number((point.val / factor).toFixed(4)) }
+  })
 }
 
 /** A one-year hole or spike between two consistent years is a mis-tagged fact. */
@@ -249,12 +347,18 @@ const MIN_GROWTH_SPAN = 7
 function growth10y (series) {
   const last = series.at(-1)
   if (!last || !(last.val > 0)) return null
-  const first = series.find((point) => point.val > 0)
-  const years = last.fy - first.fy
-  if (years < MIN_GROWTH_SPAN) return null
   const positives = series.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
-  const median = positives[Math.floor(positives.length / 2)]
-  if (positives.length >= 3 && first.val < median * 0.2) return null
+  const typical = positives[Math.floor(positives.length / 2)]
+  // A trough is not a base, but a later year in the same series still can be.
+  // After split restatement, genuine high-growth names often start well below
+  // the median; dropping the whole window left growth empty.
+  const first = series.find((point) => (
+    point.val > 0
+    && last.fy - point.fy >= MIN_GROWTH_SPAN
+    && !(positives.length >= 3 && point.val < typical * 0.2)
+  ))
+  if (!first) return null
+  const years = last.fy - first.fy
   const pct = (Math.pow(last.val / first.val, 1 / years) - 1) * 100
   if (!Number.isFinite(pct)) return null
   return Number(Math.max(-100, Math.min(200, pct)).toFixed(2))
@@ -296,13 +400,16 @@ function assemble (facts) {
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
   const ocf = annual(facts, ['NetCashProvidedByUsedInOperatingActivities'], 'USD')
   const capex = annual(facts, CAPEX_CONCEPTS, 'USD')
-  const shares = normalizeShareUnits(annual(facts, SHARE_CONCEPTS, 'shares'))
-  // Filed EPS is already on each filing's share basis and later filings restate
-  // it, so it is not rescaled by the share-count split factors.
-  const { adjusted } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
-  const cliffYears = new Set(reportedEps.map((point) => point.fy))
-  for (const point of dropCliffs(reportedEps)) cliffYears.delete(point.fy)
-  const keptEps = reportedEps.filter((point) => !cliffYears.has(point.fy))
+  // Later 10-Ks sometimes restate older share counts onto a post-split basis.
+  // Keep the original filing so the jump stays in the split year; otherwise
+  // the same split is also detected from EPS and applied twice.
+  const shares = normalizeShareUnits(annual(facts, SHARE_CONCEPTS, 'shares', 'us-gaap', true))
+  const { adjusted, splits: shareSplits } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
+  const splits = mergeSplits(shareSplits, restatementSplits(facts))
+  const restatedEps = rescaleFiledEps(reportedEps, splits)
+  const cliffYears = new Set(restatedEps.map((point) => point.fy))
+  for (const point of dropCliffs(restatedEps)) cliffYears.delete(point.fy)
+  const keptEps = restatedEps.filter((point) => !cliffYears.has(point.fy))
   const ocfByYear = new Map(ocf.map((item) => [item.fy, item.val]))
   const fcf = capex
     .filter((item) => ocfByYear.has(item.fy))

@@ -84,6 +84,7 @@ import { api } from '../api'
 import { MAX_COMPARE, parseSymbolsQuery, rankRows } from '../lib/compare'
 import { peerRow } from '../lib/peers'
 import { defaultView } from '../lib/watchlistView'
+import { yieldForStock } from '../lib/riskFree'
 import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
 import { useMoney } from '../composables/useMoney'
@@ -115,12 +116,12 @@ const load = async () => {
     rawRows.value = []
     return
   }
-  const [{ value: riskFree }, settled] = await Promise.all([
-    api.getLatestIndicator(37).catch(() => ({ value: null })),
+  const [rates, settled] = await Promise.all([
+    api.getRiskFreeRates().catch(() => ({})),
     Promise.allSettled(list.map((symbol) => api.getStock(symbol))),
   ])
   rawRows.value = settled.map((item, index) => (item.status === 'fulfilled' && item.value
-    ? { ...peerRow(item.value, list[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, riskFree) }
+    ? { ...peerRow(item.value, list[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
     : { symbol: list[index], name: list[index], price: null, pe: null, pb: null, currency: '¥', asOf: null, fairValue: null, mos: null }))
 }
 

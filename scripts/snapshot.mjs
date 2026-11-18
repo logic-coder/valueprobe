@@ -13,6 +13,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fromAshareReports, fromHkReports, convertReportingCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
+import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -29,6 +30,36 @@ const symbols = fromArgs.length
   : JSON.parse(await readFile(resolve(here, 'watchlist.json'), 'utf8'))
 
 await mkdir(OUT, { recursive: true })
+
+async function writeRates () {
+  const url = 'https://datacenter-web.eastmoney.com/api/data/v1/get?pageSize=10&pageNumber=1&reportName=RPTA_WEB_TREASURYYIELD&columns=ALL&sortColumns=SOLAR_DATE&sortTypes=-1'
+  const file = resolve(OUT, 'rates.json')
+  try {
+    const response = await fetch(url, { headers: { 'User-Agent': UA, Accept: 'application/json', Referer: 'https://data.eastmoney.com/' } })
+    if (!response.ok) throw new Error('HTTP ' + response.status)
+    const body = await response.json()
+    const live = parseEastMoneyYields(body)
+    const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'))
+    const pick = (code, row) => {
+      if (row && Number.isFinite(row.value) && row.value > 0) {
+        return { value: row.value, as_of: row.asOf, tenor: '10Y' }
+      }
+      const prev = existing[code]
+      return prev && Number(prev.value) > 0 ? prev : null
+    }
+    const record = {
+      as_of: new Date().toISOString().slice(0, 10),
+      USD: pick('USD', live.USD),
+      CNY: pick('CNY', live.CNY),
+    }
+    if (!record.USD && !record.CNY) throw new Error('empty yields')
+    await writeFile(file, JSON.stringify(record, null, 2) + '\n')
+    console.log('wrote rates.json', 'CNY', record.CNY && record.CNY.value, 'USD', record.USD && record.USD.value)
+  } catch (error) {
+    console.error('keep existing rates.json -', error.message)
+  }
+}
+
 
 async function getJson (url) {
   const response = await fetch(url, { headers: HEADERS })
@@ -167,6 +198,8 @@ const usable = (pack) => {
   const annual = pack?.financials?.annual || []
   return fields.ttm_eps != null || fields.tangible_book != null || annual.some((row) => row.eps_without_nri != null || row.book_value_per_share != null)
 }
+
+await writeRates()
 
 for (const symbol of symbols) {
   const [market, code] = String(symbol).split(':')

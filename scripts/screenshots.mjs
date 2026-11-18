@@ -34,7 +34,9 @@ await hp.close()
 
 const p = await open({ width: 1440, height: 1100 })
 // The rate-provenance line only shows when the live rate is unavailable.
-await p.route('**/latest_indicator/**', (route) => route.fulfill({ status: 503, body: '{}' }))
+await p.route('**/RPTA_WEB_TREASURYYIELD**', (route) => route.fulfill({ status: 503, body: '{}' }))
+await p.route('**/emdcweb/**', (route) => route.fulfill({ status: 503, body: '{}' }))
+await p.route('**/data/rates.json', (route) => route.fulfill({ status: 503, body: '{}' }))
 await p.goto('http://127.0.0.1:5173/#/stock/SHSE:601398/dcf', { waitUntil: 'domcontentloaded' })
 await ready(p)
 await p.waitForTimeout(700)

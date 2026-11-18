@@ -113,12 +113,9 @@
                 <q-btn flat dense size="sm" class="dcf__wacc-btn" icon="functions" :label="t('wacc')" :aria-label="t('wacc')" @click="openWacc" />
               </div>
             </div>
-            <div v-if="!loading && foreignHurdle" class="dcf__rate-note" data-testid="discount-currency-note">
-              {{ t('discount_currency_note') }}
-            </div>
-            <div v-if="!loading && rateSource === 'bundled'" class="dcf__rate-note">
+            <div v-if="!loading && rateNote" class="dcf__rate-note" data-testid="discount-currency-note">
               <q-icon name="info" size="14px" />
-              {{ t('rate_bundled_note') }}
+              {{ t(rateNote) }}
             </div>
             <div v-if="!loading && !basisReady" class="dcf__rate-note">{{ t('basis_unavailable') }}</div>
             <div v-else-if="!loading && result.reverseGrowthRate == null" class="dcf__rate-note">{{ t('reverse_no_solution') }}</div>
@@ -333,6 +330,7 @@ import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valua
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
 import { codeOf } from '../store/display'
+import { rateForCurrency } from '../lib/riskFree'
 import APopover from './APopover.vue'
 import EditableValue from './EditableValue.vue'
 import DcfHeader from './dcf/DcfHeader.vue'
@@ -369,8 +367,15 @@ const stock = computed(() => stockStore.stock || {})
 const currencyCode = computed(() => codeOf(stock.value.currency) || stock.value.currency || '')
 
 const financials = computed(() => dcfStore.financials.data)
-const indicator = computed(() => dcfStore.indicator.indicator)
-const rateSource = computed(() => dcfStore.indicator.source)
+const selectedRate = computed(() => rateForCurrency(dcfStore.rates.byCurrency, stock.value.currency))
+const indicator = computed(() => selectedRate.value.value)
+const rateNote = computed(() => {
+  const info = selectedRate.value
+  if (!info.value || info.source === 'fallback') return 'discount_fallback_note'
+  if (info.source === 'usd_proxy') return 'discount_hkd_proxy_note'
+  if (info.source === 'bundled' || info.source === 'snapshot') return 'rate_bundled_note'
+  return null
+})
 const growthNote = computed(() => {
   const key = dcfBasedOn.value === 'eps' ? 'eps' : 'fcf'
   if (stock.value?.growth_refused?.[key] === 'short') return t('growth_refused_note')
@@ -404,10 +409,6 @@ const freecashflow = computed(() => {
 const models = VALUATION_MODELS
 const suggested = computed(() => suggestedModel(stock.value))
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
-const foreignHurdle = computed(() => {
-  const code = codeOf(stock.value.currency) || stock.value.currency
-  return code === 'CNY' || code === 'HKD'
-})
 const model = ref('owner')
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
@@ -440,7 +441,7 @@ const openPeer = (symbol) => router.push('/stock/' + symbol + '/dcf')
 const seed = ref(null)
 
 const initData = async () => {
-  if (!isManual.value) await dcfStore.loadIndicator()
+  if (!isManual.value) await dcfStore.loadRates()
   const defaults = buildDefaults(isManual.value ? null : indicator.value, stock.value, freecashflow.value)
   seed.value = defaults
   const manual = isManual.value ? readManual(props.symbol) : null
@@ -632,7 +633,7 @@ const wacc = reactive({ riskFree: 4, erp: ERP_DEFAULT, beta: 1, sizePremium: 0 }
 const waccRate = computed(() => buildUpRate(wacc))
 const openWacc = () => {
   const rf = Number(indicator.value)
-  wacc.riskFree = Number.isFinite(rf) ? Math.round(rf) : Math.max(0, Number(form.discountRate) - 6)
+  wacc.riskFree = Number.isFinite(rf) ? rf : Math.max(0, Number(form.discountRate) - 6)
   wacc.erp = ERP_DEFAULT
   wacc.beta = 1
   wacc.sizePremium = 0

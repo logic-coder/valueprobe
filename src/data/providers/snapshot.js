@@ -25,6 +25,31 @@ function yearSeries (annual, field) {
   return { firstYear, values }
 }
 
+
+/** East Money DPS_HKD is a current figure copied onto every HK history row. */
+export function dropCopiedDividends (data) {
+  if (!data || data.exchange_ !== 'HKSE') return data
+  const wipe = (rows) => {
+    if (!Array.isArray(rows)) return
+    for (const row of rows) {
+      if (row && 'dividends_per_share' in row) row.dividends_per_share = null
+    }
+  }
+  wipe(data.financials?.annual)
+  wipe(data.financials?.ttm)
+  wipe(data.financials?.quarter)
+  const series = data.history?.dividends_per_share
+  if (series) {
+    const points = Array.isArray(series) ? series : series.data
+    if (Array.isArray(points)) {
+      const cleared = points.map((point) => (Array.isArray(point) ? [point[0], null] : point))
+      if (Array.isArray(series)) data.history.dividends_per_share = cleared
+      else data.history.dividends_per_share = { ...series, data: cleared }
+    }
+  }
+  return data
+}
+
 /**
  * The stored 10y CAGR can span a share split (GOOGL: pre-split 27.85 against
  * post-split 10.81). When the annual series shows such a level shift, the stored
@@ -82,7 +107,7 @@ export const snapshot = {
     if (!data || typeof data !== 'object' || data.price === undefined || data.price === null) {
       throw notSupported('snapshot', 'no record for ' + symbol)
     }
-    return data
+    return dropCopiedDividends(data)
   },
 
   async fetchStock (symbol) {

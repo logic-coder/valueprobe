@@ -10,6 +10,7 @@ export const useDcfStore = defineStore('dcf', {
     financials: { loading: false, data: null },
     view: { loading: false, data: null },
     indicator: { loading: false, indicator: null, source: 'live' },
+    rates: { loading: false, byCurrency: { USD: null, CNY: null } },
     chartData: {},
     // The calculator's price, shared with the page header so both edit one number.
     // Empty symbol means no calculator is mounted and the header shows the snapshot quote.
@@ -61,17 +62,14 @@ export const useDcfStore = defineStore('dcf', {
         this.view.loading = false
       }
     },
-    async loadIndicator () {
-      this.indicator.loading = true
+    async loadRates () {
+      this.rates.loading = true
       try {
-        const { value, source } = await api.getLatestIndicator(37)
-        this.indicator.indicator = value
-        this.indicator.source = source
+        this.rates.byCurrency = await api.getRiskFreeRates()
       } catch (error) {
-        this.indicator.indicator = null
-        this.indicator.source = 'bundled'
+        this.rates.byCurrency = { USD: null, CNY: null }
       } finally {
-        this.indicator.loading = false
+        this.rates.loading = false
       }
     },
     async loadIndicatorData (symbol, indicator, params) {

@@ -51,12 +51,12 @@
 | `direct` | 上游绝对 URL | 静态托管；只有 `corsSafe: true` 的源能这样用 |
 | `gateway` | `VITE_CORS_GATEWAY` 模板包裹后的绝对 URL | 静态托管 + 非 CORS 源；`corsSafe` 源仍直连 |
 
-`corsSafe` 是 provider 的声明：财政部利率接口在浏览器里直连，`eastmoney` / `edgar` 为 false。
+`corsSafe` 是 provider 的声明：`eastmoney` / `edgar` 为 false，静态页不能直接请求它们。
 `src/data/index.js` 在 `VITE_TRANSPORT=direct`（Pages 工作流显式设置）时只注册 `snapshot`。
 线上能算的就是 `public/data/` 里已经生成的代码；没有文件的代码显示「所有数据源都失败」，可改入手填。
 东财和 SEC 没有 CORS，开发时走 Vite 代理；要在发布页里实时请求它们，必须自备网关（见 `.env.example`）。查询串在交给网关之前已拼进目标 URL。
 
-无风险利率不走注册表，由 `api/indicator.js` 请求美国财政部 Fiscal Data（`access-control-allow-origin: *`）。
+无风险利率不走注册表。十年期国债取自东财 `RPTA_WEB_TREASURYYIELD`（`EMM00166466` 为中国十年期，`EMG00001310` 为美国十年期；美国当日可能尚未写入，取最近一个非空值）。该接口无 CORS，开发时走 Vite `/emdcweb` 代理，发布页读取 `public/data/rates.json`（由 `npm run snapshot` 一并刷新），再退到随包的 `src/data/bundled/risk_free.json`。不要用美国存量国债平均票息，也不要用它更新兜底值。
 
 刷新 `public/data/`：在本机运行 `npm run snapshot`，把生成的 JSON 一并提交再推送。Pages 构建不会代拉行情。
 
@@ -96,5 +96,5 @@ export const mysource = {
 ## 边界
 
 - 熔断与限流状态只在内存里，刷新即复位（故意的，本地单用户工具）；
-- 没有做历史回填与拆股/分红复权，历史只服务图表；
+- 美股每股收益会按拆股重述：仅调整在拆股当年 10-K 之前申报、未被后续比较列重述的年份；收入/股和自由现金流/股本来就按复权股本计算。港股分红列不采用东财 `DPS_HKD`（该字段不是历史值）。其余历史序列不做复权回填，主要为图表服务；
 - 抓取来源各自的条款见 `ATTRIBUTION.md`。
