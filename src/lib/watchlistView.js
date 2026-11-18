@@ -21,6 +21,7 @@ export function defaultView (stock, indicator = null) {
   const defaults = buildDefaults(indicator, stock, num(stock.free_cash_flow_per_share) || 0)
   const form = defaults.dcfForm
   const result = defaults.dcfResultForm
+  if (form.growthRate == null || !Number.isFinite(Number(form.growthRate))) return { fairValue: null, mos: null }
   let fair
   try {
     fair = suggestedModel(stock) === 'residual'

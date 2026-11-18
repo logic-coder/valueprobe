@@ -36,14 +36,14 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
 })
 
 test('adds tangible book value to the fair value', async ({ page }) => {
-  await page.getByRole('button', { name: '所有者收益' }).click()
+  await page.getByRole('button', { name: '每股折现' }).click()
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('24.73')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
-  await page.getByRole('button', { name: '所有者收益' }).click()
+  await page.getByRole('button', { name: '每股折现' }).click()
   await expect(page.locator('text=期望每股收益增长率（反DCF模型）')).toBeVisible()
 })
 
@@ -133,7 +133,7 @@ test('shows a sensitivity matrix around the current assumptions', async ({ page 
   await expect(center).toHaveText(await page.locator(FAIR).innerText())
   // A bank's return fades to the discount rate, so this window stays in one band.
   // Owner earnings still spreads far enough to tint a cell.
-  await page.getByRole('button', { name: '所有者收益' }).click()
+  await page.getByRole('button', { name: '每股折现' }).click()
   await expect(page.locator('.sens__grid td.cell--good, .sens__grid td.cell--bad').first()).toBeVisible()
 })
 

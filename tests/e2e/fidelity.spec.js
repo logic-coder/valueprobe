@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
 test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
   // Residual income has no finite value at a zero discount. This checks the
   // owner-earnings sum, which stays finite when both rates are 0.
-  await page.getByRole('button', { name: '所有者收益' }).click()
+  await page.getByRole('button', { name: '每股折现' }).click()
   await page.locator(DISCOUNT).first().fill('0')
   await page.locator(DISCOUNT).first().blur()
   await page.locator(DISCOUNT).nth(4).fill('0')

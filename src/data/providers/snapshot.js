@@ -35,7 +35,7 @@ export function applyCleanGrowth (stock, annual) {
   if (!Array.isArray(annual) || !annual.length) return stock
   const window = {}
   const fields = [['eps', 'eps_without_nri', 'earning_growth_10y']]
-  // A bank's operating cash flow is not owner earnings; its growth stays out.
+  // A bank's operating cash flow is not a shareholder cash flow; its growth stays out.
   if (stock.cashflow_basis !== 'ocf') fields.push(['fcf', 'free_cash_flow_per_share', 'cashflow_growth_10y'])
   // Revenue per share is restated across splits in the same rows.
   const revenue = yearSeries(annual, 'revenue_per_share').values
@@ -45,8 +45,13 @@ export function applyCleanGrowth (stock, annual) {
     const { firstYear, values } = yearSeries(annual, rowField)
     const clean = cleanGrowth(values, revenue)
     if (!clean?.shifted) continue
+    if (clean.rate == null) {
+      stock[growthField] = null
+      stock.growth_refused = { ...(stock.growth_refused || {}), [key]: 'short' }
+      continue
+    }
     stock[growthField] = clean.rate
-    if (clean.rate !== null) window[key] = { from: firstYear + clean.start, to: firstYear + clean.end }
+    window[key] = { from: firstYear + clean.start, to: firstYear + clean.end }
   }
   if (Object.keys(window).length) stock.growth_window = window
   return stock

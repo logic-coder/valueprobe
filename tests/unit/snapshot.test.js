@@ -54,6 +54,16 @@ describe('snapshot provider', () => {
     expect(stock.growth_window).toEqual({ eps: { from: 2018, to: 2026 } })
   })
 
+  it('drops a stored rate when the clean window after a split is too short', async () => {
+    const eps = [20, 22, 24, 26, 28, 30, 32, 3.4, 3.6, 3.9]
+    const annual = eps.map((value, index) => ({ date: (2017 + index) + '-12', eps_without_nri: value }))
+    get.mockResolvedValue({ data: { price: 10, earning_growth_10y: 7.43, financials: { annual } } })
+    const stock = await snapshot.fetchStock('NASDAQ:NVDA')
+    expect(stock.earning_growth_10y).toBeNull()
+    expect(stock.growth_refused).toEqual({ eps: 'short' })
+    expect(stock.growth_window).toBeUndefined()
+  })
+
   it('keeps the stored rate when the series has no level shift, and leaves bank cash flow alone', async () => {
     const annual = [1, 1.1, 1.2, 1.3, 1.4].map((value, index) => ({ date: (2021 + index) + '-12', eps_without_nri: value, free_cash_flow_per_share: [9, 9, 1, 1, 1][index] }))
     get.mockResolvedValue({ data: { price: 9, earning_growth_10y: 3, cashflow_growth_10y: -4.8, cashflow_basis: 'ocf', financials: { annual } } })

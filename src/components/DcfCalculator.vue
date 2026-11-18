@@ -65,7 +65,7 @@
               </span>
               <span class="basis-option">
                 <label class="basis-option__choice">
-                  <q-radio v-model="dcfBasedOn" dense val="freecashflow" :aria-label="t('total_freecashflow')" />
+                  <q-radio v-model="dcfBasedOn" dense val="freecashflow" :disable="firmClaim" :aria-label="t('total_freecashflow')" />
                   {{ t('total_freecashflow') }}
                 </label>
                 <a-popover placement="top">
@@ -276,7 +276,7 @@
           </div>
 
           <sensitivity-panel
-            v-if="!loading"
+            v-if="!loading && sensitivityGrid"
             class="dcf__sens"
             :grid="sensitivityGrid"
             :currency="stock.currency || '¥'"
@@ -287,7 +287,7 @@
           <multiple-check-panel
             v-if="!loading"
             class="dcf__mcheck"
-            :bases="{ eps: form.eps, freecashflow: form.freecashflow, tbv: result.tbv }"
+            :bases="{ eps: form.eps, freecashflow: firmClaim ? null : form.freecashflow, tbv: result.tbv }"
             :price="result.stockPrice"
             :currency="stock.currency || '¥'"
             :fair-value="result.fairValue"
@@ -324,7 +324,7 @@ import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
-import { suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
+import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
 import { codeOf } from '../store/display'
@@ -367,10 +367,12 @@ const financials = computed(() => dcfStore.financials.data)
 const indicator = computed(() => dcfStore.indicator.indicator)
 const rateSource = computed(() => dcfStore.indicator.source)
 const growthNote = computed(() => {
+  const key = dcfBasedOn.value === 'eps' ? 'eps' : 'fcf'
+  if (stock.value?.growth_refused?.[key] === 'short') return t('growth_refused_note')
   const historicalField = dcfBasedOn.value === 'eps' ? 'earning_growth_10y' : 'cashflow_growth_10y'
   const info = adoptGrowth(stock.value?.[historicalField])
   const adopted = dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate
-  if (info.reason === 'missing') return t('growth_missing_note', { adopted })
+  if (info.reason === 'missing') return t('growth_missing_note')
   const span = stock.value?.growth_window?.[dcfBasedOn.value === 'eps' ? 'eps' : 'fcf']
   const window = span ? t('growth_window', span) : ''
   if (info.reason === 'capped') return t('growth_capped_note', { historical: info.historical, window, cap: info.adopted, adopted })
@@ -396,6 +398,7 @@ const freecashflow = computed(() => {
 })
 const models = VALUATION_MODELS
 const suggested = computed(() => suggestedModel(stock.value))
+const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
@@ -456,7 +459,7 @@ const initData = async () => {
   }
   model.value = preset.model || suggested.value
   if (!isPresetEmpty(preset)) {
-    if (preset.basis) dcfBasedOn.value = preset.basis
+    if (preset.basis && !(preset.basis === 'freecashflow' && firmClaim.value)) dcfBasedOn.value = preset.basis
     Object.assign(form, preset.form)
     Object.assign(result, preset.result)
     if (preset.tbvIn !== undefined) result.addToFairValue = preset.tbvIn
@@ -502,7 +505,7 @@ const calculate = () => {
   if (form.years < 0) form.years = 0
   if (form.yearsOfTerminalGrowth < 0) form.yearsOfTerminalGrowth = 0
   const base = dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)
-  const growth = dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate
+  const growth = finiteOrNull(dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate)
   if (!(base > 0)) {
     result.fairValue = null
     result.fairLow = null
@@ -511,6 +514,21 @@ const calculate = () => {
     result.terminalValue = null
     result.marginOfSafety = 'n/a'
     result.reverseGrowthRate = null
+    return
+  }
+  if (growth === null) {
+    result.fairValue = null
+    result.fairLow = null
+    result.fairHigh = null
+    result.growthValue = null
+    result.terminalValue = null
+    result.marginOfSafety = 'n/a'
+    result.reverseGrowthRate = residualIncome.value
+      ? null
+      : impliedGrowth(
+        result.tbv, form.years, form.discountRate, base, result.stockPrice,
+        form.terminalGrowthRate, result.stockPrice, form.yearsOfTerminalGrowth, result.addToFairValue,
+      )
     return
   }
   const band = valueBand({
@@ -546,9 +564,12 @@ const calculate = () => {
 }
 
 // SENS: five by five neighbours of the current rate/growth pair, all through the kernel.
-const sensitivityGrid = computed(() => buildSensitivityGrid({
+const sensitivityGrid = computed(() => {
+  const growthRate = finiteOrNull(dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate)
+  if (growthRate === null) return null
+  return buildSensitivityGrid({
   discountRate: form.discountRate,
-  growthRate: dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate,
+  growthRate,
   tbv: result.tbv,
   years: form.years,
   base: dcfBasedOn.value === 'eps' ? form.eps : form.freecashflow,
@@ -556,7 +577,8 @@ const sensitivityGrid = computed(() => buildSensitivityGrid({
   yearsOfTerminalGrowth: form.yearsOfTerminalGrowth,
   addToFairValue: result.addToFairValue,
   residualIncome: residualIncome.value,
-}))
+  })
+})
 
 // Pin one provider for this code (empty = automatic order).
 const providers = registry.providers.map((provider) => ({ id: provider.id, label: t(providerLabel(provider.id)) }))
@@ -574,7 +596,7 @@ const baseAssumptions = ref(null)
 const growthField = () => (dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate')
 const snapshotAssumptions = () => ({
   discountRate: Number(form.discountRate) || 0,
-  growthRate: Number(form[growthField()]) || 0,
+  growthRate: finiteOrNull(form[growthField()]),
   terminalGrowthRate: Number(form.terminalGrowthRate) || 0,
   field: growthField(),
 })
@@ -661,6 +683,9 @@ watch(model, () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null
   calculate()
+})
+watch(firmClaim, (blocked) => {
+  if (blocked && dcfBasedOn.value === 'freecashflow') dcfBasedOn.value = 'eps'
 })
 watch(dcfBasedOn, () => {
   activeScenario.value = 'base'

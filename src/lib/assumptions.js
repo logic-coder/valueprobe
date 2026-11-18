@@ -1,9 +1,8 @@
 // Default growth assumptions for the calculator, the watchlist and compare.
-// A missing history is a labeled placeholder. A real history is used as reported,
+// A missing or refused history stays empty. A real history is used as reported,
 // including negative rates, but the explicit window never underwrites more than
 // MAX_UNDERWRITTEN_GROWTH. Nothing here is written back into the annuity formula.
 
-export const PLACEHOLDER_GROWTH = 5
 export const MAX_UNDERWRITTEN_GROWTH = 15
 
 // A year-to-year drop below this share of the prior positive value is a split
@@ -17,12 +16,12 @@ const MAX_GROWTH_YEARS = 10
 
 /**
  * @param {unknown} value historical growth rate in percent
- * @returns {{ historical: number|null, adopted: number, reason: 'historical'|'capped'|'missing' }}
+ * @returns {{ historical: number|null, adopted: number|null, reason: 'historical'|'capped'|'missing' }}
  */
 export function adoptGrowth (value) {
   const parsed = value === null || value === undefined || value === '' ? NaN : Number(value)
   if (!Number.isFinite(parsed)) {
-    return { historical: null, adopted: PLACEHOLDER_GROWTH, reason: 'missing' }
+    return { historical: null, adopted: null, reason: 'missing' }
   }
   if (parsed > MAX_UNDERWRITTEN_GROWTH) {
     return { historical: parsed, adopted: MAX_UNDERWRITTEN_GROWTH, reason: 'capped' }

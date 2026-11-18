@@ -189,10 +189,10 @@ describe('buildDefaults', () => {
     expect(dcfForm.freecashflowGrowthRate).toBe(15)
   })
 
-  it('uses the placeholder only when history is missing', () => {
+  it('leaves growth empty when history is missing', () => {
     const { dcfForm } = buildDefaults(4, { ttm_eps: 1, price: '1' }, 1)
-    expect(dcfForm.growthRate).toBe(5)
-    expect(dcfForm.freecashflowGrowthRate).toBe(5)
+    expect(dcfForm.growthRate).toBeNull()
+    expect(dcfForm.freecashflowGrowthRate).toBeNull()
   })
 
   it('leaves missing earnings and free cash flow empty instead of zero', () => {

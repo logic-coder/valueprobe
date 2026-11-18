@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_UNDERWRITTEN_GROWTH, PLACEHOLDER_GROWTH, adoptGrowth, cleanGrowth } from '../../src/lib/assumptions'
+import { MAX_UNDERWRITTEN_GROWTH, adoptGrowth, cleanGrowth } from '../../src/lib/assumptions'
 
 // GOOGL 2016-2025 as filed: the 2020 20-for-1 split is not restated in the older years.
 const GOOGL_EPS = [27.85, 18, 43.7, 49.16, 2.93, 5.61, 4.56, 5.8, 8.04, 10.81]
@@ -27,7 +27,7 @@ describe('cleanGrowth', () => {
     const clean = cleanGrowth([20, 22, 24, 26, 28, 30, 32, 3.4, 3.6, 3.9])
     expect(clean.shifted).toBe(true)
     expect(clean.rate).toBeNull()
-    expect(adoptGrowth(clean.rate)).toEqual({ historical: null, adopted: PLACEHOLDER_GROWTH, reason: 'missing' })
+    expect(adoptGrowth(clean.rate)).toEqual({ historical: null, adopted: null, reason: 'missing' })
   })
 
   it('does not call a recovered slump, a loss, or a latest-year drop a level shift', () => {

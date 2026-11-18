@@ -244,7 +244,7 @@ export const DCF_DEFAULTS = {
 
 /**
  * Defaults from the latest risk-free rate and the stock payload.
- * Growth uses the reported history. Only a missing history gets a placeholder.
+ * Growth uses the reported history. A missing history stays empty.
  * @param {number|null} indicator latest risk-free rate, in percent
  * @param {object} stock stock payload
  * @param {number} freeCashFlow free cash flow per share

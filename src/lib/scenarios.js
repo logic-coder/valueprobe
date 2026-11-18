@@ -13,6 +13,12 @@ export const DELTAS = Object.freeze({
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 
+const rateOrNull = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 /**
  * @param {{discountRate:number, growthRate:number, terminalGrowthRate:number}} base
  * @param {'base'|'bull'|'bear'} key
@@ -20,13 +26,13 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
 export function applyScenario (base, key) {
   const source = {
     discountRate: Number(base?.discountRate) || 0,
-    growthRate: Number(base?.growthRate) || 0,
+    growthRate: rateOrNull(base?.growthRate),
     terminalGrowthRate: Number(base?.terminalGrowthRate) || 0,
   }
   if (key === 'base' || !DELTAS[key]) return source
   return {
     discountRate: clamp(source.discountRate + DELTAS[key].discountRate, 0, 50),
-    growthRate: source.growthRate + DELTAS[key].growthRate,
+    growthRate: source.growthRate === null ? null : source.growthRate + DELTAS[key].growthRate,
     terminalGrowthRate: source.terminalGrowthRate + DELTAS[key].terminalGrowthRate,
   }
 }

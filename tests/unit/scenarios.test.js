@@ -21,7 +21,7 @@ describe('scenario presets', () => {
     expect(applyScenario({ ...base, discountRate: 0 }, 'bull').discountRate).toBe(0)
   })
 
-  it('survives missing numbers', () => {
-    expect(applyScenario({}, 'bull')).toEqual({ discountRate: 0, growthRate: 2, terminalGrowthRate: 1 })
+  it('does not invent a growth rate when none was supplied', () => {
+    expect(applyScenario({}, 'bull')).toEqual({ discountRate: 0, growthRate: null, terminalGrowthRate: 1 })
   })
 })
