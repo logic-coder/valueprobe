@@ -265,7 +265,7 @@
                 />
               </div>
             </div>
-            <div v-if="!loading && stock.predictability <= 1" class="dcf__warn">
+            <div v-if="!loading && stock.predictability != null && stock.predictability <= 1" class="dcf__warn">
               <q-icon name="error" size="15px" />
               <span>{{ t('dcf_low_predictability_warning') }}</span>
             </div>

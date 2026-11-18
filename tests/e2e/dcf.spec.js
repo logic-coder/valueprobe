@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 test('renders the calculator with the live defaults', async ({ page }) => {
   await expect(page.locator(FAIR)).toContainText('¥ 10.26')
   await expect(page.locator('.input-section').first()).toHaveValue('12')
-  await expect(page.locator('text=当公司可预测性评级为一颗星')).toBeVisible()
+  await expect(page.locator('text=多数年份没有盈利')).toBeVisible()
   await expect(page.locator('.dcf__warn')).toBeVisible()
 })
 
@@ -73,11 +73,11 @@ test('the result labels open their help', async ({ page }) => {
 })
 
 test('the header price is the working price', async ({ page }) => {
-  const header = page.getByRole('button', { name: /^估值用股价/ })
-  await expect(page.locator('.ticker__price')).toContainText('不改快照')
+  const header = page.getByRole('button', { name: /^现价/ })
+  await expect(page.locator('.ticker__price .ticker__aside')).toHaveCount(0)
   const marginBefore = await page.locator(STOCK.margin).innerText()
   await header.click()
-  await page.getByRole('spinbutton', { name: /估值用股价/ }).fill('7')
+  await page.getByRole('spinbutton', { name: /现价/ }).fill('7')
   await page.keyboard.press('Enter')
   await expect(page.getByRole('button', { name: /^股价 ¥ 7\.00/ })).toBeVisible()
   await expect(page.locator('.ticker__price')).toContainText('快照')
@@ -108,7 +108,7 @@ test('keeps the original card row order', async ({ page }) => {
     return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
   })
   // The two growth windows share one row, so only their container is a direct child.
-  const expected = ['内在价值', '安全边际', '股价', '基于每股收益', '折现率', '每股有形账面价值', '快速成长阶段', '公司可预测性评级']
+  const expected = ['内在价值', '安全边际', '股价', '基于每股收益', '折现率', '每股有形账面价值', '快速成长阶段', '盈利年份']
   const indexes = expected.map((label) => order.findIndex((row) => row.startsWith(label)))
   expect(indexes.every((index) => index >= 0)).toBe(true)
   expect([...indexes].sort((a, b) => a - b)).toEqual(indexes)

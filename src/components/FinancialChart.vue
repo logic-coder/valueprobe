@@ -38,7 +38,20 @@ const dcfStore = useDcfStore()
 const date = ref(new Date(new Date().getFullYear() - 3, new Date().getMonth(), new Date().getDate()).getTime())
 const trend = ref(null)
 const chartEl = ref(null)
+const ink = ref({ line: '', trend: '', text: '', grid: '' })
 let instance = null
+let themeObserver = null
+
+const readInk = () => {
+  const style = getComputedStyle(document.documentElement)
+  const pick = (name, fallback) => style.getPropertyValue(name).trim() || fallback
+  ink.value = {
+    line: pick('--accent', '#0f9d6e'),
+    trend: pick('--text-muted', '#475467'),
+    text: pick('--text-muted', '#475467'),
+    grid: pick('--border', '#e3e7ed'),
+  }
+}
 
 const stock = computed(() => stockStore.stock || {})
 const data = computed(() => dcfStore.indicator.data || [])
@@ -62,7 +75,7 @@ const chartOptions = computed(() => {
   ]
   const extent = axisExtent(values)
   return {
-    legend: { show: true },
+    legend: { show: true, textStyle: { color: ink.value.text } },
     tooltip: {
       trigger: 'axis',
       formatter: (params) => {
@@ -76,21 +89,27 @@ const chartOptions = computed(() => {
       },
     },
     grid: { left: 56, right: 16, top: 32, bottom: 64 },
-    xAxis: { type: 'category', data: visible.map((point) => point.label), axisLabel: { rotate: 60 } },
+    xAxis: {
+      type: 'category',
+      data: visible.map((point) => point.label),
+      axisLabel: { rotate: 60, color: ink.value.text },
+      axisLine: { lineStyle: { color: ink.value.grid } },
+    },
     yAxis: {
       type: 'value',
       scale: true,
       // The padded extent puts raw floats (13.0000001) on the end ticks, wider than the grid gutter.
-      axisLabel: { formatter: (value) => String(Number(Number(value).toPrecision(4))) },
+      axisLabel: { color: ink.value.text, formatter: (value) => String(Number(Number(value).toPrecision(4))) },
+      splitLine: { lineStyle: { color: ink.value.grid } },
       ...(extent ? { min: extent.min, max: extent.max } : {}),
     },
     series: [
-      { type: 'line', name: label, data: visible.map((point) => point.value), color: '#0f9d6e', showSymbol: false },
+      { type: 'line', name: label, data: visible.map((point) => point.value), color: ink.value.line, showSymbol: false },
       {
         type: 'line',
         name: label + t('trendline') + '(' + percent(trend.value && trend.value.r) + ')',
         data: trendVisible.map((point) => point[1]),
-        color: '#64748b',
+        color: ink.value.trend,
         showSymbol: false,
       },
     ],
@@ -128,12 +147,16 @@ const resize = () => instance && instance.resize()
 watch([chartOptions, chartEl], render, { flush: 'post' })
 watch(() => props.indicator, getData)
 onMounted(async () => {
+  readInk()
+  themeObserver = new MutationObserver(readInk)
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
   await getData()
   render()
   window.addEventListener('resize', resize)
 })
 onBeforeUnmount(() => {
   window.removeEventListener('resize', resize)
+  if (themeObserver) themeObserver.disconnect()
   if (instance) instance.dispose()
 })
 </script>

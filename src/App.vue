@@ -111,9 +111,7 @@
                 :currency="codeOf(stock.currency) || stock.currency"
                 @update:model-value="dcfStore.setWorkingPrice(currentSymbol, $event)"
               />
-              <div class="ticker__aside">
-                {{ priceEdited ? t('price_edited_note', { price: money(stock.currency, priceValue) }) : t('price_working_note') }}
-              </div>
+              <div v-if="priceEdited" class="ticker__aside">{{ t('price_edited_note', { price: money(stock.currency, priceValue) }) }}</div>
             </template>
             <template v-else>
               <div class="ticker__quote">{{ moneyIn(stock.currency, priceValue) }}</div>

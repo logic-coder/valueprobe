@@ -40,7 +40,6 @@
           <a :href="contributing" target="_blank" rel="noreferrer">{{ t('about_contributing') }}</a> ·
           <a :href="security" target="_blank" rel="noreferrer">{{ t('about_security') }}</a>
         </p>
-        <p class="muted" v-html="t('about_rules')" />
       </div>
     </section>
 
