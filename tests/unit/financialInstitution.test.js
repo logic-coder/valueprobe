@@ -57,7 +57,7 @@ describe('financial institution detector', () => {
     }
   })
 
-  it('leaves wiped-cash-flow HK names and ordinary companies alone', () => {
+  it('leaves Hong Kong non-financials and ordinary companies alone', () => {
     for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'HKSE-00388', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'NYSE-CVX', 'NYSE-LLY', 'NYSE-TSM', 'SHSE-600519']) {
       expect(load(name).financial_institution, name).toBeUndefined()
     }
@@ -73,17 +73,18 @@ describe('financial institution detector', () => {
 
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
-    expect(defaultView(load('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: '16.57' })
-    expect(defaultView(load('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: '17.08' })
+    expect(defaultView(load('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: '16.92' })
+    expect(defaultView(load('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: '17.26' })
   })
 
   it('prices JPM on residual income, not the 520.84 owner-earnings annuity', () => {
     expect(defaultView(load('NYSE-JPM'), 4).fairValue).toBe(153.11)
   })
 
-  it('keeps a Tencent-shaped payload (ocf, not flagged) on presentValue', () => {
+  it('keeps a Tencent-shaped payload (invest, not flagged) on presentValue', () => {
     const tencent = load('HKSE-00700')
-    expect(tencent.cashflow_basis).toBe('ocf')
+    expect(tencent.cashflow_basis).toBe('invest')
+    expect(tencent.financial_institution).toBeUndefined()
     const expected = presentValue(tencent.tangible_book, 10, 10, Math.min(tencent.earning_growth_10y ?? 5, 15), tencent.ttm_eps_nri, 4, 10, false).fairValue
     expect(defaultView(tencent, 4).fairValue).toBe(expected)
   })
