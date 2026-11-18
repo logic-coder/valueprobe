@@ -33,13 +33,14 @@
         </tr>
       </tbody>
     </table>
+    <p v-if="longRunText" class="mcheck__note" data-testid="long-run-pe">{{ longRunText }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { MULTIPLES, currentMultiple, impliedPrice } from '../lib/multiples'
+import { LONG_RUN_PE, MULTIPLES, currentMultiple, impliedPrice } from '../lib/multiples'
 import { useMoney } from '../composables/useMoney'
 import APopover from './APopover.vue'
 
@@ -48,6 +49,7 @@ const props = defineProps({
   price: { type: [Number, String], default: 0 },
   currency: { type: String, default: '¥' },
   fairValue: { type: [Number, String], default: 0 },
+  longRun: { type: [Number, String], default: null },
 })
 
 const { t } = useI18n()
@@ -59,6 +61,12 @@ const seeded = () => Object.fromEntries(MULTIPLES.map((item) => [
   currentMultiple(props.bases[item.baseField], props.price) ?? DEFAULTS[item.key],
 ]))
 const targets = reactive(seeded())
+
+const longRunText = computed(() => {
+  const price = impliedPrice(props.longRun, LONG_RUN_PE)
+  if (price == null) return ''
+  return t('long_run_pe', { price: moneyIn(props.currency, price) })
+})
 
 const rows = computed(() => MULTIPLES.map((item) => {
   const implied = impliedPrice(props.bases[item.baseField], targets[item.key])

@@ -9,7 +9,7 @@ npm install --legacy-peer-deps
 npm run dev
 ```
 
-`public/data` is the published source for EPS, cash flow, book value and growth. Refresh it locally with `npm run snapshot`, then commit. The deployed site does not fetch quotes. Price and valuation assumptions stay editable.
+`public/data` is the published source for EPS, cash flow, book value and growth. Refresh it locally with `npm run snapshot`, then commit. The deployed site does not fetch quotes. Price and valuation assumptions stay editable. A fixed 12× line shows today's earnings if they never grow; it is not the fair value, and banks do not show it.
 
 ## Deploy
 

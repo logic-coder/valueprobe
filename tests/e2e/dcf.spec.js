@@ -12,6 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 test('renders the calculator with the live defaults', async ({ page }) => {
   await expect(page.locator(FAIR)).toContainText('¥ 10.26')
+  await expect(page.getByTestId('long-run-pe')).toHaveCount(0)
   await expect(page.locator('.input-section').first()).toHaveValue('12')
   await expect(page.locator('text=多数年份没有盈利')).toBeVisible()
   await expect(page.locator('.dcf__warn')).toBeVisible()
@@ -37,6 +38,8 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
 
 test('adds tangible book value to the fair value', async ({ page }) => {
   await page.getByRole('button', { name: '每股折现' }).click()
+  await expect(page.getByTestId('long-run-pe')).toContainText('12.96')
+  await expect(page.getByTestId('long-run-pe')).toContainText('不是内在价值')
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('24.73')

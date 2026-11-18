@@ -73,7 +73,7 @@ IRR 收敛与不收敛、缺失汇率。E2E 只验证界面显示 `n/a` 与原�
 - 实现：`src/lib/sensitivity.js`（`buildSensitivityGrid`、`marginBucket`）。
 - 着色阈值（安全边际 = 1 − 价格 / 内在价值）：≥30% 淡绿、≥0 更淡的绿、≥-20% 黄、其余红。
 - 倍数对照（`src/lib/multiples.js`）：当前倍数 = 价格 / 每股基数，隐含价 = 基数 × 目标倍数，
-  与 DCF 内在价值的差以百分比列出；基数缺失即 `n/a`，单测 `tests/unit/multiples.test.js`。
+  与 DCF 内在价值的差以百分比列出；基数缺失即 `n/a`。非金融公司另有一条固定的 12 倍现行利润对照，表示利润不再增长时大约值多少，不进入公允价值；银行模型不显示。单测 `tests/unit/multiples.test.js`。
 
 - 情景预设（`src/lib/scenarios.js`）只做固定增量：牛市 折现率 −1 / 增长率 +2 / 第二阶段增速 +1，
   熊市取反；折现率仍夹在 0–50。切「基准」恢复进入情景前的那组数（单测 `tests/unit/scenarios.test.js`）。

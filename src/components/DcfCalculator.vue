@@ -295,6 +295,7 @@
             :price="result.stockPrice"
             :currency="stock.currency || '¥'"
             :fair-value="result.fairValue"
+            :long-run="residualIncome ? null : form.eps"
           />
 
           <peer-compare-panel

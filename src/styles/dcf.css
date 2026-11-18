@@ -182,6 +182,7 @@
 .mcheck__table thead th:first-child { text-align: left; }
 .mcheck__table tbody th { text-align: left; color: var(--text-muted); }
 .mcheck__input { width: 72px; height: 28px; font-size: 13px; }
+.mcheck__note { margin: 8px 0 0; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
 .mcheck__good { color: var(--accent-strong); }
 .mcheck__bad { color: var(--danger); }
 

@@ -1,5 +1,8 @@
 // Multiple-based cross-check: what a peer multiple would imply for this symbol.
 // Uses the per-share inputs already on screen; nothing is written back to the kernel.
+/** No-growth cross-check: about 1 / 8%, not a fair value. */
+export const LONG_RUN_PE = 12
+
 export const MULTIPLES = Object.freeze([
   { key: 'pe', labelKey: 'multiple_pe', baseField: 'eps' },
   { key: 'pfcf', labelKey: 'multiple_pfcf', baseField: 'freecashflow' },

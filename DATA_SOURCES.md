@@ -73,7 +73,8 @@
 - 关于页可以直接调整来源顺序，卡片右上菜单可以为当前代码钉死一个来源（或切回自动）；
   两者都只写本机 `fv-data-sources`。
 - 季度快照：`npm run snapshot` 按 `scripts/watchlist.json` 生成 `public/data/*.json`（带
-  `as_of`），提交即随 Pages 发布；`VITE_SNAPSHOT=off` 可暂时忽略它们。
+  `as_of`），提交即随 Pages 发布；`VITE_SNAPSHOT=off` 可暂时忽略它们。实时报价接口失败时，
+  脚本改用最近一根日 K 的收盘价。
 - 冒烟/测试里可用 `page.apiMock.down.add('eastmoney')` 让某个源掉线，观察兜底。
 
 ## 加点新源

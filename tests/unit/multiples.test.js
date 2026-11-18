@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { MULTIPLES, currentMultiple, impliedPrice } from '../../src/lib/multiples'
+import { LONG_RUN_PE, MULTIPLES, currentMultiple, impliedPrice } from '../../src/lib/multiples'
 
 describe('multiple cross-check', () => {
   it('implies a price from a base and a target multiple', () => {
-    expect(impliedPrice(1.08, 12)).toBe(12.96)
+    expect(impliedPrice(1.08, LONG_RUN_PE)).toBe(12.96)
     expect(impliedPrice(11.24, 1.2)).toBeCloseTo(13.49, 2)
   })
 
