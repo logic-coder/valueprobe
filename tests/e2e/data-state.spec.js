@@ -14,7 +14,7 @@ test('a quarterly file shows its as-of date', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
   await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.86', { timeout: 20000 })
-  await expect(page.locator('.data-banner--published')).toContainText('数据截至')
+  await expect(page.locator('.data-banner--published')).toContainText('采集日')
 })
 
 test('falls back to a stale snapshot and offers recovery', async ({ page }) => {

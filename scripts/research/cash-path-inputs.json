@@ -1,0 +1,862 @@
+{
+  "asOf": "2006-03-15",
+  "yieldPct": 4.73,
+  "yieldSource": "https://fred.stlouisfed.org/data/DGS10",
+  "selectionSource": "https://www.sec.gov/Archives/edgar/data/1064641/000095013505006849/b57317kanvcsr.txt",
+  "companies": [
+    {
+      "ticker": "GE",
+      "cik": 40545,
+      "fund": "XLI",
+      "rank": 1,
+      "entryFilingDate": "2006-03-03",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/40545/000004054506000009/ex13.htm",
+      "historySources": [
+        "https://pages.stern.nyu.edu/~jbilders/Pdf/GE2001AR.pdf",
+        "https://www.sec.gov/Archives/edgar/data/40545/000004054598000013/0000040545-98-000013.txt"
+      ],
+      "epsFrom1995": [
+        0.6433333333333333,
+        0.7200000000000001,
+        0.82,
+        0.93,
+        1.07,
+        1.27,
+        1.37,
+        1.41,
+        1.51,
+        1.61,
+        1.54
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 15236,
+          "openingEquity": 64079,
+          "ocf": 21840,
+          "capex": 9751,
+          "shares": 10075
+        },
+        {
+          "fy": 2004,
+          "income": 16819,
+          "openingEquity": 79631,
+          "ocf": 30482,
+          "capex": 13092,
+          "shares": 10445
+        },
+        {
+          "fy": 2005,
+          "income": 16353,
+          "openingEquity": 110821,
+          "ocf": 33787,
+          "capex": 14441,
+          "shares": 10611
+        }
+      ],
+      "breakFrom": null,
+      "observations": [
+        {
+          "fy": 2006,
+          "ocf": 32512,
+          "capex": 15788,
+          "shares": 10394,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054509000012/frm10k.htm",
+          "netAcquisitionCash": 11573
+        },
+        {
+          "fy": 2007,
+          "ocf": 39942,
+          "capex": 17803,
+          "shares": 10218,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054509000012/frm10k.htm",
+          "netAcquisitionCash": 17215
+        },
+        {
+          "fy": 2008,
+          "ocf": 47841,
+          "capex": 16010,
+          "shares": 10098,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054509000012/frm10k.htm",
+          "netAcquisitionCash": 28110
+        },
+        {
+          "fy": 2009,
+          "ocf": 24724.0,
+          "capex": 8634.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054510000010/0000040545-10-000010-index.htm",
+          "shares": 10615,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/40545/000004054510000010/frm10k.htm",
+          "netAcquisitionCash": 6130.0
+        },
+        {
+          "fy": 2010,
+          "ocf": 35792.0,
+          "capex": 9800.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000119312511047479/0001193125-11-047479-index.htm",
+          "shares": 10678,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/40545/000004054512000016/ge10k.htm",
+          "netAcquisitionCash": 1212.0
+        },
+        {
+          "fy": 2011,
+          "ocf": 32601.0,
+          "capex": 12650.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054512000016/0000040545-12-000016-index.htm",
+          "shares": 10620,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/40545/000004054512000016/ge10k.htm",
+          "netAcquisitionCash": 11202.0
+        },
+        {
+          "fy": 2012,
+          "ocf": 31252.0,
+          "capex": 15126.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054513000036/0000040545-13-000036-index.htm",
+          "shares": 10564,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/40545/000004055414000023/geform10k2013.htm",
+          "netAcquisitionCash": 1456.0
+        },
+        {
+          "fy": 2013,
+          "ocf": 29037.0,
+          "capex": 13458.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004055414000023/0000040554-14-000023-index.htm",
+          "shares": 10289,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/40545/000004055414000023/geform10k2013.htm",
+          "netAcquisitionCash": 1642.0
+        },
+        {
+          "fy": 2014,
+          "ocf": 27515.0,
+          "capex": 13727.0,
+          "shares": 10123.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054515000030/0000040545-15-000030-index.htm",
+          "netAcquisitionCash": -2639.0
+        },
+        {
+          "fy": 2015,
+          "ocf": 11856.0,
+          "capex": 7309.0,
+          "shares": 10016.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/40545/000004054516000145/0000040545-16-000145-index.htm",
+          "netAcquisitionCash": 12027.0
+        }
+      ]
+    },
+    {
+      "ticker": "UPS",
+      "cik": 1090727,
+      "fund": "XLI",
+      "rank": 2,
+      "entryFilingDate": "2006-03-14",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/1090727/000119312506053695/d10k.htm",
+      "historySources": [
+        "https://www.sec.gov/Archives/edgar/data/1090727/000093176300000749/0000931763-00-000749.txt",
+        "https://www.sec.gov/Archives/edgar/data/1090727/000095014401004629/g68035e10-k.htm"
+      ],
+      "epsFrom1995": [
+        0.92,
+        1.01,
+        0.81,
+        1.57,
+        0.77,
+        2.5,
+        2.1,
+        2.81,
+        2.55,
+        2.93,
+        3.47
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 2898,
+          "openingEquity": 12455,
+          "ocf": 4576,
+          "capex": 1947,
+          "shares": 1138
+        },
+        {
+          "fy": 2004,
+          "income": 3333,
+          "openingEquity": 14852,
+          "ocf": 5331,
+          "capex": 2127,
+          "shares": 1137
+        },
+        {
+          "fy": 2005,
+          "income": 3870,
+          "openingEquity": 16378,
+          "ocf": 5793,
+          "capex": 2187,
+          "shares": 1116
+        }
+      ],
+      "breakFrom": null,
+      "observations": [
+        {
+          "fy": 2006,
+          "ocf": 5589,
+          "capex": 3085,
+          "shares": 1089,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312509040973/d10k.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2007,
+          "ocf": 1123,
+          "capex": 2820,
+          "shares": 1063,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312509040973/d10k.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2008,
+          "ocf": 8426,
+          "capex": 2636,
+          "shares": 1022,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312509040973/d10k.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2009,
+          "ocf": 5285.0,
+          "capex": 1602.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312510042908/0001193125-10-042908-index.htm",
+          "shares": 1004,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/1090727/000119312510042908/d10k.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2010,
+          "ocf": 3835.0,
+          "capex": 1389.0,
+          "shares": 1003.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312511049356/0001193125-11-049356-index.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2011,
+          "ocf": 7073.0,
+          "capex": 2005.0,
+          "shares": 991.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000119312512081067/0001193125-12-081067-index.htm",
+          "netAcquisitionCash": null
+        },
+        {
+          "fy": 2012,
+          "ocf": 7216.0,
+          "capex": 2153.0,
+          "shares": 969.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000109072713000005/0001090727-13-000005-index.htm",
+          "netAcquisitionCash": 100.0
+        },
+        {
+          "fy": 2013,
+          "ocf": 7304.0,
+          "capex": 2065.0,
+          "shares": 948.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000109072714000009/0001090727-14-000009-index.htm",
+          "netAcquisitionCash": 22.0
+        },
+        {
+          "fy": 2014,
+          "ocf": 5726.0,
+          "capex": 2328.0,
+          "shares": 924.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000109072715000008/0001090727-15-000008-index.htm",
+          "netAcquisitionCash": 88.0
+        },
+        {
+          "fy": 2015,
+          "ocf": 7430.0,
+          "capex": 2379.0,
+          "shares": 906.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/1090727/000109072716000053/0001090727-16-000053-index.htm",
+          "netAcquisitionCash": 1904.0
+        }
+      ]
+    },
+    {
+      "ticker": "BA",
+      "cik": 12927,
+      "fund": "XLI",
+      "rank": 4,
+      "entryFilingDate": "2006-02-28",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/12927/000119312506040952/d10k.htm",
+      "historySources": [
+        "https://www.sec.gov/Archives/edgar/data/12927/000001292798000007/0000012927-98-000007.txt",
+        "https://www.sec.gov/Archives/edgar/data/12927/000001292701000004/0000012927-01-000004.txt",
+        "https://www.sec.gov/Archives/edgar/data/12927/000001292703000005/boeing10k_123102.htm"
+      ],
+      "epsFrom1995": [
+        -0.04,
+        1.85,
+        -0.18,
+        1.15,
+        2.49,
+        2.44,
+        3.41,
+        0.61,
+        0.89,
+        2.3,
+        3.2
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 718,
+          "openingEquity": 7696,
+          "ocf": 2776,
+          "capex": 836,
+          "shares": 808.9
+        },
+        {
+          "fy": 2004,
+          "income": 1872,
+          "openingEquity": 8139,
+          "ocf": 3504,
+          "capex": 1246,
+          "shares": 813.0
+        },
+        {
+          "fy": 2005,
+          "income": 2572,
+          "openingEquity": 11286,
+          "ocf": 7000,
+          "capex": 1547,
+          "shares": 802.9
+        }
+      ],
+      "breakFrom": null,
+      "observations": [
+        {
+          "fy": 2006,
+          "ocf": 7499,
+          "capex": 1681,
+          "shares": 787.6,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312509022654/d10k.htm",
+          "netAcquisitionCash": 1854
+        },
+        {
+          "fy": 2007,
+          "ocf": 9584,
+          "capex": 1731,
+          "shares": 772.5,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312509022654/d10k.htm",
+          "netAcquisitionCash": 75
+        },
+        {
+          "fy": 2008,
+          "ocf": -401,
+          "capex": 1674,
+          "shares": 729,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312509022654/d10k.htm",
+          "netAcquisitionCash": 964
+        },
+        {
+          "fy": 2009,
+          "ocf": 5603.0,
+          "capex": 1186.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312510024406/0001193125-10-024406-index.htm",
+          "shares": 713.4,
+          "sharesSource": "https://www.sec.gov/Archives/edgar/data/12927/000119312512048565/d255574d10k.htm",
+          "netAcquisitionCash": 639.0
+        },
+        {
+          "fy": 2010,
+          "ocf": 2952.0,
+          "capex": 1125.0,
+          "shares": 744.3,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312511028490/0001193125-11-028490-index.htm",
+          "netAcquisitionCash": 932.0
+        },
+        {
+          "fy": 2011,
+          "ocf": 4023.0,
+          "capex": 1713.0,
+          "shares": 753.1,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000119312512048565/0001193125-12-048565-index.htm",
+          "netAcquisitionCash": 42.0
+        },
+        {
+          "fy": 2012,
+          "ocf": 7508.0,
+          "capex": 1703.0,
+          "shares": 761.5,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000001292713000014/0000012927-13-000014-index.htm",
+          "netAcquisitionCash": 124.0
+        },
+        {
+          "fy": 2013,
+          "ocf": 8179.0,
+          "capex": 2098.0,
+          "shares": 767.6,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000001292714000004/0000012927-14-000004-index.htm",
+          "netAcquisitionCash": 26.0
+        },
+        {
+          "fy": 2014,
+          "ocf": 8858.0,
+          "capex": 2236.0,
+          "shares": 736.7,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000001292715000011/0000012927-15-000011-index.htm",
+          "netAcquisitionCash": 163.0
+        },
+        {
+          "fy": 2015,
+          "ocf": 9363.0,
+          "capex": 2450.0,
+          "shares": 695.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/12927/000001292716000099/0000012927-16-000099-index.htm",
+          "netAcquisitionCash": 31.0
+        }
+      ],
+      "revenueChecks": [
+        {
+          "fy": 2001,
+          "revenue": 57970,
+          "shares": 829.3
+        },
+        {
+          "fy": 2002,
+          "revenue": 53831,
+          "shares": 808.4
+        },
+        {
+          "fy": 2003,
+          "revenue": 50256,
+          "shares": 808.9
+        },
+        {
+          "fy": 2004,
+          "revenue": 52457,
+          "shares": 813
+        },
+        {
+          "fy": 2005,
+          "revenue": 54845,
+          "shares": 802.9
+        }
+      ]
+    },
+    {
+      "ticker": "INTC",
+      "cik": 50863,
+      "fund": "XLK",
+      "rank": 2,
+      "entryFilingDate": "2006-02-27",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/50863/000089161806000089/f12963e10vk.htm",
+      "historySources": [
+        "https://www.intc.com/stock-info/stock-splits",
+        "https://www.sec.gov/Archives/edgar/data/50863/000005086398000031/0000050863-98-000031.txt",
+        "https://www.sec.gov/Archives/edgar/data/50863/000091205701503434/a2040883zex-13.htm",
+        "https://www.sec.gov/Archives/edgar/data/50863/000104746903008257/a2104280z10-k.htm"
+      ],
+      "epsFrom1995": [
+        0.505,
+        0.725,
+        0.9675,
+        0.86,
+        1.05,
+        1.51,
+        0.19,
+        0.46,
+        0.85,
+        1.16,
+        1.4
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 5641,
+          "openingEquity": 35468,
+          "ocf": 11515,
+          "capex": 3656,
+          "shares": 6621
+        },
+        {
+          "fy": 2004,
+          "income": 7516,
+          "openingEquity": 37846,
+          "ocf": 13119,
+          "capex": 3843,
+          "shares": 6494
+        },
+        {
+          "fy": 2005,
+          "income": 8664,
+          "openingEquity": 38579,
+          "ocf": 14823,
+          "capex": 5818,
+          "shares": 6178
+        }
+      ],
+      "breakFrom": null,
+      "observations": [
+        {
+          "fy": 2006,
+          "ocf": 10632,
+          "capex": 5860,
+          "shares": 5880,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000089161809000047/f50771e10vk.htm",
+          "netAcquisitionCash": 0
+        },
+        {
+          "fy": 2007,
+          "ocf": 12625,
+          "capex": 5000,
+          "shares": 5936,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000089161809000047/f50771e10vk.htm",
+          "netAcquisitionCash": 76
+        },
+        {
+          "fy": 2008,
+          "ocf": 10926,
+          "capex": 5197,
+          "shares": 5748,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000089161809000047/f50771e10vk.htm",
+          "netAcquisitionCash": 16
+        },
+        {
+          "fy": 2009,
+          "ocf": 11170.0,
+          "capex": 4515.0,
+          "shares": 5645.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000095012310015237/0000950123-10-015237-index.htm",
+          "netAcquisitionCash": 853.0
+        },
+        {
+          "fy": 2010,
+          "ocf": 16692.0,
+          "capex": 5207.0,
+          "shares": 5696.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000095012311015783/0000950123-11-015783-index.htm",
+          "netAcquisitionCash": 218.0
+        },
+        {
+          "fy": 2011,
+          "ocf": 20963.0,
+          "capex": 10764.0,
+          "shares": 5411.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000119312512075534/0001193125-12-075534-index.htm",
+          "netAcquisitionCash": 8721.0
+        },
+        {
+          "fy": 2012,
+          "ocf": 18884.0,
+          "capex": 11027.0,
+          "shares": 5160.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000119312513065416/0001193125-13-065416-index.htm",
+          "netAcquisitionCash": 638.0
+        },
+        {
+          "fy": 2013,
+          "ocf": 20776.0,
+          "capex": 10711.0,
+          "shares": 5097.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000005086314000020/0000050863-14-000020-index.htm",
+          "netAcquisitionCash": 925.0
+        },
+        {
+          "fy": 2014,
+          "ocf": 20418.0,
+          "capex": 10105.0,
+          "shares": 5056.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000005086315000015/0000050863-15-000015-index.htm",
+          "netAcquisitionCash": 934.0
+        },
+        {
+          "fy": 2015,
+          "ocf": 19017.0,
+          "capex": 7326.0,
+          "shares": 4894.0,
+          "source": "https://www.sec.gov/Archives/edgar/data/50863/000005086316000105/0000050863-16-000105-index.htm",
+          "netAcquisitionCash": 913.0
+        }
+      ],
+      "revenueChecks": [
+        {
+          "fy": 2000,
+          "revenue": 33726,
+          "shares": 6986
+        },
+        {
+          "fy": 2001,
+          "revenue": 26539,
+          "shares": 6879
+        },
+        {
+          "fy": 2002,
+          "revenue": 26764,
+          "shares": 6759
+        },
+        {
+          "fy": 2003,
+          "revenue": 30141,
+          "shares": 6621
+        },
+        {
+          "fy": 2004,
+          "revenue": 34209,
+          "shares": 6494
+        },
+        {
+          "fy": 2005,
+          "revenue": 38826,
+          "shares": 6178
+        }
+      ]
+    },
+    {
+      "ticker": "IBM",
+      "cik": 51143,
+      "fund": "XLK",
+      "rank": 3,
+      "entryFilingDate": "2006-02-28",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/51143/000104746906002608/a2166922zex-13.htm",
+      "historySources": [
+        "https://www.ibm.com/investor/att/pdf/IBM_Annual_Report_1997.pdf",
+        "https://www.ibm.com/investor/help/ibm-stock-splits-and-ibm-stock-dividends",
+        "https://www.sec.gov/Archives/edgar/data/51143/000091205701007563/0000912057-01-007563.txt",
+        "https://www.sec.gov/Archives/edgar/data/51143/000104746903008194/a2102367zex-13.htm"
+      ],
+      "epsFrom1995": [
+        1.765,
+        2.5,
+        3.0,
+        3.29,
+        4.12,
+        4.44,
+        3.69,
+        1.39,
+        3.74,
+        4.38,
+        4.87
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 6558,
+          "openingEquity": 24112,
+          "ocf": 14537,
+          "capex": 4393,
+          "shares": 1752.847742
+        },
+        {
+          "fy": 2004,
+          "income": 7479,
+          "openingEquity": 29531,
+          "ocf": 15349,
+          "capex": 4368,
+          "shares": 1707.231708
+        },
+        {
+          "fy": 2005,
+          "income": 7934,
+          "openingEquity": 31688,
+          "ocf": 14914,
+          "capex": 3842,
+          "shares": 1627.632662
+        }
+      ],
+      "breakFrom": null,
+      "observations": [
+        {
+          "fy": 2006,
+          "ocf": 15019,
+          "capex": 4362,
+          "shares": 1553.535384,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746909001737/a2189817zex-13.htm",
+          "netAcquisitionCash": 3799
+        },
+        {
+          "fy": 2007,
+          "ocf": 16094,
+          "capex": 4630,
+          "shares": 1450.570579,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746909001737/a2189817zex-13.htm",
+          "netAcquisitionCash": 1009
+        },
+        {
+          "fy": 2008,
+          "ocf": 18812,
+          "capex": 4171,
+          "shares": 1381.773136,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746909001737/a2189817zex-13.htm",
+          "netAcquisitionCash": 6313
+        },
+        {
+          "fy": 2009,
+          "ocf": 20773.0,
+          "capex": 3447.0,
+          "shares": 1341.352754,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746910001151/0001047469-10-001151-index.htm",
+          "netAcquisitionCash": 1194.0
+        },
+        {
+          "fy": 2010,
+          "ocf": 19549.0,
+          "capex": 4185.0,
+          "shares": 1287.355388,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746911001117/0001047469-11-001117-index.htm",
+          "netAcquisitionCash": 5922.0
+        },
+        {
+          "fy": 2011,
+          "ocf": 19846.0,
+          "capex": 4108.0,
+          "shares": 1213.767985,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746912001742/0001047469-12-001742-index.htm",
+          "netAcquisitionCash": 1811.0
+        },
+        {
+          "fy": 2012,
+          "ocf": 19586.0,
+          "capex": 4082.0,
+          "shares": 1155.449317,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746913001698/0001047469-13-001698-index.htm",
+          "netAcquisitionCash": 3722.0
+        },
+        {
+          "fy": 2013,
+          "ocf": 17485.0,
+          "capex": 3623.0,
+          "shares": 1103.042156,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746914001302/0001047469-14-001302-index.htm",
+          "netAcquisitionCash": 3056.0
+        },
+        {
+          "fy": 2014,
+          "ocf": 16868.0,
+          "capex": 3740.0,
+          "shares": 1010.00048,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746915001106/0001047469-15-001106-index.htm",
+          "netAcquisitionCash": 656.0
+        },
+        {
+          "fy": 2015,
+          "ocf": 17008.0,
+          "capex": 3579.0,
+          "shares": 982.700267,
+          "source": "https://www.sec.gov/Archives/edgar/data/51143/000104746916010329/0001047469-16-010329-index.htm",
+          "netAcquisitionCash": 3349.0
+        }
+      ],
+      "revenueChecks": [
+        {
+          "fy": 2001,
+          "revenue": 83067,
+          "shares": 1771.230599
+        },
+        {
+          "fy": 2002,
+          "revenue": 81186,
+          "shares": 1730.941054
+        },
+        {
+          "fy": 2003,
+          "revenue": 89131,
+          "shares": 1752.847742
+        },
+        {
+          "fy": 2004,
+          "revenue": 96293,
+          "shares": 1707.231708
+        },
+        {
+          "fy": 2005,
+          "revenue": 91134,
+          "shares": 1627.632662
+        }
+      ]
+    },
+    {
+      "ticker": "VZ",
+      "cik": 732712,
+      "fund": "XLK",
+      "rank": 5,
+      "entryFilingDate": "2006-03-14",
+      "entrySource": "https://www.sec.gov/Archives/edgar/data/732712/000119312506053710/dex13.htm",
+      "historySources": [
+        "https://www.sec.gov/Archives/edgar/data/732712/000095010901000760/0000950109-01-000760.txt",
+        "https://www.sec.gov/Archives/edgar/data/732712/000095013403003953/d03879e10vk.htm",
+        "https://www.sec.gov/Archives/edgar/data/732712/000095013403003953/d03879exv13.htm"
+      ],
+      "epsFrom1995": [
+        null,
+        2.22,
+        1.89,
+        1.79,
+        2.97,
+        4.31,
+        0.14,
+        1.49,
+        1.12,
+        2.79,
+        2.65
+      ],
+      "baseYears": [
+        {
+          "fy": 2003,
+          "income": 3077,
+          "openingEquity": 32616,
+          "ocf": 22467,
+          "capex": 11874,
+          "shares": 2832
+        },
+        {
+          "fy": 2004,
+          "income": 7831,
+          "openingEquity": 33466,
+          "ocf": 21820,
+          "capex": 13259,
+          "shares": 2831
+        },
+        {
+          "fy": 2005,
+          "income": 7397,
+          "openingEquity": 37560,
+          "ocf": 22012,
+          "capex": 15324,
+          "shares": 2817
+        }
+      ],
+      "breakFrom": 2006,
+      "observations": [],
+      "revenueChecks": [
+        {
+          "fy": 2000,
+          "revenue": 64707,
+          "shares": 2737
+        },
+        {
+          "fy": 2001,
+          "revenue": 66513,
+          "shares": 2730
+        },
+        {
+          "fy": 2002,
+          "revenue": 67056,
+          "shares": 2745
+        },
+        {
+          "fy": 2003,
+          "revenue": 67468,
+          "shares": 2832
+        },
+        {
+          "fy": 2004,
+          "revenue": 71283,
+          "shares": 2831
+        },
+        {
+          "fy": 2005,
+          "revenue": 75112,
+          "shares": 2817
+        }
+      ]
+    }
+  ]
+}

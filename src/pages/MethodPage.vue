@@ -8,6 +8,13 @@
       <div class="panel__head"><span class="panel__title">{{ t('method_what_title') }}</span></div>
       <div class="panel__body">
         <p>{{ t('method_what_body') }}</p>
+        <p>{{ t('history_meaning') }}</p>
+        <details><summary>{{ t('history_data_files') }}</summary>
+          <p><a :href="researchBase + 'dia-2015.json'">{{ t('history_download') }}</a>
+            · <a :href="researchBase + 'sector-holdout-2015.json'">{{ t('history_holdout') }}</a>
+            · <a :href="researchBase + 'shareholder-claims.json'">{{ t('history_claims') }}</a>
+            · <a :href="researchBase + 'cash-path-2006-2015.json'">{{ t('history_cash_data') }}</a></p>
+        </details>
       </div>
     </section>
 
@@ -163,6 +170,8 @@ import { useI18n } from 'vue-i18n'
 import { getPolicyArtifact } from '../api/policy'
 import { POLICY_V1, policySummary } from '../lib/policy'
 import { REASON_CODES, WARNING_CODES } from '../lib/reasons'
+
+const researchBase = import.meta.env.BASE_URL + 'research/'
 
 const { t } = useI18n()
 // Values are read from the policy module, never copied into this component: a

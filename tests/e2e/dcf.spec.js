@@ -78,6 +78,19 @@ test('reset restores the defaults from the menu', async ({ page }) => {
   await expect(page.locator('.input-section').first()).not.toHaveValue('13')
 })
 
+test('mobile trials preserve the published stress comparison and let readers reach the controls', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 })
+  const comparison = page.getByTestId('margin-stress')
+  await expect(comparison).toBeVisible()
+  const original = await comparison.locator('strong').allTextContents()
+  await page.getByTestId('field-discount').fill('13')
+  await page.getByTestId('field-discount').press('Tab')
+  await expect(comparison).toContainText('上方为你的试算')
+  expect(await comparison.locator('strong').allTextContents()).toEqual(original)
+  await expect(page.locator('.dcf__strip-col')).toHaveCSS('position', 'static')
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
 test('shows field help in a popover', async ({ page }) => {
   // dispatch rather than hover: the popover opens on mouseenter, and a real
   // pointer move races the layout under parallel workers.
@@ -96,6 +109,9 @@ test('the result labels open their help', async ({ page }) => {
 })
 
 test('the header price is the working price', async ({ page }) => {
+  const stress = page.getByTestId('margin-stress')
+  const stressBefore = await stress.locator('strong').allTextContents()
+  expect(stressBefore).toHaveLength(3)
   const header = page.getByRole('button', { name: /^参考报价/ })
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
   const marginBefore = await page.locator(STOCK.margin).innerText()
@@ -104,12 +120,14 @@ test('the header price is the working price', async ({ page }) => {
   await page.keyboard.press('Enter')
   await expect(page.getByRole('button', { name: /^参考报价 ¥ ?7\.00/ })).toBeVisible()
   await expect(page.getByTestId('price-echo')).toContainText('¥ 7.00')
+  await expect(stress.locator('strong').first()).not.toHaveText(stressBefore[0])
   await expect(page.getByTestId('value-title')).toContainText('试算')
   await expect(page.locator(STOCK.margin)).not.toHaveText(marginBefore)
   await page.getByRole('button', { name: /^参考报价 ¥ ?7\.00/ }).click()
   await page.getByRole('spinbutton', { name: /参考报价/ }).fill('')
   await page.keyboard.press('Enter')
   await expect(page.locator(STOCK.margin)).toContainText('n/a')
+  await expect(stress).toHaveCount(0)
   await expect(page.locator(FAIR)).toContainText('11.86')
 })
 
@@ -123,7 +141,7 @@ test('switches the interface language', async ({ page }) => {
   await page.goto('/#/about')
   await expect(page.locator('.about__title')).toHaveText('About ValueProbe')
   await expect(page.locator('.about')).not.toContainText(/CORS|User-Agent|\.env/)
-  await expect(page.locator('.ds-order__hint').first()).toHaveText('quotes; CN and HK statements (needs a gateway)')
+  await expect(page.locator('.about')).toContainText('The margin of safety uses the displayed quote.')
   await page.goto('/#/stock/BAD')
   await expect(page.locator('.notfound__title')).toHaveText('No such symbol')
   await page.goto('/#/stock/SHSE:601398/dcf')
@@ -138,7 +156,7 @@ test('keeps the card rows in a fixed order', async ({ page }) => {
     return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
   })
   // The two growth windows share one row, so only their container is a direct child.
-  const expected = ['内在价值', '安全边际', '股价', '基于每股收益', '折现率', '每股有形账面价值', '快速成长阶段', '盈利年份']
+  const expected = ['内在价值', '快照安全边际', '股价', '基于每股收益', '折现率', '每股有形账面价值', '快速成长阶段', '盈利年份']
   const indexes = expected.map((label) => order.findIndex((row) => row.startsWith(label)))
   expect(indexes.every((index) => index >= 0)).toBe(true)
   expect([...indexes].sort((a, b) => a - b)).toEqual(indexes)

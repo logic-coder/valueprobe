@@ -42,13 +42,9 @@
       </div>
       <q-space />
       <q-skeleton v-if="loading" type="rect" height="25px" width="50px" />
-      <div v-else class="button-font-weight" data-testid="dcf-margin-of-safety">
-        <q-icon size="xs" :name="safetyIcon" :style="{ color: safetyColor }" />
+      <div v-else class="button-font-weight" data-testid="dcf-margin-of-safety" :style="{ color: safetyColor }">
         <animated-amount :value="result.marginOfSafety" :format="percent" />
       </div>
-    </div>
-    <div class="dcf__meter" aria-hidden="true">
-      <span :style="{ width: safetyWidth, background: safetyIsNeutral ? 'var(--text-faint)' : safetyColor }" />
     </div>
     <div v-if="showImplied" class="dcf__block dcf__implied">
       <div class="dcf__label">
@@ -104,10 +100,4 @@ const hasBand = computed(() => Number.isFinite(Number(props.result.fairLow)) && 
 const bandText = computed(() => moneyIn(props.stock.currency, props.result.fairLow) + ' – ' + moneyIn(props.stock.currency, props.result.fairHigh))
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
-const safetyIcon = computed(() => (safetyIsNeutral.value ? 'remove' : props.result.marginOfSafety < 0 ? 'thumb_down' : 'thumb_up'))
-const safetyWidth = computed(() => {
-  const mos = Number(props.result.marginOfSafety)
-  if (!Number.isFinite(mos)) return '0%'
-  return Math.min(100, Math.abs(mos)) + '%'
-})
 </script>

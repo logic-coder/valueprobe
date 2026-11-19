@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // Data gate: the committed snapshots, rates, catalog, intrinsic artifact and
 // manifest must describe the same facts. Runs on every push (npm run verify).
 //   npm run verify:data

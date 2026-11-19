@@ -96,6 +96,6 @@ test('quarterly snapshots answer as a fallback and carry their date', async ({ p
   const banner = page.locator('.data-banner--published')
   await expect(banner).toBeVisible({ timeout: 25000 })
   await expect(banner).toContainText('季度快照')
-  await expect(banner).toContainText('数据截至 2026-09-30')
+  await expect(banner).toContainText('采集日 2026-09-30')
   await expect(page.locator('.stock-head h1')).toHaveText('工商银行')
 })

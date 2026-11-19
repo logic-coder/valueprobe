@@ -18,6 +18,9 @@
             :unavailable="!isEdited && !isManual && !showPublished"
             :margin-label="marginLabel"
           />
+          <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
+            :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited"
+            :expectation="priceExpectation" />
           <div v-if="!resultLoading && policyEntry && !isManual" class="dcf__provenance" data-testid="valuation-provenance">
             <span>{{ earningsDateLabel }}</span>
             <span>{{ quoteDateLabel }}</span>
@@ -357,6 +360,8 @@ import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
+import { marginStress as calculateMarginStress } from '../lib/marginStress'
+import MarginStress from './dcf/MarginStress.vue'
 import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
@@ -508,6 +513,19 @@ const headline = computed(() => {
   }
   if (isEdited.value || isManual.value) return result
   return { fairValue: null, marginOfSafety: null, fairLow: null, fairHigh: null, reverseGrowthRate: null }
+})
+const stressQuote = computed(() => isEdited.value ? result.stockPrice : policyEntry.value?.price)
+const stressRows = computed(() => isManual.value
+  ? null
+  : calculateMarginStress(policyEntry.value, stressQuote.value))
+const priceExpectation = computed(() => {
+  const inputs = policyEntry.value?.inputs
+  if (assumptionsEdited.value || !inputs || !(stressQuote.value > 0)) return ''
+  if (inputs.model === 'residual' && inputs.tangibleBook > 0) {
+    return t('stress_book', { multiple: (Number(stressQuote.value) / inputs.tangibleBook).toFixed(2) })
+  }
+  if (inputs.model !== 'owner' || headline.value.reverseGrowthRate == null) return ''
+  return t('stress_implied', { growth: percent(headline.value.reverseGrowthRate), terminal: percent(inputs.terminalGrowthRate), years: inputs.years })
 })
 const hasPeers = computed(() => peersFor(props.symbol).length > 0)
 // Recalculation is announced, but only after typing pauses: a live region that

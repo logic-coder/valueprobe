@@ -1,0 +1,1106 @@
+{
+  "start": "2015-12-31",
+  "end": "2025-12-31",
+  "policy": "v1",
+  "policyHash": "a39917f214d2e1e60b91480cd1b9398c4a027d6214dc9847239d9bc1cb6721d9",
+  "summary": {
+    "cohort": 16,
+    "valued": 13,
+    "zero": 16,
+    "candidate": 10,
+    "capitalBurden": {
+      "high": {
+        "n": 3,
+        "paired": 1,
+        "v1Smape": 38.3209,
+        "zeroSmape": 50.3344,
+        "candidateSmape": 40.0734,
+        "v1Over": 1,
+        "candidateOver": 0
+      },
+      "other": {
+        "n": 13,
+        "paired": 4,
+        "v1Smape": 58.3989,
+        "zeroSmape": 89.1687,
+        "candidateSmape": 99.7635,
+        "v1Over": 1,
+        "candidateOver": 0
+      },
+      "unknown": {
+        "n": 0,
+        "paired": 0,
+        "v1Smape": null,
+        "zeroSmape": null,
+        "candidateSmape": null,
+        "v1Over": 0,
+        "candidateOver": 0
+      }
+    },
+    "epsErrors": {
+      "paired": 5,
+      "medianSmape": {
+        "v1": 31.3598,
+        "zero": 68.1844,
+        "candidate": 15.2995
+      }
+    },
+    "cashErrors": {
+      "paired": 5,
+      "medianSmape": {
+        "v1": 52.4129,
+        "zero": 64.9199,
+        "candidate": 88.3808
+      }
+    },
+    "ifPreSeparationCashIncluded": {
+      "paired": 6,
+      "medianSmape": {
+        "v1": 45.3669,
+        "zero": 57.6272,
+        "candidate": 71.1446
+      }
+    },
+    "compounders": {
+      "classifiable": 6,
+      "doubled": [
+        "UNP",
+        "ACN",
+        "ADP"
+      ],
+      "comparable": [
+        "UNP",
+        "ACN",
+        "ADP"
+      ],
+      "lostDiscount": [
+        "ACN"
+      ]
+    }
+  },
+  "companies": [
+    {
+      "ticker": "UNP",
+      "cik": 100885,
+      "fund": "XLI",
+      "rank": 4,
+      "factsSha256": "0ad87b2eccbaeb0c2685e9aa7de2d79142b3885986a3a94ee64de2e3eb1b5d6f",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 78.2,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 5.79,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 15,
+        "discount": 9,
+        "value": 190.4,
+        "zero": 64.3333,
+        "annualDate": "2014-12",
+        "fcf": null,
+        "valueAtEntryRate": 190.4,
+        "v1Eps10": 14.2753,
+        "normalEps": 4.71,
+        "normalizedOnly": 154.89,
+        "roe": 0.2208,
+        "candidate": 81.9992,
+        "candidateEps10": 11.6126,
+        "distributable10": 6.4514
+      },
+      "burden": {
+        "ratio": 0.5685,
+        "group": "high",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 6161000000,
+            "capex": 3738000000,
+            "dilutedShares": 952900000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 6823000000,
+            "capex": 3496000000,
+            "dilutedShares": 931500000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 7385000000,
+            "capex": 4346000000,
+            "dilutedShares": 901100000
+          }
+        ]
+      },
+      "initialCashProxy": 3.3725,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 11.78,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-09-30",
+        "cash": 9.6845,
+        "cashPeriod": "2024-12"
+      },
+      "compounder": true,
+      "cashErrors": {
+        "v1Signed": 4.5908,
+        "candidateSigned": -3.2331,
+        "v1": 38.3209,
+        "zero": 50.3344,
+        "candidate": 40.0734
+      },
+      "epsErrors": {
+        "v1": 19.1539,
+        "zero": 68.1844,
+        "candidate": 1.4312
+      }
+    },
+    {
+      "ticker": "HON",
+      "cik": 773840,
+      "fund": "XLI",
+      "rank": 5,
+      "factsSha256": "ef98dc309c39aebcf0b47b11a618b20d812b226b0c709bc4ef7f838e803aab68",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 103.57,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 5.71,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 7.75,
+        "discount": 9,
+        "value": 139.18,
+        "zero": 63.4444,
+        "annualDate": "2014-12",
+        "fcf": null,
+        "valueAtEntryRate": 139.18,
+        "v1Eps10": 10.0993,
+        "normalEps": 4.92,
+        "normalizedOnly": 119.93,
+        "roe": 0.2708,
+        "candidate": 72.2499,
+        "candidateEps10": 8.7021,
+        "distributable10": 4.8345
+      },
+      "burden": {
+        "ratio": 0.2272,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 3517000000,
+            "capex": 884000000,
+            "dilutedShares": 791900000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 4335000000,
+            "capex": 947000000,
+            "dilutedShares": 797300000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 5024000000,
+            "capex": 1094000000,
+            "dilutedShares": 795200000
+          }
+        ]
+      },
+      "initialCashProxy": 4.9422,
+      "outcomeStatus": "Garrett, Resideo and Solstice distributions"
+    },
+    {
+      "ticker": "UPS",
+      "cik": 1090727,
+      "fund": "XLI",
+      "rank": 7,
+      "factsSha256": "fae9ab510b51d90a294d7a1e769c35012ef39127d87ecd36ed99ea60146dce1e",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 96.23,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 4.37,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": null,
+        "discount": 9,
+        "value": null,
+        "zero": 48.5556,
+        "annualDate": "2014-12",
+        "fcf": 3.6775,
+        "reason": "NO_GROWTH"
+      },
+      "burden": {
+        "ratio": 0.3233,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 7216000000,
+            "capex": 2153000000,
+            "dilutedShares": 969000000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 7304000000,
+            "capex": 2065000000,
+            "dilutedShares": 948000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 5726000000,
+            "capex": 2328000000,
+            "dilutedShares": 924000000
+          }
+        ]
+      },
+      "initialCashProxy": 3.6775,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 6.47,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-09-30",
+        "cash": 7.2582,
+        "cashPeriod": "2024-12"
+      },
+      "compounder": false
+    },
+    {
+      "ticker": "LMT",
+      "cik": 936468,
+      "fund": "XLI",
+      "rank": 8,
+      "factsSha256": "4cb5d1418e5c1b20be5d26085998d96bf1eef45015395fa49df6bac2ac0ffad5",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 217.15,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 11.27,
+        "epsDate": "2015-09-27",
+        "epsPeriod": "TTM",
+        "growth": 6.74,
+        "discount": 9,
+        "value": 263.29,
+        "zero": 125.2222,
+        "annualDate": "2014-12",
+        "fcf": 9.3703,
+        "valueAtEntryRate": 263.29,
+        "v1Eps10": 19.0083,
+        "normalEps": 9.13,
+        "normalizedOnly": 213.29,
+        "roe": 2.7423,
+        "candidate": 147.2904,
+        "candidateEps10": 15.3989,
+        "distributable10": 8.555
+      },
+      "burden": {
+        "ratio": 0.263,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 1561000000,
+            "capex": 942000000,
+            "dilutedShares": 328400000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 4546000000,
+            "capex": 836000000,
+            "dilutedShares": 326500000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 3866000000,
+            "capex": 845000000,
+            "dilutedShares": 322400000
+          }
+        ]
+      },
+      "initialCashProxy": 9.3703,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 17.95,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-09-28",
+        "cash": 22.1028,
+        "cashPeriod": "2024-12"
+      },
+      "compounder": false,
+      "cashErrors": {
+        "v1Signed": -3.0945,
+        "candidateSigned": -13.5478,
+        "v1": 15.0543,
+        "zero": 64.9199,
+        "candidate": 88.3808
+      },
+      "epsErrors": {
+        "v1": 5.727,
+        "zero": 45.7221,
+        "candidate": 15.2995
+      }
+    },
+    {
+      "ticker": "DHR",
+      "cik": 313616,
+      "fund": "XLI",
+      "rank": 9,
+      "factsSha256": "490c60712f8b9aafe5ad232e8d053a26205b5517f8f4679432503f7768574efb",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 92.88,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 4.67,
+        "epsDate": "2015-10-02",
+        "epsPeriod": "TTM",
+        "growth": 8.17,
+        "discount": 9,
+        "value": 115.86,
+        "zero": 51.8889,
+        "annualDate": "2014-12",
+        "fcf": 4.414,
+        "valueAtEntryRate": 115.86,
+        "v1Eps10": 8.4239,
+        "normalEps": 3.63,
+        "normalizedOnly": 90.05,
+        "roe": 0.1415,
+        "candidate": 48.6368,
+        "candidateEps10": 6.5479,
+        "distributable10": 3.6377
+      },
+      "burden": {
+        "ratio": 0.1494,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 3415000000,
+            "capex": 458300000,
+            "dilutedShares": 713100000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 3585300000,
+            "capex": 551500000,
+            "dilutedShares": 711000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 3758400000,
+            "capex": 597500000,
+            "dilutedShares": 716100000
+          }
+        ]
+      },
+      "initialCashProxy": 4.414,
+      "outcomeStatus": "Fortive and Veralto distributions"
+    },
+    {
+      "ticker": "GD",
+      "cik": 40533,
+      "fund": "XLI",
+      "rank": 10,
+      "factsSha256": "83cb3ecff7ec6855f24d2198a1ae9e4e4963bf61c4d6af223a88db413eb15afa",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 137.36,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 8.76,
+        "epsDate": "2015-10-04",
+        "epsPeriod": "TTM",
+        "growth": 5.56,
+        "discount": 9,
+        "value": 194.7,
+        "zero": 97.3333,
+        "annualDate": "2014-12",
+        "fcf": 9.3956,
+        "valueAtEntryRate": 194.7,
+        "v1Eps10": 13.9714,
+        "normalEps": 6.67,
+        "normalizedOnly": 148.25,
+        "roe": null,
+        "candidateReason": "unavailableOrUnfunded"
+      },
+      "burden": {
+        "ratio": 0.1475,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 2606000000,
+            "capex": 436000000,
+            "dilutedShares": 353346000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 3111000000,
+            "capex": 436000000,
+            "dilutedShares": 353499000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 3728000000,
+            "capex": 521000000,
+            "dilutedShares": 341331000
+          }
+        ]
+      },
+      "initialCashProxy": 9.3956,
+      "outcomeStatus": "partial",
+      "actual": {
+        "eps": null,
+        "epsPeriod": "FY",
+        "epsDate": "2024-12-31",
+        "cash": 11.5177,
+        "cashPeriod": "2024-12"
+      }
+    },
+    {
+      "ticker": "FDX",
+      "cik": 1048911,
+      "fund": "XLI",
+      "rank": 12,
+      "factsSha256": "2d6033b0ba4434bb71d5eb31f4e118ebff1f1152e181694d4aac8efd258816b8",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 148.99,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 3.65,
+        "epsDate": "2015-05-31",
+        "epsPeriod": "FY",
+        "growth": null,
+        "discount": 9,
+        "value": null,
+        "zero": 40.5556,
+        "annualDate": "2015-05",
+        "fcf": 3.5505,
+        "reason": "NO_GROWTH"
+      },
+      "burden": {
+        "ratio": 0.7861,
+        "group": "high",
+        "items": [
+          {
+            "end": "2013-05-31",
+            "cfo": 4688000000,
+            "capex": 3375000000,
+            "dilutedShares": 317000000
+          },
+          {
+            "end": "2014-05-31",
+            "cfo": 4264000000,
+            "capex": 3533000000,
+            "dilutedShares": 310000000
+          },
+          {
+            "end": "2015-05-31",
+            "cfo": 5366000000,
+            "capex": 4347000000,
+            "dilutedShares": 287000000
+          }
+        ]
+      },
+      "initialCashProxy": 3.5505,
+      "outcomeStatus": "partial",
+      "actual": {
+        "eps": null,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-11-30",
+        "cash": 12.2675,
+        "cashPeriod": "2025-05"
+      }
+    },
+    {
+      "ticker": "RTN",
+      "cik": 1047122,
+      "fund": "XLI",
+      "rank": 13,
+      "factsSha256": "a3086079559f294ed7b2942f13f278e48f446a3a9660f5977d79212c88b75089",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 124.53,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 6.79,
+        "epsDate": "2015-09-27",
+        "epsPeriod": "TTM",
+        "growth": 3.22,
+        "discount": 9,
+        "value": 136.6,
+        "zero": 75.4444,
+        "annualDate": "2014-12",
+        "fcf": 5.9437,
+        "valueAtEntryRate": 136.6,
+        "v1Eps10": 9.68,
+        "normalEps": 6.16,
+        "normalizedOnly": 123.93,
+        "roe": 0.2308,
+        "candidate": 78.285,
+        "candidateEps10": 8.7818,
+        "distributable10": 4.8788
+      },
+      "burden": {
+        "ratio": 0.145,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 1957000000,
+            "capex": 339000000,
+            "dilutedShares": 334200000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 2378000000,
+            "capex": 280000000,
+            "dilutedShares": 324200000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 2184000000,
+            "capex": 326000000,
+            "dilutedShares": 312600000
+          }
+        ]
+      },
+      "initialCashProxy": 5.9437,
+      "outcomeStatus": "merger into RTX"
+    },
+    {
+      "ticker": "T",
+      "cik": 732717,
+      "fund": "XLK",
+      "rank": 4,
+      "factsSha256": "438d1c67733ab15339da5b9b964e209f8a496c484c62246af68d726c0b78285f",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 34.41,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 1.19,
+        "epsDate": "2014-12-31",
+        "epsPeriod": "FY",
+        "growth": -6.74,
+        "discount": 9,
+        "value": 15.49,
+        "zero": 13.2222,
+        "annualDate": "2014-12",
+        "fcf": 1.942,
+        "valueAtEntryRate": 15.49,
+        "v1Eps10": 1.0304,
+        "normalEps": 1.25,
+        "normalizedOnly": 16.27,
+        "roe": null,
+        "candidateReason": "unavailableOrUnfunded"
+      },
+      "burden": {
+        "ratio": 0.585,
+        "group": "high",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 39176000000,
+            "capex": 19465000000,
+            "dilutedShares": 5821000000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 34796000000,
+            "capex": 20944000000,
+            "dilutedShares": 5385000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 31338000000,
+            "capex": 21199000000,
+            "dilutedShares": 5221000000
+          }
+        ]
+      },
+      "initialCashProxy": 1.942,
+      "outcomeStatus": "WarnerMedia distribution"
+    },
+    {
+      "ticker": "ACN",
+      "cik": 1467373,
+      "fund": "XLK",
+      "rank": 15,
+      "factsSha256": "83258e85f0e5ef6d55fe62cb43365d5bb764c3eb0786f05c13c57becd99d5fd8",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 104.5,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 4.75,
+        "epsDate": "2015-11-30",
+        "epsPeriod": "TTM",
+        "growth": 8.79,
+        "discount": 9,
+        "value": 120.94,
+        "zero": 52.7778,
+        "annualDate": "2015-08",
+        "fcf": 5.4469,
+        "valueAtEntryRate": 120.94,
+        "v1Eps10": 8.8198,
+        "normalEps": 4.76,
+        "normalizedOnly": 121.19,
+        "roe": 0.593,
+        "candidate": 77.9164,
+        "candidateEps10": 8.8383,
+        "distributable10": 4.9102
+      },
+      "burden": {
+        "ratio": 0.0998,
+        "group": "other",
+        "items": [
+          {
+            "end": "2013-08-31",
+            "cfo": 3303128000,
+            "capex": 369593000,
+            "dilutedShares": 713340470
+          },
+          {
+            "end": "2014-08-31",
+            "cfo": 3486085000,
+            "capex": 321870000,
+            "dilutedShares": 692389966
+          },
+          {
+            "end": "2015-08-31",
+            "cfo": 4092137000,
+            "capex": 395017000,
+            "dilutedShares": 678757070
+          }
+        ]
+      },
+      "initialCashProxy": 5.4469,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 12.1,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-11-30",
+        "cash": 17.1944,
+        "cashPeriod": "2025-08"
+      },
+      "compounder": true,
+      "cashErrors": {
+        "v1Signed": -8.3746,
+        "candidateSigned": -12.2842,
+        "v1": 64.3848,
+        "zero": 113.4175,
+        "candidate": 111.1461
+      },
+      "epsErrors": {
+        "v1": 31.3598,
+        "zero": 87.2404,
+        "candidate": 31.1553
+      }
+    },
+    {
+      "ticker": "EMC",
+      "cik": 790070,
+      "fund": "XLK",
+      "rank": 17,
+      "factsSha256": "6be16603efa8e52c9e1fe3355718ddcfd41d426fade3cb5983bc7fff99d734b1",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 25.68,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 1.18,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 8.62,
+        "discount": 9,
+        "value": 29.83,
+        "zero": 13.1111,
+        "annualDate": "2014-12",
+        "fcf": 2.6926,
+        "valueAtEntryRate": 29.83,
+        "v1Eps10": 2.1737,
+        "normalEps": 1.32,
+        "normalizedOnly": 33.37,
+        "roe": 0.1292,
+        "candidate": 17.4988,
+        "candidateEps10": 2.4316,
+        "distributable10": 1.3509
+      },
+      "burden": {
+        "ratio": 0.1391,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 6262000000,
+            "capex": 819000000,
+            "dilutedShares": 2206000000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 6923000000,
+            "capex": 943000000,
+            "dilutedShares": 2160000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 6523000000,
+            "capex": 979000000,
+            "dilutedShares": 2059000000
+          }
+        ]
+      },
+      "initialCashProxy": 2.6926,
+      "outcomeStatus": "Dell acquisition"
+    },
+    {
+      "ticker": "CTSH",
+      "cik": 1058290,
+      "fund": "XLK",
+      "rank": 20,
+      "factsSha256": "832bc2e6327c8c9ed73ebbe3533623836b085231c7c2df6a1f41c1e9e87f4e16",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 60.02,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 2.55,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 15,
+        "discount": 9,
+        "value": 83.86,
+        "zero": 28.3333,
+        "annualDate": "2014-12",
+        "fcf": 2.0585,
+        "valueAtEntryRate": 83.86,
+        "v1Eps10": 6.2871,
+        "normalEps": 2.02,
+        "normalizedOnly": 66.43,
+        "roe": 0.2531,
+        "candidate": 36.2121,
+        "candidateEps10": 4.9803,
+        "distributable10": 2.7669
+      },
+      "burden": {
+        "ratio": 0.1986,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 1172583000,
+            "capex": 334465000,
+            "dilutedShares": 611722000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 1423776000,
+            "capex": 261626000,
+            "dilutedShares": 609662000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 1473010000,
+            "capex": 212203000,
+            "dilutedShares": 612489000
+          }
+        ]
+      },
+      "initialCashProxy": 2.0585,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 4.32,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-09-30",
+        "cash": 3.6761,
+        "cashPeriod": "2024-12"
+      },
+      "compounder": false,
+      "cashErrors": {
+        "v1Signed": 2.611,
+        "candidateSigned": -0.9092,
+        "v1": 52.4129,
+        "zero": 36.1735,
+        "candidate": 28.2229
+      },
+      "epsErrors": {
+        "v1": 37.0903,
+        "zero": 51.5284,
+        "candidate": 14.1995
+      }
+    },
+    {
+      "ticker": "HPQ",
+      "cik": 47217,
+      "fund": "XLK",
+      "rank": 21,
+      "factsSha256": "351d1874f2847fe331549968693423be2a4374a7731422f86687ac66da7af5f4",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 11.84,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 2.48,
+        "epsDate": "2015-10-31",
+        "epsPeriod": "FY",
+        "growth": -0.96,
+        "discount": 9,
+        "value": 41.66,
+        "zero": 27.5556,
+        "annualDate": "2015-10",
+        "fcf": null,
+        "valueAtEntryRate": 41.66,
+        "v1Eps10": 2.8803,
+        "normalEps": 2.62,
+        "normalizedOnly": 44.01,
+        "roe": 0.1838,
+        "candidate": 29.4607,
+        "candidateEps10": 3.0429,
+        "distributable10": 1.6905
+      },
+      "burden": {
+        "ratio": 0.3501,
+        "group": "other",
+        "items": [
+          {
+            "end": "2013-10-31",
+            "cfo": 11608000000,
+            "capex": 3199000000,
+            "dilutedShares": 1950000000
+          },
+          {
+            "end": "2014-10-31",
+            "cfo": 12333000000,
+            "capex": 3853000000,
+            "dilutedShares": 1912000000
+          },
+          {
+            "end": "2015-10-31",
+            "cfo": 6490000000,
+            "capex": 3603000000,
+            "dilutedShares": 1836000000
+          }
+        ]
+      },
+      "initialCashProxy": 1.5724,
+      "outcomeStatus": "lastEntryFYPrecedesSeparation",
+      "excludedComparison": {
+        "actual": {
+          "eps": 2.65,
+          "epsPeriod": "FY",
+          "epsDate": "2025-10-31",
+          "cash": 2.9381,
+          "cashPeriod": "2025-10"
+        },
+        "cashErrors": {
+          "v1Signed": -0.0578,
+          "candidateSigned": -1.2476,
+          "v1": 1.9868,
+          "zero": 16.91,
+          "candidate": 53.9083
+        },
+        "epsErrors": {
+          "v1": 8.3287,
+          "zero": 6.6277,
+          "candidate": 13.8032
+        },
+        "compounder": false
+      }
+    },
+    {
+      "ticker": "ADP",
+      "cik": 8670,
+      "fund": "XLK",
+      "rank": 22,
+      "factsSha256": "07750ac1435f5c4569011de779d0c4e42bd293b9355eba6b28d62fac77c68a6d",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 84.72,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 3.16,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 3.86,
+        "discount": 9,
+        "value": 65.34,
+        "zero": 35.1111,
+        "annualDate": "2015-06",
+        "fcf": 3.6713,
+        "valueAtEntryRate": 65.34,
+        "v1Eps10": 4.6462,
+        "normalEps": 3.05,
+        "normalizedOnly": 63.06,
+        "roe": 0.2299,
+        "candidate": 39.4308,
+        "candidateEps10": 4.4844,
+        "distributable10": 2.4914
+      },
+      "burden": {
+        "ratio": 0.0846,
+        "group": "other",
+        "items": [
+          {
+            "end": "2013-06-30",
+            "cfo": 1577200000,
+            "capex": 130300000,
+            "dilutedShares": 487100000
+          },
+          {
+            "end": "2014-06-30",
+            "cfo": 1821400000,
+            "capex": 159800000,
+            "dilutedShares": 483100000
+          },
+          {
+            "end": "2015-06-30",
+            "cfo": 1905600000,
+            "capex": 158800000,
+            "dilutedShares": 475800000
+          }
+        ]
+      },
+      "initialCashProxy": 3.6713,
+      "outcomeStatus": "aligned",
+      "actual": {
+        "eps": 10.13,
+        "epsPeriod": "TTM",
+        "epsDate": "2025-09-30",
+        "cash": 11.6736,
+        "cashPeriod": "2025-06"
+      },
+      "compounder": true,
+      "cashErrors": {
+        "v1Signed": -7.0274,
+        "candidateSigned": -9.1822,
+        "v1": 86.1212,
+        "zero": 114.788,
+        "candidate": 129.6463
+      },
+      "epsErrors": {
+        "v1": 74.2248,
+        "zero": 104.8909,
+        "candidate": 77.2608
+      }
+    },
+    {
+      "ticker": "BRCM",
+      "cik": 1054374,
+      "fund": "XLK",
+      "rank": 25,
+      "factsSha256": "8f224dc608b88f9c3185760f59398c4224cc3e293ef96db9b690f7d2f4a3b2e6",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 57.82,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 2.3,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": 15,
+        "discount": 9,
+        "value": 75.63,
+        "zero": 25.5556,
+        "annualDate": "2014-12",
+        "fcf": 2.7671,
+        "valueAtEntryRate": 75.63,
+        "v1Eps10": 5.6707,
+        "normalEps": 1.08,
+        "normalizedOnly": 35.52,
+        "roe": 0.0779,
+        "candidateReason": "unavailableOrUnfunded"
+      },
+      "burden": {
+        "ratio": 0.1301,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 1931000000,
+            "capex": 244000000,
+            "dilutedShares": 576000000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 1785000000,
+            "capex": 228000000,
+            "dilutedShares": 584000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 1925000000,
+            "capex": 262000000,
+            "dilutedShares": 601000000
+          }
+        ]
+      },
+      "initialCashProxy": 2.7671,
+      "outcomeStatus": "Avago acquisition"
+    },
+    {
+      "ticker": "EBAY",
+      "cik": 1065088,
+      "fund": "XLK",
+      "rank": 26,
+      "factsSha256": "371b87340f99c6a666c5a1cb6d74fe332cbbf779e7f1809af0e433ced1572a9a",
+      "initial": {
+        "date": "2015-12-31",
+        "price": 27.48,
+        "splitFromStart": 1,
+        "model": "owner",
+        "eps": 1.84,
+        "epsDate": "2015-09-30",
+        "epsPeriod": "TTM",
+        "growth": null,
+        "discount": 9,
+        "value": null,
+        "zero": 20.4444,
+        "annualDate": "2014-12",
+        "fcf": 3.4913,
+        "reason": "NO_GROWTH"
+      },
+      "burden": {
+        "ratio": 0.2604,
+        "group": "other",
+        "items": [
+          {
+            "end": "2012-12-31",
+            "cfo": 3838000000,
+            "capex": 1257000000,
+            "dilutedShares": 1313000000
+          },
+          {
+            "end": "2013-12-31",
+            "cfo": 4995000000,
+            "capex": 1250000000,
+            "dilutedShares": 1313000000
+          },
+          {
+            "end": "2014-12-31",
+            "cfo": 5677000000,
+            "capex": 1271000000,
+            "dilutedShares": 1262000000
+          }
+        ]
+      },
+      "initialCashProxy": 3.4913,
+      "outcomeStatus": "lastEntryFYPrecedesSeparation",
+      "excludedComparison": {
+        "actual": {
+          "eps": 4.58,
+          "epsPeriod": "TTM",
+          "epsDate": "2025-09-30",
+          "cash": 3.9042,
+          "cashPeriod": "2024-12"
+        },
+        "compounder": false
+      }
+    }
+  ]
+}

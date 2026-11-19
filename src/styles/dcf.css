@@ -66,8 +66,6 @@
 .dcf__fair .text-h6 { font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
 .dcf__mos { margin-top: 12px; }
 .dcf__mos .button-font-weight { display: inline-flex; align-items: center; gap: 4px; font-size: 24px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
-.dcf__meter { height: 6px; border-radius: 999px; background: var(--bg-soft); overflow: hidden; margin: 8px 0 10px; }
-.dcf__meter span { display: block; height: 100%; border-radius: 999px; transition: width 0.25s ease; }
 .dcf__implied { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border); align-items: flex-start; }
 .dcf__implied-value { margin-left: auto; font-size: 20px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
 .dcf__implied-empty { margin-left: auto; max-width: 16em; font-size: 13px; line-height: 1.4; font-weight: 500; color: var(--text-muted); text-align: right; }
@@ -211,6 +209,7 @@
 .dcf__row > .q-skeleton { margin-left: auto; }
 
 @media (max-width: 1023px) {
+  .dcf__strip-col { position: static; }
   .dcf__card > div {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'strip' 'head' 'form' 'sens' 'evidence';

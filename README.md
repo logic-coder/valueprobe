@@ -34,6 +34,8 @@ npm run dev
 
 ## Data contract
 
+The method page provides company-level [historical research data](public/research), including annual valuation replays, cash forecasts and shareholder proceeds. The [reproduction scripts](scripts/research) run separately from stock valuations.
+
 - `public/data/intrinsic/v1.json` is the only published value. The stock, watchlist, comparison and method pages read the release. The stock calculator starts with those assumptions and runs a local calculation when assumptions are edited.
 - `public/data/manifest.json` pins the artifact's policy version and hash, the covered-symbol counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
 - `POLICY_VERSION` and `POLICY_V1_HASH` in `src/lib/policy.js` identify the policy that produced the artifact. Any change to `POLICY_V1` must bump the version and the hash in the same commit.
