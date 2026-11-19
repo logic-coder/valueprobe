@@ -56,7 +56,9 @@
 线上能算的就是 `public/data/` 里已经生成的代码；没有文件的代码显示「所有数据源都失败」，可改入手填。
 东财和 SEC 没有 CORS，开发时走 Vite 代理；要在发布页里实时请求它们，必须自备网关（见 `.env.example`）。查询串在交给网关之前已拼进目标 URL。
 
-无风险利率不走注册表。十年期国债取自东财 `RPTA_WEB_TREASURYYIELD`（`EMM00166466` 为中国十年期，`EMG00001310` 为美国十年期；美国当日可能尚未写入，取最近一个非空值）。该接口无 CORS，开发时走 Vite `/emdcweb` 代理，发布页读取 `public/data/rates.json`（由 `npm run snapshot` 一并刷新），再退到随包的 `src/data/bundled/risk_free.json`。不要用美国存量国债平均票息，也不要用它更新兜底值。
+无风险利率不走注册表。十年期国债取自东财 `RPTA_WEB_TREASURYYIELD`（`EMM00166466` 为中国十年期，`EMG00001310` 为美国十年期；美国当日可能尚未写入，取最近一个非空值）。该接口无 CORS，开发时走 Vite `/emdcweb` 代理，发布页读取 `public/data/rates.json`（由 `npm run snapshot` 一并刷新），再退到随包的 `src/data/bundled/risk_free.json`。
+
+**禁止事项**：不要用美国存量国债平均票息（历史上的 `5.14`、`3.399` 等），它们不是十年期收益率，也不是任何兜底值。不要拿这些数字更新 `risk_free.json`。缺当地十年期收益率时，折现率回退为 8%（`FALLBACK_DISCOUNT_RATE`），并在界面写明；不得静默改用美债收益率——只有港币现金流明确使用美元十年期作为代理。旧的 `latest_indicator.json` 已删除，不要恢复。
 
 刷新 `public/data/`：在本机运行 `npm run snapshot`，把生成的 JSON 一并提交再推送。Pages 构建不会代拉行情。
 
@@ -99,3 +101,19 @@ export const mysource = {
 - 美股每股收益会按拆股重述：仅调整在拆股当年 10-K 之前申报、未被后续比较列重述的年份；收入/股和自由现金流/股本来就按复权股本计算。一年的骤降只有在像漏掉的拆股或单位错误时才会从历史里拿掉，真实的景气下滑（例如英伟达 FY2023）会保留。fiscal year 以期间截止日的年份标记；截止日在 1 月的公司，十年窗口以最新财年为准，更早的年份（英伟达 2016 在最新一年为 2026 时）不会回填。美股与 A/H 一样计算 10/5/1 年盈利和自由现金流增速：期末亏损则不给增速，不用 5% 垫值；十年至少要有七年跨度，五年至少四年；一年增速必须有紧邻的上一财年。窗口第一年若是低谷，起点会向前移并保住最短跨度，而不是整段作废。
 - 20-F / IFRS 申报在股东权益、自由现金流、收入和营业利润上使用保守别名：权益只取归属于母公司所有者的部分（`EquityAttributableToOwnersOfParent`），不把少数股东权益算进去；自由现金流是经营活动现金流量减购建固定资产；收入用 `Revenue`，营业利润用 `ProfitLossFromOperatingActivities`。有美国 GAAP 序列时仍以 10-K 为准。港股分红列不采用东财 `DPS_HKD`（该字段不是历史值）。其余历史序列不做复权回填，主要为图表服务；
 - 抓取来源各自的条款见 `ATTRIBUTION.md`。
+
+## 发布值 artifact 与数据闸门
+
+`public/data/rates.json` 是唯一发布利率输入：`npm run snapshot` 写它，artifact 构建只读它。开发/线上运行时的读取顺序仍是「实时 → 已提交快照 → 随包兜底」，其中 `src/data/bundled/risk_free.json` 只在本地/离线兜底，不进入发布值。港币按美元十年期作代理，artifact 里 HKD 行标 `usd_proxy`。
+
+`npm run intrinsic` 把已提交快照写成两个发布文件（实现 `scripts/lib/policy-artifact.mjs`，字段说明 `docs/POLICY.md`）：
+
+- `public/data/intrinsic/v1.json`：每条记录的发布值、band、终值占比、安全边际、reason/warning、inputs 与 asOf；政策版本与 hash 写在文件头。
+- `public/data/manifest.json`：同一份 universe/coverage 和利率行，外加 `catalog.json`、`rates.json`、150 个快照的 bytes/sha256。
+
+契约：
+
+- artifact 是唯一发布值，页面只读 artifact；不要手改 `public/data/intrinsic/`。
+- `npm run verify:data` 是可提交前的数据闸门（policy hash、可复现、过期、universe、manifest hash、未知代码、抽样重算）；`npm run refresh` = snapshot → intrinsic → verify:data。
+- artifact 生成日期超过 `POLICY_V1.staleness.fundamentalsDays`（120 天）或利率行过期（10 天）时闸门失败；运行时的过期只标注（`STALE_DATA` / `STALE_PRICE`），不拒绝出值。
+- 刷新流程：`npm run snapshot` → `npm run intrinsic` → `npm run verify:data`，三个产物一起提交。

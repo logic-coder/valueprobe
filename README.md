@@ -1,6 +1,6 @@
 # valueprobe
 
-Open-source, local-first stock valuation. Ordinary companies are discounted from per-share earnings or shareholder free cash flow; banks use residual income. The default discount rate is the local 10-year government yield for the cash-flow currency, rounded up, plus 6 points. US per-share earnings are restated for later splits when the original 10-K figure was not. Not investment advice.
+Open-source, local-first stock valuation. The published number is the **intrinsic value** under **public policy v1**: ordinary companies are discounted from per-share earnings in two stages; banks, insurers and brokers use residual income. It is an estimate, not investment advice, and not a price target.
 
 ## Run
 
@@ -9,20 +9,40 @@ npm install
 npm run dev
 ```
 
-`public/data` is the published source for EPS, cash flow, book value and growth. Refresh it locally with `npm run snapshot`, then commit. The deployed site does not fetch quotes. Price and valuation assumptions stay editable. A fixed 12× line shows today's earnings if they never grow; it is not the fair value, and banks do not show it.
+`public/data` is the published source for EPS, free cash flow, book value, growth and the ten-year rates. The deployed site does not fetch quotes. Price and valuation assumptions stay editable. A fixed 12× line shows today's earnings if they never grow; it is a cross-check, not the intrinsic value, and banks do not show it.
+
+## Scripts
+
+| script | what it does |
+| --- | --- |
+| `npm run dev` | Local dev server. |
+| `npm run build` | Static build into `dist/`. |
+| `npm run snapshot` | Refresh `public/data/<MARKET>-<CODE>.json` and `public/data/rates.json` from the public sources. Run locally, then commit. |
+| `npm run intrinsic` | Write the published values `public/data/intrinsic/v1.json` and the hash manifest `public/data/manifest.json` from the committed snapshots. |
+| `npm run verify:data` | Data gate: policy hash, artifact reproducibility, freshness warnings, universe and catalog agreement, manifest hashes, known codes, independent recompute. |
+| `npm run refresh` | `snapshot` → `intrinsic` → `verify:data`. |
+| `npm run verify` | `lint → test → test:real → verify:data → smoke:pages`, the same chain as `package.json` `verify`. |
+| `npm run test:e2e` | Playwright browser suites; CI runs these on pull requests only. |
+
+## Data contract
+
+- `public/data/intrinsic/v1.json` is the only published value. Pages read the artifact; they never recompute a published number for display, so the screen cannot drift from the release.
+- `public/data/manifest.json` pins the artifact's policy version and hash, the universe counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
+- `POLICY_VERSION` and `POLICY_V1_HASH` in `src/lib/policy.js` identify the policy that produced the artifact. Any change to `POLICY_V1` must bump the version and the hash in the same commit.
+- The gate fails on a hash mismatch, a non-reproducible artifact, a missing rate row, a universe/catalog/file disagreement, or an unknown reason/warning code. An old artifact or rate row only prints a warning; the value itself carries `STALE_DATA` / `STALE_PRICE`, so the gate stays independent of the day it runs.
+- The ten-year yields used by the artifact are `public/data/rates.json`; the bundled file is a local fallback only. A missing local yield keeps the value and carries `RATE_FALLBACK`.
+
+`CALCULATION.md`, `docs/POLICY.md` and `DEVIATIONS.md` record the parameters and where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
 
 ## Deploy
 
 Push to `main` with Pages set to GitHub Actions. The workflow is `.github/workflows/pages.yml`. A private repository on the free plan cannot enable Pages.
 
-## Tests
+## Docs
 
-```bash
-npm run verify
-```
-
-That is the same set of gates a push to `main` runs: lint, unit tests, and the static-host smoke check. Browser suites still run with `npm run test:e2e`; CI only runs those on pull requests.
-
-`CALCULATION.md` and `DEVIATIONS.md` note where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
+- `docs/POLICY.md` — public policy v1 parameters, reason/warning codes, artifact and manifest schema, refresh and gates, universe and replacements.
+- `CALCULATION.md` — models and the calculation boundaries.
+- `DATA_SOURCES.md` — providers, transport modes, rates and the artifact gate.
+- `docs/ARCHITECTURE.md` — layers, data flow and vocabulary.
 
 MIT. Market data stays under its sources' terms (`ATTRIBUTION.md`).

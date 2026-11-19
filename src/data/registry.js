@@ -2,8 +2,8 @@
 // capability and coverage, order by preference, gate on the breaker, meter each
 // source, validate, and record every attempt so the UI can explain itself.
 //
-// Mirrors the reference framework's registry (DATA_SOURCES.md): a source that is
-// skipped is *recorded as skipped*, never silently dropped.
+// Contract (DATA_SOURCES.md): a source that is skipped is *recorded as skipped*,
+// never silently dropped.
 import { CircuitBreaker } from './circuit'
 import { RateLimiter } from './limiter'
 import { FetchDiagnostics, SkipReason } from './skip'

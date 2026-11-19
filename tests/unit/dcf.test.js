@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { buildDefaults, calGr2fv, calculateReverse, impliedGrowth, marginOfSafety, presentValue, round2 } from '../../src/lib/dcf'
 
-// Reference numbers are produced by the original page engine for the live 601398
-// payload (eps 1.08, fcf 6.64, tbv 11.24, price 8.85, indicator 5.14, growth 5, terminal 4).
+// Locked reference numbers for the 601398 payload:
+// eps 1.08, fcf 6.64, tbv 11.24, price 8.85, indicator 5.14, growth 5, terminal 4.
 const DEFAULT_ARGS = [11.24, 10, 12, 5, 1.08, 4, 10, false]
 
 describe('calGr2fv', () => {
-  it('reproduces the original fair value / growth / terminal split', () => {
+  it('reproduces the frozen fair value / growth / terminal split', () => {
     const result = calGr2fv(...DEFAULT_ARGS)
     expect(result.fairValue).toBe(11.56)
     expect(result.growthValue).toBe(7.7)

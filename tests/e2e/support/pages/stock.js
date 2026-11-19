@@ -4,6 +4,7 @@ export const STOCK = Object.freeze({
   result: '[data-testid="dcf-result"]',
   fairValue: '[data-testid="dcf-fair-value"]',
   margin: '[data-testid="dcf-margin-of-safety"]',
+  policyValue: '[data-testid="policy-value"]',
   discount: '[data-testid="field-discount"]',
   growth: '[data-testid="field-growth"]',
   growthYears: '[data-testid="field-growth-years"]',

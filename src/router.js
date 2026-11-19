@@ -18,6 +18,7 @@ const routes = [
   { path: '/watchlist', name: 'watchlist', component: () => import('./pages/WatchlistPage.vue') },
   { path: '/compare', name: 'compare', component: () => import('./pages/ComparePage.vue') },
   { path: '/about', name: 'about', component: () => import('./pages/AboutPage.vue') },
+  { path: '/method', name: 'method', component: () => import('./pages/MethodPage.vue') },
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',

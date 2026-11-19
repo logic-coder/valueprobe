@@ -73,13 +73,25 @@ IRR 收敛与不收敛、缺失汇率。E2E 只验证界面显示 `n/a` 与原�
 - 实现：`src/lib/sensitivity.js`（`buildSensitivityGrid`、`marginBucket`）。
 - 着色阈值（安全边际 = 1 − 价格 / 内在价值）：≥30% 淡绿、≥0 更淡的绿、≥-20% 黄、其余红。
 - 倍数对照（`src/lib/multiples.js`）：当前倍数 = 价格 / 每股基数，隐含价 = 基数 × 目标倍数，
-  与 DCF 内在价值的差以百分比列出；基数缺失即 `n/a`。非金融公司另有一条固定的 12 倍现行利润对照，表示利润不再增长时大约值多少，不进入公允价值；银行模型不显示。单测 `tests/unit/multiples.test.js`。
+  与 DCF 内在价值的差以百分比列出；基数缺失即 `n/a`。非金融公司另有一条固定的 12 倍现行利润对照，表示利润不再增长时大约值多少，不进入内在价值；银行模型不显示。单测 `tests/unit/multiples.test.js`。
 
 - 情景预设（`src/lib/scenarios.js`）只做固定增量：牛市 折现率 −1 / 增长率 +2 / 第二阶段增速 +1，
   熊市取反；折现率仍夹在 0–50。切「基准」恢复进入情景前的那组数（单测 `tests/unit/scenarios.test.js`）。
 
-- 默认折现率是现金流币种的当地十年期国债收益率向上取整再加 6 个百分点。美元也用十年期国债，不用存量票息均值。港币因金管局十年期基准序列已中断，使用美元十年期作为代理并在界面标明。取不到当地利率时回退为 8%，并写明来源，不会静默改用美债。显示币种只影响读数，不改变折现率。自选和对比页按每只股票的币种分别取利率。可先用「推导」对话框按无风险 + β × 股权溢价 + 规模溢价算好再填入（`src/lib/wacc.js`，
+- 默认折现率是现金流币种的当地十年期国债收益率向上取整再加 6 个百分点。美元也用十年期国债，不用存量票息均值（历史上的 `5.14`、`3.399` 等一律不得作为利率或兜底）。港币因金管局十年期基准序列已中断，使用美元十年期作为代理并在界面标明。取不到当地利率时回退为 8%，并写明来源，不会静默改用美债；随包兜底文件是 `src/data/bundled/risk_free.json`，已删除的 `latest_indicator.json` 不得恢复。显示币种只影响读数，不改变折现率。自选和对比页按每只股票的币种分别取利率。可先用「推导」对话框按无风险 + β × 股权溢价 + 规模溢价算好再填入（`src/lib/wacc.js`，
   单测 `tests/unit/wacc.test.js`）；填进去的值仍走 0–50 的夹取。
 
 - 单测：`tests/unit/sensitivity.test.js`（中心格等于当前模型的头条、边界夹取、非有限格）；E2E：
   25 格、中心格等于头条内在价值、改折现率后矩阵跟随。
+
+## 公开口径 v1
+
+页面上的发布值由 `src/lib/policy.js` 的 `policyValue()` 决定，不再由表单默认值直接发布。口径参数与拒绝/警告语义见 `docs/POLICY.md`，这里只记它对计算的影响：
+
+- 模型：一般公司 `presentValue`（两期折现 + 有上限的永续），金融机构 `residualIncomeValue`（账面收益逐年降到折现率）。基数固定为每股收益；自由现金流仍是股票页的对照，不进入发布值。
+- 窗口与默认：`DCF_DEFAULTS` 的两段各 10 年、终值增速 4%；历史增速窗口 10 年、承保上限 15%（`MAX_UNDERWRITTEN_GROWTH`）。没有历史增速时发布值为 `null` + `NO_GROWTH`，不代填；负增长照常出值并加 `NEGATIVE_HISTORY_GROWTH`。
+- 折现率：`ceil(当地十年期国债收益率) + 6`，再夹到 0–50（`policyDiscountRate()`）。港币现金流用美元十年期作代理；取不到当地利率时用 8% 兜底并标 `RATE_FALLBACK`。折现率跟随报价/现金流币种，显示货币不改它。
+- 区间：同一模型把折现率上下浮动 2 个百分点（`POLICY_V1.band.discountSpread`）；金融机构的上沿是 `enduringBookValue`。头条是 `mid`，终值占比 `terminalShare` 一并披露。
+- 价格：只进入安全边际；缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，都不改内在价值；基本面过期给 `STALE_DATA` 也不拒绝出值。
+- 一致性：`buildDefaults()` 与 `policyValue()` 对同一快照给出同一组输入（EPS、增速、折现率、两段窗口），由 `tests/unit/policy.test.js` 的 seed 对齐用例锁住；页面默认参数与 artifact 因此不会分叉。
+- 页面只读发布值：`public/data/intrinsic/v1.json` 是唯一发布值，页面读 artifact，不为显示重算；刷新与闸门见 `docs/POLICY.md`。

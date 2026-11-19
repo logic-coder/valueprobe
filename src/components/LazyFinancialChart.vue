@@ -15,10 +15,7 @@ const root = ref(null)
 const show = ref(false)
 let observer = null
 
-// Printing never scrolls, so the chart must exist for beforeprint.
-const onPrint = () => { show.value = true }
 onMounted(() => {
-  window.addEventListener('beforeprint', onPrint)
   if (!('IntersectionObserver' in window)) {
     show.value = true
     return
@@ -33,7 +30,6 @@ onMounted(() => {
   if (root.value) observer.observe(root.value)
 })
 onBeforeUnmount(() => {
-  window.removeEventListener('beforeprint', onPrint)
   observer?.disconnect()
 })
 </script>

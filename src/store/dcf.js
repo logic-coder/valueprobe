@@ -3,7 +3,7 @@ import { api } from '../api'
 
 const VIEW_ID = 1983
 
-// Mirrors the Vuex module "stockPage/dcf" of the original app, parameterised by symbol.
+// Per-symbol DCF data store: financials, view and indicator state.
 export const useDcfStore = defineStore('dcf', {
   state: () => ({
     symbol: '',

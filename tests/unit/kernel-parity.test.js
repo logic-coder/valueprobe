@@ -2,12 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { calGr2fv, calculateReverse, marginOfSafety } from '../../src/lib/dcf'
 
 /**
- * Red-line guard: the formula kernel is a byte-faithful port and must keep
- * producing exactly what the original page produced. Every number below was
- * read off the live original calculator for SHSE:601398 and is frozen here.
- * If one of these moves, the port drifted -- fix the port, not the test.
+ * Red-line guard: the formula kernel is frozen. Every number below is a
+ * locked reference for SHSE:601398. If one of these moves, the kernel drifted
+ * -- fix the kernel, not the test.
  */
-describe('kernel parity with the original engine', () => {
+describe('frozen kernel parity', () => {
   it('case 1: fair value for the shipped defaults', () => {
     expect(calGr2fv(11.24, 10, 12, 5, 1.08, 4, 10, false).fairValue).toBe(11.56)
   })
@@ -32,7 +31,7 @@ describe('kernel parity with the original engine', () => {
     expect(marginOfSafety(8.85, 11.56)).toBe('23.44')
   })
 
-  it('keeps the original infinities instead of smoothing them', () => {
+  it('keeps the infinities instead of smoothing them', () => {
     expect(marginOfSafety(8.85, 0)).toBe('-Infinity')
     expect(Number.isFinite(calGr2fv(0, 10, 0, 5, 1, 4, 10, false).fairValue)).toBe(true)
   })

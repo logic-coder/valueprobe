@@ -8,12 +8,14 @@
 // Each file keeps a seed price (editable on the page) plus the statement fields
 // that change only when a new report arrives: earnings, cash flow, book, growth,
 // the annual table and the chart series.
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { fromAshareReports, fromHkReports, convertReportingCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
+import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts } from './lib/policy-artifact.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -258,3 +260,16 @@ for (const name of names.sort()) {
 }
 await writeFile(resolve(OUT, 'catalog.json'), JSON.stringify(catalog, null, 2) + '\n')
 console.log(written + '/' + symbols.length + ' snapshots written; catalog has ' + catalog.length)
+
+// The published value is read from the artifact, not recomputed in the browser, so a
+// refresh that leaves it behind is an incomplete refresh. Regenerate it right here.
+const built = buildArtifacts({ root })
+mkdirSync(dirname(resolve(root, ARTIFACT_PATH)), { recursive: true })
+writeFileSync(resolve(root, ARTIFACT_PATH), JSON.stringify(built.artifact, null, 2) + '\n')
+writeFileSync(resolve(root, MANIFEST_PATH), JSON.stringify(built.manifest, null, 2) + '\n')
+console.log('intrinsic ' + built.artifact.policyVersion + ' -> ' + ARTIFACT_PATH
+  + '  values ' + built.artifact.coverage.valued + ' / refused ' + built.artifact.coverage.refused)
+if (built.problems.length) {
+  for (const problem of built.problems) console.error('artifact problem: ' + problem)
+  process.exitCode = 1
+}

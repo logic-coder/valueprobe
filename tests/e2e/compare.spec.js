@@ -88,16 +88,6 @@ test('explains a bad or duplicate add', async ({ page }) => {
   await expect(page.locator('.cmp__table tbody tr')).toHaveCount(1)
 })
 
-test('copies the comparison link', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.goto('/#/compare?s=SHSE:601398,NASDAQ:AAPL')
-  await expect(page.locator('.cmp__table tbody tr')).toHaveCount(2, { timeout: 20000 })
-  await page.locator('.wl__tool', { hasText: '复制比较链接' }).click()
-  await expect(page.locator('.q-notification')).toContainText('链接已复制')
-  const copied = await page.evaluate(() => navigator.clipboard.readText())
-  expect(copied).toContain('compare?s=SHSE:601398,NASDAQ:AAPL')
-})
-
 test('links from a watchlist of two', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('fv-watchlist', JSON.stringify(['SHSE:601398', 'NASDAQ:AAPL'])))
   await page.goto('/#/watchlist')

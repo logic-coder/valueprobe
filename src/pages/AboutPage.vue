@@ -12,6 +12,14 @@
     </section>
 
     <section class="panel about__block">
+      <div class="panel__head"><span class="panel__title">{{ t('about_method_title') }}</span></div>
+      <div class="panel__body">
+        <p>{{ t('about_method_body') }}</p>
+        <p><a href="#/method">{{ t('disc_policy_link') }}</a></p>
+      </div>
+    </section>
+
+    <section class="panel about__block">
       <div class="panel__head"><span class="panel__title">{{ t('about_license') }}</span></div>
       <div class="panel__body">
         <p>{{ t('about_license_body') }}</p>

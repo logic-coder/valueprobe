@@ -6,7 +6,6 @@
           <dcf-header
             :providers="providers"
             :pinned-source="pinnedSource || ''"
-            @share="copyShare"
             @reset="resetToDefaults"
             @pin="pinSource"
           />
@@ -18,6 +17,7 @@
             :result="result"
             :live-summary="liveSummary"
             :show-implied="!residualIncome"
+            :policy-assumption="policyAssumption"
           />
 
           <div class="line-height-2 dcf__form">
@@ -287,6 +287,52 @@
           />
 
           <div class="dcf__evidence">
+          <div v-if="policyArtifact" class="dcf__policy" data-testid="policy-value" :data-policy-version="policyArtifact.policyVersion || ''">
+            <div class="dcf__policy-head">
+              <span class="dcf__policy-title" data-testid="policy-title">{{ t('policy_value_title') }}</span>
+            </div>
+            <template v-if="policyEntry && policyEntry.status === 'refused'">
+              <div class="dcf__policy-disclosures" data-testid="policy-refused">
+                <span class="dcf__policy-label">{{ t('policy_refused_title') }}</span>
+                <ul class="dcf__policy-codes">
+                  <li v-for="code in policyEntry.reasons" :key="code" data-testid="policy-reason">{{ t('reason_' + code) }}</li>
+                </ul>
+              </div>
+            </template>
+            <template v-else-if="policyEntry">
+              <div class="dcf__policy-hint">{{ t('policy_value_hint') }}</div>
+              <div class="dcf__policy-figures">
+                <div class="dcf__policy-value" data-testid="policy-artifact-value">{{ moneyIn(stock.currency, policyEntry.value) }}</div>
+                <div v-if="policyBandText" class="dcf__policy-band" data-testid="policy-band">
+                  <span class="faint">{{ t('policy_band') }}</span> {{ policyBandText }}
+                </div>
+                <div class="dcf__policy-asof" data-testid="policy-asof">{{ t('policy_as_of', { asOf: policyEntry.asOf || '' }) }}</div>
+                <div v-if="policyMatched" class="dcf__policy-margin" data-testid="policy-margin">
+                  {{ t('margin_of_safety') }} {{ policyCurrentMargin === null ? 'n/a' : percent(policyCurrentMargin) }}
+                  <span class="faint">{{ t('policy_margin_current') }}</span>
+                </div>
+                <div v-else class="dcf__policy-provenance" data-testid="policy-provenance">
+                  {{ t('policy_provenance_other', { asOf: policyEntry.asOf || '', current: policyStockAsOf }) }}
+                </div>
+              </div>
+              <div v-if="policyEntry.warnings && policyEntry.warnings.length" class="dcf__policy-disclosures" data-testid="policy-warnings">
+                <span class="dcf__policy-label">{{ t('policy_warnings_title') }}</span>
+                <ul class="dcf__policy-codes">
+                  <li v-for="code in policyEntry.warnings" :key="code" data-testid="policy-warning">{{ t('warning_' + code) }}</li>
+                </ul>
+              </div>
+              <div v-if="policyEntry.reasons && policyEntry.reasons.length" class="dcf__policy-disclosures" data-testid="policy-reasons">
+                <ul class="dcf__policy-codes">
+                  <li v-for="code in policyEntry.reasons" :key="code" data-testid="policy-reason">{{ t('reason_' + code) }}</li>
+                </ul>
+              </div>
+            </template>
+            <div v-else class="dcf__policy-hint" data-testid="policy-not-in-universe">{{ t('policy_not_in_universe') }}</div>
+            <div class="dcf__policy-disc">
+              {{ t('disc_estimate') }}
+              <a href="#/method">{{ t('disc_policy_link') }}</a>
+            </div>
+          </div>
           <multiple-check-panel
             v-if="!loading"
             class="dcf__mcheck"
@@ -321,10 +367,10 @@
 <script setup>
 import { computed, reactive, ref, watch, onBeforeUnmount, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useQuasar } from 'quasar'
 import { useStockStore } from '../store/stock'
 import { useDcfStore } from '../store/dcf'
 import { useDataStateStore } from '../store/dataState'
+import { usePolicyStore } from '../store/policy'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
@@ -344,20 +390,18 @@ import MultipleCheckPanel from './MultipleCheckPanel.vue'
 import PeerComparePanel from './PeerComparePanel.vue'
 import { buildSensitivityGrid } from '../lib/sensitivity'
 import { peersFor } from '../lib/peers'
-import { decodeState, encodeModel, encodeState, isPresetEmpty } from '../lib/permalink'
 import { ERP_DEFAULT, buildUpRate } from '../lib/wacc'
 import { applyScenario } from '../lib/scenarios'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { providerLabel, registry } from '../data'
 import { pinProvider, pinnedProvider } from '../data/preferences'
 
 const { t } = useI18n()
-const $q = useQuasar()
 const stockStore = useStockStore()
 const dcfStore = useDcfStore()
 const sourceStore = useDataStateStore()
-const props = defineProps({ symbol: { type: String, default: '' }, preset: { type: Object, default: null } })
-const route = useRoute()
+const policyStore = usePolicyStore()
+const props = defineProps({ symbol: { type: String, default: '' } })
 const router = useRouter()
 const { moneyIn, display } = useMoney()
 
@@ -439,8 +483,52 @@ watch([() => result.fairValue, () => result.marginOfSafety], () => {
   }, 300)
 })
 const openPeer = (symbol) => router.push('/stock/' + symbol + '/dcf')
-// The seeded defaults are the yardstick for a share link: only moves travel in it.
+// The seeded defaults are the yardstick the calculator starts from.
 const seed = ref(null)
+
+// The published value block: the artifact is read-only and the screen never
+// recomputes it, so a displayed value is exactly the committed release. Price
+// only ever enters the margin of safety, and only for the matching snapshot.
+const policyArtifact = computed(() => policyStore.artifact)
+const policyEntry = computed(() => policyStore.entryOf(props.symbol))
+const policyStockAsOf = computed(() => String(stock.value?._as_of || ''))
+const policyMatched = computed(() => Boolean(policyEntry.value?.asOf && policyEntry.value.asOf === policyStockAsOf.value))
+const policyCurrentMargin = computed(() => {
+  const entry = policyEntry.value
+  const price = Number(result.stockPrice)
+  if (!entry || entry.status !== 'ok' || !Number.isFinite(price) || price <= 0 || !(entry.value > 0)) return null
+  return (1 - price / entry.value) * 100
+})
+const policyBandText = computed(() => {
+  const band = policyEntry.value?.band
+  if (!band || !Number.isFinite(Number(band.low)) || !Number.isFinite(Number(band.high))) return ''
+  return moneyIn(stock.value.currency, band.low) + ' – ' + moneyIn(stock.value.currency, band.high)
+})
+// "Base assumptions" only while every dial still equals the seeded defaults;
+// one move makes it a scenario. Price and the display currency are not dials.
+const policyAssumption = computed(() => {
+  if (!seed.value) return ''
+  const seeded = seed.value.dcfForm
+  const seededResult = seed.value.dcfResultForm
+  const same = (left, right) => {
+    const norm = (value) => (value === null || value === undefined || value === '' ? null : Number(value))
+    const a = norm(left)
+    const b = norm(right)
+    return a === b
+  }
+  const untouched = dcfBasedOn.value === 'eps' &&
+    model.value === suggested.value &&
+    result.addToFairValue === false &&
+    same(form.discountRate, seeded.discountRate) &&
+    same(form.growthRate, seeded.growthRate) &&
+    same(form.terminalGrowthRate, seeded.terminalGrowthRate) &&
+    same(form.years, seeded.years) &&
+    same(form.yearsOfTerminalGrowth, seeded.yearsOfTerminalGrowth) &&
+    same(form.eps, seeded.eps) &&
+    same(form.freecashflow, seeded.freecashflow) &&
+    same(result.tbv, seededResult.tbv)
+  return untouched ? 'seed' : 'scenario'
+})
 
 const initData = async () => {
   if (!isManual.value) await dcfStore.loadRates()
@@ -461,21 +549,9 @@ const initData = async () => {
     tbv: manual.tangibleBook !== '' ? Number(manual.tangibleBook) : defaults.dcfResultForm.tbv,
     stockPrice: manual.price !== '' ? manual.price : defaults.dcfResultForm.stockPrice,
   } : {})
-  // A shared link beats both the seed and the manual values: it is the reason
-  // the page was opened.
-  const preset = decodeState(props.preset || {})
-  if (!isManual.value) {
-    delete preset.form.eps
-    delete preset.form.freecashflow
-    delete preset.result.tbv
-  }
-  model.value = preset.model || suggested.value
-  if (!isPresetEmpty(preset)) {
-    if (preset.basis && !(preset.basis === 'freecashflow' && firmClaim.value)) dcfBasedOn.value = preset.basis
-    Object.assign(form, preset.form)
-    Object.assign(result, preset.result)
-    if (preset.tbvIn !== undefined) result.addToFairValue = preset.tbvIn
-  }
+  // The calculator always seeds from the public defaults. The pasted-link preset
+  // was removed together with the share surface (DEVIATIONS D37).
+  model.value = suggested.value
   if (!isManual.value) {
     if (stock.value.ttm_eps == null && stock.value.ttm_eps_nri == null) form.eps = null
     if (freecashflow.value == null) form.freecashflow = null
@@ -483,34 +559,6 @@ const initData = async () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null
   calculate()
-}
-
-// The router owns the hash, so resolve the route into a path and graft its hash
-// onto the current URL — that keeps the deployment base path intact.
-const shareUrl = () => {
-  const query = encodeState(form, result, dcfBasedOn.value, seed.value || {})
-  const modelKey = encodeModel(model.value, suggested.value)
-  if (modelKey) query.m = modelKey
-  if (!isManual.value) {
-    delete query.eps
-    delete query.fcf
-    delete query.tbv
-  }
-  const href = router.resolve({ path: route.path, query }).href
-  const hash = href.includes('#') ? href.slice(href.indexOf('#')) : '#' + href
-  const url = new URL(location.href)
-  url.hash = hash
-  return url.href
-}
-
-const copyShare = async () => {
-  const url = shareUrl()
-  try {
-    await navigator.clipboard.writeText(url)
-    $q.notify({ message: t('share_copied'), icon: 'link', color: 'positive', timeout: 1600 })
-  } catch {
-    $q.notify({ message: t('share_failed'), color: 'negative', timeout: 3000 })
-  }
 }
 
 const calculate = () => {
@@ -655,7 +703,7 @@ const stepGrowth = (delta) => {
 }
 const incGrowthRate = () => stepGrowth(1)
 const decGrowthRate = () => stepGrowth(-1)
-// D2: the original accepts any discount rate, so 0 or 80 produce -Infinity or
+// D2: the frozen kernel accepts any discount rate, so 0 or 80 produce -Infinity or
 // nonsense. Bound the input to 0-50; the kernel still sees the bounded number.
 const clampDiscount = () => {
   const next = clamp(form.discountRate, 0, 50)
@@ -718,6 +766,8 @@ watch(() => result.fairValue, () => {
 })
 watch(() => props.symbol, () => {
   inited.value = false
+  // Idempotent: a previous failed read gets one more chance on the next symbol.
+  policyStore.load()
 })
 
 // The stock payload arrives after the route resolves, and the calculator mounts
@@ -734,8 +784,40 @@ const boot = async () => {
   isLoading.value = false
 }
 
+onMounted(() => { policyStore.load() })
 onMounted(boot)
 // The page unmounts the calculator while a symbol change loads, so one boot per
 // instance is enough; this also covers a payload landing after mount.
 watch(hasStock, (value) => { if (value) boot() })
 </script>
+
+<style scoped>
+/* Public-policy value: a published release shown beside, never merged into, the
+   calculator's own result. Full width so it reads as a separate row below the
+   form/result grid (it must not become a direct .dcf__strip child). */
+.dcf__policy {
+  grid-column: 1 / -1;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.dcf__policy-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.dcf__policy-title { font-size: 15px; font-weight: 650; line-height: 1.4; color: var(--text); }
+.dcf__policy-hint { margin-top: 2px; }
+.dcf__policy-figures { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.dcf__policy-value { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--text); }
+.dcf__policy-band, .dcf__policy-asof { font-size: 13px; }
+.dcf__policy-margin { font-size: 15px; font-weight: 650; color: var(--text); }
+.dcf__policy-provenance { flex-basis: 100%; max-width: 60em; }
+.dcf__policy-disclosures { margin-top: 8px; }
+.dcf__policy-label { font-weight: 600; color: var(--text); }
+.dcf__policy-codes { margin: 2px 0 0; padding-left: 18px; }
+.dcf__policy-codes li { margin: 0; }
+.dcf__policy-disc { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.dcf__policy-disc a { color: var(--accent-strong); text-decoration: underline; }
+</style>

@@ -20,8 +20,8 @@ test('the skip link comes first and moves focus to the content', async ({ page }
 
 test('custom controls show a focus ring', async ({ page }) => {
   await page.keyboard.press('Tab')
-  await page.locator('.dcf__share-btn').evaluate((element) => element.focus())
-  const outline = await page.locator('.dcf__share-btn').evaluate((element) => getComputedStyle(element).outlineStyle)
+  await page.locator('.dcf__wacc-btn').evaluate((element) => element.focus())
+  const outline = await page.locator('.dcf__wacc-btn').evaluate((element) => getComputedStyle(element).outlineStyle)
   expect(outline).not.toBe('none')
 })
 

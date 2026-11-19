@@ -49,14 +49,6 @@ if (noteBox) {
     clip: { x: 80, y: noteBox.y - 96, width: 920, height: 168 },
   })
 }
-// The print view is what the print button produces: same page, print media.
-await p.setViewportSize({ width: 1000, height: 1000 })
-await p.evaluate(() => window.scrollTo(0, 0))
-await p.emulateMedia({ media: 'print' })
-await p.waitForTimeout(500)
-await p.screenshot({ path: 'docs/print.png', clip: { x: 0, y: 0, width: 1000, height: 940 } })
-await p.emulateMedia({ media: 'screen' })
-await p.setViewportSize({ width: 1440, height: 1100 })
 await p.goto('http://127.0.0.1:5173/#/about', { waitUntil: 'domcontentloaded' })
 await p.waitForTimeout(1200)
 await p.screenshot({ path: 'docs/about.png', fullPage: true })

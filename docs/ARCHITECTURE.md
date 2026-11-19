@@ -4,7 +4,7 @@
 
 ## 红线
 
-1. `src/lib/dcf.js` 的 `calGr2fv` 是逐行移植的闭式解，由 `tests/unit/kernel-parity.test.js` 锁住、不再改动；页面估值用同文件的 `presentValue` 与 `residualIncomeValue`。显示层只读它们的结果，不写回。
+1. `src/lib/dcf.js` 的 `calGr2fv` 是冻结的闭式解，由 `tests/unit/kernel-parity.test.js` 锁住、不再改动；页面估值用同文件的 `presentValue` 与 `residualIncomeValue`。显示层只读它们的结果，不写回。
 2. 任何用户可见的行为差异必须写进 `DEVIATIONS.md`，并带理由。
 3. 页面/组件可以在显示层格式化内核结果，但不得改写内核输出。测量同理（`lib/measure.js`）。
 
@@ -74,3 +74,37 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 - 关键 DOM 点带 `data-testid`（`dcf`、`dcf-result`、`field-discount`、`symbol-input`、`peers`、`data-banner`、`chart-panel`）。新 e2e 优先用 `tests/e2e/support/pages/` 的页面对象。
 - CSS class 仍用于视觉与既有测试；重命名 class 属于可见变更，要同步更新测试与 DEVIATIONS。
 - 门禁：`npm run lint`、`npm run test`、`npx playwright test`、`npm run smoke:pages`、`npm run rehearse:pages`、`npm run audit:contrast`，以及 `PW_BASE=1` 基路径用例。改 `src/lib/dcf.js` 时 `kernel-parity` 必须照旧通过。
+
+## 公开口径与发布值（v1）
+
+发布数字有一个独立于页面表单的口径层。页面只显示随数据提交的发布值，不为显示重算：
+
+| 模块 | 作用 |
+| --- | --- |
+| `src/lib/policy.js` | `POLICY_V1` / `POLICY_V1_HASH` / `policyValue()` / `policySummary()`：唯一口径，纯函数 |
+| `src/lib/stockRecord.js` | raw 快照 → 归一化 stock（`_as_of`、`financial_institution`、拆股清洗） |
+| `src/lib/reasons.js` | `REASON` / `WARNING` 码与稳定排序；UI 键约定 `reason_<CODE>` / `warning_<CODE>` |
+| `src/data/listingGroups.js` | 9 组 A/H 对照 |
+| `scripts/lib/policy-artifact.mjs` | 用 `policyValue()` 构建 artifact + manifest；写入与校验共用同一函数 |
+| `scripts/policy-values.mjs` / `scripts/verify-data.mjs` | `npm run intrinsic` / `npm run verify:data` |
+| `public/data/intrinsic/v1.json` | 唯一发布值（artifact）：entries、coverage、rates、crossListing |
+| `public/data/manifest.json` | universe/coverage/rates + 每个快照的 bytes/sha256 |
+| `src/api/policy.js` / `src/store/policy.js` | 读 artifact 的门面与响应式状态（fetch 一次、`entryOf(symbol)`） |
+| `src/pages/MethodPage.vue` | `#/method` 方法页：参数/代码表由 policy 常量生成，发布事实经 `api/policy` 读 artifact |
+| `src/i18n/legal-messages.js` | 拒绝/警告码、口径说明与免责文案；在 `main.js` 里后展开合并进 i18n |
+
+发布值数据流：
+
+1. `npm run snapshot` 写 `public/data/<MARKET>-<CODE>.json` 与 `public/data/rates.json`（本机运行，上游接口）。
+2. `npm run intrinsic` 在 Node 里读同一批文件，经 `toStock()` → `policyValue()` 写 artifact + manifest。
+3. 浏览器里 `api/policy` 读 artifact，`store/policy` 挂到页面；结果条/自选/对比只显示 artifact 的值、band、warning 与 asOf。
+4. `npm run verify:data` 用同一构建函数重算比对；不一致（含过期、universe 不符、manifest hash 不符）让门禁失败。
+
+规则：
+
+- `lib/policy.js` 保持纯函数，不 import 上层；页面/组件不得复制口径参数，也不得为显示另算一次发布值。
+- 改 `POLICY_V1` 必须同一次升 `POLICY_VERSION` + `POLICY_V1_HASH`，并重跑 `npm run intrinsic`、提交 artifact。
+- 方法页的参数表与代码表只从代码导出生成，不硬编码数字；政策升版自动跟随。
+- 数据字段与 artifact/manifest schema 的说明见 `docs/POLICY.md`。
+
+测试契约（数据与文案）：`tests/unit/policy.test.js`（hash、口径常量、seed 对齐）、`tests/unit/data-contract.test.js`（artifact/manifest/universe/rates/cross-listing）、`tests/unit/copy-policy.test.js`（zh/en 键集、reason/warning 键、禁用词、README 门禁链）。

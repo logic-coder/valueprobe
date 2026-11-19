@@ -26,8 +26,6 @@
       <dcf-tab
         v-else-if="isManual || stockStore.stock"
         :symbol="symbol"
-        :preset="route.query"
-        :preset-key="presetKey"
         @reload="reload"
       />
       <section v-if="tabReady && (isManual || stockStore.stock)" class="panel chart-panel">
@@ -63,9 +61,6 @@ const sourceStore = useDataStateStore()
 const embedded = computed(() => !route.params.symbol)
 const parsed = computed(() => parseSymbol(route.params.symbol || DEFAULT_SYMBOL))
 const symbol = computed(() => (parsed.value.ok ? parsed.value.symbol : DEFAULT_SYMBOL))
-// A pasted link remounts the calculator so the preset seeds it; plain typing never
-// touches the URL, so this stays inert during normal use.
-const presetKey = computed(() => JSON.stringify(route.query))
 
 const isManual = computed(() => sourceStore.stateOf(symbol.value) === 'manual')
 const settled = ref(false)

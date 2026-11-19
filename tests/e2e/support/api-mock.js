@@ -110,15 +110,16 @@ export async function mockApi (page, options = {}) {
   await page.route('**/em/**', eastmoneyHandler)
   await page.route('**://push2.eastmoney.com/**', eastmoneyHandler)
   await page.route('**://push2his.eastmoney.com/**', eastmoneyHandler)
-
-  await page.route('**://api.fiscaldata.treasury.gov/**', async (route) => {
-    if (state.fail) return route.fulfill({ status: 503, body: '{}' })
-    return route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ data: [{ avg_interest_rate_amt: '5.14', record_date: '2026-10-31', security_desc: 'Treasury Notes' }] }),
-    })
-  })
+  // The dev transport sends statements/history through the Vite proxy prefixes,
+  // which are not covered by the origin globs above. Without this, a "fail" run
+  // could still reach the real network and silently mark the symbol live, which
+  // made the stale/retry specs time-dependent.
+  const proxyHandler = async (route) => {
+    if (state.fail || state.down.has('eastmoney')) return route.fulfill({ status: 503, body: '{}' })
+    return route.continue()
+  }
+  await page.route('**/emf10/**', proxyHandler)
+  await page.route('**/emhis/**', proxyHandler)
 
   // SEC EDGAR: companyfacts for the US fundamentals fallback, without the network.
   const secHandler = async (route) => {

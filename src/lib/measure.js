@@ -5,7 +5,7 @@
 // the UI renders "n/a + why" instead of NaN. Bounded arithmetic declines
 // out-of-range paths; a decline is a reported reason, never a throw.
 //
-// Mirrors the reference engine's measurement contract (CALCULATION.md).
+// Contract (CALCULATION.md): a metric is either a number or null with a stable reason.
 import { div, mul } from './arith'
 
 export const ReturnMethod = Object.freeze({

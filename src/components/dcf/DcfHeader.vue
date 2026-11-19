@@ -4,9 +4,6 @@
     <q-space />
     <span class="faint dcf__head-hint">{{ t('assumptions_hint') }}</span>
     <div>
-      <q-btn flat dense class="dcf__share-btn" icon="link" :aria-label="t('share_link')" @click="emit('share')">
-        <q-tooltip>{{ t('share_link') }}</q-tooltip>
-      </q-btn>
       <q-btn flat class="text-primary" icon-right="more_vert" :aria-label="t('actions')">
         <q-menu fit auto-close>
           <q-list style="min-width: 100px">
@@ -37,6 +34,6 @@ defineProps({
   providers: { type: Array, default: () => [] },
   pinnedSource: { type: String, default: '' },
 })
-const emit = defineEmits(['share', 'reset', 'pin'])
+const emit = defineEmits(['reset', 'pin'])
 const { t } = useI18n()
 </script>

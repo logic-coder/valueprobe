@@ -1,4 +1,4 @@
-// Linear-regression helper used by the indicator chart (ported from the bundle).
+// Linear-regression helper used by the indicator chart.
 
 const DAYS_BEFORE_MONTH = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
 

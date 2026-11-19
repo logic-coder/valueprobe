@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { defaultDiscountRate, parseEastMoneyYields, rateForCurrency, yieldForStock } from '../../src/lib/riskFree'
+import fs from 'node:fs'
+import { defaultDiscountRate, FALLBACK_DISCOUNT_RATE, parseEastMoneyYields, rateForCurrency, yieldForStock } from '../../src/lib/riskFree'
 
 const rates = {
   USD: { value: 5.1, asOf: '2026-11-17', source: 'live' },
@@ -18,6 +19,21 @@ describe('defaultDiscountRate', () => {
     expect(defaultDiscountRate(0)).toBe(8)
     expect(defaultDiscountRate(undefined)).toBe(8)
     expect(defaultDiscountRate('')).toBe(8)
+  })
+
+  it('keeps the retired coupon file out of the bundle and the fallback at 8%', () => {
+    // Average outstanding coupon rates (5.14, 3.399) are not ten-year yields
+    // and were never a fallback. The orphan file must stay deleted.
+    const bundled = 'src/data/bundled'
+    expect(fs.existsSync(bundled + '/latest_indicator.json')).toBe(false)
+    expect(FALLBACK_DISCOUNT_RATE).toBe(8)
+    const rates = JSON.parse(fs.readFileSync(bundled + '/risk_free.json', 'utf8'))
+    for (const code of ['USD', 'CNY']) {
+      expect(rates[code].value).toBeGreaterThan(0)
+      expect(rates[code].tenor).toBe('10Y')
+    }
+    expect(rates.USD.value).not.toBe(5.14)
+    expect(rates.CNY.value).not.toBe(3.399)
   })
 })
 

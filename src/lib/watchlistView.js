@@ -1,36 +1,17 @@
-// One line of the watchlist's valuation overview. Display-only: it seeds and computes
-// exactly like the stock page's defaults would, and never writes back.
-import { buildDefaults, marginOfSafety, presentValue, residualIncomeValue } from './dcf'
-import { suggestedModel } from './valuationModel'
-import { parseAmount } from './format'
-
-const num = (value) => {
-  const parsed = parseAmount(value)
-  return Number.isFinite(parsed) ? parsed : null
-}
+// One line of the watchlist's valuation overview. Display-only: it calls the
+// same public-policy function as the stock page and the committed artifact, so
+// the three can never disagree about what a value means.
+import { policyValue } from './policy'
 
 /**
- * Default-assumption fair value and margin of safety for a quote+payload.
+ * Default-assumption intrinsic value and margin of safety for a quote+payload.
  * @param {object} stock stock payload
- * @param {number|null} indicator latest risk-free indicator, as the calculator takes it
- * @returns {{fairValue: number|null, mos: string|null}}
+ * @param {number|null} indicator local ten-year yield in percent, as the calculator takes it
+ * @returns {{fairValue: number|null, mos: number|null}}
  */
 export function defaultView (stock, indicator = null) {
-  const price = num(stock?.price)
-  if (price === null || price <= 0) return { fairValue: null, mos: null }
-  const defaults = buildDefaults(indicator, stock, num(stock.free_cash_flow_per_share) || 0)
-  const form = defaults.dcfForm
-  const result = defaults.dcfResultForm
-  if (form.growthRate == null || !Number.isFinite(Number(form.growthRate))) return { fairValue: null, mos: null }
-  let fair
-  try {
-    fair = suggestedModel(stock) === 'residual'
-      ? residualIncomeValue(num(result.tbv), form.eps, form.discountRate, form.growthRate, form.terminalGrowthRate)?.fairValue ?? null
-      : presentValue(num(result.tbv) ?? 0, form.years, form.discountRate, form.growthRate, form.eps,
-        form.terminalGrowthRate, form.yearsOfTerminalGrowth, false).fairValue
-  } catch {
-    return { fairValue: null, mos: null }
-  }
-  if (!Number.isFinite(fair) || fair <= 0) return { fairValue: null, mos: null }
-  return { fairValue: fair, mos: marginOfSafety(price, fair) }
+  if (!stock) return { fairValue: null, mos: null }
+  const value = policyValue(stock, { rate: indicator === undefined ? null : indicator })
+  if (value.status !== 'ok') return { fairValue: null, mos: null }
+  return { fairValue: value.value, mos: value.marginOfSafety }
 }

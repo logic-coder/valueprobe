@@ -23,6 +23,15 @@ const check = (name, ok, detail = '') => {
   if (!ok) failures.push(name)
 }
 const get = (url) => fetch(url, { redirect: 'manual' }).catch((error) => ({ error }))
+const getJson = async (url) => {
+  const response = await get(url)
+  const body = response.text ? await response.text() : ''
+  try {
+    return { status: response.status, body: JSON.parse(body) }
+  } catch {
+    return { status: response.status, body: null }
+  }
+}
 
 const waitFor = async (url, timeoutMs = 30000) => {
   const started = Date.now()
@@ -61,6 +70,18 @@ const snapshot = await get(BASE + 'data/SHSE-601398.json')
 const snapshotBody = snapshot.text ? await snapshot.text() : ''
 check('committed snapshot served', snapshot.status === 200, String(snapshot.status))
 check('snapshot carries as_of', /"as_of"/.test(snapshotBody))
+const intrinsic = await getJson(BASE + 'data/intrinsic/v1.json')
+check('intrinsic artifact served', intrinsic.status === 200, String(intrinsic.status))
+check('intrinsic artifact is public policy v1', intrinsic.body?.policyVersion === 'v1', String(intrinsic.body?.policyVersion))
+check('intrinsic artifact covers the public universe', Object.keys(intrinsic.body?.entries || {}).length === 150, String(Object.keys(intrinsic.body?.entries || {}).length))
+const dataManifest = await getJson(BASE + 'data/manifest.json')
+check('data manifest served', dataManifest.status === 200, String(dataManifest.status))
+check('manifest hash matches the artifact', Boolean(dataManifest.body?.policyHash) && dataManifest.body.policyHash === intrinsic.body?.policyHash)
+for (const name of ['HKSE-00002', 'HKSE-00066']) {
+  const listing = await getJson(BASE + 'data/' + name + '.json')
+  check(name + ' snapshot served', listing.status === 200, String(listing.status))
+  check(name + ' snapshot carries as_of', typeof listing.body?.as_of === 'string')
+}
 check('favicon served', (await get(BASE + 'favicon.svg')).status === 200)
 check('shell carries a noscript hint', /<noscript>/.test(html))
 const sw = await get(BASE + 'sw.js')

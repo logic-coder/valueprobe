@@ -5,7 +5,6 @@
         <span class="panel__title">{{ t('compare_title') }}</span>
         <span class="faint">{{ t('compare_lead') }}</span>
         <div class="cmp__tools">
-          <button v-if="rows.length" type="button" class="wl__tool" @click="copyLink">{{ t('compare_share') }}</button>
           <a v-if="store.symbols.length" class="wl__tool" href="#/watchlist">{{ t('watchlist') }}</a>
         </div>
       </div>
@@ -57,8 +56,11 @@
                   <span v-if="row.asOf" class="faint" :title="t('source_hint_snapshot')">{{ row.asOf }}</span>
                 </th>
                 <td>{{ row.price === null ? 'n/a' : moneyIn(row.currency, row.price) }}</td>
-                <td>{{ row.fairValue === null ? 'n/a' : moneyIn(row.currency, row.fairValue) }}</td>
-                <td>
+                <td :title="row.policyNote || null">
+                  {{ row.fairValue === null ? 'n/a' : moneyIn(row.currency, row.fairValue) }}
+                  <span v-if="row.policyNote" class="sr-only">{{ row.policyNote }}</span>
+                </td>
+                <td :title="row.policyNote || null">
                   <span :class="{ 'cmp__best': row.symbol === best }">{{ row.mos === null ? 'n/a' : row.mos + '%' }}</span>
                 </td>
                 <td>{{ row.pe === null ? 'n/a' : row.pe.toFixed(1) + '×' }}</td>
@@ -87,6 +89,7 @@ import { defaultView } from '../lib/watchlistView'
 import { yieldForStock } from '../lib/riskFree'
 import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
+import { usePolicyStore } from '../store/policy'
 import { useMoney } from '../composables/useMoney'
 
 const { t } = useI18n()
@@ -95,6 +98,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useWatchlistStore()
 const compare = useCompareStore()
+const policy = usePolicyStore()
 const { moneyIn } = useMoney()
 const draft = ref('')
 const retrying = ref(false)
@@ -110,19 +114,38 @@ const retry = async () => {
   retrying.value = false
 }
 
+const reasonText = (entry) => (entry?.reasons || []).map((code) => t('reason_' + code)).join('；')
+
+// Same rule as the watchlist: the published artifact replaces the page's own
+// estimate only when it was built from the snapshot this row is showing.
+const publishedView = (row) => {
+  const entry = policy.entryOf(row.symbol)
+  if (!entry || !row.asOf || entry.asOf !== row.asOf) return null
+  if (entry.status !== 'ok') return { fairValue: null, mos: null, policyNote: reasonText(entry) }
+  const price = Number(row.price)
+  const mos = Number.isFinite(price) && price > 0 && entry.value > 0 ? ((1 - price / entry.value) * 100).toFixed(2) : null
+  return { fairValue: entry.value, mos, policyNote: '' }
+}
+
 const load = async () => {
   const list = symbols.value
   if (!list.length) {
     rawRows.value = []
     return
   }
-  const [rates, settled] = await Promise.all([
+  const [rates, , settled] = await Promise.all([
     api.getRiskFreeRates().catch(() => ({})),
+    policy.load(),
     Promise.allSettled(list.map((symbol) => api.getStock(symbol))),
   ])
-  rawRows.value = settled.map((item, index) => (item.status === 'fulfilled' && item.value
-    ? { ...peerRow(item.value, list[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
-    : { symbol: list[index], name: list[index], price: null, pe: null, pb: null, currency: '¥', asOf: null, fairValue: null, mos: null }))
+  rawRows.value = settled.map((item, index) => {
+    if (!(item.status === 'fulfilled' && item.value)) {
+      return { symbol: list[index], name: list[index], price: null, pe: null, pb: null, currency: '¥', asOf: null, fairValue: null, mos: null }
+    }
+    const row = { ...peerRow(item.value, list[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
+    const published = publishedView(row)
+    return published ? { ...row, ...published } : row
+  })
 }
 
 const apply = (list) => {
@@ -144,16 +167,6 @@ const add = () => {
   apply(next)
 }
 const remove = (symbol) => apply(symbols.value.filter((item) => item !== symbol))
-
-// The URL is the whole shareable state already; copying it saves the address-bar step.
-const copyLink = async () => {
-  try {
-    await navigator.clipboard.writeText(location.href)
-    $q.notify({ message: t('compare_copied'), icon: 'link', color: 'positive', timeout: 1600 })
-  } catch (error) {
-    $q.notify({ message: t('share_failed'), color: 'negative', timeout: 3000 })
-  }
-}
 
 watch(symbols, (list) => {
   // A bare /compare (or a hash edit) picks the queue back up instead of starting empty.

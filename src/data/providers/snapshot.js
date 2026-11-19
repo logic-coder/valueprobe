@@ -5,26 +5,10 @@ import axios from 'axios'
 import { parseSymbol } from '../../config/markets'
 import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
-import { cleanGrowth } from '../../lib/assumptions'
-import { isFinancialInstitution } from '../../lib/financialInstitution'
+import { POLICY_V1 } from '../../lib/policy'
+import { toStock } from '../../lib/stockRecord'
 
 const http = axios.create({ timeout: 15_000 })
-
-/** One slot per fiscal year, oldest first, null where the year is missing. */
-function yearSeries (annual, field) {
-  const byYear = new Map()
-  for (const row of annual) {
-    const year = Number(String(row?.date || '').slice(0, 4))
-    if (Number.isInteger(year) && year > 0) byYear.set(year, row[field])
-  }
-  if (!byYear.size) return { firstYear: null, values: [] }
-  const years = [...byYear.keys()]
-  const firstYear = Math.min(...years)
-  const values = []
-  for (let year = firstYear; year <= Math.max(...years); year++) values.push(byYear.get(year) ?? null)
-  return { firstYear, values }
-}
-
 
 /** East Money DPS_HKD is a current figure copied onto every HK history row. */
 export function dropCopiedDividends (data) {
@@ -50,37 +34,6 @@ export function dropCopiedDividends (data) {
   return data
 }
 
-/**
- * The stored 10y CAGR can span a share split (GOOGL: pre-split 27.85 against
- * post-split 10.81). When the annual series shows such a level shift, the stored
- * rate is replaced by the rate over the clean suffix only, or by missing when
- * that suffix is too short. A series without a shift keeps the stored rate.
- */
-export function applyCleanGrowth (stock, annual) {
-  if (!Array.isArray(annual) || !annual.length) return stock
-  const window = {}
-  const fields = [['eps', 'eps_without_nri', 'earning_growth_10y']]
-  // A bank's operating cash flow is not a shareholder cash flow; its growth stays out.
-  if (stock.cashflow_basis !== 'ocf') fields.push(['fcf', 'free_cash_flow_per_share', 'cashflow_growth_10y'])
-  // Revenue per share is restated across splits in the same rows.
-  const revenue = yearSeries(annual, 'revenue_per_share').values
-  for (const [key, rowField, growthField] of fields) {
-    const stored = stock[growthField]
-    if (stored === null || stored === undefined || stored === '') continue
-    const { firstYear, values } = yearSeries(annual, rowField)
-    const clean = cleanGrowth(values, revenue)
-    if (!clean?.shifted) continue
-    if (clean.rate == null) {
-      stock[growthField] = null
-      stock.growth_refused = { ...(stock.growth_refused || {}), [key]: 'short' }
-      continue
-    }
-    stock[growthField] = clean.rate
-    window[key] = { from: firstYear + clean.start, to: firstYear + clean.end }
-  }
-  if (Object.keys(window).length) stock.growth_window = window
-  return stock
-}
 const BASE = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
 export const SNAPSHOT_DIR = BASE + '/data/'
 export const snapshotPath = (symbol) => {
@@ -99,8 +52,9 @@ export const snapshot = {
   capabilities: { stock: true, quote: true, profile: true, history: true, financials: true },
   coverage: Coverage.global(),
   rateLimit: { requestsPerMinute: 60, burst: 10 },
-  // Committed quarterly files: a month of slack on top of the quarter.
-  maxQuoteAgeMs: 200 * 24 * 3600e3,
+  // The runtime window follows the policy's fundamentals staleness, so a file the
+  // data gate would reject is not silently accepted as a quote either.
+  maxQuoteAgeMs: POLICY_V1.staleness.fundamentalsDays * 24 * 3600e3,
 
   async load (symbol) {
     const { data } = await http.get(snapshotPath(symbol))
@@ -113,15 +67,11 @@ export const snapshot = {
   async fetchStock (symbol) {
     const { market, code } = parseSymbol(symbol)
     const data = await this.load(symbol)
-    const stock = { ...data }
-    applyCleanGrowth(stock, data.financials?.annual)
-    delete stock.history
-    delete stock.financials
-    stock.exchange_ = market
-    if (isFinancialInstitution(stock, data.financials?.annual)) stock.financial_institution = true
+    // One cleaning path for the provider, the tests and the offline build.
+    const stock = toStock(data)
+    stock.exchange_ = stock.exchange_ || market
     stock.symbol = stock.symbol || code
     stock._provider = 'snapshot'
-    stock._as_of = data.as_of || null
     return stock
   },
 

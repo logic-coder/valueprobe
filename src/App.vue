@@ -56,9 +56,6 @@
             :aria-label="t('display_currency')"
             @update:model-value="display.setCurrency"
           />
-          <button v-if="currentSymbol || route.name === 'compare'" class="icon-button print-button" type="button" :aria-label="t('print_view')" :title="t('print_view')" @click="printView">
-            <q-icon name="print" size="17px" />
-          </button>
           <button class="icon-button theme-button" type="button" :aria-label="theme === 'dark' ? t('theme_to_light') : t('theme_to_dark')" @click="toggleTheme">
             <q-icon :name="theme === 'dark' ? 'light_mode' : 'dark_mode'" size="17px" />
           </button>
@@ -133,6 +130,7 @@
         <span class="muted">{{ t('footer_note') }}</span>
         <a :href="repoUrl" target="_blank" rel="noreferrer">GitHub</a>
         <a :href="issuesUrl" target="_blank" rel="noreferrer">{{ t('footer_issues') }}</a>
+        <a href="#/method">{{ t('footer_method') }}</a>
         <a href="#/about">{{ t('footer_about') }}</a>
         <a href="#/about">MIT</a>
       </div>
@@ -175,7 +173,6 @@ const toggleWatch = () => watchlist.toggle(currentSymbol.value)
 const comparing = computed(() => Boolean(currentSymbol.value) && compare.symbols.includes(currentSymbol.value))
 const toggleCompare = () => compare.toggle(currentSymbol.value)
 const compareHref = computed(() => '#/compare' + (compare.symbols.length ? '?s=' + compare.symbols.join(',') : ''))
-const printView = () => window.print()
 // A short datalist: typing "600519" or picking a name beats remembering the EXCHANGE:CODE
 // format, and it costs no request.
 const BUILTIN_SUGGESTIONS = [
@@ -185,7 +182,7 @@ const BUILTIN_SUGGESTIONS = [
   { symbol: 'NASDAQ:AAPL', name: '苹果' },
 ]
 // Per-route document titles: a stock page names the company, other pages name themselves.
-const ROUTE_TITLES = { home: 'home_title', watchlist: 'watchlist', compare: 'compare_title', about: 'about_title' }
+const ROUTE_TITLES = { home: 'home_title', watchlist: 'watchlist', compare: 'compare_title', about: 'about_title', method: 'method_title' }
 // "/" focuses the lookup, the way search-first sites do; fields keep their own keys.
 const searchInput = ref(null)
 const isTyping = (target) => target instanceof HTMLElement

@@ -1,5 +1,5 @@
 // Errors a data source can raise, each carrying how the registry should react.
-// Mirrors the retry taxonomy of the reference framework (DATA_SOURCES.md).
+// Retry taxonomy (DATA_SOURCES.md): each error names which source to try next.
 
 export const RetryClass = {
   /** Bad symbol or validation failure: another provider cannot help. */

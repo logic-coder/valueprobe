@@ -93,7 +93,7 @@ test('the header price is the working price', async ({ page }) => {
 test('switches the interface language', async ({ page }) => {
   await page.locator('.header-actions a', { hasText: 'EN' }).click()
   await page.waitForTimeout(500)
-  await expect(page.locator('h3:has-text("Fair Value")')).toBeVisible()
+  await expect(page.locator('h3:has-text("Intrinsic value")')).toBeVisible()
   // Banner copy, panel titles and the About page are translated too.
   await expect(page.locator('.dcf__head-hint')).toHaveText('every field recalculates live')
   await expect(page.locator('.dcf__form')).toContainText('quarterly snapshot')
@@ -108,7 +108,7 @@ test('switches the interface language', async ({ page }) => {
   await expect(page.locator('h3:has-text("内在价值")')).toBeVisible()
 })
 
-test('keeps the original card row order', async ({ page }) => {
+test('keeps the card rows in a fixed order', async ({ page }) => {
   const order = await page.evaluate(() => {
     const rows = [...document.querySelectorAll('.dcf__strip > div, .dcf__form > div')]
     return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
@@ -199,29 +199,13 @@ test('cross-checks the price against peer multiples', async ({ page }) => {
   await expect(pe.locator('td').nth(3)).toContainText('%')
 })
 
-test('restores the assumptions from a shared link', async ({ page }) => {
+test('has no share surface and ignores valuation query parameters', async ({ page }) => {
+  // Share links were removed with the share/print surfaces (DEVIATIONS D37), so
+  // old query strings no longer seed the form; the page opens on its own defaults.
   await page.goto('/#/stock/SHSE:601398/dcf?r=15&g=7&tbv1=1')
-  await expect(page.locator('.input-section').first()).toHaveValue('15', { timeout: 20000 })
-  await expect(page.locator('.input-section').nth(2)).toHaveValue('7')
-  await expect(page.locator(FAIR)).toContainText('9.05')
-})
-
-test('ignores junk parameters in a shared link', async ({ page }) => {
-  await page.goto('/#/stock/SHSE:601398/dcf?r=abc&y=-3&b=fcf')
   await expect(page.locator('.input-section').first()).toHaveValue('8', { timeout: 20000 })
-  await expect(page.locator('.input-section').nth(1)).toHaveValue('0')
-})
-
-test('copies a link that replays the current assumptions', async ({ page, context }) => {
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-  await page.locator('.input-section').first().fill('15')
-  await page.waitForTimeout(300)
-  await page.locator('.dcf__share-btn').click()
-  await expect(page.locator('.q-notification')).toContainText('链接已复制')
-  const copied = await page.evaluate(() => navigator.clipboard.readText())
-  expect(copied).toContain('r=15')
-  await page.goto(copied)
-  await expect(page.locator('.input-section').first()).toHaveValue('15', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('11.99')
+  await expect(page.locator('.dcf__share-btn')).toHaveCount(0)
 })
 
 test('does not ask a quote host for peers that have no local file', async ({ page }) => {

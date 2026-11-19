@@ -45,20 +45,16 @@ test('retry returns to live', async ({ page }) => {
 })
 
 test('manual mode stops fetching and keeps the numbers editable', async ({ page }) => {
+  // Seed the manual state before the app boots. Writing it after a live load and
+  // reloading raced the in-flight request, which could mark the symbol live again
+  // and flip the banner between those two steps.
+  await page.addInitScript(() => {
+    localStorage.setItem('fv-source-state', JSON.stringify({
+      'SHSE:601398': { state: 'manual', source: 'manual', dataAt: Date.now() },
+    }))
+  })
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.99', { timeout: 20000 })
-  await page.locator('.banner-link').first().isVisible().catch(() => {})
-  await page.evaluate(() => {})
-  await page.locator('.q-card .q-btn:has-text("more_vert")').first().waitFor()
-  // switch to manual through the stale banner requires a stale state; use the data-state store directly
-  await page.evaluate(() => {
-    const raw = localStorage.getItem('fv-source-state') || '{}'
-    const state = JSON.parse(raw)
-    state['SHSE:601398'] = { state: 'manual', source: 'manual', dataAt: Date.now() }
-    localStorage.setItem('fv-source-state', JSON.stringify(state))
-  })
-  await page.reload()
   await expect(page.locator('.data-banner--manual')).toBeVisible({ timeout: 20000 })
   await expect(page.locator('.data-banner')).toContainText('手动模式')
   const before = await page.locator('.input-section').first().inputValue()

@@ -156,7 +156,7 @@ main:focus { outline: none; }
   /* Search gets the second row so the field stays readable; taps stay 40px. */
   .site-header__inner { flex-wrap: wrap; height: auto; padding: 8px 0 10px; row-gap: 8px; }
   .header-actions { margin-left: auto; gap: 4px; }
-  .header-actions .locale-link, .header-actions .print-button { display: none; }
+  .header-actions .locale-link { display: none; }
   .symbol-search { order: 3; flex: 1 1 100%; min-width: 0; margin: 0; }
   .symbol-search .q-field__control { height: 40px; }
   .header-link, .icon-button { min-width: 40px; height: 40px; }

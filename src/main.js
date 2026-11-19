@@ -12,6 +12,7 @@ import 'quasar/dist/quasar.css'
 import App from './App.vue'
 import router from './router'
 import zhHans from './i18n/zh-Hans.json'
+import legalMessages from './i18n/legal-messages'
 import { readStored } from './lib/storage'
 import enUS from './i18n/en-US.json'
 import '@fontsource/source-sans-3/latin-400.css'
@@ -22,7 +23,6 @@ import './styles/theme.css'
 import './styles/dcf.css'
 import './styles/app-shell.css'
 import './styles/components.css'
-import './styles/print.css'
 
 // First visit follows the browser language; an explicit switch is remembered after that.
 const fallbackLocale = /^zh/i.test(navigator.language || '') ? 'zh-hans' : 'en-us'
@@ -33,7 +33,12 @@ const i18n = createI18n({
   legacy: false,
   locale: savedLocale,
   fallbackLocale: 'zh-hans',
-  messages: { 'zh-hans': zhHans, 'en-us': enUS },
+  // Legal copy is merged last so one module owns the caveats that travel with a
+  // published value; it only adds keys, it never overwrites a product string.
+  messages: {
+    'zh-hans': { ...zhHans, ...legalMessages['zh-hans'] },
+    'en-us': { ...enUS, ...legalMessages['en-us'] },
+  },
 })
 
 const components = {

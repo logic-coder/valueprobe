@@ -11,7 +11,7 @@ const LEVEL_SHIFT_RATIO = 0.4
 // A restated same-year series (revenue per share) that fell by more than a
 // quarter says the business shrank; the earnings cliff is then not a unit break.
 const COMPANION_FLOOR = 0.75
-const MIN_CLEAN_YEARS = 4
+export const MIN_CLEAN_YEARS = 4
 const MAX_GROWTH_YEARS = 10
 
 /**

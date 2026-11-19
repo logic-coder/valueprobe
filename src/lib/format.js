@@ -1,5 +1,5 @@
-// Display-layer helpers only. The DCF kernel (lib/dcf.js) is a byte-faithful port
-// and keeps its raw numbers, including the ±Infinity / NaN the original produces.
+// Display-layer helpers only. The DCF kernel (lib/dcf.js) is frozen and keeps its raw
+// numbers, including the ±Infinity / NaN it can produce.
 // Everything here is about rendering those honestly (see DEVIATIONS.md D1-D5).
 
 export const isNum = (value) => value !== null && value !== '' && Number.isFinite(Number(value))

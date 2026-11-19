@@ -1,88 +1,134 @@
-import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { cleanGrowth } from '../../src/lib/assumptions'
-import { buildDefaults, marginOfSafety, presentValue } from '../../src/lib/dcf'
-import { suggestedModel } from '../../src/lib/valuationModel'
+import { resolve } from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyValue } from '../../src/lib/policy'
+import { REASON, WARNING } from '../../src/lib/reasons'
+import { toStock } from '../../src/lib/stockRecord'
 
-// Real-company regression over the committed snapshots the published site reads.
-// Unit fixtures prove the kernel on synthetic shapes; this proves the shipped
-// files still carry the facts those shapes stand for. Assertions target stable
-// structure (a split is recognized, a real downturn survives, a loss leaves
-// growth empty), never a price or a value that `npm run snapshot` will move.
+// Real-company regression for public policy v1: the committed snapshots the
+// published site reads go through the same cleaning and valuation path as the
+// artifact and must still carry the facts the public method rests on. Assertions
+// target the published result (status, model, disclosed rate row) and the raw
+// history a reviewer can check; no rate is invented and nothing touches the
+// network. A policy version bump is expected to update this file together with
+// the artifact golden.
+const root = process.cwd()
+const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
+const artifact = readJson('public/data/intrinsic/v1.json')
+// The artifact stores exactly the rows the published values used, including the
+// HKD -> USD proxy, so a recompute cannot silently use a different rate.
+const rates = artifact.rates
+const snapshotOf = (symbol) => readJson('public/data/' + symbol.replace(':', '-') + '.json')
+const stockOf = (symbol) => toStock(snapshotOf(symbol))
+const valueOf = (symbol) => policyValue(stockOf(symbol), { rates, generatedAt: artifact.generatedAt })
+const published = (symbol) => artifact.entries[symbol]
 
-const load = (file) => JSON.parse(readFileSync('public/data/' + file + '.json', 'utf8'))
-const annual = (stock) => stock.financials?.annual || []
-const field = (stock, key) => annual(stock).map((row) => row[key])
-
-describe('split handling survives in the shipped data', () => {
-  const cases = [
-    ['NASDAQ-AAPL', 'Apple 4-for-1 in 2020'],
-    ['NASDAQ-NVDA', 'NVIDIA 4-for-1 2021 and 10-for-1 2024'],
-    ['NASDAQ-INTU', 'Intuit split history'],
-  ]
-  for (const [file, label] of cases) {
-    it(file + ' — ' + label, () => {
-      const stock = load(file)
-      const eps = field(stock, 'eps_without_nri')
-      const revenue = field(stock, 'revenue_per_share')
-      expect(eps.length).toBeGreaterThanOrEqual(6)
-      // A recognized level shift yields a positive clean window, not a negative
-      // CAGR computed across the un-restated split boundary.
-      const clean = cleanGrowth(eps, revenue)
-      expect(clean).not.toBeNull()
-      expect(clean.rate).toBeGreaterThan(0)
-      expect(stock.earning_growth_10y).toBeGreaterThan(0)
-    })
-  }
-})
-
-describe('20-F / IFRS company keeps a computable valuation', () => {
-  it('NYSE-TSM has per-share facts and a finite fair value', () => {
-    const stock = load('NYSE-TSM')
-    expect(stock.ttm_eps).toBeGreaterThan(0)
-    expect(stock.tangible_book).toBeGreaterThan(0)
-    expect(stock.earning_growth_10y).toBeGreaterThan(0)
-    expect(suggestedModel(stock)).toBe('owner')
-    const d = buildDefaults(4.2, stock, stock.free_cash_flow_per_share)
-    const value = presentValue(
-      d.dcfResultForm.tbv, d.dcfForm.years, d.dcfForm.discountRate,
-      d.dcfForm.growthRate, d.dcfForm.eps, d.dcfForm.terminalGrowthRate,
-      d.dcfForm.yearsOfTerminalGrowth, false,
-    )
-    expect(Number.isFinite(value.fairValue)).toBe(true)
-    expect(value.fairValue).toBeGreaterThan(0)
-    expect(Number(marginOfSafety(Number(String(stock.price).replace(/[^\d.]/g, '')), value.fairValue))).toBeLessThan(Infinity)
+describe('public policy v1 regression runs on the committed artifact', () => {
+  it('is written for the version and hash that produced the artifact', () => {
+    expect(artifact.policyVersion).toBe(POLICY_VERSION)
+    expect(artifact.policyHash).toBe(POLICY_V1_HASH)
   })
 })
 
-describe('Hong Kong dividends are never a repeated constant', () => {
-  // The Eastmoney feed repeats one current DPS on every row, which is not a
-  // history. The parser deliberately stores null; constant series are a bug.
-  const files = ['HKSE-00700', 'HKSE-00941', 'HKSE-01810']
-  for (const file of files) {
-    it(file + ' has no constant dividend column', () => {
-      const values = field(load(file), 'dividends_per_share').filter((v) => v != null)
-      if (values.length < 2) return // all-null is the expected shape
-      expect(new Set(values).size).toBeGreaterThan(1)
+describe('SHSE:601398 - residual income on a real bank', () => {
+  it('publishes the public v1 value around 11.86 on the residual model', () => {
+    const value = valueOf('SHSE:601398')
+    expect(value.status).toBe('ok')
+    expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
+    // Public policy v1 golden for ICBC: update only with a policy version bump.
+    expect(value.value).toBeCloseTo(11.86, 2)
+    expect(value.value).toBe(published('SHSE:601398').value)
+    expect(value.inputs.rate.proxy).toBeNull()
+    expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.CNY.value))
+  })
+})
+
+describe('US listings keep a published value', () => {
+  for (const symbol of ['NASDAQ:AAPL', 'NASDAQ:NVDA', 'NYSE:TSM']) {
+    it(symbol + ' publishes a finite value in USD', () => {
+      const value = valueOf(symbol)
+      expect(value.status).toBe('ok')
+      expect(Number.isFinite(value.value)).toBe(true)
+      expect(value.value).toBeGreaterThan(0)
+      expect(value.value).toBe(published(symbol).value)
+      expect(value.inputs.currency).toBe('USD')
+      expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.USD.value))
     })
   }
 })
 
-describe('a real fiscal-year downturn is preserved', () => {
-  it('NASDAQ-NVDA keeps FY2023 EPS at the restated 0.17', () => {
-    const row = annual(load('NASDAQ-NVDA')).find((r) => r.date === '2023-12')
+describe('refusals name the missing fact instead of inventing one', () => {
+  it('NASDAQ:INTC is refused for non-positive EPS and no historical growth', () => {
+    const value = valueOf('NASDAQ:INTC')
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
+    expect(value.reasons).toContain(REASON.NON_POSITIVE_EPS)
+    expect(value.reasons).toContain(REASON.NO_GROWTH)
+    expect(value.reasons).toEqual(published('NASDAQ:INTC').reasons)
+  })
+
+  it('NYSE:V is refused when EPS is missing', () => {
+    const value = valueOf('NYSE:V')
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
+    expect(value.reasons).toContain(REASON.NO_EPS)
+    expect(value.reasons).toEqual(published('NYSE:V').reasons)
+  })
+})
+
+describe('HKSE listings value in HKD with the disclosed USD proxy', () => {
+  for (const symbol of ['HKSE:00002', 'HKSE:00066']) {
+    it(symbol + ' publishes a finite value', () => {
+      const value = valueOf(symbol)
+      expect(value.status).toBe('ok')
+      expect(Number.isFinite(value.value)).toBe(true)
+      expect(value.value).toBeGreaterThan(0)
+      expect(value.value).toBe(published(symbol).value)
+      expect(value.inputs.currency).toBe('HKD')
+      expect(value.inputs.rate.proxy).toBe('USD')
+      expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.USD.value))
+    })
+  }
+})
+
+describe('a negative growth history is published with a warning, never refused', () => {
+  it('keeps a valued company whose adopted growth is negative', () => {
+    const candidates = Object.keys(artifact.entries).filter((symbol) =>
+      artifact.entries[symbol].status === 'ok' && artifact.entries[symbol].warnings.includes(WARNING.NEGATIVE_HISTORY_GROWTH))
+    expect(candidates.length).toBeGreaterThan(0)
+    const symbol = candidates[0]
+    const value = valueOf(symbol)
+    expect(value.status).toBe('ok')
+    expect(value.value).toBeGreaterThan(0)
+    expect(value.inputs.growth).toBeLessThan(0)
+    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
+    expect(value.value).toBe(published(symbol).value)
+  })
+})
+
+describe('Hong Kong dividends stay empty rather than repeating one current payout', () => {
+  it('stores null dividends_per_share on every HKSE annual row', () => {
+    const symbols = Object.keys(artifact.entries).filter((symbol) => symbol.startsWith('HKSE:'))
+    expect(symbols.length).toBeGreaterThan(0)
+    for (const symbol of symbols) {
+      const annual = snapshotOf(symbol).financials?.annual || []
+      expect(annual.length).toBeGreaterThan(0)
+      for (const row of annual) expect(row.dividends_per_share).toBeNull()
+    }
+  })
+})
+
+describe('raw history facts survive the cleaning path', () => {
+  it('NASDAQ:NVDA keeps FY2023 EPS at the restated 0.17', () => {
+    const row = snapshotOf('NASDAQ:NVDA').financials.annual.find((item) => item.date === '2023-12')
     expect(row).toBeDefined()
     expect(row.eps_without_nri).toBeCloseTo(0.17, 4)
-    expect(row.operating_income_per_share).toBeGreaterThan(0) // real year, not a tagging hole
+    expect(row.operating_income_per_share).toBeGreaterThan(0) // a real year, not a tagging hole
   })
-})
 
-describe('a latest-year loss leaves growth empty', () => {
-  it('NASDAQ-INTC has negative EPS and no adopted growth', () => {
-    const stock = load('NASDAQ-INTC')
-    expect(stock.ttm_eps).toBeLessThan(0)
-    expect(stock.earning_growth_10y).toBeNull()
-    expect(stock.earning_growth_5y).toBeNull()
-    expect(stock.earning_growth_1y).toBeNull()
+  it('NASDAQ:AAPL keeps FY2017 EPS at 2.3025', () => {
+    const row = snapshotOf('NASDAQ:AAPL').financials.annual.find((item) => item.date === '2017-12')
+    expect(row).toBeDefined()
+    expect(row.eps_without_nri).toBeCloseTo(2.3025, 4)
   })
 })

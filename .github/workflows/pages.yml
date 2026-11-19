@@ -31,6 +31,8 @@ jobs:
       - run: npm run test
       - name: Real-company regression on committed snapshots
         run: npm run test:real
+      - name: Data gate (artifact, manifest, snapshots)
+        run: npm run verify:data
 
       # Browser suites are slow and need a Chromium download. They gate PRs,
       # not every data snapshot pushed to main.

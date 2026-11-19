@@ -11,23 +11,24 @@
 | 最长单文件 `DcfCalculator.vue` | 864 行 | 结果条、情景、WACC 对话框已拆到 `components/dcf/` |
 | 测试 | 38 个单测、18 个 e2e、3,000 行 | 契约多，改 UI 前必须读测试 |
 | e2e 选择器 | 409 处裸 `page.locator`，无页面对象 | 改 class 要全局搜测试 |
-| 必读文档 | README、DESIGN、DEVIATIONS（14 KB）、DATA_SOURCES、CALCULATION、ARCHITECTURE 等 8 份 | 关键规则不在代码里 |
+| 必读文档 | README、DESIGN、DEVIATIONS（14 KB）、DATA_SOURCES、CALCULATION、ARCHITECTURE、docs/POLICY.md 等 9 份 | 关键规则不在代码里 |
 | 词义冲突 | "source" 至少 4 义，"state" 3 义，"cloud/snapshot/fixture/view" 各 2 义 | 命名无法自解释 |
 
-用户可感知的规则（内核逐行移植、只改显示边界、行为差异必须记 DEVIATIONS）**只存在于文档**；代码里没有分层检查，任何组件都能直接 import 数据注册表或 `localStorage`。
+用户可感知的规则（内核冻结、只改显示边界、行为差异必须记 DEVIATIONS）**只存在于文档**；代码里没有分层检查，任何组件都能直接 import 数据注册表或 `localStorage`。
 
 ## 2. 阅读顺序（按天）
 
 | 时间 | 读什么 | 目的 |
 | --- | --- | --- |
 | 0.5 天 | README、DESIGN、CONTRIBUTING、DEVIATIONS 开头 | 产品定位与红线 |
+| 0.5 天 | `docs/POLICY.md`、`public/data/intrinsic/v1.json`、`public/data/manifest.json`、`scripts/lib/policy-artifact.mjs` | 发布口径、artifact 生成与校验 |
 | 0.5 天 | `src/main.js`、`src/router`、`src/App.vue`、`src/config/markets.js` | 启动、路由、壳层 |
 | 1 天 | `src/pages/*`、`src/components/*`、对应 e2e | 页面行为与测试契约 |
 | 1 天 | `src/lib/dcf.js`、CALCULATION、`lib/measure.js` | 内核与测量边界 |
 | 2–3 天 | `src/data/*`、DATA_SOURCES、`ATTRIBUTION` | 数据层、CORS 与降级 |
 | 可选 1 天 | DEVIATIONS 全文 | 行为差异依据 |
 
-之后仍需要：改显示层时逐页对照 e2e；改数据层时逐条对照 `DATA_SOURCES.md`；动 `src/lib/dcf.js` 要先让 `kernel-parity` 照旧通过。
+之后仍需要：改显示层时逐页对照 e2e；改数据层时逐条对照 `DATA_SOURCES.md`；动 `src/lib/dcf.js` 要先让 `kernel-parity` 照旧通过；动发布口径时先读 `docs/POLICY.md`，改完跑 `npm run intrinsic` 并把 artifact/manifest 一起提交，再让 `npm run verify:data` 通过。
 
 ## 3. 发现（按认知成本排序）
 
@@ -35,10 +36,10 @@
 
 当前 [864 行](src/components/DcfCalculator.vue)。结果条、情景条、WACC 对话框已在 `src/components/dcf/`，自定义模版功能已移除。下面是当时的职责清单，行号已过期：
 
-- 9 个表单区（fair value L69、margin L87、price L133、basis L148、discount L191、TBV L212、growth L240、terminal L298、predictability L343）
+- 9 个表单区（内在价值 L69、margin L87、price L133、basis L148、discount L191、TBV L212、growth L240、terminal L298、predictability L343）
 - 对话框（WACC L474）
 - 持久化：估值档案（L901）、手工记录（L920）
-- 分享链接与剪贴板（L686）、报告导出（L584）、敏感性网格（L725）、同行加载（L561）、数据源排序/固定（L523、L739）
+- 敏感性网格（L725）、同行加载（L561）、数据源排序/固定（L523、L739）
 - 结果 strip、情景预设、无障碍播报
 
 **成本**：计算器仍然偏大，脚本副作用（URL、localStorage、API）与渲染交错。结果条、情景、WACC 对话框已经拆出。

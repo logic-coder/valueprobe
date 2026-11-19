@@ -27,7 +27,7 @@ describe('money / percent', () => {
     expect(quantity(3.333)).toBe('3.33')
   })
 
-  it('renders the original edge cases as n/a', () => {
+  it('renders non-finite edge cases as n/a', () => {
     expect(money('¥', -Infinity)).toBe('n/a')
     expect(money('¥', NaN)).toBe('n/a')
     expect(percent(-Infinity)).toBe('n/a')
