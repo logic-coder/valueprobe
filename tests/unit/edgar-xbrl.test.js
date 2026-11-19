@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { financialsFromFacts, fundamentalsFromFacts, growthWindow, profileFromFacts, quoteSplitFactor, scalePerShare } from '../../src/data/providers/edgar-xbrl'
+import interimEps from '../fixtures/edgar-interim-eps.json'
 
 const year = (fy, val, extra = {}) => ({
   fy,
@@ -22,6 +23,28 @@ function facts (map) {
 }
 
 describe('EDGAR per-share facts', () => {
+  it.each(interimEps)('uses comparable interim facts for $symbol', ({ symbol, points, expected }) => {
+    const { fields, financials } = fundamentalsFromFacts(symbol, facts({
+      EarningsPerShareDiluted: ['USD/shares', points],
+    }))
+    expect(fields).toMatchObject({ ttm_eps: expected, eps_as_of: '2026-09-30', eps_period: 'TTM' })
+    expect(financials.annual.at(-1).eps_without_nri).toBe(points[1].val)
+  })
+
+  it('falls back to the annual figure if the comparative was restated', () => {
+    const { symbol, points } = interimEps[0]
+    const mixedBasis = points.map((point, index) => index === 3 ? { ...point, val: point.val / 10 } : point)
+    const { fields } = fundamentalsFromFacts(symbol, facts({ EarningsPerShareDiluted: ['USD/shares', mixedBasis] }))
+    expect(fields).toMatchObject({ ttm_eps: 7.28, eps_as_of: '2025-12-31', eps_period: 'FY' })
+  })
+
+  it('requires the bridge to cover the same fiscal interval', () => {
+    const { symbol, points } = interimEps[2]
+    const differentPeriod = points.map((point, index) => index === 4 ? { ...point, start: '2026-06-01' } : point)
+    const { fields } = fundamentalsFromFacts(symbol, facts({ EarningsPerShareDiluted: ['USD/shares', differentPeriod] }))
+    expect(fields).toMatchObject({ ttm_eps: 17.95, eps_as_of: '2026-06-30', eps_period: 'FY' })
+  })
+
   it('prefers a full year over a later stub tagged as FY', () => {
     const table = financialsFromFacts(facts({
       EarningsPerShareDiluted: ['USD/shares', [

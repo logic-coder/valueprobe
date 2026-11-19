@@ -87,9 +87,10 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEa
     const prev = byYear.get(year)
     const newerOrOlder = !prev ? true : (preferEarliest ? filed < prev.filed : filed >= prev.filed)
     const better = !prev || (full && !prev.full) || (full === prev.full && newerOrOlder)
-    if (better) byYear.set(year, { val: item.val, full, filed, end: item.end || null })
+    if (better) byYear.set(year, { val: item.val, full, filed, start: item.start || null, end: item.end || null })
   }
-  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val, filed: item.filed, end: item.end }))
+  return [...byYear.entries()].sort((a, b) => a[0] - b[0])
+    .map(([fy, { val, filed, start, end }]) => ({ fy, val, filed, start, end }))
 }
 
 /**
@@ -97,15 +98,23 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEa
  * points used to win even when those points stopped a decade ago.
  */
 function annual (facts, concepts, unit, taxonomyName = 'us-gaap', preferEarliest = false) {
+  return annualSelection(facts, concepts, unit, taxonomyName, preferEarliest).series
+}
+
+function annualSelection (facts, concepts, unit, taxonomyName, preferEarliest = false) {
   let best = []
+  let chosen = null
   for (const concept of concepts) {
     const series = annualConcept(facts, concept, unit, taxonomyName, preferEarliest)
     if (series.length < 2) continue
     const newer = (series.at(-1)?.fy || 0) > (best.at(-1)?.fy || 0)
     const longer = (series.at(-1)?.fy || 0) === (best.at(-1)?.fy || 0) && series.length > best.length
-    if (newer || longer) best = series
+    if (newer || longer) {
+      best = series
+      chosen = concept
+    }
   }
-  return best.slice(-YEAR_LIMIT)
+  return { series: best.slice(-YEAR_LIMIT), points: taxonomy(facts)[taxonomyName]?.[chosen]?.units?.[unit] || [] }
 }
 
 /** Prefer a US-GAAP series when it can support a history; otherwise IFRS/20-F. */
@@ -118,10 +127,30 @@ function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest =
 
 /** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
 function earningsPerShare (facts) {
-  const direct = annual(facts, EPS_CONCEPTS, 'USD/shares')
-  if (direct.length >= 2) return direct
+  const direct = annualSelection(facts, EPS_CONCEPTS, 'USD/shares', 'us-gaap')
+  if (direct.series.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  return annual(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
+  return annualSelection(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
+}
+
+// Use the current and comparative YTD figures in the same 10-Q. The 10-K
+// and the original comparative must agree with that basis before bridging.
+function trailingReportedEps (points, year) {
+  if (!year?.start || durationDays(year) < 350 || durationDays(year) > 378) return null
+  const next = Date.parse(year.end) + 86400000
+  const quarters = points.filter((point) => point.form === '10-Q' && point.accn &&
+    point.filed >= point.end && Number.isFinite(point.val) && durationDays(point) >= 75 && durationDays(point) <= 290)
+  // Prefer the original report over the same period quoted a year later.
+  const current = quarters.filter((point) => Date.parse(point.start) === next)
+    .sort((a, b) => b.end.localeCompare(a.end) || a.filed.localeCompare(b.filed))[0]
+  if (!current || current.filed <= year.filed) return null
+  const prior = quarters.find((point) => point.accn === current.accn && point.start === year.start &&
+    Math.abs(durationDays(point) - durationDays(current)) <= 7)
+  if (!prior) return null
+  const original = quarters.filter((point) => point.start === prior.start && point.end === prior.end && point.filed <= year.filed)
+    .sort((a, b) => b.filed.localeCompare(a.filed))[0]
+  if (!original || original.val === 0 || original.val !== prior.val) return null
+  return { val: Number((year.val + current.val - prior.val).toFixed(4)), end: current.end }
 }
 
 const deiValue = (facts, concept) => {
@@ -465,7 +494,7 @@ async function loadFacts (symbol) {
 const findYear = (series, fy) => series.find((item) => item.fy === fy)?.val ?? null
 
 function assemble (facts) {
-  const reportedEps = earningsPerShare(facts)
+  const { series: reportedEps, points: epsFacts } = earningsPerShare(facts)
   const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], 'USD')
   const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], 'USD')
   const equity = annualPrefer(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS, 'USD')
@@ -526,6 +555,8 @@ function assemble (facts) {
     .map((row) => ({ fy: Number(row.date.slice(0, 4)), val: row.free_cash_flow_per_share }))
   const recentFcf = [...fcfHistory].reverse().find((point) => point.fy >= latestEpsYear - 1) || null
   const last = rows.find((row) => Number(row.date.slice(0, 4)) === latestEpsYear) || rows.at(-1)
+  const lastAnnualEps = keptEps.at(-1)
+  const trailingEps = trailingReportedEps(epsFacts, lastAnnualEps)
   return {
     filingShares: shareFor(latestEpsYear) || null,
     financials: {
@@ -539,8 +570,9 @@ function assemble (facts) {
       quarter: [],
     },
     fields: {
-      ttm_eps: keptEps.at(-1)?.val ?? null,
-      eps_as_of: keptEps.at(-1)?.end ?? null,
+      ttm_eps: trailingEps?.val ?? lastAnnualEps?.val ?? null,
+      eps_as_of: trailingEps?.end ?? lastAnnualEps?.end ?? null,
+      eps_period: trailingEps ? 'TTM' : 'FY',
       free_cash_flow_per_share: recentFcf?.val ?? null,
       tangible_book: [...rows].reverse().find((row) => row.book_value_per_share != null)?.book_value_per_share ?? null,
       earning_growth_10y: growthWindow(keptEps, 10),
@@ -567,7 +599,6 @@ export function fundamentalsFromFacts (symbol, facts) {
     exchange_: market,
     company: facts.entityName || code,
     currency: '$',
-    eps_period: 'FY',
     filingShares: built.filingShares,
     ...built.fields,
     _partial: true,

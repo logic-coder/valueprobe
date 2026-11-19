@@ -2,6 +2,8 @@
 
 Open-source, local-first stock valuation. The published number is the **intrinsic value** under **public policy v1**: ordinary companies are discounted from per-share earnings in two stages; banks, insurers and brokers use residual income. It is an estimate, not investment advice, and not a price target.
 
+Default values are generated from financial data and shared, versioned rules. Coverage grows when the required data can be refreshed and the relevant valuation rule can be applied automatically.
+
 ## What you see on a stock
 
 A stock in the covered list opens on its **ValueProbe fair value** — the published number, its margin of safety, the earnings period, quote date, release date and policy version. The page never asks you to fill in a blank calculator first.
@@ -43,6 +45,8 @@ npm run dev
 ## Deploy
 
 Push to `main` with Pages set to GitHub Actions. The workflow is `.github/workflows/pages.yml`. A private repository on the free plan cannot enable Pages.
+
+Run `npm run verify` before pushing. Pages serves the committed snapshots and never refreshes them during deployment. Review snapshot and valuation diffs before committing a data refresh. For a code-only release, confirm `git diff HEAD -- public/data` is empty before committing.
 
 ## Docs
 
