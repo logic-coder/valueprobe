@@ -29,6 +29,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
+      - name: Real-company regression on committed snapshots
+        run: npm run test:real
 
       # Browser suites are slow and need a Chromium download. They gate PRs,
       # not every data snapshot pushed to main.
