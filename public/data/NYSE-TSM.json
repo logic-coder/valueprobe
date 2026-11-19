@@ -5,13 +5,13 @@
   "company": "台积电",
   "currency": "$",
   "price": "$359.69",
-  "ttm_eps": 6.8,
-  "ttm_eps_nri": 6.8,
+  "ttm_eps": 10.65,
+  "ttm_eps_nri": 10.65,
   "free_cash_flow_per_share": 5.1175,
   "tangible_book": 24.807,
-  "earning_growth_10y": 17.12,
-  "earning_growth_5y": 24.21,
-  "earning_growth_1y": 27.1,
+  "earning_growth_10y": 21.45,
+  "earning_growth_5y": 24.93,
+  "earning_growth_1y": 56.62,
   "cashflow_growth_10y": 17.48,
   "cashflow_growth_5y": 38.68,
   "cashflow_growth_1y": 178.13,
@@ -122,14 +122,16 @@
         "free_cash_flow_per_share": 5.1175,
         "dividends_per_share": null,
         "book_value_per_share": 24.807
+      },
+      {
+        "date": "2025-12",
+        "eps_without_nri": 10.65
       }
     ],
     "ttm": [
       {
-        "date": "2024-12",
-        "eps_without_nri": 6.8,
-        "free_cash_flow_per_share": 5.1175,
-        "book_value_per_share": 24.807
+        "date": "2025-12",
+        "eps_without_nri": 10.65
       }
     ],
     "quarter": []
@@ -167,6 +169,10 @@
       [
         "2024-12",
         6.8
+      ],
+      [
+        "2025-12",
+        10.65
       ]
     ],
     "revenue_per_share": [
@@ -306,5 +312,7 @@
       ]
     ]
   },
-  "split_to_quote": 0.2
+  "split_to_quote": 0.2,
+  "eps_as_of": "2025-12-31",
+  "eps_source": "https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf"
 }

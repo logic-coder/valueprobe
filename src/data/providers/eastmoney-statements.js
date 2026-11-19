@@ -4,6 +4,7 @@
 // twelve months are rebuilt from an annual report plus the matching stub.
 
 const num = (value) => {
+  if (value == null || value === '') return null
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : null
 }
@@ -35,20 +36,26 @@ function newest (rows) {
  * Annual rows are already twelve months. An interim is YTD + last year − last year's stub.
  */
 export function trailingTwelve (rows, read) {
+  return trailingPeriod(rows, read)?.value ?? null
+}
+
+function trailingPeriod (rows, read, allowOlderAnnual = false) {
   const ordered = newest(rows)
   const latest = ordered[0]
   if (!latest) return null
   const current = read(latest)
-  if (reportKind(latest.REPORT_TYPE) === 'FY') return current
   const year = reportYear(latest)
   const kind = reportKind(latest.REPORT_TYPE)
-  if (!year || !kind || current == null) return current
-  const annual = ordered.find((row) => reportKind(row.REPORT_TYPE) === 'FY' && reportYear(row) === year - 1)
-  const stub = ordered.find((row) => reportKind(row.REPORT_TYPE) === kind && reportYear(row) === year - 1)
-  const prior = read(annual)
-  const same = read(stub)
-  if (prior == null || same == null) return current
-  return current + prior - same
+  if (kind !== 'FY' && year && kind && current != null) {
+    const annual = ordered.find((row) => reportKind(row.REPORT_TYPE) === 'FY' && reportYear(row) === year - 1)
+    const stub = ordered.find((row) => reportKind(row.REPORT_TYPE) === kind && reportYear(row) === year - 1)
+    const prior = read(annual)
+    const same = read(stub)
+    if (prior != null && same != null) return { value: current + prior - same, row: latest, kind: 'TTM' }
+  }
+  const annual = ordered.find((row) => reportKind(row.REPORT_TYPE) === 'FY' && (!allowOlderAnnual || read(row) != null))
+  const value = read(annual)
+  return value == null ? null : { value, row: annual, kind: 'FY' }
 }
 
 /** Compound annual growth in percent. Null when the span or the sign cannot support it. */
@@ -142,7 +149,7 @@ export function fromAshareReports (recent, annualReports) {
     if (usedFirm) return firmOf(row)
     return num(row.MGJYXJJE)
   }
-  const ttmEps = trailingTwelve(mixed, epsOf)
+  const earnings = trailingPeriod(mixed, epsOf, true)
   const ttmDiluted = trailingTwelve(mixed, dilutedOf)
   const ttmFcf = trailingTwelve(mixed, fcfOf) ?? fcfOf(annual.at(-1))
   const latestBook = num(mixed[0]?.BPS)
@@ -162,8 +169,10 @@ export function fromAshareReports (recent, annualReports) {
   const revenuePoints = series(annual, (row) => num(row.PER_TOI))
   const ebitPoints = series(annual, (row) => num(row.PER_EBIT))
   return pack({
-    ttmEps: ttmEps ?? epsPoints.at(-1)?.val ?? null,
+    ttmEps: earnings?.value ?? null,
     ttmDiluted,
+    earningsRow: earnings?.row,
+    earningsKind: earnings?.kind,
     ttmFcf,
     book: latestBook,
     basis: usedFirm ? 'fcff' : 'ocf',
@@ -195,6 +204,8 @@ export function fromHkReports (rows) {
   const list = newest(rows || [])
   const annual = annualRows(list)
   const latest = list[0]
+  const trailingEps = num(latest?.EPS_TTM)
+  const earningsRow = trailingEps == null ? annual.at(-1) : latest
   const epsOf = (row) => num(row?.DILUTED_EPS ?? row?.BASIC_EPS)
   // Banks and insurers: investing cash flow is their lending and float, not capex.
   const financial = list.some(isHkFinancial)
@@ -223,9 +234,11 @@ export function fromHkReports (rows) {
     dividends_per_share: null,
     book_value_per_share: round4(num(row.BPS)),
   }))
-  return pack({
-    ttmEps: num(latest?.EPS_TTM) ?? epsOf(annual.at(-1)) ?? null,
-    ttmDiluted: num(latest?.EPS_TTM),
+  const parsed = pack({
+    ttmEps: trailingEps ?? epsOf(earningsRow),
+    ttmDiluted: trailingEps,
+    earningsRow,
+    earningsKind: reportKind(earningsRow?.REPORT_TYPE) === 'FY' ? 'FY' : 'TTM',
     ttmFcf: fcfOf(annual.at(-1)),
     book: num(latest?.BPS),
     // A non-financial whose rows carry no operating and investing cash flow is not
@@ -245,6 +258,10 @@ export function fromHkReports (rows) {
     }),
     currency: latest?.CURRENCY || null,
   })
+  // RPT_HKF10_FN_MAININDICATOR normalizes these monetary fields to CNY.
+  // Its CURRENCY flag can say HKD for both CNY and HKD filers. DPS_HKD is
+  // separately denominated and is not part of this per-share pack.
+  return { ...parsed, perShareCurrency: 'CNY' }
 }
 
 function pack (input) {
@@ -255,7 +272,7 @@ function pack (input) {
   const financials = {
     annual: input.table,
     ttm: input.ttmEps == null ? [] : [{
-      date: input.table.at(-1)?.date || '',
+      date: input.earningsRow ? dateLabel(input.earningsRow) : '',
       eps_without_nri: round4(input.ttmEps),
       free_cash_flow_per_share: round4(input.ttmFcf),
       book_value_per_share: round4(input.book),
@@ -268,7 +285,8 @@ function pack (input) {
     free_cash_flow_per_share: round4(input.ttmFcf),
     tangible_book: round4(input.book),
     cashflow_basis: input.basis,
-    eps_period: 'TTM',
+    eps_period: input.ttmEps == null ? null : (input.earningsKind || null),
+    eps_as_of: input.ttmEps == null ? null : (String(input.earningsRow?.REPORT_DATE || '').slice(0, 10) || null),
     predictability,
     ...growthSet('earning_growth', input.epsPoints),
     ...growthSet('cashflow_growth', input.cashPoints),
@@ -315,4 +333,13 @@ export function convertReportingCurrency (pack, rate) {
       quarter: pack.financials?.quarter || [],
     },
   }
+}
+
+/** Normalize the provider's financials to the quote currency exactly once. */
+export function toHkQuoteCurrency (pack, cnyToHkd) {
+  if (pack.perShareCurrency === 'HKD') return pack
+  if (pack.perShareCurrency !== 'CNY' || !Number.isFinite(cnyToHkd) || cnyToHkd <= 0) {
+    throw new Error('Unusable per-share currency for Hong Kong financials')
+  }
+  return { ...convertReportingCurrency(pack, cnyToHkd), perShareCurrency: 'HKD' }
 }

@@ -4,7 +4,7 @@ import axios from 'axios'
 import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
 import { transport } from '../transport'
-import { fromAshareReports, fromHkReports, convertReportingCurrency } from './eastmoney-statements'
+import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from './eastmoney-statements'
 import { fx } from '../../lib/fx'
 
 // CN 0/1, HK 128, US 105/106/107. The quote host wants a dot (105.MSFT).
@@ -97,7 +97,7 @@ async function loadStatements (symbol) {
     }
     const rate = await yuanToHkd()
     if (!rate) throw notSupported('eastmoney', 'no CNYHKD rate for ' + symbol)
-    pack = convertReportingCurrency(pack, rate)
+    pack = toHkQuoteCurrency(pack, rate)
   }
   if (!pack || !pack.financials.annual.length) throw notSupported('eastmoney', 'statements for ' + symbol)
   statementCache.set(symbol, pack)

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyGrowth, policyModel, policyValue,
+  POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyGrowth, policyModel, policyValue, quoteDateStatus,
 } from '../../src/lib/policy'
 import { buildDefaults, presentValue, residualIncomeValue } from '../../src/lib/dcf'
 import { rateForCurrency } from '../../src/lib/riskFree'
@@ -117,6 +117,20 @@ describe('policyValue semantics', () => {
     expect(value.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
   })
 
+  it('keeps quote freshness and earnings vintage independent of snapshot capture', () => {
+    const stock = {
+      ttm_eps: 4, earning_growth_10y: 5, price: '$60', _as_of: '2026-11-19',
+      eps_as_of: '2025-12-31', quote_as_of: '2026-11-06',
+    }
+    const valuation = policyValue(stock, { rates: rateRows, generatedAt: '2026-11-19' })
+    expect(valuation).toMatchObject({ priceDate: '2026-11-06', earningsDate: '2025-12-31' })
+    expect(valuation.warnings).toEqual(expect.arrayContaining([WARNING.STALE_DATA, WARNING.STALE_PRICE]))
+    expect(quoteDateStatus(60, null, '2026-11-19')).toBe('unknown')
+    expect(quoteDateStatus(60, '2026-11-18', '2026-11-19')).toBe('dated')
+    expect(quoteDateStatus(60, '2026-11-20', '2026-11-19')).toBe('unknown')
+    expect(policyValue({ ...stock, price: '' }, { rates: rateRows }).marginOfSafety).toBeNull()
+  })
+
   it('reads a display-string price and derives the margin', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
     const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
@@ -143,7 +157,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(179.75)
     expect(entry('NASDAQ:AAPL').warnings).toContain(WARNING.CAPPED_GROWTH)
-    expect(entry('NYSE:TSM').value).toBe(136.11)
+    expect(entry('NYSE:TSM')).toMatchObject({ value: 213.18, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 10.65 } })
     expect(entry('HKSE:00700').value).toBe(611.45)
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })

@@ -31,8 +31,8 @@ describe('frozen kernel parity', () => {
     expect(marginOfSafety(8.85, 11.56)).toBe('23.44')
   })
 
-  it('keeps the infinities instead of smoothing them', () => {
-    expect(marginOfSafety(8.85, 0)).toBe('-Infinity')
+  it('retains the legacy annuity behaviour and leaves an invalid margin empty', () => {
+    expect(marginOfSafety(8.85, 0)).toBe('n/a')
     expect(Number.isFinite(calGr2fv(0, 10, 0, 5, 1, 4, 10, false).fairValue)).toBe(true)
   })
 })

@@ -27,9 +27,9 @@
 | 兜底折现率 | `FALLBACK_DISCOUNT_RATE` = 8% | `discount.fallback` |
 | 折现率夹取 | 0–50% | `discount.min` / `discount.max` |
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
-| 基本面过期 | 超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
-| 利率过期 | 超过 10 天在校验失败 | `staleness.ratesDays` |
-| 区间 | 折现率上下 2 个百分点（同一模型） | `band.discountSpread` |
+| 基本面过期 | 盈利所属期间距发布日超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
+| 利率过期 | 超过 10 天在校验提示 | `staleness.ratesDays` |
+| 区间 | 每股折现改变折现率，剩余收益比较较高折现率和当前 ROE 持续的情景 | `band.discountSpread` |
 | 终值占比 | 披露 | `terminalShareDisclosed` |
 
 实现细节都以代码为准：
@@ -37,7 +37,7 @@
 - 折现率：`rateForCurrency()`（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6）→ 夹到 0–50；取不到当地利率时 `policyValue()` 用兜底值并加 `RATE_FALLBACK`。
 - 增速：`policyGrowth()` → `adoptGrowth()`（`src/lib/assumptions.js`）：缺失给 `NO_GROWTH`，超过 15% 按 15% 并给 `CAPPED_GROWTH`，负值照常并给 `NEGATIVE_HISTORY_GROWTH`。
 - 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 用同一模型算低/中/高。
-- 价格：只进入安全边际，从不进入内在价值；价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`。
+- 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
 ## 2. 拒绝码（REASON）
@@ -66,7 +66,9 @@
 | `DISCOUNT_CLAMPED` | 折现率被夹到 0–50% 的公开区间。 |
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
-| `STALE_DATA` | 基本面快照已经过期，照常出值并标注。 |
+| `STALE_DATA` | 估值采用较早的盈利期间。 |
+| `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
+| `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |
 
 UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/legal-messages.js`，由 `src/main.js` 合并进 i18n。数据校验拒绝未知代码。
 
@@ -87,7 +89,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
 | `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, epsFxDiffPct, growthDiffPp, valueDiffPct }`。只报告差异，不平均、不回写。 |
-| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, status, value, band, terminalShare, price, marginOfSafety, reasons[], warnings[], inputs{}, asOf, ratesAsOf }`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
+| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
 

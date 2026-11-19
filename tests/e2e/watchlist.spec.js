@@ -20,9 +20,8 @@ test('stars a stock, lists it, keeps it across a reload and removes it', async (
   await page.locator('.watch-link').click()
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
   await expect(page.locator('.wl__table tbody tr')).toContainText('SHSE:601398')
-  // Same defaults as the calculator: the overview is the page's own seed, not a second model.
-  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 11.99')
-  await expect(page.locator('.wl__table tbody tr')).toContainText('26.19%')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 11.86')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('23.86%')
 
   await page.reload()
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
@@ -70,26 +69,22 @@ test('exports the list and imports it back', async ({ page }) => {
   await expect(page.locator('.wl__table tbody')).toContainText('HKSE:00700')
 })
 
-test('shows the snapshot date when the snapshot answered', async ({ page }) => {
+test('distinguishes an unverified quote date from the snapshot date', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('fv-watchlist', JSON.stringify(['SHSE:601398'])))
   page.apiMock.down.add('eastmoney')
   await page.goto('/#/watchlist')
   await page.reload()
   await expect(page.locator('.wl__table tbody tr')).toBeVisible({ timeout: 20000 })
-  await expect(page.locator('.wl__asof')).toHaveText('2026-09-30')
-  await expect(page.locator('.wl__asof')).toHaveAttribute('title', '随包季度快照')
+  await expect(page.locator('.wl__asof')).toHaveText('快照报价 · 交易日未核实')
 })
 
-test('offers a retry when the quotes fail', async ({ page }) => {
+test('preserves the published estimate when individual sources fail', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('fv-watchlist', JSON.stringify(['NASDAQ:AAPL'])))
   page.apiMock.fail = true
   await page.goto('/#/watchlist')
   await page.reload() // the init script only runs in a fresh document
-  await expect(page.locator('.wl__failed')).toBeVisible({ timeout: 20000 })
-  page.apiMock.fail = false
-  await page.locator('.wl__failed button').click()
-  await expect(page.locator('.wl__failed')).toHaveCount(0, { timeout: 20000 })
-  await expect(page.locator('.wl__table tbody tr')).toContainText('$')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('179.75')
+  await expect(page.locator('.wl__failed')).toHaveCount(0)
 })
 
 test('opens a watched stock from the list', async ({ page }) => {

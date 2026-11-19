@@ -20,6 +20,8 @@ export const WARNING = Object.freeze({
   PRICE_MISSING: 'PRICE_MISSING',
   STALE_PRICE: 'STALE_PRICE',
   STALE_DATA: 'STALE_DATA',
+  QUOTE_DATE_UNKNOWN: 'QUOTE_DATE_UNKNOWN',
+  EARNINGS_DATE_UNKNOWN: 'EARNINGS_DATE_UNKNOWN',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

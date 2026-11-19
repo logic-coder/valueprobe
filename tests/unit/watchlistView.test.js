@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultView } from '../../src/lib/watchlistView'
+import { defaultView, publishedRow } from '../../src/lib/watchlistView'
 import fixture from '../../src/data/bundled/stock_icbc.json'
 
 describe('watchlist default view', () => {
@@ -18,5 +18,21 @@ describe('watchlist default view', () => {
   it('degrades when the policy refuses the record', () => {
     expect(defaultView({ price: '¥ 9.00', ttm_eps: 0 })).toEqual({ fairValue: null, mos: null })
     expect(defaultView(null)).toEqual({ fairValue: null, mos: null })
+  })
+})
+
+
+it('uses the released estimate and reference quote even if a separate stock fetch differs', () => {
+  const stockRow = { name: 'ICBC', currency: '¥', price: 8.85, pe: 8.2, asOf: '2026-09-30' }
+  const released = {
+    name: '工商银行', price: 9.03, priceDate: null, asOf: '2026-11-19',
+    inputs: { currency: 'CNY' }, value: 11.86, marginOfSafety: 23.86, reasons: [],
+  }
+  expect(publishedRow(stockRow, released, String)).toMatchObject({
+    name: '工商银行', currency: '¥', price: 9.03, fairValue: 11.86, mos: 23.86,
+    pe: null, quoteNote: 'quote_unknown',
+  })
+  expect(publishedRow(stockRow, null, String, true)).toMatchObject({
+    fairValue: null, mos: null, policyNote: 'official_load_failed',
   })
 })

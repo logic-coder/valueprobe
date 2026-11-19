@@ -1,7 +1,26 @@
-// One line of the watchlist's valuation overview. Display-only: it calls the
-// same public-policy function as the stock page and the committed artifact, so
-// the three can never disagree about what a value means.
-import { policyValue } from './policy'
+// Published rows consume the same release record on both list pages.
+import { policyValue, quoteDateStatus } from './policy'
+import { symbolOf } from './fx'
+
+/** Comparison and watchlist display the same published pair as the stock page. */
+export function publishedRow (row, entry, translate, unavailable = false) {
+  if (!entry) return { ...row, fairValue: null, mos: null, policyNote: translate(unavailable ? 'official_load_failed' : 'official_outside') }
+  const status = quoteDateStatus(entry.price, entry.priceDate)
+  const sameQuote = row.price === entry.price && row.asOf === entry.asOf
+  return {
+    ...row,
+    name: entry.name || row.name,
+    currency: symbolOf(entry.inputs.currency) || row.currency,
+    price: entry.price,
+    priceDate: entry.priceDate,
+    quoteNote: status === 'dated' ? '' : translate('quote_' + status),
+    pe: sameQuote ? row.pe : null,
+    pb: sameQuote ? row.pb : null,
+    fairValue: entry.value,
+    mos: entry.marginOfSafety,
+    policyNote: entry.reasons.map((reason) => translate('reason_' + reason)).join(' · '),
+  }
+}
 
 /**
  * Default-assumption intrinsic value and margin of safety for a quote+payload.

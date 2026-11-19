@@ -29,14 +29,11 @@ test('adds a symbol from the input and drops one from its row', async ({ page })
   await expect(page.locator('.cmp__table tbody tr')).toHaveCount(1)
 })
 
-test('offers a retry when the quotes fail', async ({ page }) => {
+test('preserves the published value when individual sources fail', async ({ page }) => {
   page.apiMock.fail = true
   await page.goto('/#/compare?s=NASDAQ:AAPL')
-  await expect(page.locator('.cmp__failed')).toBeVisible({ timeout: 20000 })
-  page.apiMock.fail = false
-  await page.locator('.cmp__failed button').click()
-  await expect(page.locator('.cmp__failed')).toHaveCount(0, { timeout: 20000 })
-  await expect(page.locator('.cmp__table tbody tr')).toContainText('$')
+  await expect(page.locator('.cmp__table tbody tr')).toContainText('179.75')
+  await expect(page.locator('.cmp__failed')).toHaveCount(0)
 })
 
 test('reaches the page from the header icon', async ({ page }) => {

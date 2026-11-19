@@ -152,6 +152,7 @@ import { useCompareStore } from './store/compare'
 import { useWatchlistStore } from './store/watchlist'
 import { useDisplayStore, codeOf } from './store/display'
 import { useDcfStore } from './store/dcf'
+import { usePolicyStore } from './store/policy'
 import { money, parseAmount } from './lib/format'
 import EditableValue from './components/EditableValue.vue'
 import { useMoney } from './composables/useMoney'
@@ -198,7 +199,6 @@ const pageTitle = computed(() => {
   const key = ROUTE_TITLES[String(route.name)]
   return key ? t(key) + ' · valueprobe' : t('doc_title')
 })
-watch(pageTitle, (value) => { document.title = value }, { immediate: true })
 
 // A bad or unrelated path renders the not-found page; the last stock's hero must not stay above it.
 const showTicker = computed(() => Boolean(currentSymbol.value))
@@ -206,11 +206,21 @@ const repoUrl = REPO_URL
 const issuesUrl = REPO_ISSUES_URL
 
 const ready = ref(true)
-const priceValue = computed(() => String(parseAmount(stockStore.stock?.price) ?? ''))
-const stock = computed(() => stockStore.stock || {})
+const policyStore = usePolicyStore()
+const publishedEntry = computed(() => policyStore.entryOf(currentSymbol.value))
+const stock = computed(() => {
+  if (stockStore.symbol === currentSymbol.value && stockStore.stock) return stockStore.stock
+  const [exchange_, symbol] = currentSymbol.value.split(':')
+  return { company: publishedEntry.value?.name || currentSymbol.value, currency: publishedEntry.value?.inputs.currency, exchange_, symbol }
+})
+const priceValue = computed(() => {
+  const entry = publishedEntry.value
+  return String((entry ? entry.price : parseAmount(stock.value.price)) ?? '')
+})
 const dcfStore = useDcfStore()
 const workingPrice = computed(() => (currentSymbol.value && dcfStore.workingPrice.symbol === currentSymbol.value ? dcfStore.workingPrice : null))
 const priceEdited = computed(() => workingPrice.value !== null && Number(workingPrice.value.value) !== Number(priceValue.value))
+watch(pageTitle, (value) => { document.title = value }, { immediate: true })
 const display = useDisplayStore()
 const { moneyIn } = useMoney()
 

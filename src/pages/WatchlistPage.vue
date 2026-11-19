@@ -48,9 +48,11 @@
               <th scope="row">
                 <a :href="'#/stock/' + row.symbol + '/dcf'">{{ row.name }}</a>
                 <span class="faint">{{ row.symbol }}</span>
-                <span v-if="row.asOf" class="faint wl__asof" :title="t('source_hint_snapshot')">{{ row.asOf }}</span>
+                <span v-if="row.priceDate" class="faint wl__asof">{{ row.priceDate }}</span>
               </th>
-              <td>{{ row.price === null ? 'n/a' : moneyIn(row.currency, row.price) }}</td>
+              <td>{{ row.price === null ? 'n/a' : moneyIn(row.currency, row.price) }}
+                  <span v-if="row.quoteNote" class="faint wl__asof">{{ row.quoteNote }}</span>
+                </td>
               <td>{{ row.pe === null ? 'n/a' : row.pe.toFixed(1) + '×' }}</td>
               <td :title="row.policyNote || null">
                 {{ row.fairValue === null ? 'n/a' : moneyIn(row.currency, row.fairValue) }}
@@ -77,8 +79,7 @@ import { useQuasar } from 'quasar'
 import { api } from '../api'
 import { peerRow } from '../lib/peers'
 import { exportWatchlist, exportWatchlistCsv, importWatchCsv, importWatchlist } from '../lib/watchlist'
-import { defaultView } from '../lib/watchlistView'
-import { yieldForStock } from '../lib/riskFree'
+import { publishedRow } from '../lib/watchlistView'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
 import { useMoney } from '../composables/useMoney'
@@ -91,35 +92,20 @@ const policy = usePolicyStore()
 const rows = ref([])
 const retrying = ref(false)
 
-const reasonText = (entry) => (entry?.reasons || []).map((code) => t('reason_' + code)).join('；')
-
-// The published artifact wins only for the exact snapshot it was built from.
-// Any other provenance keeps the page's own default view, so the two numbers
-// can never be mixed. A refused entry still wins: the policy chose not to
-// publish, and the row says why instead of falling back to a private estimate.
-const publishedView = (row) => {
-  const entry = policy.entryOf(row.symbol)
-  if (!entry || !row.asOf || entry.asOf !== row.asOf) return null
-  if (entry.status !== 'ok') return { fairValue: null, mos: null, policyNote: reasonText(entry) }
-  const price = Number(row.price)
-  const mos = Number.isFinite(price) && price > 0 && entry.value > 0 ? ((1 - price / entry.value) * 100).toFixed(2) : null
-  return { fairValue: entry.value, mos, policyNote: '' }
-}
-
 const load = async () => {
   const symbols = store.symbols.slice()
-  const [rates, , settled] = await Promise.all([
-    api.getRiskFreeRates().catch(() => ({})),
+  const [, settled] = await Promise.all([
     policy.load(),
     Promise.allSettled(symbols.map((symbol) => api.getStock(symbol))),
   ])
+  if (store.symbols.join(',') !== symbols.join(',')) return
   rows.value = settled.map((item, index) => {
-    if (!(item.status === 'fulfilled' && item.value)) {
-      return { symbol: symbols[index], name: symbols[index], price: null, pe: null, currency: '¥', asOf: null, fairValue: null, mos: null }
-    }
-    const row = { ...peerRow(item.value, symbols[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
-    const published = publishedView(row)
-    return published ? { ...row, ...published } : row
+    const symbol = symbols[index]
+    const stock = item.status === 'fulfilled' ? item.value : null
+    const row = stock
+      ? { ...peerRow(stock, symbol), currency: stock.currency || '¥', asOf: stock._as_of || null }
+      : { symbol, name: symbol, price: null, pe: null, pb: null, currency: '¥', asOf: null }
+    return publishedRow(row, policy.entryOf(symbol), t, Boolean(policy.error))
   })
 }
 

@@ -9,7 +9,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
   grid-template-areas:
-    'head head'
+    'head strip'
     'form strip'
     'sens sens'
     'evidence evidence';
@@ -34,6 +34,10 @@
 .dcf__price-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted); margin: -2px 0 0; padding-left: 2px; }
 .dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
 .dcf__strip-context { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+.dcf__provenance { display: grid; gap: 3px; padding: 8px 4px 0; color: var(--text-muted); font-size: 13px; }
+.dcf__explanation summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.dcf__explanation p, .dcf__explanation ul { margin: 6px 0 0; }
+.dcf__explanation ul { padding-inline-start: 18px; }
 .dcf__official-note {
   font-size: 12px;
   line-height: 1.5;
@@ -44,10 +48,6 @@
   margin-bottom: 8px;
 }
 .dcf__strip {
-  grid-area: strip;
-  align-self: start;
-  position: sticky;
-  top: 76px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -213,10 +213,9 @@
 @media (max-width: 1023px) {
   .dcf__card > div {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'head' 'strip' 'form' 'sens' 'evidence';
+    grid-template-areas: 'strip' 'head' 'form' 'sens' 'evidence';
   }
   .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
-  .dcf__strip { position: static; }
   .dcf__fair .text-h6 { font-size: 34px; }
   .dcf__implied-value { font-size: 18px; }
 }

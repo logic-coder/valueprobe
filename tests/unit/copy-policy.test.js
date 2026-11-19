@@ -122,8 +122,8 @@ describe('single price editor', () => {
   it('uses distinct labels for snapshot date and publish date', () => {
     expect(legalMessages['zh-hans'].official_context).toContain('发布日')
     expect(legalMessages['en-us'].official_context).toContain('published')
-    expect(read('src/i18n/zh-Hans.json')).toContain('"banner_published": "季度快照 · 数据截至 {asOf}"')
-    expect(read('src/i18n/en-US.json')).toContain('"banner_published": "Quarterly snapshot · as of {asOf}"')
+    expect(read('src/i18n/zh-Hans.json')).toContain('"banner_published": "季度快照 · 采集日 {asOf}"')
+    expect(read('src/i18n/en-US.json')).toContain('"banner_published": "Quarterly snapshot · captured {asOf}"')
   })
 
   it('does not repeat the read-only fundamentals note inside the calculator', () => {

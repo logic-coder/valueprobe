@@ -35,7 +35,7 @@
           {{ t('rows_failed') }}
           <button type="button" class="wl__tool" :disabled="retrying" @click="retry">{{ retrying ? t('retrying') : t('retry') }}</button>
         </p>
-        <div v-else-if="rows.length" class="cmp__scroll">
+        <div v-if="rows.length" class="cmp__scroll">
           <table class="cmp__table">
             <thead>
               <tr>
@@ -53,9 +53,11 @@
                 <th scope="row">
                   <a :href="'#/stock/' + row.symbol + '/dcf'">{{ row.name }}</a>
                   <span class="faint">{{ row.symbol }}</span>
-                  <span v-if="row.asOf" class="faint" :title="t('source_hint_snapshot')">{{ row.asOf }}</span>
+                  <span v-if="row.priceDate" class="faint">{{ row.priceDate }}</span>
                 </th>
-                <td>{{ row.price === null ? 'n/a' : moneyIn(row.currency, row.price) }}</td>
+                <td>{{ row.price === null ? 'n/a' : moneyIn(row.currency, row.price) }}
+                  <span v-if="row.quoteNote" class="faint wl__asof">{{ row.quoteNote }}</span>
+                </td>
                 <td :title="row.policyNote || null">
                   {{ row.fairValue === null ? 'n/a' : moneyIn(row.currency, row.fairValue) }}
                   <span v-if="row.policyNote" class="sr-only">{{ row.policyNote }}</span>
@@ -85,8 +87,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { MAX_COMPARE, parseSymbolsQuery, rankRows } from '../lib/compare'
 import { peerRow } from '../lib/peers'
-import { defaultView } from '../lib/watchlistView'
-import { yieldForStock } from '../lib/riskFree'
+import { publishedRow } from '../lib/watchlistView'
 import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
@@ -114,37 +115,24 @@ const retry = async () => {
   retrying.value = false
 }
 
-const reasonText = (entry) => (entry?.reasons || []).map((code) => t('reason_' + code)).join('；')
-
-// Same rule as the watchlist: the published artifact replaces the page's own
-// estimate only when it was built from the snapshot this row is showing.
-const publishedView = (row) => {
-  const entry = policy.entryOf(row.symbol)
-  if (!entry || !row.asOf || entry.asOf !== row.asOf) return null
-  if (entry.status !== 'ok') return { fairValue: null, mos: null, policyNote: reasonText(entry) }
-  const price = Number(row.price)
-  const mos = Number.isFinite(price) && price > 0 && entry.value > 0 ? ((1 - price / entry.value) * 100).toFixed(2) : null
-  return { fairValue: entry.value, mos, policyNote: '' }
-}
-
 const load = async () => {
   const list = symbols.value
   if (!list.length) {
     rawRows.value = []
     return
   }
-  const [rates, , settled] = await Promise.all([
-    api.getRiskFreeRates().catch(() => ({})),
+  const [, settled] = await Promise.all([
     policy.load(),
     Promise.allSettled(list.map((symbol) => api.getStock(symbol))),
   ])
+  if (symbols.value !== list) return
   rawRows.value = settled.map((item, index) => {
-    if (!(item.status === 'fulfilled' && item.value)) {
-      return { symbol: list[index], name: list[index], price: null, pe: null, pb: null, currency: '¥', asOf: null, fairValue: null, mos: null }
-    }
-    const row = { ...peerRow(item.value, list[index]), currency: item.value.currency || '¥', asOf: item.value._as_of || null, ...defaultView(item.value, yieldForStock(rates, item.value)) }
-    const published = publishedView(row)
-    return published ? { ...row, ...published } : row
+    const symbol = list[index]
+    const stock = item.status === 'fulfilled' ? item.value : null
+    const row = stock
+      ? { ...peerRow(stock, symbol), currency: stock.currency || '¥', asOf: stock._as_of || null }
+      : { symbol, name: symbol, price: null, pe: null, pb: null, currency: '¥', asOf: null }
+    return publishedRow(row, policy.entryOf(symbol), t, Boolean(policy.error))
   })
 }
 

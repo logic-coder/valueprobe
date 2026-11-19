@@ -11,7 +11,9 @@ const load = async () => {
     const response = await fetch(BASE + ARTIFACT_PATH)
     if (!response.ok) return null
     const body = await response.json()
-    return body && typeof body === 'object' ? body : null
+    return body?.schema === 1 && typeof body.policyVersion === 'string'
+      && typeof body.generatedAt === 'string' && body.entries && !Array.isArray(body.entries)
+      && typeof body.entries === 'object' ? body : null
   } catch {
     return null
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fromAshareReports, fromHkReports, trailingTwelve, windowGrowth, convertReportingCurrency } from '../../src/data/providers/eastmoney-statements'
+import { fromAshareReports, fromHkReports, trailingTwelve, windowGrowth, convertReportingCurrency, toHkQuoteCurrency } from '../../src/data/providers/eastmoney-statements'
 
 const row = (date, type, extra) => ({ REPORT_DATE: date, REPORT_TYPE: type, ...extra })
 
@@ -20,6 +20,11 @@ describe('A-share statements', () => {
     expect(trailingTwelve(recent, read)).toBeCloseTo(1.03)
   })
 
+  it('uses the annual period when an interim EPS cannot be annualized', () => {
+    const parsed = fromAshareReports([recent[0]], annual)
+    expect(parsed.fields).toMatchObject({ ttm_eps_nri: 1, eps_as_of: '2025-12-31', eps_period: 'FY' })
+  })
+
   it('turns firm free cash flow into a per-share figure and keeps the annual table', () => {
     const parsed = fromAshareReports(recent, annual)
     expect(parsed.fields.ttm_eps_nri).toBeCloseTo(1.03)
@@ -35,6 +40,17 @@ describe('A-share statements', () => {
 })
 
 describe('Hong Kong statements', () => {
+  it('uses the feed currency for financial figures and converts to HKD once', () => {
+    // MTR FY2025 reported HK$2.36 diluted EPS. Eastmoney lists the same-period
+    // normalized EPS as CNY 2.1315992, despite the table's HKD currency label.
+    const parsed = fromHkReports([row('2025-12-31', '年报', { CURRENCY: 'HKD', DILUTED_EPS: 2.1315992, EPS_TTM: 2.1296284 })])
+    expect(parsed.perShareCurrency).toBe('CNY')
+    const quotePack = toHkQuoteCurrency(parsed, 1.1073)
+    expect(quotePack.fields.ttm_eps).toBeCloseTo(2.36, 2)
+    expect(toHkQuoteCurrency(quotePack, 1.1073)).toBe(quotePack)
+    expect(() => toHkQuoteCurrency({ ...parsed, perShareCurrency: 'USD' }, 1.1073)).toThrow()
+  })
+
   it('uses the published trailing EPS and operating cash flow after capital spending', () => {
     const parsed = fromHkReports([
       row('2025-12-31', '年报', {

@@ -24,7 +24,7 @@
         <q-skeleton type="rect" height="160px" />
       </div>
       <dcf-tab
-        v-else-if="isManual || stockStore.stock"
+        v-else-if="isManual || stockStore.stock || policyStore.entryOf(symbol)"
         :symbol="symbol"
         @reload="reload"
       />
@@ -47,6 +47,7 @@ import { addRecent } from '../lib/recent'
 import { useStockStore } from '../store/stock'
 import { useDcfStore } from '../store/dcf'
 import { useDataStateStore } from '../store/dataState'
+import { usePolicyStore } from '../store/policy'
 import DcfTab from '../components/stock/DcfTab.vue'
 import LazyFinancialChart from '../components/LazyFinancialChart.vue'
 import DataStateBanner from '../components/DataStateBanner.vue'
@@ -57,6 +58,7 @@ const { t } = useI18n()
 const stockStore = useStockStore()
 const dcfStore = useDcfStore()
 const sourceStore = useDataStateStore()
+const policyStore = usePolicyStore()
 
 const embedded = computed(() => !route.params.symbol)
 const parsed = computed(() => parseSymbol(route.params.symbol || DEFAULT_SYMBOL))
@@ -80,7 +82,7 @@ const load = async () => {
   }
   const target = symbol.value
   try {
-    await stockStore.loadStock(target)
+    await Promise.all([stockStore.loadStock(target), policyStore.load()])
     if (symbol.value !== target) return
     if (!stockStore.stock && !isManual.value) sourceStore.setMode(symbol.value, 'error')
     else await dcfStore.preFetch(target)

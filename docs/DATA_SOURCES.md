@@ -1,7 +1,7 @@
 # 数据源框架
 
 数据层按 [wealthfolio](https://github.com/wealthfolio/wealthfolio) 的 `crates/market-data`
-设计重写：**来源注册表 + 能力/覆盖声明 + 熔断 + 限流 + 校验 + 逐次诊断**。原仓中文导出参考文件留在
+设计重写，包含来源注册、市场覆盖声明、熔断、限流、校验与诊断。
 
 ## 组成
 
@@ -54,7 +54,7 @@
 `corsSafe` 是 provider 的声明：`eastmoney` / `edgar` 为 false，静态页不能直接请求它们。
 `src/data/index.js` 在 `VITE_TRANSPORT=direct`（Pages 工作流显式设置）时只注册 `snapshot`。
 线上能算的就是 `public/data/` 里已经生成的代码；没有文件的代码显示「所有数据源都失败」，可改入手填。
-东财和 SEC 没有 CORS，开发时走 Vite 代理；要在发布页里实时请求它们，必须自备网关（见 `.env.example`）。查询串在交给网关之前已拼进目标 URL。
+东财和 SEC 的这些接口在开发时走 Vite 代理。自托管站点若启用实时请求，需配置自有 CORS 网关（见 `.env.example`），并为 SEC 转发带联系方式的 User-Agent。静态构建不含公共网关。查询串在交给网关之前已拼进目标 URL。
 
 无风险利率不走注册表。十年期国债取自东财 `RPTA_WEB_TREASURYYIELD`（`EMM00166466` 为中国十年期，`EMG00001310` 为美国十年期；美国当日可能尚未写入，取最近一个非空值）。该接口无 CORS，开发时走 Vite `/emdcweb` 代理，发布页读取 `public/data/rates.json`（由 `npm run snapshot` 一并刷新），再退到随包的 `src/data/bundled/risk_free.json`。
 
@@ -72,11 +72,10 @@
 
 - `VITE_API_MODE=fixture` 只用内置快照；
 - `VITE_US_SOURCE=auto|hybrid|edgar|eastmoney` 调来源顺序；
-- 关于页可以直接调整来源顺序，卡片右上菜单可以为当前代码钉死一个来源（或切回自动）；
-  两者都只写本机 `fv-data-sources`。
+- 卡片右上菜单可以为当前代码固定一个来源或切回自动，偏好仅保存在本机。
 - 季度快照：`npm run snapshot` 按 `scripts/watchlist.json` 生成 `public/data/*.json`（带
-  `as_of`），提交即随 Pages 发布；`VITE_SNAPSHOT=off` 可暂时忽略它们。实时报价接口失败时，
-  脚本改用最近一根日 K 的收盘价。
+  `as_of`），提交即随 Pages 发布。`VITE_SNAPSHOT=off` 可暂时跳过快照行情。
+  报价日期来自上游时间戳，回退用最近一根不复权日 K 的日期及收盘价。历史快照若没有原始报价日期，页面标为交易日未核实。
 - 冒烟/测试里可用 `page.apiMock.down.add('eastmoney')` 让某个源掉线，观察兜底。
 
 ## 加点新源
@@ -115,5 +114,12 @@ export const mysource = {
 
 - 发布值文件是唯一对外发布值，自选、对比与方法页只读它；不要手改 `public/data/intrinsic/`。
 - `npm run verify:data` 是可提交前的数据校验（policy hash、可复现、过期、universe、manifest hash、未知代码、抽样重算）；`npm run refresh` = snapshot → intrinsic → verify:data。
-- 发布值文件生成日期超过 `POLICY_V1.staleness.fundamentalsDays`（120 天）或利率行过期（10 天）时校验失败；运行时的过期只标注（`STALE_DATA` / `STALE_PRICE`），不拒绝出值。
+- 基本面账龄按所用盈利期间截止日计算，股价账龄按报价交易日计算。发布值文件或利率行过期会提示，数据结构和可复现性错误会使校验失败。
 - 刷新流程：`npm run snapshot` → `npm run intrinsic` → `npm run verify:data`，三个产物一起提交。
+
+
+## 每股数据的币种和日期
+
+- 盈利期间来自财报，快照采集日来自刷新任务。A 股缺少对比期时用最近年度 EPS，香港指标的 TTM 使用该字段所在报告日期，美国年度数据使用 XBRL 的期间截止日。
+- 东方财富港股主指标表（`RPT_HKF10_FN_MAININDICATOR`）把这里解析的财务值标准化成了人民币。`CURRENCY` 可能写 HKD，不能用作这些字段的单位。对照港铁 FY2025 公告，摊薄 EPS 为 HK$2.36，接口相应字段为约 CNY 2.1316。转换后的财务值记录在港币报价口径，来源单位另存为 `fundamentals_currency`。
+- `scripts/lib/verified-earnings.mjs` 记录可由公司公告核实、但结构化源尚未收录的年度盈利。台积电 FY2025 采用公司披露的每 ADR 摊薄盈利 USD 10.65。出现更新的结构化报告后，优先采用更新的期间。

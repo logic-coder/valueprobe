@@ -87,9 +87,9 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEa
     const prev = byYear.get(year)
     const newerOrOlder = !prev ? true : (preferEarliest ? filed < prev.filed : filed >= prev.filed)
     const better = !prev || (full && !prev.full) || (full === prev.full && newerOrOlder)
-    if (better) byYear.set(year, { val: item.val, full, filed })
+    if (better) byYear.set(year, { val: item.val, full, filed, end: item.end || null })
   }
-  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val, filed: item.filed }))
+  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([fy, item]) => ({ fy, val: item.val, filed: item.filed, end: item.end }))
 }
 
 /**
@@ -510,7 +510,7 @@ function assemble (facts) {
       ? null
       : Number(((book - deduct) / count).toFixed(4))
     return {
-      date: fy + '-12',
+      date: keptEps.find((point) => point.fy === fy)?.end?.slice(0, 7) || fy + '-12',
       eps_without_nri: cliffYears.has(fy) ? null : findYear(keptEps, fy),
       revenue_per_share: perShare(revenue, fy),
       operating_income_per_share: perShare(operating, fy),
@@ -525,7 +525,7 @@ function assemble (facts) {
     .filter((row) => row.free_cash_flow_per_share != null)
     .map((row) => ({ fy: Number(row.date.slice(0, 4)), val: row.free_cash_flow_per_share }))
   const recentFcf = [...fcfHistory].reverse().find((point) => point.fy >= latestEpsYear - 1) || null
-  const last = rows.at(-1)
+  const last = rows.find((row) => Number(row.date.slice(0, 4)) === latestEpsYear) || rows.at(-1)
   return {
     filingShares: shareFor(latestEpsYear) || null,
     financials: {
@@ -540,6 +540,7 @@ function assemble (facts) {
     },
     fields: {
       ttm_eps: keptEps.at(-1)?.val ?? null,
+      eps_as_of: keptEps.at(-1)?.end ?? null,
       free_cash_flow_per_share: recentFcf?.val ?? null,
       tangible_book: [...rows].reverse().find((row) => row.book_value_per_share != null)?.book_value_per_share ?? null,
       earning_growth_10y: growthWindow(keptEps, 10),

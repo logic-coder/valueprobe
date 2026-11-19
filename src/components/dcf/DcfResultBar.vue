@@ -2,10 +2,10 @@
   <div class="dcf__strip" data-testid="dcf-result">
     <div class="dcf__strip-head">
       <div class="dcf__strip-title" data-testid="value-title">
-        {{ official ? t('official_title') : t('official_trial_title') }}
+        {{ t(official ? 'official_title' : unavailable ? 'policy_refused_title' : 'official_trial_title') }}
       </div>
       <div class="dcf__strip-context" data-testid="value-context">
-        {{ official ? officialContext : trialContext }}
+        {{ official ? officialContext : unavailable ? '' : trialContext }}
       </div>
     </div>
     <!-- fair value -->
@@ -34,7 +34,7 @@
       <div class="dcf__label">
         <a-popover placement="top">
           <h3 class="dcf__label-text">
-            {{ t('margin_of_safety') }}
+            {{ t(marginLabel) }}
             <q-icon class="faint" name="help" size="14px" />
           </h3>
           <template #content>{{ t('margin_of_safety_desc') }}</template>
@@ -94,6 +94,8 @@ const props = defineProps({
   official: { type: Boolean, default: false },
   officialContext: { type: String, default: '' },
   trialContext: { type: String, default: '' },
+  unavailable: { type: Boolean, default: false },
+  marginLabel: { type: String, default: 'margin_of_safety' },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()
@@ -102,7 +104,7 @@ const hasBand = computed(() => Number.isFinite(Number(props.result.fairLow)) && 
 const bandText = computed(() => moneyIn(props.stock.currency, props.result.fairLow) + ' – ' + moneyIn(props.stock.currency, props.result.fairHigh))
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
-const safetyIcon = computed(() => (safetyIsNeutral.value || props.result.marginOfSafety < 0 ? 'thumb_down' : 'thumb_up'))
+const safetyIcon = computed(() => (safetyIsNeutral.value ? 'remove' : props.result.marginOfSafety < 0 ? 'thumb_down' : 'thumb_up'))
 const safetyWidth = computed(() => {
   const mos = Number(props.result.marginOfSafety)
   if (!Number.isFinite(mos)) return '0%'

@@ -4,7 +4,7 @@ Open-source, local-first stock valuation. The published number is the **intrinsi
 
 ## What you see on a stock
 
-A stock in the covered list opens on its **ValueProbe fair value** — the published number, its margin of safety, the data date and the policy version. The page never asks you to fill in a blank calculator first.
+A stock in the covered list opens on its **ValueProbe fair value** — the published number, its margin of safety, the earnings period, quote date, release date and policy version. The page never asks you to fill in a blank calculator first.
 
 You can still edit the price and assumptions. Edits update the single headline in place and relabel it as *your calculation*; the published number and `POLICY_V1` are never changed. Nothing you type is written back to the policy, the artifact or any shared state — it applies only to the page you are looking at. 「恢复默认值」 returns to the published inputs. Stocks outside the coverage list, or refused by the policy, show that explicitly and remain available for calculation only.
 
@@ -32,7 +32,7 @@ npm run dev
 
 ## Data contract
 
-- `public/data/intrinsic/v1.json` is the only published value. The watchlist, comparison and method pages read the artifact; the stock page seeds its calculator from the same policy inputs (locked by a unit test), so its default headline equals the published value instead of a second, hand-maintained number.
+- `public/data/intrinsic/v1.json` is the only published value. The stock, watchlist, comparison and method pages read the release. The stock calculator starts with those assumptions and runs a local calculation when assumptions are edited.
 - `public/data/manifest.json` pins the artifact's policy version and hash, the covered-symbol counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
 - `POLICY_VERSION` and `POLICY_V1_HASH` in `src/lib/policy.js` identify the policy that produced the artifact. Any change to `POLICY_V1` must bump the version and the hash in the same commit.
 - The gate fails on a hash mismatch, a non-reproducible artifact, a missing rate row, a coverage-list/catalog/file disagreement, or an unknown reason/warning code. An old artifact or rate row only prints a warning; the value itself carries `STALE_DATA` / `STALE_PRICE`, so the gate stays independent of the day it runs.

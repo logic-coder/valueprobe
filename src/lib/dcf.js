@@ -232,8 +232,12 @@ function orderBand (low, mid, high) {
 
 /** Margin of safety in percent, or "n/a" exactly like the original. */
 export function marginOfSafety (price, fairValue) {
-  const value = 100 * (1 - price / fairValue)
-  if (value > 100 || isNaN(value)) return 'n/a'
+  if (!['number', 'string'].includes(typeof price) || !['number', 'string'].includes(typeof fairValue)) return 'n/a'
+  const quote = Number(price)
+  const fair = Number(fairValue)
+  if (!Number.isFinite(quote) || quote <= 0 || !Number.isFinite(fair) || fair <= 0) return 'n/a'
+  const value = 100 * (1 - quote / fair)
+  if (!Number.isFinite(value)) return 'n/a'
   return value.toFixed(2)
 }
 

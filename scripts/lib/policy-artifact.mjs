@@ -48,18 +48,23 @@ export function readRates (root) {
 }
 
 /** Public look of one entry: numbers rounded once, fixed key order. */
-const entryOf = (symbol, value) => ({
+const entryOf = (symbol, stock, value) => ({
   symbol,
+  name: stock.company || symbol,
   status: value.status,
   value: value.value,
   band: value.band,
   terminalShare: value.terminalShare,
   price: value.price,
+  priceDate: value.priceDate,
   marginOfSafety: value.marginOfSafety,
   reasons: value.reasons,
   warnings: value.warnings,
   inputs: value.inputs,
   asOf: value.asOf,
+  earningsDate: value.earningsDate,
+  earningsPeriod: value.earningsPeriod,
+  earningsSource: value.earningsSource,
   ratesAsOf: value.ratesAsOf,
 })
 
@@ -120,7 +125,7 @@ export function buildArtifacts ({ root = process.cwd(), generatedAt = new Date()
     const symbol = stock.exchange_ + ':' + stock.symbol
     rawBySymbol[symbol] = raw
     const value = policyValue(stock, { rates: readRates(root).rates, generatedAt })
-    entries[symbol] = entryOf(symbol, value)
+    entries[symbol] = entryOf(symbol, stock, value)
     if (value.status === 'ok') counts.valued++
     else counts.refused++
     for (const code of value.reasons) {

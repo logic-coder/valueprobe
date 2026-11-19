@@ -166,8 +166,11 @@ describe('marginOfSafety', () => {
 
   it('is n/a above 100 percent or when undefined', () => {
     expect(marginOfSafety(-1, 11.56)).toBe('n/a')
-    expect(marginOfSafety(0, 11.56)).toBe('100.00')
-    expect(marginOfSafety(8.85, 0)).toBe('-Infinity')
+    expect(marginOfSafety(0, 11.56)).toBe('n/a')
+    expect(marginOfSafety(8.85, 0)).toBe('n/a')
+    expect(marginOfSafety('', 11.56)).toBe('n/a')
+    expect(marginOfSafety(null, 11.56)).toBe('n/a')
+    expect(marginOfSafety(Infinity, 11.56)).toBe('n/a')
   })
 })
 

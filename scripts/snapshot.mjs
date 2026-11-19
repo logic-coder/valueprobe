@@ -12,10 +12,11 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { mkdir, readdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fromAshareReports, fromHkReports, convertReportingCurrency } from '../src/data/providers/eastmoney-statements.js'
+import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts } from './lib/policy-artifact.mjs'
+import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -73,15 +74,20 @@ function priceOf (quote, market) {
   const decimals = Number(quote.f59)
   const scale = Number.isInteger(decimals) && decimals >= 0 && decimals <= 4 ? 10 ** decimals : (SCALE[market] || 100)
   const price = Math.round((Number(quote.f43) / scale) * 100) / 100
-  if (!Number.isFinite(price)) throw new Error('empty quote')
+  if (!Number.isFinite(price) || price <= 0) throw new Error('empty quote')
   const currency = market === 'HKSE' ? 'HK$' : US.has(market) ? '$' : '¥'
-  return { price: currency + price, currency, company: quote.f58 || '', marketCap: Number(quote.f116) }
+  const seconds = Number(quote.f124)
+  const zone = US.has(market) ? 'America/New_York' : 'Asia/Shanghai'
+  const asOf = seconds > 0 && seconds < Date.now() / 1000 + 60
+    ? new Intl.DateTimeFormat('sv-SE', { timeZone: zone }).format(new Date(seconds * 1000))
+    : null
+  return { price: currency + price, currency, company: quote.f58 || '', marketCap: Number(quote.f116), asOf }
 }
 
 async function quoteFor (market, code) {
   const secid = SECID[market]
   if (!secid) throw new Error('market not on the quote feed')
-  const live = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116'
+  const live = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116,f124'
   try {
     const quote = (await getJson(live))?.data
     if (!quote) throw new Error('empty quote')
@@ -97,12 +103,13 @@ async function quoteFor (market, code) {
 
 async function quoteFromKline (market, code, secid) {
   const url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid=' + encodeURIComponent(secid + '.' + code)
-    + '&klt=101&fqt=1&lmt=1&end=20500101&fields1=f1,f2,f3&fields2=f51,f53'
+    + '&klt=101&fqt=0&lmt=1&end=20500101&fields1=f1,f2,f3&fields2=f51,f53'
   const data = (await getJson(url))?.data
-  const close = Number(String(data?.klines?.at(-1) || '').split(',')[1])
+  const [date, value] = String(data?.klines?.at(-1) || '').split(',')
+  const close = Number(value)
   if (!(close > 0)) throw new Error('empty quote')
   const currency = market === 'HKSE' ? 'HK$' : US.has(market) ? '$' : '¥'
-  return { price: currency + close, currency, company: data.name || '', marketCap: NaN }
+  return { price: currency + close, currency, company: data.name || '', marketCap: NaN, asOf: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null }
 }
 
 async function statementsFor (market, code) {
@@ -113,14 +120,14 @@ async function statementsFor (market, code) {
       getJson(base + '&type=0'),
       getJson(base + '&type=1'),
     ])
-    return fromAshareReports(recent.data || [], annual.data || [])
+    return { ...fromAshareReports(recent.data || [], annual.data || []), earningsSource: base + '&type=0' }
   }
   if (market === 'HKSE') {
     const filter = encodeURIComponent('(SECUCODE="' + code + '.HK")')
     const url = 'https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_HKF10_FN_MAININDICATOR&columns=ALL&filter='
       + filter + '&pageNumber=1&pageSize=40&sortTypes=-1&sortColumns=REPORT_DATE'
     const body = await getJson(url)
-    return fromHkReports(body?.result?.data || [])
+    return { ...fromHkReports(body?.result?.data || []), earningsSource: url }
   }
   return null
 }
@@ -135,8 +142,9 @@ async function edgarFor (market, code) {
   const entry = tickerMap[code]
   if (!entry) throw new Error('unknown US ticker')
   const cik = String(entry.cik_str).padStart(10, '0')
-  const facts = await getJson('https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json')
-  return fundamentalsFromFacts(market + ':' + code, facts)
+  const url = 'https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json'
+  const facts = await getJson(url)
+  return { ...fundamentalsFromFacts(market + ':' + code, facts), earningsSource: url }
 }
 
 function historyFrom (financials) {
@@ -150,15 +158,16 @@ function historyFrom (financials) {
   return history
 }
 
-function recordFrom (market, code, quote, pack) {
+function recordFrom (market, code, quote, pack, note) {
   const fields = pack?.fields || {}
-  return {
+  const record = applyVerifiedEarnings({
     as_of: new Date().toISOString().slice(0, 10),
     symbol: code,
     exchange_: market,
     company: quote.company || fields.company || code,
     currency: quote.currency,
     price: quote.price,
+    quote_as_of: quote.asOf,
     ttm_eps: fields.ttm_eps ?? null,
     ttm_eps_nri: fields.ttm_eps_nri ?? fields.ttm_eps ?? null,
     free_cash_flow_per_share: fields.free_cash_flow_per_share ?? null,
@@ -174,10 +183,13 @@ function recordFrom (market, code, quote, pack) {
     ebit_growth_10y: fields.ebit_growth_10y ?? null,
     cashflow_basis: fields.cashflow_basis || null,
     eps_period: fields.eps_period || null,
+    eps_as_of: fields.eps_as_of || null,
+    eps_source: pack?.earningsSource || null,
     predictability: fields.predictability ?? null,
     financials: pack?.financials || { annual: [], ttm: [], quarter: [] },
-    history: historyFrom(pack?.financials),
-  }
+    ...note,
+  })
+  return { ...record, history: historyFrom(record.financials) }
 }
 
 let written = 0
@@ -213,14 +225,16 @@ for (const symbol of symbols) {
       const reportCurrency = String(pack.reportCurrency || 'CNY').toUpperCase()
       // This feed labels yuan figures as HKD. Only a real third currency is refused.
       if (!['CNY', 'RMB', 'HKD', ''].includes(reportCurrency)) throw new Error('statement currency ' + reportCurrency)
-      pack = convertReportingCurrency(pack, hkdPerYuan)
+      const sourceCurrency = pack.perShareCurrency
+      pack = toHkQuoteCurrency(pack, hkdPerYuan)
       note.report_currency = reportCurrency
-      note.fx_to_quote = Math.round(hkdPerYuan * 10000) / 10000
+      note.fundamentals_currency = sourceCurrency
+      note.fx_to_quote = sourceCurrency === 'HKD' ? 1 : Math.round(hkdPerYuan * 10000) / 10000
     }
     const file = resolve(OUT, market + '-' + code + '.json')
     if (US.has(market) && pack) {
       const price = Number(String(quote.price).replace(/[^0-9.-]/g, ''))
-      let factor = quoteSplitFactor(price, quote.marketCap, pack.filingShares)
+      let factor = verifiedQuoteFactor(symbol) ?? quoteSplitFactor(price, quote.marketCap, pack.filingShares)
       // A kline fallback has no market cap, so the split/ADR check cannot run.
       // Reuse the last known factor instead of writing ordinary-share figures
       // against a post-split or ADR price.
@@ -240,7 +254,7 @@ for (const symbol of symbols) {
       await unlink(file).catch(() => {})
       throw new Error('no fundamentals')
     }
-    const record = { ...recordFrom(market, code, quote, pack), ...note }
+    const record = recordFrom(market, code, quote, pack, note)
     await writeFile(file, JSON.stringify(record, null, 2) + '\n')
     written++
     console.log('wrote', market + '-' + code + '.json', record.price, 'eps', record.ttm_eps, note.split_to_quote ? 'split ' + note.split_to_quote : '')

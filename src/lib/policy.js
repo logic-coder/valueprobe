@@ -81,6 +81,7 @@ const num = (value) => {
 }
 
 const daysBetween = (laterIso, earlierIso) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(laterIso || '') || !/^\d{4}-\d{2}-\d{2}$/.test(earlierIso || '')) return null
   const later = Date.parse(laterIso)
   const earlier = Date.parse(earlierIso)
   if (!Number.isFinite(later) || !Number.isFinite(earlier)) return null
@@ -93,7 +94,15 @@ const round4 = (value) => Math.round(value * 10_000) / 10_000
 const priceOf = (value) => {
   if (value === null || value === undefined || value === '') return null
   const parsed = Number(String(value).replace(/[^0-9.+-]+/g, ''))
-  return Number.isFinite(parsed) ? parsed : null
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+export function quoteDateStatus (price, priceDate, referenceDate = new Date().toISOString().slice(0, 10)) {
+  if (!(price > 0)) return 'missing'
+  if (!priceDate) return 'unknown'
+  const age = daysBetween(referenceDate, priceDate)
+  if (age == null || age < 0) return 'unknown'
+  return age > POLICY_V1.price.marginWarningDays ? 'historical' : 'dated'
 }
 
 /** Same EPS preference as buildDefaults, so a seeded calculator equals the artifact. */
@@ -122,7 +131,7 @@ export const policyFallbackDiscountRate = () => POLICY_V1.discount.fallback
 
 /**
  * Model the policy publishes for this record. The classification is recorded on the
- * normalised record by libros/stockRecord (the snapshot provider applies the same
+ * normalised record by lib/stockRecord (the snapshot provider applies the same
  * heuristic), so the page and the artifact cannot disagree about a symbol.
  */
 export function policyModel (stock) {
@@ -176,6 +185,11 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   const currency = cashflowCurrency(stock)
   const asOf = stock._as_of || stock.as_of || null
+  const earningsDate = stock.eps_as_of || null
+  const earningsPeriod = stock.eps_period || null
+  const earningsSource = stock.eps_source || null
+  const price = priceOf(stock.price)
+  const priceDate = price === null ? null : (stock.quote_as_of || null)
   inputs.currency = currency
 
   // ---- discount rate ------------------------------------------------------
@@ -212,12 +226,14 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   // ---- freshness (disclosed, never silently repaired) ---------------------
   if (generatedAt) {
-    if (!asOf) warnings.push(WARNING.STALE_DATA)
-    else {
-      const age = daysBetween(generatedAt, asOf)
-      if (age === null || age > POLICY_V1.staleness.fundamentalsDays) warnings.push(WARNING.STALE_DATA)
-    }
+    const age = earningsDate ? daysBetween(generatedAt, earningsDate) : null
+    if (age === null || age < 0) warnings.push(WARNING.EARNINGS_DATE_UNKNOWN)
+    else if (age > POLICY_V1.staleness.fundamentalsDays) warnings.push(WARNING.STALE_DATA)
+    const quoteStatus = quoteDateStatus(price, priceDate, generatedAt)
+    if (quoteStatus === 'unknown') warnings.push(WARNING.QUOTE_DATE_UNKNOWN)
+    if (quoteStatus === 'historical') warnings.push(WARNING.STALE_PRICE)
   }
+  if (price === null) warnings.push(WARNING.PRICE_MISSING)
 
   // ---- growth -------------------------------------------------------------
   const growthInfo = policyGrowth(stock.earning_growth_10y)
@@ -240,7 +256,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.tangibleBook = tangibleBook
   if (model === POLICY_V1.model.financialInstitution && !(tangibleBook > 0)) reasons.push(REASON.NO_BOOK)
 
-  const base = { symbol: symbolOf(stock), value: null, band: null, terminalShare: null, price: null, marginOfSafety: null, inputs, asOf: asOf || null, ratesAsOf: inputs.rate.asOf }
+  const base = {
+    symbol: symbolOf(stock), value: null, band: null, terminalShare: null, price, priceDate,
+    marginOfSafety: null, inputs, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf: inputs.rate.asOf,
+  }
   if (reasons.length) return finish(base, reasons, warnings)
 
   // ---- value --------------------------------------------------------------
@@ -275,26 +294,14 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   })
 
   // ---- price is a separate fact: it only feeds the margin of safety --------
-  const price = priceOf(stock.price)
-  let margin = null
-  if (price !== null && price > 0) {
-    const computed = Number(marginOfSafety(price, value))
-    margin = Number.isFinite(computed) ? computed : null
-    if (generatedAt && asOf) {
-      const priceAge = daysBetween(generatedAt, asOf)
-      if (priceAge !== null && priceAge > POLICY_V1.price.marginWarningDays) warnings.push(WARNING.STALE_PRICE)
-    }
-  } else {
-    warnings.push(WARNING.PRICE_MISSING)
-  }
+  const margin = Number(marginOfSafety(price, value))
 
   return finish({
     ...base,
     value,
     band: band.low === null ? null : { low: band.low, mid: band.mid, high: band.high },
     terminalShare,
-    price,
-    marginOfSafety: margin,
+    marginOfSafety: Number.isFinite(margin) ? margin : null,
   }, reasons, warnings)
 }
 
