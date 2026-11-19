@@ -1,6 +1,6 @@
-// Committed public-policy artifact: the browser shows the same numbers the
-// build published (public/data/intrinsic/v1.json), never a second computation.
-// Static hosts only read public/data; the dev server serves the same file.
+// Committed public-policy artifact: the watchlist, comparison and method pages
+// show the numbers the build published (public/data/intrinsic/v1.json) instead
+// of recomputing them. Static hosts only read public/data; dev serves the same file.
 const BASE = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/')
 const ARTIFACT_PATH = 'data/intrinsic/v1.json'
 

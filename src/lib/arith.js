@@ -1,6 +1,6 @@
 // Bounded arithmetic for user-supplied magnitudes. JS gives Infinity silently;
 // the valuation stack prefers to decline a result and record why, so every
-// product/quotient that can overflow goes through here (see CALCULATION.md).
+// product/quotient that can overflow goes through here (see docs/CALCULATION.md).
 
 /** Largest magnitude the stack agrees to carry. */
 export const MAX_MAGNITUDE = 1e15

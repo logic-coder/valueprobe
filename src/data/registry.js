@@ -2,7 +2,7 @@
 // capability and coverage, order by preference, gate on the breaker, meter each
 // source, validate, and record every attempt so the UI can explain itself.
 //
-// Contract (DATA_SOURCES.md): a source that is skipped is *recorded as skipped*,
+// Contract (docs/DATA_SOURCES.md): a source that is skipped is *recorded as skipped*,
 // never silently dropped.
 import { CircuitBreaker } from './circuit'
 import { RateLimiter } from './limiter'

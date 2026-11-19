@@ -46,10 +46,10 @@ describe('legal messages', () => {
   })
 
   it('uses the frozen product names', () => {
-    expect(legalMessages['zh-hans'].policy_value_title).toContain('内在价值')
-    expect(legalMessages['zh-hans'].policy_value_title).toContain('公开口径 v1')
-    expect(legalMessages['en-us'].policy_value_title).toContain('Intrinsic value')
-    expect(legalMessages['en-us'].policy_value_title.toLowerCase()).toContain('public policy v1')
+    expect(legalMessages['zh-hans'].method_term_intrinsic).toBe('内在价值')
+    expect(legalMessages['zh-hans'].method_term_policy).toBe('公开口径')
+    expect(legalMessages['en-us'].method_term_intrinsic).toBe('Intrinsic value')
+    expect(legalMessages['en-us'].method_term_policy).toBe('Public policy')
     expect(legalMessages['zh-hans'].disc_estimate).toContain('非投资建议')
     expect(legalMessages['en-us'].disc_estimate.toLowerCase()).toContain('not investment advice')
   })

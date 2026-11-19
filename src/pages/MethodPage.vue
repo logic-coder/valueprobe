@@ -35,6 +35,27 @@
     </section>
 
     <section class="panel method__block">
+      <div class="panel__head"><span class="panel__title">{{ t('method_glossary_title') }}</span></div>
+      <div class="panel__body">
+        <p>{{ t('method_glossary_intro') }}</p>
+        <table class="method__table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t('method_item') }}</th>
+              <th scope="col">{{ t('method_meaning') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in glossaryRows" :key="row.term">
+              <th scope="row">{{ row.term }}</th>
+              <td>{{ row.desc }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel method__block">
       <div class="panel__head"><span class="panel__title">{{ t('method_refuse_title') }}</span></div>
       <div class="panel__body">
         <p>{{ t('method_refuse_body') }}</p>
@@ -179,6 +200,12 @@ const parameterRows = computed(() => [
   { label: t('method_band'), values: [t('method_rule_band', { spread: bandSpread })] },
   { label: t('method_price'), values: [t('method_rule_price', { days: summary.price.marginWarningDays })] },
 ])
+
+const glossaryKeys = ['intrinsic', 'margin', 'discount', 'terminal', 'residual', 'policy', 'coverage', 'snapshot', 'scenario', 'published']
+const glossaryRows = computed(() => glossaryKeys.map((key) => ({
+  term: t('method_term_' + key),
+  desc: t('method_desc_' + key),
+})))
 
 const reasonRows = computed(() => REASON_CODES.map((code) => ({ code, meaning: t('reason_' + code) })))
 const warningRows = computed(() => WARNING_CODES.map((code) => ({ code, meaning: t('warning_' + code) })))

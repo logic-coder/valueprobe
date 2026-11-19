@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mockApi } from './support/api-mock'
 
-// Guards the documented deviations (DEVIATIONS.md D1-D4). The formula kernel
+// Guards the documented deviations (docs/DEVIATIONS.md D1-D4). The formula kernel
 // itself is covered by tests/unit/kernel-parity.test.js.
 const FAIR = '.text-h6.button-font-weight'
 const DISCOUNT = '.input-section'

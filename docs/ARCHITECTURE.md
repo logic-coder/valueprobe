@@ -1,6 +1,6 @@
 # 架构与词汇表
 
-这份文档是重构和交接的护栏。改代码前先读这里的层规则；与 HANDOVER.md 的迁移计划配合使用。
+这份文档是重构和交接的护栏。改代码前先读这里的层规则；交接笔记（HANDOVER）属内部资料，不随仓库发布。
 
 ## 红线
 
@@ -85,26 +85,26 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 | `src/lib/stockRecord.js` | raw 快照 → 归一化 stock（`_as_of`、`financial_institution`、拆股清洗） |
 | `src/lib/reasons.js` | `REASON` / `WARNING` 码与稳定排序；UI 键约定 `reason_<CODE>` / `warning_<CODE>` |
 | `src/data/listingGroups.js` | 9 组 A/H 对照 |
-| `scripts/lib/policy-artifact.mjs` | 用 `policyValue()` 构建 artifact + manifest；写入与校验共用同一函数 |
+| `scripts/lib/policy-artifact.mjs` | 用 `policyValue()` 构建发布值文件 + manifest；写入与校验共用同一函数 |
 | `scripts/policy-values.mjs` / `scripts/verify-data.mjs` | `npm run intrinsic` / `npm run verify:data` |
-| `public/data/intrinsic/v1.json` | 唯一发布值（artifact）：entries、coverage、rates、crossListing |
+| `public/data/intrinsic/v1.json` | 唯一发布值文件：entries、coverage（覆盖计数）、rates、crossListing |
 | `public/data/manifest.json` | universe/coverage/rates + 每个快照的 bytes/sha256 |
-| `src/api/policy.js` / `src/store/policy.js` | 读 artifact 的门面与响应式状态（fetch 一次、`entryOf(symbol)`） |
-| `src/pages/MethodPage.vue` | `#/method` 方法页：参数/代码表由 policy 常量生成，发布事实经 `api/policy` 读 artifact |
+| `src/api/policy.js` / `src/store/policy.js` | 读发布值文件的门面与响应式状态（fetch 一次、`entryOf(symbol)`） |
+| `src/pages/MethodPage.vue` | `#/method` 方法页：参数/代码表由 policy 常量生成，发布事实经 `api/policy` 读发布值文件 |
 | `src/i18n/legal-messages.js` | 拒绝/警告码、口径说明与免责文案；在 `main.js` 里后展开合并进 i18n |
 
 发布值数据流：
 
 1. `npm run snapshot` 写 `public/data/<MARKET>-<CODE>.json` 与 `public/data/rates.json`（本机运行，上游接口）。
-2. `npm run intrinsic` 在 Node 里读同一批文件，经 `toStock()` → `policyValue()` 写 artifact + manifest。
-3. 浏览器里 `api/policy` 读 artifact，`store/policy` 挂到页面；结果条/自选/对比只显示 artifact 的值、band、warning 与 asOf。
-4. `npm run verify:data` 用同一构建函数重算比对；不一致（含过期、universe 不符、manifest hash 不符）让门禁失败。
+2. `npm run intrinsic` 在 Node 里读同一批文件，经 `toStock()` → `policyValue()` 写发布值文件 + manifest。
+3. 自选、对比与方法页经 `api/policy` 读发布值文件；股票页用 `buildDefaults()` 给出的同一组政策输入在本地计算（seed 对齐测试保证与发布值一致），不再额外渲染重复的发布值面板。
+4. `npm run verify:data` 用同一构建函数重算比对；不一致（含过期、覆盖清单不符、manifest hash 不符）让门禁失败。
 
 规则：
 
-- `lib/policy.js` 保持纯函数，不 import 上层；页面/组件不得复制口径参数，也不得为显示另算一次发布值。
-- 改 `POLICY_V1` 必须同一次升 `POLICY_VERSION` + `POLICY_V1_HASH`，并重跑 `npm run intrinsic`、提交 artifact。
+- `lib/policy.js` 保持纯函数，不 import 上层；页面/组件不得复制口径参数，也不得另立一套显示口径。
+- 改 `POLICY_V1` 必须同一次升 `POLICY_VERSION` + `POLICY_V1_HASH`，并重跑 `npm run intrinsic`、提交发布值文件。
 - 方法页的参数表与代码表只从代码导出生成，不硬编码数字；政策升版自动跟随。
-- 数据字段与 artifact/manifest schema 的说明见 `docs/POLICY.md`。
+- 数据字段与发布值文件 / manifest 结构的说明见 `POLICY.md`。
 
-测试契约（数据与文案）：`tests/unit/policy.test.js`（hash、口径常量、seed 对齐）、`tests/unit/data-contract.test.js`（artifact/manifest/universe/rates/cross-listing）、`tests/unit/copy-policy.test.js`（zh/en 键集、reason/warning 键、禁用词、README 门禁链）。
+测试契约（数据与文案）：`tests/unit/policy.test.js`（hash、口径常量、默认输入对齐）、`tests/unit/data-contract.test.js`（发布值文件/manifest/覆盖清单/rates/cross-listing）、`tests/unit/copy-policy.test.js`（zh/en 键集、reason/warning 键、禁用词、README 门禁链）。

@@ -1,6 +1,6 @@
 # 公开口径 v1（public policy v1）
 
-这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v1.json` 或 `src/lib/policy.js` 不一致，以代码与 artifact 为准。
+这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v1.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。
 
 修改 `POLICY_V1` 会改变每一个发布数字。必须同时升 `POLICY_VERSION`、重算并更新 `POLICY_V1_HASH`，否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
@@ -28,7 +28,7 @@
 | 折现率夹取 | 0–50% | `discount.min` / `discount.max` |
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
 | 基本面过期 | 超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
-| 利率过期 | 超过 10 天在闸门失败 | `staleness.ratesDays` |
+| 利率过期 | 超过 10 天在校验失败 | `staleness.ratesDays` |
 | 区间 | 折现率上下 2 个百分点（同一模型） | `band.discountSpread` |
 | 终值占比 | 披露 | `terminalShareDisclosed` |
 
@@ -36,9 +36,9 @@
 
 - 折现率：`rateForCurrency()`（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6）→ 夹到 0–50；取不到当地利率时 `policyValue()` 用兜底值并加 `RATE_FALLBACK`。
 - 增速：`policyGrowth()` → `adoptGrowth()`（`src/lib/assumptions.js`）：缺失给 `NO_GROWTH`，超过 15% 按 15% 并给 `CAPPED_GROWTH`，负值照常并给 `NEGATIVE_HISTORY_GROWTH`。
-- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与 artifact 构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 用同一模型算低/中/高。
+- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 用同一模型算低/中/高。
 - 价格：只进入安全边际，从不进入内在价值；价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`。
-- 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和 artifact 构建走同一条路径。
+- 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
 ## 2. 拒绝码（REASON）
 
@@ -68,9 +68,9 @@
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
 | `STALE_DATA` | 基本面快照已经过期，照常出值并标注。 |
 
-UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/legal-messages.js`，由 `src/main.js` 合并进 i18n。数据闸门拒绝未知代码。
+UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/legal-messages.js`，由 `src/main.js` 合并进 i18n。数据校验拒绝未知代码。
 
-## 4. artifact 与 manifest
+## 4. 发布值文件与 manifest
 
 两个文件都只能由 `npm run intrinsic`（即 `scripts/policy-values.mjs`）生成，不要手改。构建函数在 `scripts/lib/policy-artifact.mjs`，写入与校验共用这一个函数，所以同一份输入得到同一份字节。
 
@@ -93,18 +93,18 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 
 | 字段 | 含义 |
 | --- | --- |
-| `schema` / `policyVersion` / `policyHash` / `generatedAt` | 与 artifact 一致。 |
+| `schema` / `policyVersion` / `policyHash` / `generatedAt` | 与发布值文件一致。 |
 | `dataAsOf` | 利率表日期。 |
-| `universe` / `counts` | 与 artifact 的 universe；`counts = { snapshots, valued, refused }`。 |
-| `rates` | 与 artifact.rates 相同，便于页面单独读利率。 |
-| `files[]` | `{ name, bytes, sha256 }`：`catalog.json`、`rates.json` 和 150 个快照；artifact 本身由闸门重算比对。 |
+| `universe` / `counts` | 与发布值文件的覆盖清单（`universe`）一致；`counts = { snapshots, valued, refused }`。 |
+| `rates` | 与发布值文件的 `rates` 相同，便于页面单独读利率。 |
+| `files[]` | `{ name, bytes, sha256 }`：`catalog.json`、`rates.json` 和 150 个快照；发布值文件本身由校验重算比对。 |
 
-## 5. 刷新与闸门
+## 5. 刷新与校验
 
 ```bash
 npm run snapshot     # 刷新 public/data/*.json 与 rates.json（本机运行）
 npm run intrinsic    # 生成 intrinsic/v1.json 与 manifest.json
-npm run verify:data  # 数据闸门
+npm run verify:data  # 数据校验
 npm run refresh      # 上面三步
 npm run verify       # lint → test → test:real → verify:data → smoke:pages
 ```
@@ -113,7 +113,7 @@ npm run verify       # lint → test → test:real → verify:data → smoke:pag
 
 1. `POLICY_V1` 的 sha256 等于 `POLICY_V1_HASH`；
 2. committed artifact/manifest 可由已提交文件重算且字节一致（否则 `run npm run intrinsic`）；
-3. `generatedAt` 距 120 天（`staleness.fundamentalsDays`）以内；超过只打 `warn`，不使闸门失败（口径是“保留并标注”，过期由数值上的 `STALE_DATA` 披露）；
+3. `generatedAt` 距 120 天（`staleness.fundamentalsDays`）以内；超过只打 `warn`，不使校验失败（口径是“保留并标注”，过期由数值上的 `STALE_DATA` 披露）；
 4. CNY/USD/HKD 都有利率行；`asOf` 超过 10 天（`staleness.ratesDays`）同样只 `warn`；缺利率行本身仍是硬失败；
    这样 `verify:data` 的结果只取决于已提交文件，不取决于运行当天的日期（CI 不会在刷新后第 11 天开始因无关提交变红）；
 5. `scripts/watchlist.json`、已提交快照、`catalog.json`、artifact entries 四者集合一致；
@@ -123,9 +123,9 @@ npm run verify       # lint → test → test:real → verify:data → smoke:pag
 
 CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；冒烟与浏览器套件另列。
 
-## 6. 宇宙与替换
+## 6. 覆盖清单与替换
 
-公开宇宙是 `scripts/watchlist.json` 里的 150 只：`public/data` 有 150 个快照，`catalog.json` 150 行，artifact `entries` 150 条。任何一边多一只或少一只，闸门失败。
+公开覆盖清单是 `scripts/watchlist.json` 里的 150 只（发布值文件的字段名仍是 `universe`）：`public/data` 有 150 个快照，`catalog.json` 150 行，artifact `entries` 150 条。任何一边多一只或少一只，校验失败。
 
 替换记录（只换标的，不改口径）：
 

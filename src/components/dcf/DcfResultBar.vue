@@ -2,7 +2,6 @@
   <div class="dcf__strip" data-testid="dcf-result">
     <div class="dcf__strip-title">
       {{ t('valuation_result') }}
-      <span v-if="policyAssumption" class="dcf__strip-assumption" data-testid="policy-assumption"> · {{ t(policyAssumption === 'seed' ? 'policy_seed' : 'policy_scenario') }}</span>
     </div>
     <!-- fair value -->
     <div class="dcf__block dcf__fair">
@@ -87,7 +86,6 @@ const props = defineProps({
   result: { type: Object, required: true },
   liveSummary: { type: String, default: '' },
   showImplied: { type: Boolean, default: false },
-  policyAssumption: { type: String, default: '' },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()

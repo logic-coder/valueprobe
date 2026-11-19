@@ -19,20 +19,20 @@ npm run dev
 | `npm run build` | Static build into `dist/`. |
 | `npm run snapshot` | Refresh `public/data/<MARKET>-<CODE>.json` and `public/data/rates.json` from the public sources. Run locally, then commit. |
 | `npm run intrinsic` | Write the published values `public/data/intrinsic/v1.json` and the hash manifest `public/data/manifest.json` from the committed snapshots. |
-| `npm run verify:data` | Data gate: policy hash, artifact reproducibility, freshness warnings, universe and catalog agreement, manifest hashes, known codes, independent recompute. |
+| `npm run verify:data` | Data gate: policy hash, artifact reproducibility, freshness warnings, covered-symbol list and catalog agreement, manifest hashes, known codes, independent recompute. |
 | `npm run refresh` | `snapshot` → `intrinsic` → `verify:data`. |
 | `npm run verify` | `lint → test → test:real → verify:data → smoke:pages`, the same chain as `package.json` `verify`. |
 | `npm run test:e2e` | Playwright browser suites; CI runs these on pull requests only. |
 
 ## Data contract
 
-- `public/data/intrinsic/v1.json` is the only published value. Pages read the artifact; they never recompute a published number for display, so the screen cannot drift from the release.
-- `public/data/manifest.json` pins the artifact's policy version and hash, the universe counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
+- `public/data/intrinsic/v1.json` is the only published value. The watchlist, comparison and method pages read the artifact; the stock page seeds its calculator from the same policy inputs (locked by a unit test), so its default headline equals the published value instead of a second, hand-maintained number.
+- `public/data/manifest.json` pins the artifact's policy version and hash, the covered-symbol counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
 - `POLICY_VERSION` and `POLICY_V1_HASH` in `src/lib/policy.js` identify the policy that produced the artifact. Any change to `POLICY_V1` must bump the version and the hash in the same commit.
-- The gate fails on a hash mismatch, a non-reproducible artifact, a missing rate row, a universe/catalog/file disagreement, or an unknown reason/warning code. An old artifact or rate row only prints a warning; the value itself carries `STALE_DATA` / `STALE_PRICE`, so the gate stays independent of the day it runs.
+- The gate fails on a hash mismatch, a non-reproducible artifact, a missing rate row, a coverage-list/catalog/file disagreement, or an unknown reason/warning code. An old artifact or rate row only prints a warning; the value itself carries `STALE_DATA` / `STALE_PRICE`, so the gate stays independent of the day it runs.
 - The ten-year yields used by the artifact are `public/data/rates.json`; the bundled file is a local fallback only. A missing local yield keeps the value and carries `RATE_FALLBACK`.
 
-`CALCULATION.md`, `docs/POLICY.md` and `DEVIATIONS.md` record the parameters and where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
+`docs/CALCULATION.md`, `docs/POLICY.md` and `docs/DEVIATIONS.md` record the parameters and where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
 
 ## Deploy
 
@@ -40,9 +40,13 @@ Push to `main` with Pages set to GitHub Actions. The workflow is `.github/workfl
 
 ## Docs
 
-- `docs/POLICY.md` — public policy v1 parameters, reason/warning codes, artifact and manifest schema, refresh and gates, universe and replacements.
-- `CALCULATION.md` — models and the calculation boundaries.
-- `DATA_SOURCES.md` — providers, transport modes, rates and the artifact gate.
+Start with [`docs/README.md`](docs/README.md): it lists every document and the rule for where docs live.
+
+- `docs/POLICY.md` — public policy v1 parameters, reason/warning codes, artifact and manifest schema, refresh and checks, coverage list and replacements.
+- `docs/CALCULATION.md` — models and the calculation boundaries.
+- `docs/DATA_SOURCES.md` — providers, transport modes, rates and the artifact gate.
 - `docs/ARCHITECTURE.md` — layers, data flow and vocabulary.
+- `docs/DESIGN.md` — product/design rules and trade-offs.
+- `docs/DEVIATIONS.md` — every visible behaviour difference, with its reason.
 
 MIT. Market data stays under its sources' terms (`ATTRIBUTION.md`).

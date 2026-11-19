@@ -261,9 +261,9 @@
 
 - `RATE_FALLBACK`：取不到当地十年期利率，折现率回退 8%（不静默改用美债，港币代理除外）。
 - `NEGATIVE_HISTORY_GROWTH`：历史增速为负，照常外推并披露。
-- `STALE_DATA` / `STALE_PRICE`：快照或价格过期，只标注，不拒绝；发布闸门另行拒绝过期 artifact。
+- `STALE_DATA` / `STALE_PRICE`：快照或价格过期，只标注，不拒绝；发布校验另行拒绝过期发布值文件。
 - `DISCOUNT_CLAMPED` / `PRICE_MISSING` / `CAPPED_GROWTH` / `GROWTH_ABOVE_RETENTION` 同理只披露。
-- 位置：`src/lib/policy.js`、`src/i18n/legal-messages.js`、`docs/POLICY.md`。
+- 位置：`src/lib/policy.js`、`src/i18n/legal-messages.js`、`POLICY.md`。
 - 不改：拒绝码仍只用于输入确实不够的情况（`NO_SNAPSHOT` / `NO_EPS` / `NON_POSITIVE_EPS` / `NO_GROWTH` / `NO_BOOK` / `NOT_FINITE`）。
 
 ## D32 · 折现率按报价币种取
@@ -276,37 +276,37 @@
 
 ## D33 · 内在价值与情景/基准假设区分
 
-产品只把公开口径算出的数称为「内在价值 / Intrinsic value」。页面上的「基准假设」「情景」是交互预设，不是第二个发布值：它们不改写 artifact，也不进入发布口径。
+产品只把公开口径算出的数称为「内在价值 / Intrinsic value」。页面上的「基准 / 牛市 / 熊市」情景预设是交互状态，不是第二个发布值：它们不改写发布值文件，也不进入发布口径。
 
-- 位置：`src/lib/scenarios.js`、结果区的 policy-value 展示、`src/i18n/legal-messages.js`（`policy_seed` / `policy_scenario` / `policy_value_title`）。
-- 行为：结果条写「内在价值 · 公开口径 v1」，并给计算 asOf 与当前快照的 provenance；情景只切假设。
+- 位置：`src/lib/scenarios.js`（情景预设）、`src/pages/MethodPage.vue`（版本与发布事实）、`src/i18n/legal-messages.js`。
+- 行为：股票页沿用原有结果条与表单，不再额外渲染重复的发布值面板；政策版本、asOf 与覆盖率在方法页展示；情景只切假设。
 - 文案：用户可见的英文统一为 “Intrinsic value”，中文统一「内在价值」；不再用“fair value”作产品自称。
 
-## D34 · 宇宙替换与 150 只全量
+## D34 · 覆盖清单替换与 150 只全量
 
-公开宇宙固定 150 只（`scripts/watchlist.json`），`public/data`、`catalog.json`、artifact entries 必须一致。两处替换：
+公开覆盖清单固定 150 只（`scripts/watchlist.json`），`public/data`、`catalog.json`、发布值文件的 `entries` 必须一致。两处替换：
 
 - `HKSE:00823`（领展房产基金）东方财富无可用数据 → `HKSE:00002`（中电控股）。
 - `NYSE:XOM` 的 ticker 在 2026 年指向新的控股实体、SEC facts 不可用 → `HKSE:00066`（港铁公司）。
 
 - 位置：`scripts/watchlist.json`、`public/data/`、`scripts/policy-values.mjs`。
 - 行为：替换只换标的，不改口径；universe 检查不通过时 `verify:data` 直接失败。
-- 不改：拒绝出值的 27 只仍留在宇宙里并如实标注原因，不为了凑数换掉。
+- 不改：拒绝出值的 27 只仍留在覆盖清单里并如实标注原因，不为了凑数换掉。
 
-## D35 · 数据 artifact + manifest + verify:data
+## D35 · 发布值文件 + manifest + verify:data
 
 可复现的发布值：`npm run intrinsic` 生成 `public/data/intrinsic/v1.json` 与 `public/data/manifest.json`；`npm run verify:data` 用同一构建函数重算并比对字节、policy hash、universe、manifest sha256、过期时间与抽样记录。
 
 - 位置：`scripts/policy-values.mjs`、`scripts/lib/policy-artifact.mjs`、`scripts/verify-data.mjs`、`tests/unit/data-contract.test.js`。
-- 行为：artifact 是唯一发布值，页面只读 artifact；提交面数据必须同时提交 artifact 与 manifest，否则闸门失败。
+- 行为：发布值文件是唯一的对外发布值，自选、对比与方法页只读它；提交面数据必须同时提交发布值文件与 manifest，否则校验失败。
 - 不改：`npm run verify` 链（lint → test → test:real → verify:data → smoke:pages）。
 
 ## D36 · 方法页与免责
 
-公开站增加 `#/method` 方法页，集中说明模型、口径参数、拒绝/警告代码、数据刷新与复现、局限与免责；页脚、关于页与结果区都有入口。用户可见文案：免费、无账户、无个性化；估算、非投资建议。
+公开站增加 `#/method` 方法页，集中说明模型、口径参数、拒绝/警告代码、数据刷新与复现、局限与免责；页脚与关于页都有入口。用户可见文案：免费、无账户、无个性化；估算、非投资建议。
 
-- 位置：`src/pages/MethodPage.vue`、`src/router.js`、`src/App.vue`、`src/pages/AboutPage.vue`、`src/i18n/legal-messages.js`、`docs/POLICY.md`。
-- 行为：参数表与代码表由 `src/lib/policy.js`、`src/lib/reasons.js` 的导出生成，政策升版自动跟随；发布事实从 `public/data/manifest.json` / artifact 读取，不复制易漂移数字。
+- 位置：`src/pages/MethodPage.vue`、`src/router.js`、`src/App.vue`、`src/pages/AboutPage.vue`、`src/i18n/legal-messages.js`、`POLICY.md`。
+- 行为：参数表与代码表由 `src/lib/policy.js`、`src/lib/reasons.js` 的导出生成，政策升版自动跟随；发布事实从 `public/data/manifest.json` / 发布值文件读取，不复制易漂移数字。
 - 不改：页面不提供账户、保存、个性化推荐；方法说明不进入计算。
 
 ## D37 · 移除分享与打印

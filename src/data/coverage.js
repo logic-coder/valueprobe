@@ -1,5 +1,5 @@
 // Which markets a data source may serve. A provider declares coverage so the
-// registry can skip it up front instead of burning a request (DATA_SOURCES.md).
+// registry can skip it up front instead of burning a request (docs/DATA_SOURCES.md).
 
 const freeze = (value) => (value ? Object.freeze(value.slice()) : null)
 
