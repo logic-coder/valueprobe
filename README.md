@@ -2,6 +2,12 @@
 
 Open-source, local-first stock valuation. The published number is the **intrinsic value** under **public policy v1**: ordinary companies are discounted from per-share earnings in two stages; banks, insurers and brokers use residual income. It is an estimate, not investment advice, and not a price target.
 
+## What you see on a stock
+
+A stock in the covered list opens on its **ValueProbe fair value** — the published number, its margin of safety, the data date and the policy version. The page never asks you to fill in a blank calculator first.
+
+You can still edit the price and assumptions. Edits update the single headline in place and relabel it as *your calculation*; the published number and `POLICY_V1` are never changed. Nothing you type is written back to the policy, the artifact or any shared state — it applies only to the page you are looking at. 「恢复默认值」 returns to the published inputs. Stocks outside the coverage list, or refused by the policy, show that explicitly and remain available for calculation only.
+
 ## Run
 
 ```bash

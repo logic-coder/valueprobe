@@ -28,7 +28,21 @@
 .dcf__head > .row { flex: 1 1 auto; min-width: 0; }
 .dcf__head h3 { font-size: 16px; line-height: 1.4; color: var(--text); font-weight: 650; }
 
-.dcf__strip-title { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+.dcf__strip-head { margin-bottom: 10px; }
+.dcf__strip-col { grid-area: strip; align-self: start; position: sticky; top: 12px; }
+.dcf__price-echo { align-items: baseline; }
+.dcf__price-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted); margin: -2px 0 0; padding-left: 2px; }
+.dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
+.dcf__strip-context { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+.dcf__official-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
 .dcf__strip {
   grid-area: strip;
   align-self: start;

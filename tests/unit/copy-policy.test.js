@@ -6,12 +6,17 @@ import { REASON_CODES, WARNING_CODES } from '../../src/lib/reasons'
 
 // The published value always travels with its caveats. This test keeps the legal
 // copy complete in both locales (vue-i18n silently falls back when a key is
-// missing), keeps the banned self-labels out, and keeps the README gate chain in
+// missing), keeps the banned self-labels out of every disclosure (with the one
+// deliberate product-title exception below), and keeps the README gate chain in
 // step with package.json so the documented gates are the ones CI runs.
 const root = process.cwd()
 const read = (path) => readFileSync(resolve(root, path), 'utf8')
 const locales = ['zh-hans', 'en-us']
 const banned = ['官方', 'official', '公允价', 'fair value']
+// The product title is the one intentional exception: ValueProbe now names its
+// published number "ValueProbe 公允价 / ValueProbe fair value". Every disclaimer
+// and disclosure string stays on the banned-word guard.
+const titleKeys = new Set(['official_title'])
 
 describe('legal messages', () => {
   it('ships both locales with exactly the same key set', () => {
@@ -39,6 +44,7 @@ describe('legal messages', () => {
         expect(typeof value, locale + ' ' + key).toBe('string')
         expect(value.length, locale + ' ' + key).toBeGreaterThan(0)
         for (const word of banned) {
+          if (titleKeys.has(key)) continue
           expect(value.toLowerCase()).not.toContain(word.toLowerCase())
         }
       }
@@ -78,5 +84,51 @@ describe('README gates', () => {
       expect(readme, name).toContain('npm run ' + name)
     }
     expect(pkg.scripts.refresh).toBe('npm run snapshot && npm run intrinsic && npm run verify:data')
+  })
+})
+
+describe('free-cash-flow basis note', () => {
+  const sources = [
+    'src/i18n/zh-Hans.json',
+    'src/i18n/en-US.json',
+    'docs/CALCULATION.md',
+  ]
+
+  it('does not promise a drill-down that the page does not implement', () => {
+    for (const path of sources) {
+      const text = read(path).toLowerCase()
+      expect(text, path).not.toContain('点开查看')
+      expect(text, path).not.toContain('you can inspect it')
+    }
+  })
+
+  it('gates the invest warning on the free-cash-flow basis', () => {
+    const source = read('src/components/DcfCalculator.vue')
+    const note = source.slice(source.indexOf('data-testid="fcf-basis-note"') - 400, source.indexOf('data-testid="fcf-basis-note"'))
+    expect(note).toContain("dcfBasedOn === 'freecashflow'")
+    expect(note).not.toContain('name="warning"')
+  })
+})
+
+describe('single price editor', () => {
+  it('keeps the header as the only editable price on the stock page', () => {
+    const source = read('src/components/DcfCalculator.vue')
+    const form = source.slice(source.indexOf('<div class="line-height-2 dcf__form">'))
+    expect(form).not.toContain('v-model="result.stockPrice"')
+    expect(form).toContain('data-testid="price-echo"')
+    expect(form).toContain('headerPriceHint')
+  })
+
+  it('uses distinct labels for snapshot date and publish date', () => {
+    expect(legalMessages['zh-hans'].official_context).toContain('发布日')
+    expect(legalMessages['en-us'].official_context).toContain('published')
+    expect(read('src/i18n/zh-Hans.json')).toContain('"banner_published": "季度快照 · 数据截至 {asOf}"')
+    expect(read('src/i18n/en-US.json')).toContain('"banner_published": "Quarterly snapshot · as of {asOf}"')
+  })
+
+  it('does not repeat the read-only fundamentals note inside the calculator', () => {
+    expect(read('src/components/DcfCalculator.vue')).not.toContain('fundamentals_readonly')
+    expect(read('src/i18n/zh-Hans.json')).not.toContain('fundamentals_readonly')
+    expect(read('src/i18n/en-US.json')).not.toContain('fundamentals_readonly')
   })
 })

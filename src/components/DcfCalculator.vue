@@ -11,13 +11,24 @@
           />
         </q-card-section>
 
+          <div class="dcf__strip-col">
+          <div v-if="!loading && !policyEntry" class="dcf__official-note" data-testid="official-unavailable">
+            {{ t('official_outside') }} · {{ t('official_disc') }}
+          </div>
+          <div v-else-if="!loading && policyEntry.status !== 'ok'" class="dcf__official-note" data-testid="official-unavailable">
+            {{ t('official_unavailable', { reason: officialReason }) }} · {{ t('official_disc') }}
+          </div>
           <dcf-result-bar
             :loading="loading"
             :stock="stock"
             :result="result"
             :live-summary="liveSummary"
             :show-implied="!residualIncome"
+            :official="!isEdited && Boolean(policyEntry)"
+            :official-context="officialContext"
+            :trial-context="trialContext"
           />
+          </div>
 
           <div class="line-height-2 dcf__form">
             <div class="dcf__scenario">
@@ -41,14 +52,15 @@
               <span class="dcf__scenario-note dcf__model-note">{{ t('model_suggested', { model: t('model_' + suggested) }) }}</span>
             </div>
             <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
-            <!-- stock price -->
-            <div class="dcf__row">
+            <!-- stock price: the header is the only editor; this line only echoes it -->
+            <div class="dcf__row dcf__price-echo">
               <div class="text-left">{{ t('stock_price') }}</div>
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-              <div v-else class="dcf__value">
-                <editable-value v-model="result.stockPrice" :display="money(stock.currency, result.stockPrice)" :label="t('stock_price')" :currency="currencyCode" />
+              <div v-else class="dcf__value" data-testid="price-echo">
+                {{ money(stock.currency, result.stockPrice) }}
               </div>
             </div>
+            <div v-if="!loading && headerPriceHint" class="dcf__price-hint">{{ headerPriceHint }}</div>
             <q-separator />
 
             <!-- earnings basis -->
@@ -86,20 +98,14 @@
               </div>
             </div>
             <div
-              v-if="!loading && stock.cashflow_basis"
-              :class="stock.cashflow_basis === 'invest' ? 'dcf__warn' : 'dcf__rate-note'"
+              v-if="!loading && stock.cashflow_basis && (stock.cashflow_basis !== 'invest' || dcfBasedOn === 'freecashflow')"
+              class="dcf__rate-note"
               data-testid="fcf-basis-note"
             >
-              <q-icon v-if="stock.cashflow_basis === 'invest'" name="warning" size="16px" />
+              <q-icon v-if="stock.cashflow_basis === 'invest'" name="info" size="16px" />
               {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : stock.cashflow_basis === 'invest' ? t('fcf_basis_invest') : t('fcf_basis_equity') }}
             </div>
             <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
-            <q-separator />
-
-            <div v-if="!isManual" class="dcf__rate-note">
-              <q-icon name="info" size="14px" />
-              {{ t('fundamentals_readonly') }}
-            </div>
             <q-separator />
 
             <!-- discount rate -->
@@ -318,10 +324,11 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch, onBeforeUnmount, onMounted } from 'vue'
+import { computed, reactive, ref, watch, onBeforeUnmount, onMounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useStockStore } from '../store/stock'
 import { useDcfStore } from '../store/dcf'
+import { usePolicyStore } from '../store/policy'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
@@ -351,6 +358,7 @@ import { pinProvider, pinnedProvider } from '../data/preferences'
 const { t } = useI18n()
 const stockStore = useStockStore()
 const dcfStore = useDcfStore()
+const policyStore = usePolicyStore()
 const sourceStore = useDataStateStore()
 const props = defineProps({ symbol: { type: String, default: '' } })
 const router = useRouter()
@@ -407,6 +415,18 @@ const models = VALUATION_MODELS
 const suggested = computed(() => suggestedModel(stock.value))
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
+const policyEntry = computed(() => policyStore.entryOf(props.symbol))
+const isEdited = ref(false)
+let seeding = false
+const officialContext = computed(() => {
+  const artifact = policyStore.artifact
+  const version = artifact?.policyVersion || ''
+  const asOf = artifact?.generatedAt || ''
+  return t('official_context', { version, asOf })
+})
+const trialContext = computed(() => t('official_trial_context', { version: policyStore.artifact?.policyVersion || '' }))
+const officialReason = computed(() => (policyEntry.value?.reasons || []).map((code) => t('reason_' + code)).join('、') || t('policy_refused_title'))
+const headerPriceHint = computed(() => t('price_edit_here'))
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
 
@@ -435,7 +455,8 @@ watch([() => result.fairValue, () => result.marginOfSafety], () => {
 })
 const openPeer = (symbol) => router.push('/stock/' + symbol + '/dcf')
 const initData = async () => {
-  if (!isManual.value) await dcfStore.loadRates()
+  seeding = true
+  if (!isManual.value) await Promise.all([dcfStore.loadRates(), policyStore.load()])
   const defaults = buildDefaults(isManual.value ? null : indicator.value, stock.value, freecashflow.value)
   const manual = isManual.value ? readManual(props.symbol) : null
   Object.assign(form, defaults.dcfForm, manual ? {
@@ -452,9 +473,32 @@ const initData = async () => {
     tbv: manual.tangibleBook !== '' ? Number(manual.tangibleBook) : defaults.dcfResultForm.tbv,
     stockPrice: manual.price !== '' ? manual.price : defaults.dcfResultForm.stockPrice,
   } : {})
-  // The calculator always seeds from the public defaults. The pasted-link preset
+  // The published policy is the default source of truth for the headline. Its
+  // frozen inputs seed a local calculation; edits below change only this page's
+  // state and never write back to POLICY_V1 or the committed artifact.
+  const published = isManual.value ? null : policyEntry.value
+  if (published?.inputs) {
+    const input = published.inputs
+    model.value = input.model === 'residual' ? 'residual' : 'owner'
+    dcfBasedOn.value = input.basis === 'freecashflow' ? 'freecashflow' : 'eps'
+    form.eps = Number.isFinite(Number(input.eps)) ? Number(input.eps) : null
+    form.growthRate = input.growth == null ? null : Number(input.growth)
+    form.discountRate = Number(input.discountRate)
+    form.terminalGrowthRate = Number(input.terminalGrowthRate)
+    form.years = Number(input.years)
+    form.yearsOfTerminalGrowth = Number(input.yearsOfTerminalGrowth)
+    result.tbv = Number(input.tangibleBook)
+    result.addToFairValue = Boolean(input.addToFairValue)
+    // Value and margin are a published pair at the artifact's own price/date.
+    // Seeding the price too keeps the default headline internally coherent;
+    // editing it later recomputes only this page's margin.
+    if (published.price != null) result.stockPrice = String(published.price)
+  } else {
+    model.value = suggested.value
+  }
+  isEdited.value = false
+  // The calculator always seeds from the public policy. The pasted-link preset
   // was removed together with the share surface (DEVIATIONS D37).
-  model.value = suggested.value
   if (!isManual.value) {
     if (stock.value.ttm_eps == null && stock.value.ttm_eps_nri == null) form.eps = null
     if (freecashflow.value == null) form.freecashflow = null
@@ -462,6 +506,8 @@ const initData = async () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null
   calculate()
+  await nextTick()
+  seeding = false
 }
 
 const calculate = () => {
@@ -641,11 +687,13 @@ watch(() => ({ ...form }), () => {
   if (form.years < 0) form.years = 0
   calculate()
   persistManual()
+  if (!seeding) isEdited.value = true
 }, { deep: true })
 watch(model, () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null
   calculate()
+  if (!seeding) isEdited.value = true
 })
 watch(firmClaim, (blocked) => {
   if (blocked && dcfBasedOn.value === 'freecashflow') dcfBasedOn.value = 'eps'
@@ -654,10 +702,12 @@ watch(dcfBasedOn, () => {
   activeScenario.value = 'base'
   baseAssumptions.value = null
   calculate()
+  if (!seeding) isEdited.value = true
 })
 watch(() => [result.stockPrice, result.tbv, result.addToFairValue], () => {
   calculate()
   persistManual()
+  if (!seeding) isEdited.value = true
 })
 watch(() => [props.symbol, result.stockPrice], ([symbol, price]) => dcfStore.setWorkingPrice(symbol, price))
 watch(() => dcfStore.workingPrice, (shared) => {

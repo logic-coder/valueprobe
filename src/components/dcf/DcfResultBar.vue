@@ -1,7 +1,12 @@
 <template>
   <div class="dcf__strip" data-testid="dcf-result">
-    <div class="dcf__strip-title">
-      {{ t('valuation_result') }}
+    <div class="dcf__strip-head">
+      <div class="dcf__strip-title" data-testid="value-title">
+        {{ official ? t('official_title') : t('official_trial_title') }}
+      </div>
+      <div class="dcf__strip-context" data-testid="value-context">
+        {{ official ? officialContext : trialContext }}
+      </div>
     </div>
     <!-- fair value -->
     <div class="dcf__block dcf__fair">
@@ -86,6 +91,9 @@ const props = defineProps({
   result: { type: Object, required: true },
   liveSummary: { type: String, default: '' },
   showImplied: { type: Boolean, default: false },
+  official: { type: Boolean, default: false },
+  officialContext: { type: String, default: '' },
+  trialContext: { type: String, default: '' },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()

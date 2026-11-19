@@ -1,12 +1,15 @@
 // Legal, disclosure and method-page copy for the public policy.
 // Kept apart from the product strings so every published-value caveat has one
 // home: the UI, the method page and the data documentation all read these keys.
-// Rules: zh-hans and en-us carry exactly the same key set; values name the
-// product "内在价值 / Intrinsic value" and "公开口径 / public policy" and never
-// call it 官方 / official / 公允价 / fair value. Numbers that the policy owns
-// (fallback rate, windows, warning days) come from lib/policy at render time,
-// not from this file. Message values must avoid vue-i18n syntax characters:
-// no "|" (plural separator) and no bare "@" (linked messages).
+// Rules: zh-hans and en-us carry exactly the same key set; disclosures name the
+// product "内在价值 / Intrinsic value" and "公开口径 / public policy" and avoid
+// 官方 / official / 公允价 / fair value self-labels. The one deliberate exception
+// is the product headline official_title ("ValueProbe 公允价" / "ValueProbe fair
+// value"); every disclaimer and disclosure stays on the banned-word guard, which
+// copy-policy.test.js enforces. Numbers that the policy owns (fallback rate,
+// windows, warning days) come from lib/policy at render time, not from this file.
+// Message values must avoid vue-i18n syntax characters: no "|" (plural
+// separator) and no bare "@" (linked messages).
 
 export const legalMessages = {
   'zh-hans': {
@@ -28,6 +31,13 @@ export const legalMessages = {
     policy_refused_title: '暂不出值',
     policy_warnings_title: '出值时的提示',
     policy_version_line: '公开口径 {version} · 估算，非投资建议',
+    official_title: 'ValueProbe 公允价',
+    official_trial_title: '试算',
+    official_context: '{version} · 发布日 {asOf} · 估算，非投资建议',
+    official_trial_context: '你的假设 · 不影响公开口径 {version}',
+    official_unavailable: '这只股票暂无公开估值（{reason}）。下面的数字仅供试算。',
+    official_outside: '不在公开覆盖清单内 · 试算',
+    official_disc: '公开口径在发布时固定；改动只作用于你当前页面。',
     disc_estimate: '估算，非投资建议；口径见方法与局限。',
     disc_policy_link: '方法与局限 →',
     method_title: '方法与局限',
@@ -121,6 +131,13 @@ export const legalMessages = {
     policy_refused_title: 'No published value',
     policy_warnings_title: 'Disclosures on this value',
     policy_version_line: 'Public policy {version} · an estimate, not investment advice',
+    official_title: 'ValueProbe fair value',
+    official_trial_title: 'Your calculation',
+    official_context: '{version} · published {asOf} · an estimate, not investment advice',
+    official_trial_context: 'Your assumptions · does not change public policy {version}',
+    official_unavailable: 'No published value for this stock ({reason}). The figure below is a calculation only.',
+    official_outside: 'Outside the published coverage · calculation only',
+    official_disc: 'The public policy is fixed at publication; your edits apply only to this page.',
     disc_estimate: 'An estimate, not investment advice; see method and limits.',
     disc_policy_link: 'Method and limits →',
     method_title: 'Method and limits',
