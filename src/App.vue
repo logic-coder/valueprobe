@@ -13,25 +13,7 @@
           <span class="brand__tag">{{ t('brand_tag') }}</span>
         </a>
 
-        <q-input
-          v-model="query"
-          ref="searchInput"
-          class="symbol-search" data-testid="symbol-input"
-          dense
-          borderless
-          clearable
-          :placeholder="t('search_for_your_stocks')"
-          :aria-label="t('search_for_stock')"
-          list="symbol-suggestions"
-          @keyup.enter="goSymbol"
-        >
-          <template #append>
-            <q-icon name="search" class="cursor-pointer" @click="goSymbol" />
-          </template>
-        </q-input>
-        <datalist id="symbol-suggestions">
-          <option v-for="item in suggestions" :key="item.symbol" :value="item.symbol">{{ item.name }}</option>
-        </datalist>
+        <stock-search ref="searchInput" @select="openStock" />
 
         <div class="header-actions">
           <a href="#/watchlist" class="header-link watch-link" :aria-label="t('watchlist')">
@@ -141,11 +123,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { parseSymbol } from './config/markets'
-import { getCatalog } from './api/catalog'
-import { guessSymbol } from './lib/symbolInput'
 import { readStored, writeStored } from './lib/storage'
 import { REPO_URL, REPO_ISSUES_URL } from './config/site'
 import { useStockStore } from './store/stock'
@@ -156,11 +135,11 @@ import { useDcfStore } from './store/dcf'
 import { usePolicyStore } from './store/policy'
 import { money, parseAmount } from './lib/format'
 import EditableValue from './components/EditableValue.vue'
+import StockSearch from './components/StockSearch.vue'
 import { useMoney } from './composables/useMoney'
 
 const { locale, t } = useI18n()
 const focusMain = () => document.getElementById('main')?.focus()
-const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const stockStore = useStockStore()
@@ -175,14 +154,6 @@ const toggleWatch = () => watchlist.toggle(currentSymbol.value)
 const comparing = computed(() => Boolean(currentSymbol.value) && compare.symbols.includes(currentSymbol.value))
 const toggleCompare = () => compare.toggle(currentSymbol.value)
 const compareHref = computed(() => '#/compare' + (compare.symbols.length ? '?s=' + compare.symbols.join(',') : ''))
-// A short datalist: typing "600519" or picking a name beats remembering the EXCHANGE:CODE
-// format, and it costs no request.
-const BUILTIN_SUGGESTIONS = [
-  { symbol: 'SHSE:601398', name: '工商银行' },
-  { symbol: 'HKSE:00700', name: '腾讯控股' },
-  { symbol: 'HKSE:00941', name: '中国移动' },
-  { symbol: 'NASDAQ:AAPL', name: '苹果' },
-]
 // Per-route document titles: a stock page names the company, other pages name themselves.
 const ROUTE_TITLES = { home: 'home_title', watchlist: 'watchlist', compare: 'compare_title', about: 'about_title', method: 'method_title' }
 // "/" focuses the lookup, the way search-first sites do; fields keep their own keys.
@@ -190,7 +161,7 @@ const searchInput = ref(null)
 const isTyping = (target) => target instanceof HTMLElement
   && (target.matches('input, textarea, select, [contenteditable="true"]'))
 const onSlash = (event) => {
-  if (event.key !== '/' || event.metaKey || event.ctrlKey || isTyping(event.target)) return
+  if (event.key !== '/' || event.isComposing || event.metaKey || event.ctrlKey || isTyping(event.target)) return
   event.preventDefault()
   searchInput.value?.focus()
 }
@@ -240,25 +211,7 @@ const applyTheme = (value) => {
 }
 const toggleTheme = () => applyTheme(theme.value === 'dark' ? 'light' : 'dark')
 
-const catalog = ref(BUILTIN_SUGGESTIONS)
-const query = ref('')
-const suggestions = computed(() => {
-  const needle = String(query.value ?? '').trim().toUpperCase()
-  return (needle ? catalog.value.filter(item => item.symbol.includes(needle) || item.name.toUpperCase().includes(needle))
-    : BUILTIN_SUGGESTIONS).slice(0, 12)
-})
-const goSymbol = () => {
-  const raw = String(query.value || '').trim()
-  if (!raw) return
-  const attempt = guessSymbol(raw)
-  const parsed = parseSymbol(attempt)
-  if (!parsed.ok) {
-    $q.notify({ message: t('symbol_format_hint') })
-    return
-  }
-  query.value = ''
-  router.push('/stock/' + parsed.symbol + '/dcf')
-}
+const openStock = symbol => router.push('/stock/' + symbol + '/dcf')
 
 const switchLocale = (value) => {
   locale.value = value
@@ -267,11 +220,6 @@ const switchLocale = (value) => {
 
 onMounted(() => {
   window.addEventListener('keydown', onSlash)
-  getCatalog()
-    .then((list) => {
-      if (list) catalog.value = list
-    })
-    .catch(() => { /* the built-in examples stay */ })
   const saved = readStored('fv-theme')
   const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   applyTheme(saved === 'dark' || saved === 'light' ? saved : system)

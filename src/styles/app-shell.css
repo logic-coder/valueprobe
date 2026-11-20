@@ -59,9 +59,26 @@ main:focus { outline: none; }
 .brand__name em { font-style: normal; color: var(--accent-strong); }
 .brand__tag { font-size: 12px; color: var(--text-faint); padding-left: 8px; border-left: 1px solid var(--border); margin-left: 2px; }
 
-.symbol-search { flex: 1 1 auto; max-width: 460px; min-width: 120px; margin-inline: auto; }
+.symbol-search { position: relative; flex: 1 1 auto; max-width: 460px; min-width: 120px; margin-inline: auto; }
 .symbol-search .q-field__control { background: var(--surface-2); border-radius: 999px; height: 34px; }
-.symbol-search .q-field__native { font-family: var(--mono); letter-spacing: 0.02em; }
+.symbol-search .q-field__native { padding-left: 12px; font-size: 16px; }
+.symbol-search__submit { border: 0; background: transparent; color: var(--text-muted); cursor: pointer; padding: 7px 10px; border-radius: 50%; }
+.symbol-search__panel {
+  position: absolute; inset: calc(100% + 6px) 0 auto; z-index: 4;
+  max-height: min(360px, 52dvh); overflow: auto; overscroll-behavior: contain;
+  background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-lg);
+  color: var(--text); box-shadow: var(--shadow);
+}
+.symbol-search__panel ul { list-style: none; margin: 0; padding: 4px; }
+.symbol-search__panel li {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  min-height: 44px; padding: 8px 10px; border-radius: 6px; cursor: pointer;
+}
+.symbol-search__panel li:hover, .symbol-search__panel [aria-selected="true"] { background: var(--accent-soft); }
+.symbol-search__panel [aria-selected="true"] { box-shadow: inset 0 0 0 1px var(--accent-strong); }
+.symbol-search__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.symbol-search__code { flex-shrink: 0; font: 12px var(--mono); color: var(--text-muted); }
+.symbol-search__status { margin: 0; padding: 10px 14px; font-size: 13px; color: var(--text-muted); }
 
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
 .header-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; color: var(--text-muted); font-size: 13px; }
