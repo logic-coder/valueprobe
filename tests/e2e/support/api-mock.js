@@ -156,6 +156,7 @@ export async function mockApi (page, options = {}) {
 
   await page.route('**/data/*.json', async (route) => {
     const url = route.request().url()
+    if (url.includes('catalog.json')) return route.continue()
     if (url.includes('rates.json')) {
       if (state.fail) return route.fulfill({ status: 404, body: '{}' })
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ratesFixture) })

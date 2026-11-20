@@ -59,7 +59,11 @@ test('the built app renders under /valueprobe/ without same-origin /_api calls',
   expect(requests.some((url) => url.includes('eastmoney.com') || url.includes('sec.gov'))).toBe(false)
   const stockFile = requests.some((url) => url.includes('/valueprobe/data/SHSE-601398.json'))
   if (snapshotOff) expect(stockFile).toBe(false)
-  else expect(stockFile).toBe(true)
+  else {
+    expect(stockFile).toBe(true)
+    expect(local.some(url => /\/data\/valuation\/[a-f0-9]{20}\/SHSE-601398\.json$/.test(url))).toBe(true)
+    expect(local.some(url => /\/data\/(?:intrinsic\/v1|valuation\/.+\/summary)\.json$/.test(url))).toBe(false)
+  }
 })
 
 test('the shell still opens with the network off', async ({ page, context, baseURL }) => {
@@ -77,10 +81,12 @@ test('the shell still opens with the network off', async ({ page, context, baseU
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.reload()
   await expect(page.locator('.home__hero')).toBeVisible({ timeout: 20000 })
-  await page.waitForTimeout(1500)
+  const fairValue = page.locator('.text-h6.button-font-weight')
+  await expect(fairValue).toContainText('11.86', { timeout: 20000 })
 
   await context.setOffline(true)
   await page.reload()
   await expect(page.locator('.home__hero')).toBeVisible({ timeout: 20000 })
+  await expect(fairValue).toContainText('11.86', { timeout: 20000 })
   await context.setOffline(false)
 })

@@ -9,6 +9,7 @@ import { POLICY_V1 } from '../../lib/policy'
 import { toStock } from '../../lib/stockRecord'
 
 const http = axios.create({ timeout: 15_000 })
+const inFlight = new Map()
 
 /** East Money DPS_HKD is a current figure copied onto every HK history row. */
 export function dropCopiedDividends (data) {
@@ -57,11 +58,15 @@ export const snapshot = {
   maxQuoteAgeMs: POLICY_V1.staleness.fundamentalsDays * 24 * 3600e3,
 
   async load (symbol) {
-    const { data } = await http.get(snapshotPath(symbol))
+    const path = snapshotPath(symbol)
+    if (!inFlight.has(path)) {
+      inFlight.set(path, http.get(path).then(({ data }) => dropCopiedDividends(data)).finally(() => inFlight.delete(path)))
+    }
+    const data = await inFlight.get(path)
     if (!data || typeof data !== 'object' || data.price === undefined || data.price === null) {
       throw notSupported('snapshot', 'no record for ' + symbol)
     }
-    return dropCopiedDividends(data)
+    return data
   },
 
   async fetchStock (symbol) {

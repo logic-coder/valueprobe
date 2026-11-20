@@ -73,7 +73,16 @@ check('snapshot carries as_of', /"as_of"/.test(snapshotBody))
 const intrinsic = await getJson(BASE + 'data/intrinsic/v1.json')
 check('intrinsic artifact served', intrinsic.status === 200, String(intrinsic.status))
 check('intrinsic artifact is public policy v1', intrinsic.body?.policyVersion === 'v1', String(intrinsic.body?.policyVersion))
-check('intrinsic artifact covers the public universe', Object.keys(intrinsic.body?.entries || {}).length === 150, String(Object.keys(intrinsic.body?.entries || {}).length))
+const size = Object.keys(intrinsic.body?.entries || {}).length
+check('intrinsic artifact covers the public universe', size > 0 && size === intrinsic.body?.universe?.declared, String(size))
+const delivery = await getJson(BASE + 'data/valuation/meta.json')
+const deliveryBase = BASE + 'data/valuation/' + delivery.body?.release + '/'
+const detail = await getJson(deliveryBase + 'SHSE-601398.json')
+const summaries = await getJson(deliveryBase + 'summary.json')
+check('valuation detail and summary share the same release', detail.body?.release === delivery.body?.release &&
+  summaries.body?.release === delivery.body?.release && typeof delivery.body?.release === 'string')
+check('valuation detail preserves the published value', detail.body?.entry?.value === intrinsic.body?.entries?.['SHSE:601398']?.value)
+check('valuation summary covers the public universe', Object.keys(summaries.body?.entries || {}).length === size)
 const dataManifest = await getJson(BASE + 'data/manifest.json')
 check('data manifest served', dataManifest.status === 200, String(dataManifest.status))
 check('manifest hash matches the artifact', Boolean(dataManifest.body?.policyHash) && dataManifest.body.policyHash === intrinsic.body?.policyHash)

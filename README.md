@@ -28,7 +28,7 @@ npm run dev
 | `npm run snapshot` | Refresh `public/data/<MARKET>-<CODE>.json` and `public/data/rates.json` from the public sources. Run locally, then commit. |
 | `npm run intrinsic` | Write the published values `public/data/intrinsic/v1.json` and the hash manifest `public/data/manifest.json` from the committed snapshots. |
 | `npm run verify:data` | Data gate: policy hash, artifact reproducibility, freshness warnings, covered-symbol list and catalog agreement, manifest hashes, known codes, independent recompute. |
-| `npm run refresh` | `snapshot` → `intrinsic` → `verify:data`. |
+| `npm run refresh` | Stage and rebuild snapshots and valuation artifacts, then verify the data. |
 | `npm run verify` | `lint → test → test:real → verify:data → smoke:pages`, the same chain as `package.json` `verify`. |
 | `npm run test:e2e` | Playwright browser suites; CI runs these on pull requests only. |
 

@@ -82,7 +82,7 @@ const load = async () => {
   }
   const target = symbol.value
   try {
-    await Promise.all([stockStore.loadStock(target), policyStore.load()])
+    await Promise.all([stockStore.loadStock(target), policyStore.load(target)])
     if (symbol.value !== target) return
     if (!stockStore.stock && !isManual.value) sourceStore.setMode(symbol.value, 'error')
     else await dcfStore.preFetch(target)

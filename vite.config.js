@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { policyDelivery } from './scripts/lib/policy-delivery.mjs'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 // Pages answers unknown paths with 404.html; the app is hash-routed, so the shell is
@@ -96,7 +97,7 @@ const proxy = {
 export default defineConfig({
   // GitHub Pages project sites live under /<repo>/; VITE_BASE carries that.
   base: process.env.VITE_BASE || '/',
-  plugins: [vue({ template: { compilerOptions: { isCustomElement: (tag) => tag === 'font' } } }), pagesFallback(), siteUrl()],
+  plugins: [vue({ template: { compilerOptions: { isCustomElement: (tag) => tag === 'font' } } }), pagesFallback(), siteUrl(), policyDelivery()],
   esbuild: false,
   server: { host: '127.0.0.1', port: 5173, proxy },
   preview: { host: '127.0.0.1', port: 4173, proxy },

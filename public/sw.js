@@ -16,10 +16,37 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => /^valueprobe-shell-v\d+$/.test(key) && key !== CACHE)
+        .map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   )
 })
+
+async function remember (key, response) {
+  try {
+    const cache = await caches.open(CACHE)
+    await cache.put(key, response.clone())
+  } catch { /* a full cache should not hide a successful response */ }
+  return response
+}
+
+async function dataResponse (request, immutable) {
+  if (immutable) {
+    const cached = await caches.match(request, { cacheName: CACHE })
+    if (cached) return cached
+  }
+  try {
+    const response = await fetch(request, immutable ? undefined : { cache: 'no-cache' })
+    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+      return remember(request, response)
+    }
+    // A removed resource should reach the client so it can reload its release metadata.
+    if (response.status < 500) return response
+    return (await caches.match(request, { cacheName: CACHE })) || response
+  } catch {
+    return (await caches.match(request, { cacheName: CACHE })) || Response.error()
+  }
+}
 
 self.addEventListener('fetch', (event) => {
   const request = event.request
@@ -31,42 +58,21 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone()
-            caches.open(CACHE).then((cache) => cache.put(SHELL, copy)).catch(() => {})
-          }
-          return response
-        })
+        .then(response => response.ok ? remember(SHELL, response) : response)
         .catch(async () => (await caches.match(SHELL)) || (await caches.match(request))),
     )
     return
   }
 
-  // Quarterly snapshots keep the same URL across deploys, so read through the network
-  // and only fall back to the cached copy when it is offline.
+  // Snapshot paths prefer fresh data. The release ID makes valuation details and summaries immutable.
   if (url.pathname.startsWith(scopePath + 'data/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response && response.ok) {
-            const copy = response.clone()
-            caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {})
-          }
-          return response
-        })
-        .catch(() => caches.match(request)),
-    )
+    const immutable = /^data\/valuation\/[a-f0-9]{20}\//.test(url.pathname.slice(scopePath.length))
+    event.respondWith(dataResponse(request, immutable))
     return
   }
 
   event.respondWith(
-    caches.match(request).then((hit) => hit || fetch(request).then((response) => {
-      if (response && response.ok) {
-        const copy = response.clone()
-        caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {})
-      }
-      return response
-    })),
+    caches.match(request, { cacheName: CACHE })
+      .then(hit => hit || fetch(request).then(response => response.ok ? remember(request, response) : response)),
   )
 })

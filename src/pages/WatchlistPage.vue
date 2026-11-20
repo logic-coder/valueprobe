@@ -77,9 +77,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { api } from '../api'
-import { peerRow } from '../lib/peers'
 import { exportWatchlist, exportWatchlistCsv, importWatchCsv, importWatchlist } from '../lib/watchlist'
-import { publishedRow } from '../lib/watchlistView'
+import { publishedListRow } from '../lib/watchlistView'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
 import { useMoney } from '../composables/useMoney'
@@ -94,18 +93,13 @@ const retrying = ref(false)
 
 const load = async () => {
   const symbols = store.symbols.slice()
-  const [, settled] = await Promise.all([
-    policy.load(),
-    Promise.allSettled(symbols.map((symbol) => api.getStock(symbol))),
-  ])
+  if (!symbols.length) { rows.value = []; return }
+  const summary = await policy.loadSummary()
+  const settled = await Promise.allSettled(symbols.map(symbol => summary?.[symbol] ? null : api.getStock(symbol)))
   if (store.symbols.join(',') !== symbols.join(',')) return
   rows.value = settled.map((item, index) => {
     const symbol = symbols[index]
-    const stock = item.status === 'fulfilled' ? item.value : null
-    const row = stock
-      ? { ...peerRow(stock, symbol), currency: stock.currency || '¥', asOf: stock._as_of || null }
-      : { symbol, name: symbol, price: null, pe: null, pb: null, currency: '¥', asOf: null }
-    return publishedRow(row, policy.entryOf(symbol), t, Boolean(policy.error))
+    return publishedListRow(item.status === 'fulfilled' ? item.value : null, symbol, summary?.[symbol], t, !summary)
   })
 }
 

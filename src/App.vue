@@ -144,6 +144,7 @@ import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { parseSymbol } from './config/markets'
+import { getCatalog } from './api/catalog'
 import { guessSymbol } from './lib/symbolInput'
 import { readStored, writeStored } from './lib/storage'
 import { REPO_URL, REPO_ISSUES_URL } from './config/site'
@@ -239,8 +240,13 @@ const applyTheme = (value) => {
 }
 const toggleTheme = () => applyTheme(theme.value === 'dark' ? 'light' : 'dark')
 
-const suggestions = ref(BUILTIN_SUGGESTIONS)
+const catalog = ref(BUILTIN_SUGGESTIONS)
 const query = ref('')
+const suggestions = computed(() => {
+  const needle = String(query.value ?? '').trim().toUpperCase()
+  return (needle ? catalog.value.filter(item => item.symbol.includes(needle) || item.name.toUpperCase().includes(needle))
+    : BUILTIN_SUGGESTIONS).slice(0, 12)
+})
 const goSymbol = () => {
   const raw = String(query.value || '').trim()
   if (!raw) return
@@ -261,10 +267,9 @@ const switchLocale = (value) => {
 
 onMounted(() => {
   window.addEventListener('keydown', onSlash)
-  fetch(import.meta.env.BASE_URL + 'data/catalog.json')
-    .then((response) => (response.ok ? response.json() : null))
+  getCatalog()
     .then((list) => {
-      if (Array.isArray(list) && list.length) suggestions.value = list
+      if (list) catalog.value = list
     })
     .catch(() => { /* the built-in examples stay */ })
   const saved = readStored('fv-theme')

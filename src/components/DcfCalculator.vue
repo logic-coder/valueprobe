@@ -455,18 +455,18 @@ const assumptionsEdited = ref(false)
 const showPublished = computed(() => !isManual.value && !isEdited.value && policyEntry.value?.status === 'ok')
 let seeding = false
 const officialContext = computed(() => {
-  const artifact = policyStore.artifact
+  const artifact = policyStore.metadataOf(props.symbol)
   const version = artifact?.policyVersion || ''
   const asOf = artifact?.generatedAt || ''
   return t('official_context', { version, asOf })
 })
 const trialContext = computed(() => policyEntry.value && !isManual.value
-  ? t('official_trial_context', { version: policyStore.artifact?.policyVersion || '' })
+  ? t('official_trial_context', { version: policyStore.metadataOf(props.symbol)?.policyVersion || '' })
   : t('valuation_trial_context'))
 const officialReason = computed(() => (policyEntry.value?.reasons || []).map((code) => t('reason_' + code)).join('、') || t('policy_refused_title'))
 const publicationNotice = computed(() => {
   if (isManual.value) return ''
-  if (policyStore.error) return t('official_load_failed')
+  if (policyStore.errorOf(props.symbol)) return t('official_load_failed')
   if (!policyEntry.value) return t('official_outside')
   return policyEntry.value.status === 'ok' ? '' : t('official_unavailable', { reason: officialReason.value })
 })

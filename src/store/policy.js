@@ -1,45 +1,26 @@
 import { defineStore } from 'pinia'
-import { entryOf, getPolicyArtifact } from '../api/policy'
-
-// Module-level so every mount shares one fetch; the store state stays serialisable.
-let inFlight = null
+import { getPolicyEntry, getPolicySummary } from '../api/policy'
 
 export const usePolicyStore = defineStore('policy', {
-  state: () => ({ artifact: null, loading: false, error: null }),
+  state: () => ({ entries: {}, errors: {} }),
   getters: {
-    entryOf: (state) => (symbol) => entryOf(state.artifact, symbol),
-    meta: (state) => (state.artifact
-      ? {
-          policyVersion: state.artifact.policyVersion || null,
-          generatedAt: state.artifact.generatedAt || null,
-          rates: state.artifact.rates || null,
-          coverage: state.artifact.coverage || null,
-        }
-      : null),
+    entryOf: state => symbol => state.entries[symbol]?.entry ?? null,
+    metadataOf: state => symbol => state.entries[symbol]?.meta ?? null,
+    errorOf: state => symbol => Boolean(state.errors[symbol]),
   },
   actions: {
-    /** Idempotent: concurrent callers wait on the same request, success is cached. */
-    async load () {
-      if (this.artifact) return this.artifact
-      if (inFlight) return inFlight
-      this.loading = true
-      this.error = null
-      inFlight = getPolicyArtifact()
-        .then((artifact) => {
-          this.artifact = artifact
-          if (!artifact) this.error = 'unavailable'
-          return artifact
-        })
-        .catch((error) => {
-          this.artifact = null
-          this.error = error || 'unavailable'
-          return null
-        })
-        .finally(() => {
-          this.loading = false
-          inFlight = null
-        })
-      return inFlight
+    async load (symbol) {
+      const result = await getPolicyEntry(symbol)
+      this.errors[symbol] = !result
+      if (!result) {
+        delete this.entries[symbol]
+        return null
+      }
+      this.entries[symbol] = result
+      return result.entry
+    },
+    async loadSummary () {
+      return getPolicySummary()
     },
   },
 })

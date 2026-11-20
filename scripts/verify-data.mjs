@@ -55,7 +55,11 @@ const files = snapshotFiles(root).map((name) => name.replace(/\.json$/, ''))
 const symbols = files.map((name) => name.replace(/^([A-Z]+)-/, '$1:'))
 const entries = Object.keys(artifact.entries)
 const catalog = readJson('public/data/catalog.json').map((row) => row.symbol)
-const setEqual = (left, right) => left.length === right.length && [...left].sort().every((value, index) => value === [...right].sort()[index])
+const setEqual = (left, right) => {
+  const names = new Set(right)
+  return left.length === right.length && new Set(left).size === names.size && names.size === right.length &&
+    left.every(value => names.has(value))
+}
 setEqual(declared, symbols) ? ok('universe declared = committed', declared.length + ' symbols') : fail('universe declared = committed', 'declared ' + declared.length + ' vs files ' + symbols.length)
 setEqual(catalog, symbols) ? ok('catalog matches files') : fail('catalog matches files', 'catalog ' + catalog.length + ' vs files ' + symbols.length)
 setEqual(entries, symbols) ? ok('artifact entries match files') : fail('artifact entries match files', 'entries ' + entries.length)

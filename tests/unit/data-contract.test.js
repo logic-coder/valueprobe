@@ -38,14 +38,13 @@ describe('policy pin', () => {
 })
 
 describe('public universe', () => {
-  it('declares, snapshots, catalogues and values the same 150 names', () => {
-    expect(watchlist).toHaveLength(150)
-    expect(snapshotFiles).toHaveLength(150)
-    expect(catalog).toHaveLength(150)
-    expect(entries).toHaveLength(150)
-    expect(artifact.universe).toEqual({ declared: 150, snapshots: 150, missing: [] })
+  it('declares, snapshots, catalogues and values the same names', () => {
+    const size = watchlist.length
+    expect(size).toBeGreaterThan(0)
+    expect(new Set(watchlist).size).toBe(size)
+    expect(artifact.universe).toEqual({ declared: size, snapshots: size, missing: [] })
     expect(manifest.universe).toEqual(artifact.universe)
-    expect(manifest.counts.snapshots).toBe(150)
+    expect(manifest.counts.snapshots).toBe(size)
     expect([...watchlist].sort()).toEqual([...snapshotSymbols].sort())
     expect(catalog.map((row) => row.symbol).sort()).toEqual([...snapshotSymbols].sort())
     expect(Object.keys(artifact.entries).sort()).toEqual([...snapshotSymbols].sort())

@@ -83,7 +83,7 @@ describe('README gates', () => {
       expect(pkg.scripts[name], name).toBeTruthy()
       expect(readme, name).toContain('npm run ' + name)
     }
-    expect(pkg.scripts.refresh).toBe('npm run snapshot && npm run intrinsic && npm run verify:data')
+    expect(pkg.scripts.refresh).toBe('npm run snapshot && npm run verify:data')
   })
 })
 

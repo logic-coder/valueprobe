@@ -31,8 +31,8 @@ export function snapshotFiles (root, dataDir = DATA_DIR) {
     .sort()
 }
 
-export function readRates (root) {
-  const raw = readJson(root, DATA_DIR + '/rates.json')
+export function readRates (root, dataDir = DATA_DIR) {
+  const raw = readJson(root, dataDir + '/rates.json')
   const entry = (row) => (row && Number(row.value) > 0 ? { value: Number(row.value), asOf: String(row.as_of || row.asOf || ''), source: 'snapshot' } : null)
   const usd = entry(raw.USD)
   return {
@@ -106,17 +106,19 @@ const crossListingOf = (groups, entries, rawBySymbol) => {
  * @param {{root?: string, generatedAt?: string}} options
  * @returns {{artifact: object, manifest: object, problems: string[]}}
  */
-export function buildArtifacts ({ root = process.cwd(), generatedAt = new Date().toISOString().slice(0, 10) } = {}) {
+export function buildArtifacts ({ root = process.cwd(), dataDir = DATA_DIR, generatedAt = new Date().toISOString().slice(0, 10),
+  declared = readJson(root, 'scripts/watchlist.json') } = {}) {
   const problems = []
   const hash = policyHash()
   if (hash !== POLICY_V1_HASH) problems.push('POLICY_V1 changed without bumping POLICY_VERSION: update POLICY_V1_HASH and the version together')
 
-  const files = snapshotFiles(root)
+  const files = snapshotFiles(root, dataDir)
+  const rates = readRates(root, dataDir)
   const rawBySymbol = {}
   const entries = {}
   const counts = { valued: 0, refused: 0, reasons: {}, warnings: {}, models: {}, currencies: {} }
   for (const name of files) {
-    const raw = readJson(root, DATA_DIR + '/' + name)
+    const raw = readJson(root, dataDir + '/' + name)
     const stock = toStock(raw)
     if (!stock) {
       problems.push('unreadable snapshot ' + name)
@@ -124,7 +126,9 @@ export function buildArtifacts ({ root = process.cwd(), generatedAt = new Date()
     }
     const symbol = stock.exchange_ + ':' + stock.symbol
     rawBySymbol[symbol] = raw
-    const value = policyValue(stock, { rates: readRates(root).rates, generatedAt })
+    if (name !== symbol.replace(':', '-') + '.json') problems.push('snapshot identity mismatch: ' + name)
+    if (!Array.isArray(raw.financials?.annual)) problems.push('snapshot annual data missing: ' + name)
+    const value = policyValue(stock, { rates: rates.rates, generatedAt })
     entries[symbol] = entryOf(symbol, stock, value)
     if (value.status === 'ok') counts.valued++
     else counts.refused++
@@ -142,14 +146,13 @@ export function buildArtifacts ({ root = process.cwd(), generatedAt = new Date()
   }
 
   const sortedEntries = Object.fromEntries(Object.keys(entries).sort().map((symbol) => [symbol, entries[symbol]]))
-  const declared = readJson(root, 'scripts/watchlist.json')
   const snapshotSymbols = Object.keys(sortedEntries).sort()
   const missing = declared.filter((symbol) => !sortedEntries[symbol])
-  const extra = snapshotSymbols.filter((symbol) => !declared.includes(symbol))
+  const declaredSet = new Set(declared)
+  const extra = snapshotSymbols.filter((symbol) => !declaredSet.has(symbol))
   if (missing.length) problems.push('declared symbols without a snapshot: ' + missing.join(', '))
   if (extra.length) problems.push('snapshots outside the declared universe: ' + extra.join(', '))
 
-  const rates = readRates(root)
   const artifact = {
     schema: 1,
     policyVersion: POLICY_VERSION,
@@ -170,12 +173,15 @@ export function buildArtifacts ({ root = process.cwd(), generatedAt = new Date()
   }
 
   const manifestFiles = ['catalog.json', 'rates.json'].map((name) => {
-    const path = DATA_DIR + '/' + name
+    const path = dataDir + '/' + name
     const body = readFileSync(resolve(root, path))
     return { name, bytes: body.length, sha256: sha256(body) }
   })
+  const catalog = readJson(root, dataDir + '/catalog.json')
+  const catalogSymbols = catalog.map(row => row?.symbol).sort()
+  if (JSON.stringify(catalogSymbols) !== JSON.stringify(snapshotSymbols)) problems.push('catalog and valuation entries disagree')
   for (const name of files) {
-    const path = DATA_DIR + '/' + name
+    const path = dataDir + '/' + name
     const body = readFileSync(resolve(root, path))
     manifestFiles.push({ name, bytes: body.length, sha256: sha256(body) })
   }

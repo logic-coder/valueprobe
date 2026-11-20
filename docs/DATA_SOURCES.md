@@ -60,7 +60,18 @@
 
 **禁止事项**：不要用美国存量国债平均票息（历史上的 `5.14`、`3.399` 等），它们不是十年期收益率，也不是任何兜底值。不要拿这些数字更新 `risk_free.json`。缺当地十年期收益率时，折现率回退为 8%（`FALLBACK_DISCOUNT_RATE`），并在界面写明；不得静默改用美债收益率——只有港币现金流明确使用美元十年期作为代理。旧的 `latest_indicator.json` 已删除，不要恢复。
 
-刷新 `public/data/`：在本机运行 `npm run snapshot`，把生成的 JSON 一并提交再推送。Pages 构建不会代拉行情。
+本机运行 `npm run refresh`，重建并校验快照、估值和发布清单。GitHub Pages 只构建已生成的数据。
+
+扩容先使用单独暂存目录，正式清单仍为 `scripts/watchlist.json`。候选清单须包含原有覆盖和拟新增的证券。下列命令只采集缺失的新增证券，重复执行会接着跑。
+
+```sh
+npm run snapshot -- --stage=tmp-snapshot-pilot --universe=tmp-candidates.json --candidates=missing --rates=keep
+```
+
+- `--mode=quotes` 只刷新参考报价，保留财报和财报期间。已有交易日时，更新仅接受可确认且不更早的交易日。`--mode=fundamentals` 复用已有报价，刷新财报。
+- `--reference=tmp-reference.json` 用于试点。提供统一交易日、公开出处，以及逐证券的收盘价、CIK 和已核对拆股的起始日期。参考文件只用于暂存。新证券需通过财报主体和每股口径检查。
+- 财报按供应商及 SEC CIK 缓存，默认存入 `tmp-snapshot-cache`，当日续跑复用。请求按供应商节流，并对临时错误重试。失败保留已验证记录和其日期；缺失的新增证券会让暂存验收失败。
+- 暂存目录的 `outcomes/` 保留各证券最后一次处理结果，`report.json` 报告各市场的声明、快照、可估值、拒绝和基本面过期数量。正式刷新先核验暂存数据，再写入发生变化的发布文件。写入前在 `tmp-snapshot-previous` 保存上一套数据及恢复记录。写入失败时回退。若进程异常停止，确认没有其他刷新进程后，可移除空的 `tmp-snapshot-lock` 再运行。刷新会根据恢复记录还原上一套数据，再开始新一轮采集。
 
 ## 排序
 
@@ -110,14 +121,15 @@ export const mysource = {
 `npm run intrinsic` 把已提交快照写成两个发布文件（实现 `scripts/lib/policy-artifact.mjs`，字段说明 `POLICY.md`）：
 
 - `public/data/intrinsic/v1.json`：每条记录的发布值、band、终值占比、安全边际、reason/warning、inputs 与 asOf；政策版本与 hash 写在文件头。
-- `public/data/manifest.json`：同一份 universe/coverage 和利率行，外加 `catalog.json`、`rates.json`、150 个快照的 bytes/sha256。
+- `public/data/manifest.json`：同一份 universe/coverage 和利率行，外加 `catalog.json`、`rates.json` 和清单内每份快照的 bytes/sha256。
 
 契约：
 
-- 发布值文件是唯一对外发布值，自选、对比与方法页只读它；不要手改 `public/data/intrinsic/`。
-- `npm run verify:data` 是可提交前的数据校验（policy hash、可复现、过期、universe、manifest hash、未知代码、抽样重算）；`npm run refresh` = snapshot → intrinsic → verify:data。
+- 发布值文件是唯一对外发布值。构建从相同文件生成 `data/valuation/meta.json` 及同一发布标识下的个股详情和列表摘要。个股页加载详情，自选和对比加载摘要，方法页加载元数据。完整审计文件仍可下载。
+- 发布元数据和快照优先检查网络，并在离线时使用最近缓存。个股估值详情和列表摘要按发布标识缓存。部署切换时，如果已读取的发布资源已移除，客户端重新核对元数据，再读取对应版本。每条个股估值和它的版本、生成日期一起保存。
+- `npm run verify:data` 是可提交前的数据校验（policy hash、可复现、过期、universe、manifest hash、未知代码、抽样重算）；`npm run refresh` 先暂存生成整套数据，再核验。
 - 基本面账龄按所用盈利期间截止日计算，股价账龄按报价交易日计算。发布值文件或利率行过期会提示，数据结构和可复现性错误会使校验失败。
-- 刷新流程：`npm run snapshot` → `npm run intrinsic` → `npm run verify:data`，三个产物一起提交。
+- 只对已有快照重算时运行 `npm run intrinsic` 再运行 `npm run verify:data`。
 
 
 ## 每股数据的币种和日期

@@ -86,8 +86,7 @@ import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api'
 import { MAX_COMPARE, parseSymbolsQuery, rankRows } from '../lib/compare'
-import { peerRow } from '../lib/peers'
-import { publishedRow } from '../lib/watchlistView'
+import { publishedListRow } from '../lib/watchlistView'
 import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
@@ -121,18 +120,12 @@ const load = async () => {
     rawRows.value = []
     return
   }
-  const [, settled] = await Promise.all([
-    policy.load(),
-    Promise.allSettled(list.map((symbol) => api.getStock(symbol))),
-  ])
+  const summary = await policy.loadSummary()
+  const settled = await Promise.allSettled(list.map(symbol => summary?.[symbol] ? null : api.getStock(symbol)))
   if (symbols.value !== list) return
   rawRows.value = settled.map((item, index) => {
     const symbol = list[index]
-    const stock = item.status === 'fulfilled' ? item.value : null
-    const row = stock
-      ? { ...peerRow(stock, symbol), currency: stock.currency || '¥', asOf: stock._as_of || null }
-      : { symbol, name: symbol, price: null, pe: null, pb: null, currency: '¥', asOf: null }
-    return publishedRow(row, policy.entryOf(symbol), t, Boolean(policy.error))
+    return publishedListRow(item.status === 'fulfilled' ? item.value : null, symbol, summary?.[symbol], t, !summary)
   })
 }
 

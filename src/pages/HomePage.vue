@@ -39,6 +39,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { getCatalog } from '../api/catalog'
 import { useRouter } from 'vue-router'
 import { clearRecent, readRecent } from '../lib/recent'
 import { useWatchlistStore } from '../store/watchlist'
@@ -67,9 +68,7 @@ const clear = () => {
 onMounted(async () => {
   recent.value = readRecent()
   try {
-    const response = await fetch(import.meta.env.BASE_URL + 'data/catalog.json')
-    if (!response.ok) return
-    const rows = await response.json()
+    const rows = await getCatalog()
     const listed = (Array.isArray(rows) ? rows : [])
       .filter((row) => row && row.symbol)
       .map((row) => ({ symbol: row.symbol, label: row.name || row.symbol }))

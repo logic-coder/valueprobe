@@ -1,6 +1,14 @@
 // Published rows consume the same release record on both list pages.
 import { policyValue, quoteDateStatus } from './policy'
 import { symbolOf } from './fx'
+import { peerRow } from './peers'
+
+export function publishedListRow (stock, symbol, entry, translate, unavailable) {
+  const row = entry
+    ? { symbol, name: entry.name, price: entry.price, asOf: entry.asOf, pe: entry.pe, pb: entry.pb }
+    : { ...peerRow(stock, symbol), currency: stock?.currency || '¥', asOf: stock?._as_of ?? null }
+  return publishedRow(row, entry, translate, unavailable)
+}
 
 /** Comparison and watchlist display the same published pair as the stock page. */
 export function publishedRow (row, entry, translate, unavailable = false) {

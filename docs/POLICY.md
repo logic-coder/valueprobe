@@ -99,7 +99,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `dataAsOf` | 利率表日期。 |
 | `universe` / `counts` | 与发布值文件的覆盖清单（`universe`）一致；`counts = { snapshots, valued, refused }`。 |
 | `rates` | 与发布值文件的 `rates` 相同，便于页面单独读利率。 |
-| `files[]` | `{ name, bytes, sha256 }`：`catalog.json`、`rates.json` 和 150 个快照；发布值文件本身由校验重算比对。 |
+| `files[]` | `{ name, bytes, sha256 }`：`catalog.json`、`rates.json` 和清单内快照；发布值文件由校验重算比对。 |
 
 ## 5. 刷新与校验
 
@@ -107,7 +107,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 npm run snapshot     # 刷新 public/data/*.json 与 rates.json（本机运行）
 npm run intrinsic    # 生成 intrinsic/v1.json 与 manifest.json
 npm run verify:data  # 数据校验
-npm run refresh      # 上面三步
+npm run refresh      # 暂存生成快照与估值，随后校验
 npm run verify       # lint → test → test:real → verify:data → smoke:pages
 ```
 
@@ -127,25 +127,27 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 ## 6. 覆盖清单与替换
 
-公开覆盖清单是 `scripts/watchlist.json` 里的 150 只（发布值文件的字段名仍是 `universe`）：`public/data` 有 150 个快照，`catalog.json` 150 行，artifact `entries` 150 条。任何一边多一只或少一只，校验失败。
+公开覆盖以 `scripts/watchlist.json` 为准。快照、搜索目录和发布值的证券集合必须一致，拒绝估值的证券保留条目和原因。
 
 替换记录（只换标的，不改口径）：
 
 - `HKSE:00823`（领展房产基金）：东方财富没有可用数据，换成 `HKSE:00002`（中电控股）。
 - `NYSE:XOM`：2026 年该 ticker 指向新的控股实体，SEC facts 不可用，换成 `HKSE:00066`（港铁公司）。
 
-替换步骤：改 `scripts/watchlist.json` → `npm run snapshot` → `npm run intrinsic` → `npm run verify:data`，四步产物一起提交。新增或替换后必须让第 5 项 universe 检查保持全绿。
+扩容先走[暂存流程](DATA_SOURCES.md)，通过核验后同步覆盖清单和生成数据。正式刷新用 `npm run refresh`；新增或替换后必须通过覆盖集合一致性检查。
 
 ## 7. 当前发布（示例）
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v1.json` 为准**：
 
-- `generatedAt` 2026-11-19；`rates.asOf` 2026-11-19。
+- `generatedAt` 2026-11-20；`rates.asOf` 2026-11-19。
 - 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。
-- universe 150 / 150，missing 0；coverage valued 123 / refused 27。
-- reasons：`NO_GROWTH` 25、`NON_POSITIVE_EPS` 9、`NO_EPS` 1。
-- warnings：`CAPPED_GROWTH` 43、`NEGATIVE_HISTORY_GROWTH` 25、`GROWTH_ABOVE_RETENTION` 8。
-- models：`owner` 122、`residual` 28；currencies：CNY 50、USD 49、HKD 51。
+- 声明、快照与估值条目各 500 条，有值 410 条，拒绝 90 条。
+- 拒绝原因出现次数，`NO_GROWTH` 84、`NON_POSITIVE_EPS` 26、`NO_EPS` 1。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 110 条。模型为 `owner` 457 条、`residual` 43 条。
+- 币种覆盖为 CNY 50 条、USD 399 条、HKD 51 条。
+
+本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)
 
 ## 8. 默认估值的适用边界与升版验证
 

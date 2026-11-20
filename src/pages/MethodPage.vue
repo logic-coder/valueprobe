@@ -219,9 +219,7 @@ const glossaryRows = computed(() => glossaryKeys.map((key) => ({
 const reasonRows = computed(() => REASON_CODES.map((code) => ({ code, meaning: t('reason_' + code) })))
 const warningRows = computed(() => WARNING_CODES.map((code) => ({ code, meaning: t('warning_' + code) })))
 
-// The method page reads the committed artifact through api/policy, the same
-// fetch the result strip uses, so the release facts on screen are the bytes that
-// shipped instead of a copy pasted into the page.
+// Summary metadata comes from the same release as the individual values.
 const artifact = ref(null)
 const loadFailed = ref(false)
 onMounted(async () => {

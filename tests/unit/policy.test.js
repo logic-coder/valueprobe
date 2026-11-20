@@ -143,12 +143,12 @@ describe('the committed artifact is what the policy produces', () => {
   it('covers the whole declared universe with the expected shape', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
     expect(artifact.policyHash).toBe(POLICY_V1_HASH)
-    expect(Object.keys(artifact.entries)).toHaveLength(150)
-    expect(artifact.universe).toEqual({ declared: 150, snapshots: 150, missing: [] })
-    expect(artifact.coverage.valued).toBe(123)
-    expect(artifact.coverage.refused).toBe(27)
-    expect(artifact.coverage.models).toEqual({ owner: 122, residual: 28 })
-    expect(artifact.coverage.currencies).toEqual({ CNY: 50, USD: 49, HKD: 51 })
+    const size = catalog.length
+    expect(Object.keys(artifact.entries)).toHaveLength(size)
+    expect(artifact.universe).toEqual({ declared: size, snapshots: size, missing: [] })
+    expect(artifact.coverage.valued + artifact.coverage.refused).toBe(size)
+    expect(Object.values(artifact.coverage.models).reduce((sum, count) => sum + count, 0)).toBe(size)
+    expect(Object.values(artifact.coverage.currencies).reduce((sum, count) => sum + count, 0)).toBe(size)
   })
 
   it('publishes the pinned values and refusals', () => {
