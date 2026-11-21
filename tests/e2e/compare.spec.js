@@ -78,10 +78,10 @@ test('explains a bad or duplicate add', async ({ page }) => {
   await expect(page.locator('.cmp__table tbody tr')).toHaveCount(1, { timeout: 20000 })
   await page.locator('.cmp__add input').fill('FOO:BAR')
   await page.locator('.cmp__add input').press('Enter')
-  await expect(page.locator('.q-notification').last()).toContainText('没认出')
+  await expect(page.locator('.q-notification').last()).toContainText('请输入交易所与代码')
   await page.locator('.cmp__add input').fill('SHSE:601398')
   await page.locator('.cmp__add input').press('Enter')
-  await expect(page.locator('.q-notification').last()).toContainText('已经在比较里')
+  await expect(page.locator('.q-notification').last()).toContainText('已在比较列表中')
   await expect(page.locator('.cmp__table tbody tr')).toHaveCount(1)
 })
 

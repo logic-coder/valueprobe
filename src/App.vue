@@ -102,7 +102,7 @@
     </section>
 
     <main id="main" class="site-main page-width-1440" tabindex="-1">
-      <router-view v-if="ready" />
+      <router-view v-if="ready" @find-stock="searchInput?.focus()" />
       <div v-else class="row justify-center q-pa-xl"><q-spinner-dots color="primary" size="34px" /></div>
     </main>
 

@@ -14,10 +14,19 @@ test('shows the published value by default and only edits this page', async ({ p
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
   await expect(page.getByTestId('value-context')).toContainText('v1')
   await expect(page.locator(FAIR)).toContainText('11.86')
+  const stress = page.getByTestId('margin-stress')
+  await expect(stress.locator('.stress__headline')).toHaveText(await stress.locator('.stress__row strong').last().innerText())
+  const [resultBox, stressBox, formBox] = await Promise.all([
+    page.getByTestId('dcf-result').boundingBox(),
+    stress.boundingBox(),
+    page.locator('.dcf__form').boundingBox(),
+  ])
+  expect(stressBox.x).toBeGreaterThan(resultBox.x + resultBox.width)
+  expect(formBox.y).toBeGreaterThan(stressBox.y + stressBox.height)
 
   await page.locator('.input-section').first().fill('12')
   await expect(page.getByTestId('value-title')).toContainText('试算')
-  await expect(page.getByTestId('value-context')).toContainText('不影响公开口径 v1')
+  await expect(page.getByTestId('value-context')).toContainText('参考口径 v1')
   await expect(page.locator(FAIR)).not.toContainText('11.86')
 
   // Reset returns to the published inputs; the artifact itself is untouched.
@@ -85,7 +94,7 @@ test('mobile trials preserve the published stress comparison and let readers rea
   const original = await comparison.locator('strong').allTextContents()
   await page.getByTestId('field-discount').fill('13')
   await page.getByTestId('field-discount').press('Tab')
-  await expect(comparison).toContainText('上方为你的试算')
+  await expect(comparison).toContainText('按公开估值假设测算')
   expect(await comparison.locator('strong').allTextContents()).toEqual(original)
   await expect(page.locator('.dcf__strip-col')).toHaveCSS('position', 'static')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
@@ -136,12 +145,17 @@ test('switches the interface language', async ({ page }) => {
   await page.waitForTimeout(500)
   await expect(page.locator('h3:has-text("Intrinsic value")')).toBeVisible()
   // Banner copy, panel titles and the About page are translated too.
-  await expect(page.locator('.dcf__head-hint')).toHaveText('every field recalculates live')
-  await expect(page.locator('.dcf__form')).toContainText('Edit the price in the header')
+  await expect(page.locator('.dcf__head-hint')).toHaveText('Results update as inputs change')
+  await expect(page.locator('.dcf__form')).toContainText('Edit the reference price beside the company name')
   await page.goto('/#/about')
   await expect(page.locator('.about__title')).toHaveText('About ValueProbe')
   await expect(page.locator('.about')).not.toContainText(/CORS|User-Agent|\.env/)
   await expect(page.locator('.about')).toContainText('The margin of safety uses the displayed quote.')
+  await page.goto('/#/method')
+  const method = page.getByTestId('method')
+  await expect(method).toContainText('Default assumptions')
+  await expect(method.getByRole('link', { name: 'Download current valuation data (JSON)' })).toBeVisible()
+  await expect(method).not.toContainText(/npm run|public\/data|RATE_FALLBACK|STALE_PRICE|usd_proxy/)
   await page.goto('/#/stock/BAD')
   await expect(page.locator('.notfound__title')).toHaveText('No such symbol')
   await page.goto('/#/stock/SHSE:601398/dcf')
@@ -256,7 +270,7 @@ test('does not ask a quote host for peers that have no local file', async ({ pag
     if (/\/em\/|push2\.eastmoney/.test(request.url())) hits.push(request.url())
   })
   await page.locator(STOCK.peers).scrollIntoViewIfNeeded()
-  await expect(page.locator('.peers__empty')).toContainText('同行报价暂时取不到', { timeout: 20000 })
+  await expect(page.locator('.peers__empty')).toContainText('暂无同行参考报价', { timeout: 20000 })
   expect(hits).toHaveLength(0)
 })
 

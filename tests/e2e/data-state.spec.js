@@ -56,7 +56,7 @@ test('manual mode stops fetching and keeps the numbers editable', async ({ page 
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
   await expect(page.locator('.data-banner--manual')).toBeVisible({ timeout: 20000 })
-  await expect(page.locator('.data-banner')).toContainText('手动模式')
+  await expect(page.locator('.data-banner')).toContainText('手动估值模式')
   const before = await page.locator('.input-section').first().inputValue()
   await page.locator('.input-section').first().fill('9')
   await page.waitForTimeout(300)

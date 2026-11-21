@@ -30,7 +30,7 @@ test('the built app renders under /valueprobe/ without same-origin /_api calls',
   if (snapshotOff) {
     const banner = page.locator('.data-banner--error')
     await expect(banner).toBeVisible({ timeout: 20000 })
-    await expect(banner).toContainText('所有数据源都失败')
+    await expect(banner).toContainText('暂时无法获取估值数据')
     await expect(banner).not.toContainText('季度快照')
   } else {
     await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.86', { timeout: 20000 })

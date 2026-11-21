@@ -69,13 +69,11 @@
         <table class="method__table">
           <thead>
             <tr>
-              <th scope="col">{{ t('method_code') }}</th>
               <th scope="col">{{ t('method_meaning') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in reasonRows" :key="row.code">
-              <td><code>{{ row.code }}</code></td>
               <td>{{ row.meaning }}</td>
             </tr>
           </tbody>
@@ -90,13 +88,11 @@
         <table class="method__table">
           <thead>
             <tr>
-              <th scope="col">{{ t('method_code') }}</th>
               <th scope="col">{{ t('method_meaning') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="row in warningRows" :key="row.code">
-              <td><code>{{ row.code }}</code></td>
               <td>{{ row.meaning }}</td>
             </tr>
           </tbody>
@@ -115,13 +111,13 @@
           <template v-if="reasonCounts.length">
             <h3 class="method__subtitle">{{ t('policy_refused_title') }}</h3>
             <p v-for="row in reasonCounts" :key="'reason-' + row.code" class="method__line">
-              <code>{{ row.code }}</code> · {{ row.count }}
+              {{ t('reason_' + row.code) }} · {{ t('method_count', { count: row.count }) }}
             </p>
           </template>
           <template v-if="warningCounts.length">
             <h3 class="method__subtitle">{{ t('policy_warnings_title') }}</h3>
             <p v-for="row in warningCounts" :key="'warning-' + row.code" class="method__line">
-              <code>{{ row.code }}</code> · {{ row.count }}
+              {{ t('warning_' + row.code) }} · {{ t('method_count', { count: row.count }) }}
             </p>
           </template>
           <h3 class="method__subtitle">{{ t('method_rates_title') }}</h3>
@@ -138,10 +134,8 @@
       <div class="panel__head"><span class="panel__title">{{ t('method_repro_title') }}</span></div>
       <div class="panel__body">
         <p>{{ t('method_repro_body') }}</p>
-        <pre class="method__commands"><code>npm run snapshot
-npm run intrinsic
-npm run verify:data</code></pre>
-        <p class="muted method__paths"><code>{{ artifactPath }}</code> · <code>public/data/manifest.json</code></p>
+        <p><a :href="dataBase + 'intrinsic/v1.json'">{{ t('method_download') }}</a>
+          · <a :href="REPO_URL + '/blob/main/docs/POLICY.md'" target="_blank" rel="noreferrer">{{ t('method_repro_link') }}</a></p>
       </div>
     </section>
 
@@ -170,8 +164,10 @@ import { useI18n } from 'vue-i18n'
 import { getPolicyArtifact } from '../api/policy'
 import { POLICY_V1, policySummary } from '../lib/policy'
 import { REASON_CODES, WARNING_CODES } from '../lib/reasons'
+import { REPO_URL } from '../config/site'
 
 const researchBase = import.meta.env.BASE_URL + 'research/'
+const dataBase = import.meta.env.BASE_URL + 'data/'
 
 const { t } = useI18n()
 // Values are read from the policy module, never copied into this component: a
@@ -191,8 +187,8 @@ const parameterRows = computed(() => [
   {
     label: t('method_discount'),
     values: [
-      t('method_rule_discount', { rounding: summary.discount.rounding, spread: summary.discount.spread }),
-      t('method_rule_currency', { currency: summary.discount.currency }),
+      t('method_rule_discount', { spread: summary.discount.spread }),
+      t('method_rule_currency'),
       t('method_rule_hkd', { proxy: summary.discount.hkdProxy }),
       t('method_rule_fallback', { fallback: summary.discount.fallback }),
       t('method_rule_clamp', { min: summary.discount.min, max: summary.discount.max }),
@@ -227,9 +223,6 @@ onMounted(async () => {
   loadFailed.value = !artifact.value
 })
 
-const artifactPath = computed(() => artifact.value?.policyVersion
-  ? 'public/data/intrinsic/' + artifact.value.policyVersion + '.json'
-  : 'public/data/intrinsic/')
 const countRows = (rows) => Object.entries(rows || {}).map(([code, count]) => ({ code, count }))
 const reasonCounts = computed(() => countRows(artifact.value?.coverage?.reasons))
 const warningCounts = computed(() => countRows(artifact.value?.coverage?.warnings))
@@ -237,7 +230,7 @@ const rateRows = computed(() => ['CNY', 'USD', 'HKD']
   .map((code) => {
     const row = artifact.value?.rates?.[code]
     if (!row) return null
-    const source = row.proxy ? row.source + ' → ' + row.proxy : row.source
+    const source = row.proxy ? t('method_rate_proxy') : t('method_rate_snapshot')
     return { code, row, source }
   })
   .filter(Boolean))
@@ -250,13 +243,10 @@ const rateRows = computed(() => ['CNY', 'USD', 'HKD']
 .method__block { overflow: hidden; }
 .method__line { margin: 0 0 4px; }
 .method__line:last-child { margin-bottom: 0; }
-.method__commands { margin: 8px 0; padding: 10px 12px; font-size: 12.5px; line-height: 1.6; background: var(--surface-sunken, #f6f7f9); border-radius: 6px; overflow-x: auto; }
-.method__paths { margin-top: 8px; }
 .method .panel__body > p:last-child { margin-bottom: 0; }
 
 .method__table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
 .method__table th, .method__table td { padding: 6px 8px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border, #e5e7eb); }
 .method__table thead th { font-weight: 600; color: var(--text-muted, #555); }
-.method__table code { font-size: 12px; }
 .method__subtitle { margin: 14px 0 4px; font-size: 13.5px; }
 </style>

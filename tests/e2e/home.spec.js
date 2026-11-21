@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 
 test('explains the tool and still renders the default example', async ({ page }) => {
   await expect(page.locator('.home__title')).toContainText('内在价值')
-  await expect(page.locator('.home__lead')).toContainText('输入代码')
+  await expect(page.locator('.home__lead')).toContainText('公司名或代码')
   await expect(page.locator('.example-head')).toContainText('工商银行')
   await expect(page.locator('.example-head')).toContainText('SHSE:601398')
   await expect(page.locator('.site-footer')).toContainText('不构成投资建议')
@@ -21,7 +21,7 @@ test('explains the tool and still renders the default example', async ({ page })
   await expect(page.locator('.site-footer')).not.toContainText('内核')
   await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.86', { timeout: 20000 })
   await expect(page.locator('.ticker')).toHaveCount(0)
-  await expect(page.locator('.home__recent')).toContainText('还没有记录')
+  await expect(page.locator('.home__recent')).toHaveCount(0)
 })
 
 test('lists a recently viewed symbol and clears it', async ({ page }) => {
@@ -37,8 +37,7 @@ test('lists a recently viewed symbol and clears it', async ({ page }) => {
   await expect(page).toHaveURL(/#\/stock\/NYSE:KO\/dcf$/)
   await page.goto('/#/')
   await page.locator('button.home__clear').click()
-  await expect(page.locator('.home__recent')).toContainText('还没有记录')
-  await expect(page.locator('.home__recent .home__chip')).toHaveCount(0)
+  await expect(page.locator('.home__recent')).toHaveCount(0)
 })
 
 test('puts a starred stock ahead of the recents', async ({ page }) => {
@@ -55,17 +54,17 @@ test('puts a starred stock ahead of the recents', async ({ page }) => {
 test('opens an example from the hero', async ({ page }) => {
   const links = page.locator('.home__examples a')
   await expect(links).toHaveCount(3)
-  const symbol = await links.first().getAttribute('data-symbol') // rotates daily, so read it instead of hardcoding
+  const symbol = await links.first().getAttribute('data-symbol')
   await links.first().click()
   await expect(page).toHaveURL(new RegExp('#/stock/' + symbol + '/dcf$'))
   await expect(page.locator('.text-h6.button-font-weight')).toHaveText(/(?:HK|US)?\$ ?[\d.,]+|¥ ?[\d.,]+/, { timeout: 20000 })
   await expect(page.locator('.stock-head h1')).toBeVisible()
 })
 
-test('links to the watchlist and the method page', async ({ page }) => {
+test('focuses stock search and opens valuation methodology', async ({ page }) => {
   await page.locator('.home__chip--primary').click()
-  await expect(page).toHaveURL(/#\/watchlist$/)
-  await page.locator('.brand').click()
-  await page.locator('.home__actions .home__chip:not(.home__chip--primary)').click()
-  await expect(page).toHaveURL(/#\/about$/)
+  await expect(page.locator('.symbol-search input')).toBeFocused()
+  await page.keyboard.press('Escape')
+  await page.locator('.home__method').click()
+  await expect(page).toHaveURL(/#\/method$/)
 })

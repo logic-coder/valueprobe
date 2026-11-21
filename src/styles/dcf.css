@@ -1,4 +1,4 @@
-/* Valuation workspace: inputs on the left, the result strip on the right. */
+/* The valuation summary leads the workspace on every viewport. */
 
 .dcf__card {
   padding: 0;
@@ -7,12 +7,13 @@
 }
 .dcf__card > div {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    'head strip'
-    'form strip'
-    'sens sens'
-    'evidence evidence';
+    'strip'
+    'head'
+    'form'
+    'sens'
+    'evidence';
   gap: 20px;
   padding: 16px 20px 18px;
 }
@@ -29,7 +30,7 @@
 .dcf__head h3 { font-size: 16px; line-height: 1.4; color: var(--text); font-weight: 650; }
 
 .dcf__strip-head { margin-bottom: 10px; }
-.dcf__strip-col { grid-area: strip; align-self: start; position: sticky; top: 12px; }
+.dcf__strip-col { grid-area: strip; min-width: 0; }
 .dcf__price-echo { align-items: baseline; }
 .dcf__price-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted); margin: -2px 0 0; padding-left: 2px; }
 .dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
@@ -208,12 +209,24 @@
 
 .dcf__row > .q-skeleton { margin-left: auto; }
 
-@media (max-width: 1023px) {
-  .dcf__strip-col { position: static; }
-  .dcf__card > div {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'strip' 'head' 'form' 'sens' 'evidence';
+@media (min-width: 1024px) {
+  .dcf__strip-col:has(.stress) {
+    display: grid;
+    grid-template-columns: minmax(0, 1.07fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 8px 16px;
   }
+  .dcf__strip-col:has(.stress) > .dcf__strip { grid-column: 1; grid-row: 1; }
+  .dcf__strip-col > .stress { grid-column: 2; grid-row: 1 / span 3; }
+  .dcf__strip-col:has(.stress) > .dcf__provenance { grid-column: 1; padding-top: 0; }
+  .dcf__strip-col > .dcf__official-note { grid-column: 1 / -1; }
+  .dcf__strip { padding: 18px; }
+  .dcf__strip-head { margin-bottom: 6px; }
+  .dcf__fair .text-h6 { font-size: 42px; }
+  .dcf__mos { margin-top: 8px; }
+}
+
+@media (max-width: 1023px) {
   .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
   .dcf__fair .text-h6 { font-size: 34px; }
   .dcf__implied-value { font-size: 18px; }

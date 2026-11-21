@@ -65,10 +65,10 @@ test('D7: an unreachable source set says so instead of leaving a skeleton', asyn
   await page.reload()
   const banner = page.locator('.data-banner--error')
   await expect(banner).toBeVisible({ timeout: 25000 })
-  await expect(banner).toContainText('所有数据源都失败')
+  await expect(banner).toContainText('暂时无法获取估值数据')
   await expect(banner.locator('.banner-link')).toHaveCount(2)
   await page.locator('.header-actions a', { hasText: 'EN' }).click()
-  await expect(banner).toContainText('Every data source failed')
+  await expect(banner).toContainText('Valuation data is temporarily unavailable')
   await expect(banner).toContainText('retry')
 })
 

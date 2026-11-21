@@ -1,4 +1,4 @@
-import { cp, readFile, rename, stat, unlink } from 'node:fs/promises'
+import { cp, readFile, readdir, unlink } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { snapshotFiles } from './policy-artifact.mjs'
 import { atomicWrite, readOptionalJson } from './snapshot-transport.mjs'
@@ -44,12 +44,17 @@ export async function installSnapshots (staged, live, backup, run, write = atomi
   const oldNames = snapshotFiles(process.cwd(), live)
   const current = new Set(names)
   const previous = new Set(oldNames)
-  const previousBackup = await stat(backup).catch(error => {
+  const backupFiles = await readdir(backup).catch(error => {
     if (error.code === 'ENOENT') return null
     throw error
   })
-  if (previousBackup) await rename(backup, resolve(run, 'previous'))
-  await cp(live, backup, { recursive: true, force: false })
+  if (backupFiles?.length) {
+    await cp(backup, resolve(run, 'previous'), { recursive: true, errorOnExist: true, force: false })
+    for (const name of snapshotFiles(process.cwd(), backup)) {
+      if (!previous.has(name)) await removeIfPresent(resolve(backup, name))
+    }
+  }
+  await copyChanged([...oldNames, ...releaseFiles], live, backup)
   const added = names.filter(name => !previous.has(name))
   // All recovery inputs must be written before changing the published directory.
   await atomicWrite(journalPath(backup), JSON.stringify({ added }))
