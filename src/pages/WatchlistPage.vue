@@ -56,6 +56,7 @@
               <td>{{ row.pe === null ? 'n/a' : row.pe.toFixed(1) + '×' }}</td>
               <td :title="row.policyNote || null">
                 {{ row.fairValue === null ? 'n/a' : moneyIn(row.currency, row.fairValue) }}
+                <span v-if="row.trialOnly" class="faint wl__asof">{{ t('valuation_trial_only') }}</span>
                 <span v-if="row.policyNote" class="sr-only">{{ row.policyNote }}</span>
               </td>
               <td :title="row.policyNote || null">{{ row.mos === null ? 'n/a' : row.mos + '%' }}</td>

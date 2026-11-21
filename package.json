@@ -38,7 +38,8 @@
     "test:e2e:base": "node scripts/build-base.mjs && playwright test tests/e2e/base-path.spec.js",
     "test:e2e:upload": "node scripts/test-upload.mjs",
     "rehearse:pages": "node scripts/rehearse-pages.mjs",
-    "audit:contrast": "node scripts/contrast-audit.mjs"
+    "audit:contrast": "node scripts/contrast-audit.mjs",
+    "audit:policy:diff": "node scripts/audit-policy-diff.mjs"
   },
   "dependencies": {
     "@fontsource/source-sans-3": "^5.3.1",

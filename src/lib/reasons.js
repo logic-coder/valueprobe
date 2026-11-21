@@ -9,6 +9,7 @@ export const REASON = Object.freeze({
   NO_GROWTH: 'NO_GROWTH',
   NO_BOOK: 'NO_BOOK',
   NOT_FINITE: 'NOT_FINITE',
+  INDUSTRY_MODEL_PENDING: 'INDUSTRY_MODEL_PENDING',
 })
 
 export const WARNING = Object.freeze({
@@ -26,8 +27,6 @@ export const WARNING = Object.freeze({
   CLASSIFICATION_UNVERIFIED: 'CLASSIFICATION_UNVERIFIED',
   // Owner model on a REIT/refiner: no FFO/AFFO or mid-cycle normalisation.
   MODEL_CAVEAT: 'MODEL_CAVEAT',
-  // Historical: value used to stop at the explicit years. Kept for old artifacts.
-  TERMINAL_DROPPED: 'TERMINAL_DROPPED',
   // Terminal growth was cut to (at most) two points under the discount rate.
   TERMINAL_CAPPED: 'TERMINAL_CAPPED',
 })

@@ -14,7 +14,7 @@ export async function atomicWrite (path, bytes) {
   }
 }
 
-export function transport ({ headers, cacheDir, fetcher = fetch, timeout = 20_000, valid = () => true }) {
+export function transport ({ headers, cacheDir, fetcher = fetch, timeout = 20_000, valid = () => true, onFetched }) {
   const queues = new Map()
   const pending = new Map()
   const work = async (url, pace, queue) => {
@@ -28,6 +28,7 @@ export function transport ({ headers, cacheDir, fetcher = fetch, timeout = 20_00
         if (response.ok) {
           const body = await response.json()
           if (!valid(body)) throw new Error('Invalid supplier response ' + new URL(url).hostname)
+          onFetched?.(body)
           queue.waitUntil = Date.now() + pace
           return body
         }

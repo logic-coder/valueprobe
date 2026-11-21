@@ -24,7 +24,7 @@ describe('frozen kernel parity', () => {
   })
 
   it('case 5: reverse DCF against the market price', () => {
-    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-7.34')
+    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('0.71')
   })
 
   it('case 6: margin of safety against the market price', () => {

@@ -112,7 +112,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `mode` / `scope` | 刷新模式（all/quotes/fundamentals）与范围（all/targeted/candidates）。 |
 | `rates` | `{ requested, live[], kept[], failed[] }`；显式 `--rates=keep` 时 `requested=false`。 |
 | `generatedAt` / `upstreamCheckedAt` / `latestPeriod` | 工件生成日、上游实际核验时刻、工件内最大报告期。刷新批次的核验时间不早于生成日。离线重算沿用已有核验时间，缺少记录时为 `null`。 |
-| `batch` / `previousBatch` | artifact 与 manifest 精确写入字节的 sha256，以及上一批摘要。 |
+| `batch` / `previousBatch` | artifact 与 manifest 对应字节的摘要及 Git 历史中上一不同批次。重复生成同批次保留其前序，回退可恢复原批次链。 |
 
 `npm run snapshot` 在建好暂存工件后判定：所需链路全失败、定向代码失败、估值数低于上一批 90%、拒绝数增加超过 max(5, 声明数 2%)、任一市场失去全部估值、没有可用利率，或存在 artifact 构建问题时为 `blocked`；局部失败保留旧记录与真实期间/日期并记 `partial`；供应商成功而期间未更新记 `verified-unchanged`。失败保留的报价或财报不改变旧行日期。手工 `npm run intrinsic` 写 `rebuilt`。阈值取自上一发布批次的覆盖，不用 120 天统一线。
 
@@ -122,6 +122,8 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 npm run snapshot     # 刷新 public/data/*.json、rates.json 与 publish.json（本机运行，闸门可阻断安装）
 npm run intrinsic    # 生成 intrinsic/<version>.json、manifest.json 与 rebuilt 状态
 npm run verify:data  # 数据与发布状态校验
+npm run verify:data -- --check-lineage  # 同时对照 Git 历史的前序摘要
+npm run audit:policy:diff                # 离线输出 v1 到 v2 的全量逐标的差异
 npm run refresh      # 暂存生成快照与估值，随后校验
 npm run verify       # lint → test → test:real → verify:data → smoke:pages
 ```
@@ -161,7 +163,7 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 - 声明、快照与估值条目各 500 条，有值 410 条，拒绝 90 条。
 - 拒绝原因出现次数，`NO_GROWTH` 84、`NON_POSITIVE_EPS` 26、`NO_EPS` 1。同一证券可能有多个原因。
 - 过期基本面标记 `STALE_DATA` 110 条。模型为 `owner` 460 条、`residual` 40 条。
-- 本次升版新增 `MODEL_CAVEAT` 3 条，`CLASSIFICATION_UNVERIFIED` 0 条；`NEGATIVE_HISTORY_GROWTH` 57 条。前后差异见 `RELEASE_V2.md`。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条，`NEGATIVE_HISTORY_GROWTH` 57 条。前后差异见 [RELEASE_V2.md](RELEASE_V2.md)。
 - 币种覆盖为 CNY 50 条、USD 399 条、HKD 51 条。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

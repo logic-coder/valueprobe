@@ -68,7 +68,10 @@ export function presentValueV1 (tbv, years, discountRate, growthRate, base, term
     flow *= 1 + gT
     terminalValue += flow / Math.pow(1 + r, n + k)
   }
-  if (r > gT) terminalValue += (flow * (1 + gT)) / (r - gT) / Math.pow(1 + r, n + m)
+  if (r > gT) {
+    const gc = Math.min(gT, r - 0.02)
+    terminalValue += (flow * (1 + gc)) / (r - gc) / Math.pow(1 + r, n + m)
+  }
   let fairValue = growthValue + terminalValue
   if (addToFairValue) fairValue += Number(tbv) || 0
   return { fairValue: round2(fairValue), growthValue: round2(growthValue), terminalValue: round2(terminalValue) }

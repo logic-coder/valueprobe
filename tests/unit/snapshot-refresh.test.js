@@ -3,8 +3,24 @@ import { mkdir, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
 import { atomicWrite, classifyShareBasis, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
 import { installSnapshots, recoverInstall } from '../../scripts/lib/snapshot-install.mjs'
+import { assessPublish, classifyOutcome, refreshVerification } from '../../scripts/lib/publish-gate.mjs'
 
 describe('incremental snapshot refresh', () => {
+  it('blocks an upstream 404 without claiming a new verification when rates are kept', async () => {
+    const fetcher = vi.fn().mockResolvedValue(new Response('{}', { status: 404 }))
+    const onFetched = vi.fn()
+    const previous = { price: '$12', currency: '$', quote_as_of: '2026-11-18' }
+    const read = transport({ fetcher, onFetched, headers: {} })
+    const outcome = await read('https://data.sec.gov/example').catch(error =>
+      classifyOutcome({ mode: 'all', prev: previous, patch: previous, fundamentalError: error.message }))
+    expect(onFetched).not.toHaveBeenCalled()
+    const outcomes = [{ symbol: 'NASDAQ:AAPL', ...outcome }]
+    const assessment = assessPublish({ mode: 'all', scope: 'targeted', outcomes, rates: { requested: false } })
+    expect(assessment.blocked).toEqual(expect.arrayContaining(['every quote request failed', 'every fundamentals request failed']))
+    expect(refreshVerification(assessment, outcomes, { requested: false }, null, '2026-11-21T08:00:00Z'))
+      .toEqual({ status: 'blocked', upstreamCheckedAt: null })
+  })
+
   it('keeps the financial period and rejects unknown or older quotes when a dated quote is available', () => {
     const prior = { price: '$12', currency: '$', quote_as_of: '2026-11-18', quote_source: 'filed', eps_as_of: '2026-09-30', as_of: '2026-11-19' }
     expect(useQuote(prior, { price: '$13', asOf: null, currency: '$' })).toBe(prior)

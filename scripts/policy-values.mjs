@@ -4,7 +4,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { ARTIFACT_PATH, DATA_DIR, MANIFEST_PATH, buildArtifacts } from './lib/policy-artifact.mjs'
-import { PUBLISH_PATH, previousRelease, publishState } from './lib/publish-gate.mjs'
+import { PUBLISH_PATH, committedPublish, previousRelease, publishState } from './lib/publish-gate.mjs'
 
 const root = process.cwd()
 const { artifact, manifest, problems } = buildArtifacts({ root })
@@ -16,7 +16,7 @@ writeFileSync(resolve(root, ARTIFACT_PATH), JSON.stringify(artifact, null, 2) + 
 writeFileSync(resolve(root, MANIFEST_PATH), JSON.stringify(manifest, null, 2) + '\n')
 const publish = publishState({ status: 'rebuilt', mode: 'intrinsic', scope: 'all', rates: { requested: false },
   generatedAt: artifact.generatedAt, upstreamCheckedAt: prior.publish?.upstreamCheckedAt ?? null, artifact, manifest,
-  previousBatch: prior.publish?.batch })
+  previous: committedPublish(root) ?? prior.publish })
 writeFileSync(resolve(root, PUBLISH_PATH), JSON.stringify(publish, null, 2) + '\n')
 
 const coverage = artifact.coverage

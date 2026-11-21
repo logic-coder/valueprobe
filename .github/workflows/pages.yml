@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -35,7 +37,9 @@ jobs:
       - name: Real-company regression on committed snapshots
         run: npm run test:real
       - name: Data gate (artifact, manifest, snapshots)
-        run: npm run verify:data
+        run: npm run verify:data -- --check-lineage
+        env:
+          PUBLISH_HISTORY_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
 
       # Browser suites are slow and need a Chromium download. They gate PRs,
       # not every data snapshot pushed to main.
@@ -43,12 +47,12 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           npx playwright install --with-deps --no-shell chromium
-          npm run test:e2e
+          npx playwright test
           npm run audit:contrast
-          PW_BASE=1 npm run test:e2e:base
           npm run rehearse:pages
 
-      - name: Static-host smoke
+      - name: Static-host smoke (pull requests)
+        if: github.event_name == 'pull_request'
         run: npm run smoke:pages
 
       - name: Build for the project sub-path
@@ -60,6 +64,13 @@ jobs:
           # The published site reads public/data only. Refresh those files locally
           # with npm run snapshot, then push. No browser gateway is baked in.
           VITE_TRANSPORT: direct
+
+      - name: Static-host smoke on the built dist
+        if: github.event_name != 'pull_request'
+        run: npm run smoke:pages -- --built
+        env:
+          VITE_BASE: /${{ github.event.repository.name }}/
+          VITE_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
 
       # The dist above is the only artifact that gets uploaded, so check it
       # before the upload: sub-path boot, published value, search and axe. No

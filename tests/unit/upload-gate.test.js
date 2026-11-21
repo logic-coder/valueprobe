@@ -16,14 +16,16 @@ describe('pre-upload browser gate', () => {
   })
 
   it('keeps the full browser drills on pull requests', () => {
-    expect(workflow).toMatch(/npm run test:e2e\n/)
-    expect(workflow).toContain('PW_BASE=1 npm run test:e2e:base')
+    expect(workflow).toMatch(/npx playwright test\n/)
     expect(workflow).toContain('npm run rehearse:pages')
+    expect(workflow).toContain('npm run smoke:pages -- --built')
+    expect(workflow).toContain('npm run verify:data -- --check-lineage')
   })
 
   it('reads the expected published value from the build artifact', () => {
     expect(spec).toContain("'data/valuation/meta.json'")
     expect(spec).not.toContain('11.86')
     expect(spec).toContain("getByTestId('dcf-fair-value')")
+    expect(spec).not.toContain('test.skip')
   })
 })

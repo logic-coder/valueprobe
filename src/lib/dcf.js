@@ -136,10 +136,8 @@ export function impliedGrowth (tbv, years, discountRate, base, price, terminalGr
 }
 
 /**
- * Reverse DCF: solve the fast-growth rate whose fair value equals the market price.
- * Same half-interval search as the original (start 75, step h/2, 2e6 iterations cap),
- * now on the same fading path and continuation caliber as `presentValue`.
- * @remarks The page reads `impliedGrowth`; this export remains the historical name.
+ * Frozen comparison solver for the original constant-growth finite annuity.
+ * The page pairs `presentValue` with `impliedGrowth`.
  */
 export function calculateReverse (tbv, years, discountRate, base, price, terminalGrowthRate, priceAgain, yearsOfTerminalGrowth, addToFairValue) {
   let iterations = 0
@@ -156,7 +154,7 @@ export function calculateReverse (tbv, years, discountRate, base, price, termina
     iterations++
     if (iterations > 2e6) return null
     const candidate = h - 50
-    fair = unroundedPresentValue(tbv, years, discountRate, candidate, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
+    fair = calGr2fv(tbv, years, discountRate, candidate, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
     last = candidate
     if (!Number.isFinite(fair) || fair <= 0) return null
     if (fair < target) h += h / 2

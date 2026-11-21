@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { POLICY_VERSION } from '../../src/lib/policy.js'
@@ -20,6 +21,16 @@ export async function previousRelease (liveDir) {
   // The live artifact is the previous release; fall back one version for the first run after a bump.
   const previous = 'v' + Math.max(1, Number(POLICY_VERSION.slice(1)) - 1)
   return { artifact: await read('intrinsic/' + POLICY_VERSION + '.json') || await read('intrinsic/' + previous + '.json'), publish: await read('publish.json') }
+}
+
+export function committedPublish (root) {
+  let bytes
+  try {
+    bytes = execFileSync('git', ['show', 'HEAD:' + PUBLISH_PATH], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+  } catch {
+    return null
+  }
+  return JSON.parse(bytes)
 }
 
 function valuedByMarket (artifact) {
@@ -86,19 +97,31 @@ export function assessPublish ({ mode, scope, outcomes, previous, current, rates
   return { status, blocked, partial }
 }
 
-export function classifyOutcome ({ mode, quote, prev, patch, fundamentals, fundamentalError }) {
+export function classifyOutcome ({ mode, quote, prev, patch, fundamentals, fundamentalError, fundamentalFetched }) {
+  const appliedQuote = quote && patch && patch.price === quote.price && patch.currency === quote.currency &&
+    (patch.quote_as_of ?? null) === (quote.asOf ?? null)
   const quoteResult = mode === 'fundamentals' ? 'skipped'
-    : !quote ? (prev ? 'failed-kept' : 'failed-missing')
+    : !appliedQuote ? (prev ? 'failed-kept' : 'failed-missing')
       : prev ? (useQuote(prev, quote) === prev ? 'unchanged' : 'updated') : 'updated'
   const fundamentalResult = mode === 'quotes' ? 'skipped'
     : fundamentalError ? (prev ? 'failed-kept' : 'failed-missing')
       : !fundamentals ? 'failed-missing'
         : patch?.eps_as_of && (!prev?.eps_as_of || patch.eps_as_of > prev.eps_as_of) ? 'new-period' : 'verified-unchanged'
-  return { quote: quoteResult, fundamental: fundamentalResult }
+  return { quote: quoteResult, fundamental: fundamentalResult,
+    quoteVerified: mode !== 'fundamentals' && Boolean(appliedQuote && quote.asOf && !quote.localReference),
+    fundamentalVerified: mode !== 'quotes' && Boolean(fundamentals && !fundamentalError && fundamentalFetched) }
 }
 
 export function publishStatus (assessment) {
   return assessment.blocked.length ? 'blocked' : assessment.partial.length ? 'partial' : assessment.status
+}
+
+export function refreshVerification (assessment, outcomes, rates, previous, checkedAt) {
+  const verified = rates?.live?.length || outcomes.some(row => row.quoteVerified || row.fundamentalVerified)
+  return {
+    status: verified || assessment.blocked.length ? publishStatus(assessment) : 'rebuilt',
+    upstreamCheckedAt: verified ? checkedAt : previous?.upstreamCheckedAt ?? null,
+  }
 }
 
 export function latestPeriod (artifact) {
@@ -110,7 +133,8 @@ export function latestPeriod (artifact) {
   return latest
 }
 
-export function publishState ({ status, blocked = [], partial = [], mode, scope, rates, generatedAt, upstreamCheckedAt, artifact, manifest, previousBatch }) {
+export function publishState ({ status, blocked = [], partial = [], mode, scope, rates, generatedAt, upstreamCheckedAt, artifact, manifest, previous }) {
+  const batch = releaseDigest(artifact, manifest)
   return {
     schema: 1,
     status,
@@ -122,8 +146,8 @@ export function publishState ({ status, blocked = [], partial = [], mode, scope,
     generatedAt,
     upstreamCheckedAt,
     latestPeriod: latestPeriod(artifact),
-    batch: releaseDigest(artifact, manifest),
-    previousBatch: previousBatch || null,
+    batch,
+    previousBatch: (previous?.batch === batch ? previous.previousBatch : previous?.batch) ?? null,
   }
 }
 
@@ -131,8 +155,16 @@ export function isPublishReady (state, artifact, manifest) {
   if (!state || state.schema !== 1 || state.status === 'blocked' || (state.blocked || []).length) return false
   if (!['ok', 'partial', 'verified-unchanged', 'rebuilt'].includes(state.status)) return false
   if (state.batch !== releaseDigest(artifact, manifest)) return false
+  if (state.previousBatch === state.batch) return false
   if (state.generatedAt !== artifact.generatedAt) return false
   // A local rebuild does not touch upstream: its check time is inherited or unknown.
   if (state.status === 'rebuilt') return state.upstreamCheckedAt === null || Number.isFinite(Date.parse(state.upstreamCheckedAt))
   return Date.parse(state.upstreamCheckedAt) >= Date.parse(state.generatedAt)
+}
+
+export function matchesPublishHistory (state, history) {
+  const previous = history.find(item => item.batch !== state.batch)?.batch ?? null
+  if (state.previousBatch === previous) return true
+  // Restoring an earlier release also restores its original lineage.
+  return history.some(item => item.batch === state.batch && item.previousBatch === state.previousBatch)
 }

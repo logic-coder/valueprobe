@@ -29,6 +29,10 @@ describe('frozen v1 research kernel', () => {
     expect(presentValueV1(0, 10, 10, 4, 2.5, 10, 10, false).fairValue).toBe(39.37)
   })
 
+  it('keeps the continuation-only cap used in the v1 release', () => {
+    expect(presentValueV1(0, 10, 10, 7, 1.08, 9.99, 10, false).fairValue).toBe(69.92)
+  })
+
   it('keeps the residual income path', () => {
     expect(residualIncomeValueV1(50, 5, 9, 4, 4, 10)).toEqual({ fairValue: 52.03, roe: 10, growth: 4 })
   })

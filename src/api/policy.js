@@ -1,4 +1,5 @@
 import { parseSymbol } from '../config/markets'
+import { POLICY_VERSION } from '../lib/policy'
 
 const base = import.meta.env.BASE_URL + 'data/valuation/'
 const pending = new Map()
@@ -32,7 +33,22 @@ function read (path, validate) {
 
 export async function getPolicyArtifact () {
   const meta = await getMetadataRequest()
-  return meta?.missing ? null : meta
+  return compatibleMeta(meta)
+}
+
+function compatibleMeta (meta) {
+  if (!meta || meta.missing) return null
+  if (meta.policyVersion === POLICY_VERSION) return meta
+  // A release retry may cross a deployment or rollback. Reload the shell once
+  // for this pair rather than seed a trial with another policy's inputs.
+  try {
+    const key = 'fv-policy-reload:' + POLICY_VERSION + ':' + meta.policyVersion
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1')
+      window.location.reload()
+    }
+  } catch { /* Storage or navigation unavailable. Reject the incompatible data. */ }
+  return null
 }
 
 export async function getPolicyEntry (symbol) {
@@ -54,8 +70,8 @@ export async function getPolicySummary () {
 
 async function withRelease (load) {
   const metadataRequest = getMetadataRequest()
-  const meta = await metadataRequest
-  if (!meta || meta.missing) return null
+  const meta = compatibleMeta(await metadataRequest)
+  if (!meta) return null
   const result = await load(meta)
   if (!result?.missing) return result
   // Deployments can remove the previous release between loading metadata and a resource.

@@ -19,7 +19,7 @@ import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote 
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
-import { PUBLISH_PATH, assessPublish, classifyOutcome, previousRelease, publishState, publishStatus } from './lib/publish-gate.mjs'
+import { PUBLISH_PATH, assessPublish, classifyOutcome, committedPublish, previousRelease, publishState, refreshVerification } from './lib/publish-gate.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -87,11 +87,13 @@ async function refresh (existing, baseline) {
   if (!active.length && !stageOnly) throw new Error('No symbols to refresh')
   const day = new Date().toISOString().slice(0, 10)
   const scope = requested.length ? 'targeted' : options.candidates ? 'candidates' : 'all'
-  const prior = await previousRelease(OUT)
+  const prior = await previousRelease(liveDir)
+  const fetched = new WeakSet()
+  const onFetched = body => { if (body && typeof body === 'object') fetched.add(body) }
   const getJson = transport({ headers: HEADERS, cacheDir })
-  const secJson = transport({ headers: { 'User-Agent': UA, Accept: 'application/json' }, cacheDir,
+  const secJson = transport({ headers: { 'User-Agent': UA, Accept: 'application/json' }, cacheDir, onFetched,
     valid: body => body?.facts || Object.values(body ?? {}).some(entry => entry?.cik_str && entry.ticker) })
-  const reportsJson = transport({ headers: HEADERS, cacheDir,
+  const reportsJson = transport({ headers: HEADERS, cacheDir, onFetched,
     valid: body => Array.isArray(body?.data) || Array.isArray(body?.result?.data) })
   const statement = url => reportsJson(url, day + ':statement:' + url)
 
@@ -100,17 +102,18 @@ async function refresh (existing, baseline) {
     const file = resolve(OUT, 'rates.json')
     const stats = { requested: true, live: [], kept: [], failed: [] }
     const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'))
+    const validRate = row => row?.value != null && row.value !== '' && Number.isFinite(Number(row.value))
     try {
       const body = await getJson(url)
       const live = parseEastMoneyYields(body)
       const pick = (code, row) => {
         const prev = existing[code]
-        if (row && Number.isFinite(row.value) && row.value > 0 && row.asOf &&
+        if (row && Number.isFinite(row.value) && row.asOf &&
           (!prev?.as_of || row.asOf >= prev.as_of)) {
           stats.live.push(code)
           return { value: row.value, as_of: row.asOf, tenor: '10Y' }
         }
-        if (prev && Number(prev.value) > 0) {
+        if (validRate(prev)) {
           stats.kept.push(code)
           return prev
         }
@@ -126,9 +129,12 @@ async function refresh (existing, baseline) {
       await atomicWrite(file, JSON.stringify(record, null, 2) + '\n')
       console.log('wrote rates.json', 'CNY', record.CNY && record.CNY.value, 'USD', record.USD && record.USD.value)
     } catch (error) {
+      stats.live = []
+      stats.kept = []
+      stats.failed = []
       for (const code of ['USD', 'CNY']) {
-        if (Number(existing[code]?.value) > 0) stats.kept.push(code)
-        else if (!stats.failed.includes(code)) stats.failed.push(code)
+        if (validRate(existing[code])) stats.kept.push(code)
+        else stats.failed.push(code)
       }
       stats.error = error.message
       console.error('keep existing rates.json -', error.message)
@@ -159,7 +165,7 @@ async function refresh (existing, baseline) {
         throw new Error('no verified reference quote')
       }
       return { price: '$' + saved.close, currency: '$', company: saved.name, asOf: reference.date,
-        marketCap: NaN, checkedSince: saved.checkedSince, issuer: saved.cik, source: reference.source }
+        marketCap: NaN, checkedSince: saved.checkedSince, issuer: saved.cik, source: reference.source, localReference: true }
     }
     const secid = SECID[market]
     if (!secid) throw new Error('market not on the quote feed')
@@ -206,7 +212,7 @@ async function refresh (existing, baseline) {
         statement(base + '&type=1'),
       ])
       if (!Array.isArray(recent.data) || !Array.isArray(annual.data)) throw new Error('invalid mainland statements response')
-      return { ...fromAshareReports(recent.data, annual.data), earningsSource: base + '&type=0' }
+      return { ...fromAshareReports(recent.data, annual.data), earningsSource: base + '&type=0', upstreamFetched: fetched.has(recent) }
     }
     if (market === 'HKSE') {
       const filter = encodeURIComponent('(SECUCODE="' + code + '.HK")')
@@ -214,7 +220,7 @@ async function refresh (existing, baseline) {
         + filter + '&pageNumber=1&pageSize=40&sortTypes=-1&sortColumns=REPORT_DATE'
       const body = await statement(url)
       if (!Array.isArray(body?.result?.data)) throw new Error('invalid Hong Kong statements response')
-      return { ...fromHkReports(body.result.data), earningsSource: url }
+      return { ...fromHkReports(body.result.data), earningsSource: url, upstreamFetched: fetched.has(body) }
     }
     return null
   }
@@ -233,7 +239,7 @@ async function refresh (existing, baseline) {
     const url = 'https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json'
     const facts = await secJson(url, day + ':cik:' + cik)
     if (Number(facts.cik) !== Number(entry.cik_str)) throw new Error('SEC issuer mismatch')
-    return { ...fundamentalsFromFacts(market + ':' + code, facts), earningsSource: url }
+    return { ...fundamentalsFromFacts(market + ':' + code, facts), earningsSource: url, upstreamFetched: fetched.has(facts) }
   }
 
   function historyFrom (financials) {
@@ -320,6 +326,7 @@ async function refresh (existing, baseline) {
         }
         let record = prev
         let fundamentals = false
+        let fundamentalFetched = false
         let fundamentalError = null
         let shareRatio = null
         try {
@@ -330,6 +337,7 @@ async function refresh (existing, baseline) {
               asOf: prev.quote_as_of ?? null, source: prev.quote_source })
             if (!seed) throw new Error('no reference quote for new listing')
             let pack = US.has(market) ? await edgarFor(market, code, seed.issuer) : await statementsFor(market, code)
+            fundamentalFetched = pack?.upstreamFetched === true
             const note = {}
             if (market === 'HKSE' && pack) {
               const reportCurrency = String(pack.reportCurrency || 'CNY').toUpperCase()
@@ -379,7 +387,7 @@ async function refresh (existing, baseline) {
           fundamentalError = error.message
           if (prev && quote && !US.has(market)) record = useQuote(prev, quote)
         }
-        const classified = classifyOutcome({ mode, quote, prev, patch: record, fundamentals, fundamentalError })
+        const classified = classifyOutcome({ mode, quote, prev, patch: record, fundamentals, fundamentalError, fundamentalFetched })
         if (record && JSON.stringify(record) !== JSON.stringify(prev)) await atomicWrite(file, JSON.stringify(record, null, 2) + '\n')
         outcomes.push({ symbol, available: Boolean(record), fundamentals, datedQuote: Boolean(record?.quote_as_of), shareRatio,
           quoteError, fundamentalError, ...classified })
@@ -418,11 +426,10 @@ async function refresh (existing, baseline) {
   if (Object.values(built.artifact.rates).some(rate => !rate)) built.problems.push('missing currency yield')
   const assessment = assessPublish({ mode, scope, outcomes, previous: prior.artifact, current: built.artifact, rates })
   for (const problem of built.problems) assessment.blocked.push('artifact: ' + problem)
-  const status = publishStatus(assessment)
+  const verification = refreshVerification(assessment, outcomes, rates, prior.publish, new Date().toISOString())
   const publish = publishState({
-    status, blocked: assessment.blocked, partial: assessment.partial, mode, scope, rates,
-    generatedAt: day, upstreamCheckedAt: new Date().toISOString(), artifact: built.artifact, manifest: built.manifest,
-    previousBatch: prior.publish?.batch,
+    ...verification, blocked: assessment.blocked, partial: assessment.partial, mode, scope, rates,
+    generatedAt: day, artifact: built.artifact, manifest: built.manifest, previous: committedPublish(root) ?? prior.publish,
   })
   await atomicWrite(resolve(OUT, 'intrinsic/v2.json'), JSON.stringify(built.artifact, null, 2) + '\n')
   await atomicWrite(resolve(OUT, 'manifest.json'), JSON.stringify(built.manifest, null, 2) + '\n')

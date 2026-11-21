@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "policyVersion": "v2",
-  "policyHash": "d699ffe7cec9cc65b112cd1baa00b5bb2712572d9f2917781fb1090e6efefc6a",
+  "policyHash": "e3d89664feaaa8d604f963563f3da3148c8b11a589c178a55552fe99201101f8",
   "generatedAt": "2026-11-21",
   "rates": {
     "asOf": "2026-11-19",
@@ -28,12 +28,13 @@
     "missing": []
   },
   "coverage": {
-    "valued": 410,
-    "refused": 90,
+    "valued": 407,
+    "refused": 93,
     "reasons": {
       "NO_EPS": 1,
       "NON_POSITIVE_EPS": 26,
-      "NO_GROWTH": 84
+      "NO_GROWTH": 84,
+      "INDUSTRY_MODEL_PENDING": 3
     },
     "warnings": {
       "CAPPED_GROWTH": 110,
@@ -15915,18 +15916,16 @@
     "NYSE:O": {
       "symbol": "NYSE:O",
       "name": "REALTY INCOME CORP",
-      "status": "ok",
-      "value": 16.71,
-      "band": {
-        "low": 13.44,
-        "mid": 16.71,
-        "high": 22.15
-      },
-      "terminalShare": 0.4638,
+      "status": "refused",
+      "value": null,
+      "band": null,
+      "terminalShare": null,
       "price": 58.28,
       "priceDate": "2026-11-18",
-      "marginOfSafety": -248.77,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "INDUSTRY_MODEL_PENDING"
+      ],
       "warnings": [
         "MODEL_CAVEAT"
       ],
@@ -16889,18 +16888,16 @@
     "NYSE:PSX": {
       "symbol": "NYSE:PSX",
       "name": "Phillips 66",
-      "status": "ok",
-      "value": 624.11,
-      "band": {
-        "low": 491.4,
-        "mid": 624.11,
-        "high": 846.65
-      },
-      "terminalShare": 0.5156,
+      "status": "refused",
+      "value": null,
+      "band": null,
+      "terminalShare": null,
       "price": 244.83,
       "priceDate": "2026-11-18",
-      "marginOfSafety": 60.77,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "INDUSTRY_MODEL_PENDING"
+      ],
       "warnings": [
         "CAPPED_GROWTH",
         "MODEL_CAVEAT"
@@ -19718,18 +19715,16 @@
     "NYSE:WELL": {
       "symbol": "NYSE:WELL",
       "name": "WELLTOWER INC.",
-      "status": "ok",
-      "value": 18.63,
-      "band": {
-        "low": 15.2,
-        "mid": 18.63,
-        "high": 24.29
-      },
-      "terminalShare": 0.4278,
+      "status": "refused",
+      "value": null,
+      "band": null,
+      "terminalShare": null,
       "price": 247.25,
       "priceDate": "2026-11-18",
-      "marginOfSafety": -1227.16,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "INDUSTRY_MODEL_PENDING"
+      ],
       "warnings": [
         "NEGATIVE_HISTORY_GROWTH",
         "MODEL_CAVEAT"

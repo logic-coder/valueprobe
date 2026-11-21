@@ -2,6 +2,7 @@
 import { policyValue, quoteDateStatus } from './policy'
 import { symbolOf } from './fx'
 import { peerRow } from './peers'
+import { REASON } from './reasons'
 
 export function publishedListRow (stock, symbol, entry, translate, unavailable) {
   const row = entry
@@ -26,6 +27,7 @@ export function publishedRow (row, entry, translate, unavailable = false) {
     pb: sameQuote ? row.pb : null,
     fairValue: entry.value,
     mos: entry.marginOfSafety,
+    trialOnly: entry.reasons.includes(REASON.INDUSTRY_MODEL_PENDING),
     policyNote: entry.reasons.map((reason) => translate('reason_' + reason)).join(' · '),
   }
 }

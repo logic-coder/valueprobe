@@ -23,7 +23,8 @@ const deepFreeze = (value) => {
 export const POLICY_V1 = deepFreeze({
   version: POLICY_VERSION,
   // Semantics added in v2; listed here so the pinned hash changes with them.
-  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'continuation-guard', band: 'model-consistent-one-sided' },
+  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'shared-effective-growth', band: 'model-consistent-one-sided' },
+  trialOnlyIndustries: ['reit', 'refining'],
   // The published number is always a discounted-earnings number. Free cash flow
   // stays a cross-check on the stock page, never the published value.
   basis: 'eps',
@@ -74,7 +75,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'd699ffe7cec9cc65b112cd1baa00b5bb2712572d9f2917781fb1090e6efefc6a'
+export const POLICY_V1_HASH = 'e3d89664feaaa8d604f963563f3da3148c8b11a589c178a55552fe99201101f8'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -258,6 +259,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.industry = stock.industry || null
   inputs.tangibleBook = tangibleBook
   if (model === POLICY_V1.model.financialInstitution && !(tangibleBook > 0)) reasons.push(REASON.NO_BOOK)
+  if (POLICY_V1.trialOnlyIndustries.includes(inputs.industry)) {
+    reasons.push(REASON.INDUSTRY_MODEL_PENDING)
+    warnings.push(WARNING.MODEL_CAVEAT)
+  }
 
   const base = {
     symbol: symbolOf(stock), value: null, band: null, terminalShare: null, price, priceDate,
@@ -300,7 +305,6 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     if (model !== POLICY_V1.model.financialInstitution && tangibleBook > 0 && eps > 0 && growth / 100 > eps / tangibleBook) {
       warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
     }
-    if (stock.industry === 'reit' || stock.industry === 'refining') warnings.push(WARNING.MODEL_CAVEAT)
   }
   if (value === null) {
     reasons.push(REASON.NOT_FINITE)
@@ -337,7 +341,7 @@ export function policySummary () {
   return {
     version: POLICY_VERSION,
     // Semantics added in v2; listed here so the pinned hash changes with them.
-    revision: { classification: 'industry+ocf+columns', terminalBoundary: 'continuation-guard', band: 'model-consistent-one-sided' },
+    revision: { ...POLICY_V1.revision },
     basis: POLICY_V1.basis,
     models: { ...POLICY_V1.model },
     horizon: { ...POLICY_V1.horizon },

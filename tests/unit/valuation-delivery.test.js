@@ -1,9 +1,10 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import { POLICY_VERSION } from '../../src/lib/policy'
 
 const previous = '1'.repeat(20)
 const current = '2'.repeat(20)
 const symbol = 'NASDAQ:AAPL'
-const metadata = release => ({ schema: 1, release, policyVersion: 'v1', generatedAt: '2026-11-20',
+const metadata = (release, policyVersion = POLICY_VERSION) => ({ schema: 1, release, policyVersion, generatedAt: '2026-11-20',
   universe: {}, coverage: {}, symbols: [symbol] })
 
 afterEach(() => vi.unstubAllGlobals())
@@ -24,4 +25,24 @@ it('revalidates removed release metadata once and loads matching details and sum
   expect(detail.entry.value).toBe(summary[symbol].value)
   expect(requests.mock.calls.filter(([url]) => url.endsWith('/meta.json'))).toHaveLength(2)
   expect(requests.mock.calls[0][1]).toEqual({ cache: 'no-cache' })
+})
+
+it('rejects the new release if the running shell has a different policy', async () => {
+  vi.resetModules()
+  const reload = vi.fn()
+  vi.stubGlobal('window', { location: { reload } })
+  vi.stubGlobal('sessionStorage', { getItem: vi.fn().mockReturnValueOnce(null).mockReturnValue('1'), setItem: vi.fn() })
+  const requests = vi.fn(async url => {
+    if (url.endsWith('/meta.json')) {
+      const body = requests.mock.calls.length === 1 ? metadata(previous) : metadata(current, 'next-policy')
+      return new Response(JSON.stringify(body))
+    }
+    return new Response(null, { status: 404 })
+  })
+  vi.stubGlobal('fetch', requests)
+  const { getPolicyEntry, getPolicySummary } = await import('../../src/api/policy')
+  expect(await getPolicyEntry(symbol)).toBeNull()
+  expect(await getPolicySummary()).toBeNull()
+  expect(reload).toHaveBeenCalledTimes(1)
+  expect(requests.mock.calls.some(([url]) => url.includes(current))).toBe(false)
 })

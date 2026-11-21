@@ -14,7 +14,7 @@ const STOCK = '/valueprobe/#/stock/SHSE:601398/dcf'
 test.use({ baseURL: BASE })
 
 test.beforeEach(async ({ page }) => {
-  test.skip(process.env.PW_DIST !== '1', 'run npm run test:e2e:upload against a built dist')
+  expect(process.env.PW_DIST, 'run npm run test:e2e:upload against a built dist').toBe('1')
   await mockApi(page)
 })
 
@@ -63,6 +63,27 @@ test('header search opens a US ticker', async ({ page }) => {
   await expect(page.getByRole('heading', { name: /苹果|Apple Inc\./ })).toBeVisible({ timeout: 30000 })
   await expect(page.getByText('AAPL · NASDAQ')).toBeVisible()
   await expect(page.getByTestId('dcf-fair-value')).toContainText('$', { timeout: 30000 })
+})
+
+test('industry trials stay out of published margins and highlighting', async ({ page }) => {
+  await page.route('**/data/NYSE-PSX.json', route => route.continue())
+  await page.addInitScript(() => localStorage.setItem('fv-watchlist', JSON.stringify(['NYSE:PSX'])))
+  await page.goto('/valueprobe/#/watchlist')
+  const watched = page.locator('.wl__table tbody tr').filter({ hasText: 'NYSE:PSX' })
+  await expect(watched).toContainText('仅试算')
+  await expect(watched.getByRole('cell', { name: 'n/a', exact: true }).first()).toBeVisible()
+  await page.goto('/valueprobe/#/compare?s=NYSE:PSX,SHSE:601398')
+  const psx = page.locator('.cmp__table tbody tr').filter({ hasText: 'NYSE:PSX' })
+  await expect(psx).toContainText('仅试算')
+  await expect(psx.locator('.cmp__best')).toHaveCount(0)
+  await expect(psx.getByRole('cell', { name: 'n/a', exact: true }).first()).toBeVisible()
+  await psx.getByRole('link').click()
+  await expect(page.getByTestId('official-unavailable')).toContainText('仅供试算')
+  await expect(page.getByTestId('dcf-fair-value')).toContainText('n/a')
+  await expect(page.getByTestId('margin-stress')).toHaveCount(0)
+  await page.getByRole('button', { name: '开始试算', exact: true }).click()
+  await expect(page.getByTestId('dcf-fair-value')).toContainText('$')
+  await expect(page.getByTestId('value-title')).toContainText('试算')
 })
 
 test('the stock page has no serious axe violations', async ({ page }) => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assessPublish, classifyOutcome, isPublishReady, latestPeriod, publishState, publishStatus, releaseDigest } from '../../scripts/lib/publish-gate.mjs'
+import { assessPublish, classifyOutcome, isPublishReady, latestPeriod, matchesPublishHistory, publishState, publishStatus, refreshVerification, releaseDigest } from '../../scripts/lib/publish-gate.mjs'
 
 function release ({ valued = 3, refused = 1, markets = ['SHSE', 'SHSE', 'HKSE'], generatedAt = '2026-11-21' } = {}) {
   const entries = {}
@@ -12,15 +12,17 @@ const rows = (symbols, quote = 'updated', fundamental = 'new-period') =>
   symbols.map(symbol => ({ symbol, quote, fundamental }))
 
 describe('outcome classification', () => {
-  const prev = { price: '$1', quote_as_of: '2026-11-20', eps_as_of: '2026-09-30' }
+  const prev = { price: '$1', currency: '$', quote_as_of: '2026-11-20', eps_as_of: '2026-09-30' }
+  const same = { price: '$1', currency: '$', asOf: prev.quote_as_of }
   it('separates new periods, verified no-update, kept and missing records', () => {
-    expect(classifyOutcome({ mode: 'all', quote: { price: '$1', asOf: '2026-11-20' }, prev, patch: prev, fundamentals: true })).toEqual({ quote: 'unchanged', fundamental: 'verified-unchanged' })
-    expect(classifyOutcome({ mode: 'all', quote: prev, prev, patch: { ...prev, eps_as_of: '2026-10-31' }, fundamentals: true }).fundamental).toBe('new-period')
-    expect(classifyOutcome({ mode: 'all', quoteError: 'x', prev, patch: prev, fundamentals: true, fundamentalError: 'x' })).toEqual({ quote: 'failed-kept', fundamental: 'failed-kept' })
-    expect(classifyOutcome({ mode: 'all', quote: null, prev: null, patch: null, fundamentals: false, fundamentalError: 'x' })).toEqual({ quote: 'failed-missing', fundamental: 'failed-missing' })
-    expect(classifyOutcome({ mode: 'quotes', quote: { price: '$2', asOf: '2026-11-21' }, prev, patch: prev, fundamentals: false })).toEqual({ quote: 'updated', fundamental: 'skipped' })
-    expect(classifyOutcome({ mode: 'quotes', quote: { price: '$0.9', asOf: '2026-11-19' }, prev, patch: prev, fundamentals: false }).quote).toBe('unchanged')
-    expect(classifyOutcome({ mode: 'fundamentals', quote: null, prev, patch: prev, fundamentals: true })).toEqual({ quote: 'skipped', fundamental: 'verified-unchanged' })
+    expect(classifyOutcome({ mode: 'all', quote: same, prev, patch: prev, fundamentals: true })).toMatchObject({ quote: 'unchanged', fundamental: 'verified-unchanged', quoteVerified: true, fundamentalVerified: false })
+    expect(classifyOutcome({ mode: 'all', quote: same, prev, patch: { ...prev, eps_as_of: '2026-10-31' }, fundamentals: true }).fundamental).toBe('new-period')
+    expect(classifyOutcome({ mode: 'all', prev, patch: prev, fundamentals: true, fundamentalError: 'x' })).toMatchObject({ quote: 'failed-kept', fundamental: 'failed-kept' })
+    expect(classifyOutcome({ mode: 'all', quote: null, prev: null, patch: null, fundamentals: false, fundamentalError: 'x' })).toMatchObject({ quote: 'failed-missing', fundamental: 'failed-missing' })
+    const quote = { price: '$2', currency: '$', asOf: '2026-11-21' }
+    expect(classifyOutcome({ mode: 'quotes', quote, prev, patch: { ...prev, price: quote.price, quote_as_of: quote.asOf } })).toMatchObject({ quote: 'updated', fundamental: 'skipped', quoteVerified: true })
+    expect(classifyOutcome({ mode: 'quotes', quote: { ...same, asOf: '2026-11-19' }, prev, patch: prev }).quote).toBe('failed-kept')
+    expect(classifyOutcome({ mode: 'fundamentals', quote: null, prev, patch: prev, fundamentals: true, fundamentalFetched: true })).toMatchObject({ quote: 'skipped', fundamental: 'verified-unchanged', fundamentalVerified: true })
   })
 })
 
@@ -93,10 +95,35 @@ describe('publish state', () => {
     expect(state.batch).toBe(releaseDigest(artifact, manifest))
     expect(isPublishReady(state, artifact, manifest)).toBe(true)
     expect(isPublishReady({ ...state, batch: 'x' }, artifact, manifest)).toBe(false)
+    expect(isPublishReady({ ...state, previousBatch: state.batch }, artifact, manifest)).toBe(false)
     expect(isPublishReady({ ...state, status: 'blocked', blocked: ['x'] }, artifact, manifest)).toBe(false)
     expect(isPublishReady({ ...state, status: 'rebuilt', upstreamCheckedAt: null }, artifact, manifest)).toBe(true)
     expect(isPublishReady({ ...state, status: 'rebuilt', upstreamCheckedAt: '2026-11-20T08:00:00.000Z' }, artifact, manifest)).toBe(true)
     expect(isPublishReady({ ...state, upstreamCheckedAt: '2026-11-20T08:00:00.000Z' }, artifact, manifest)).toBe(false)
+  })
+
+  it('keeps the last verified timestamp on all retained sources and cached or local input', () => {
+    const previous = { upstreamCheckedAt: '2026-11-18T08:00:00.000Z' }
+    const checkedAt = '2026-11-21T08:00:00.000Z'
+    const failed = { blocked: ['every quote request failed'], partial: ['kept'], status: 'blocked' }
+    const retained = [{ quote: 'failed-kept', fundamental: 'failed-kept' }]
+    expect(refreshVerification(failed, retained, { requested: false }, previous, checkedAt))
+      .toEqual({ status: 'blocked', upstreamCheckedAt: previous.upstreamCheckedAt })
+    const cached = [{ quote: 'skipped', fundamental: 'verified-unchanged', fundamentalVerified: false }]
+    const allowed = { blocked: [], partial: [], status: 'verified-unchanged' }
+    expect(refreshVerification(allowed, cached, { live: [] }, previous, checkedAt))
+      .toEqual({ status: 'rebuilt', upstreamCheckedAt: previous.upstreamCheckedAt })
+    expect(refreshVerification(allowed, [{ ...cached[0], fundamentalVerified: true }], { live: [] }, previous, checkedAt))
+      .toEqual({ status: 'verified-unchanged', upstreamCheckedAt: checkedAt })
+  })
+
+  it('keeps lineage across same-batch rebuilds and validates transitions or rollbacks', () => {
+    const first = { batch: 'a', previousBatch: null }
+    const second = { batch: 'b', previousBatch: 'a' }
+    expect(matchesPublishHistory(second, [first])).toBe(true)
+    expect(matchesPublishHistory({ ...second, previousBatch: null }, [first])).toBe(false)
+    expect(matchesPublishHistory(first, [second, first])).toBe(true)
+    expect(publishState({ ...state, artifact, manifest, previous: { ...state, previousBatch: 'a' } }).previousBatch).toBe('a')
   })
   it('lets artifact problems block an otherwise partial run', () => {
     const partial = { status: 'partial', blocked: [], partial: ['kept'] }

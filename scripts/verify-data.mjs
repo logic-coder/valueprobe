@@ -2,13 +2,14 @@
 // manifest must describe the same facts. Runs on every push (npm run verify).
 //   npm run verify:data
 import { createHash } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { POLICY_V1, POLICY_V1_HASH, policyValue } from '../src/lib/policy.js'
 import { isKnownReason, isKnownWarning } from '../src/lib/reasons.js'
 import { toStock } from '../src/lib/stockRecord.js'
 import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts, policyHash, readRates, snapshotFiles } from './lib/policy-artifact.mjs'
-import { PUBLISH_PATH, isPublishReady, latestPeriod } from './lib/publish-gate.mjs'
+import { PUBLISH_PATH, isPublishReady, latestPeriod, matchesPublishHistory } from './lib/publish-gate.mjs'
 
 // Verify from the repository root even when npm runs the script from a workspace.
 const root = process.cwd()
@@ -48,7 +49,7 @@ if (publish) {
   isPublishReady(publish, artifact, manifest)
     ? ok('publish state', publish.status + ' batch ' + String(publish.batch).slice(0, 12) + '… mode ' + publish.mode)
     : fail('publish state', publish.status + ' batch ' + String(publish.batch).slice(0, 12) + '…')
-  if (publish.status === 'partial') warn('publish partial', (publish.partial || []).length + ' kept/limited item(s)')
+  if (publish.partial?.length) warn('publish partial', publish.partial.length + ' kept/limited item(s)')
   if (publish.latestPeriod !== latestPeriod(artifact)) fail('publish latest period', publish.latestPeriod + ' vs ' + latestPeriod(artifact))
   if (publish.status === 'rebuilt') {
     publish.upstreamCheckedAt === null
@@ -57,6 +58,22 @@ if (publish) {
   } else if (!(Date.parse(publish.upstreamCheckedAt) >= Date.parse(artifact.generatedAt))) {
     fail('publish checked date', publish.upstreamCheckedAt)
   }
+}
+
+if (publish && process.argv.includes('--check-lineage')) {
+  const git = (...args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+  const stateAt = ref => JSON.parse(git('show', ref + ':' + PUBLISH_PATH))
+  const head = git('rev-parse', '--verify', (process.env.PUBLISH_HISTORY_HEAD || 'HEAD') + '^{commit}')
+  const paths = git('log', '--first-parent', '--format=%H', head, '--', PUBLISH_PATH).split('\n').filter(Boolean)
+  const history = []
+  for (const ref of paths) {
+    let state
+    try { state = stateAt(ref) } catch { continue } // A rollback may delete the old sidecar.
+    if (ref === head && JSON.stringify(state) === JSON.stringify(publish)) continue
+    history.push(state)
+  }
+  if (matchesPublishHistory(publish, history)) ok('publish lineage', publish.previousBatch ?? 'initial batch')
+  else fail('publish lineage', 'previous batch does not match Git history')
 }
 
 // Rate rows must accompany the date they were captured; age is disclosed only.

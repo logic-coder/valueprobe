@@ -5,6 +5,9 @@
           <div class="dcf__strip-col">
           <div v-if="!resultLoading && publicationNotice" class="dcf__official-note" data-testid="official-unavailable">
             {{ publicationNotice }}
+            <button v-if="industryTrialOnly && !isEdited && basisReady" type="button" class="wl__tool" @click="markAssumptionsEdited">
+              {{ t('valuation_start_trial') }}
+            </button>
           </div>
           <dcf-result-bar
             :loading="resultLoading"
@@ -365,6 +368,7 @@ import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
 import { adoptGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
+import { REASON } from '../lib/reasons'
 import { marginStress as calculateMarginStress } from '../lib/marginStress'
 import MarginStress from './dcf/MarginStress.vue'
 import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
@@ -464,6 +468,7 @@ const classificationHint = computed(() => {
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const policyEntry = computed(() => policyStore.entryOf(props.symbol))
+const industryTrialOnly = computed(() => policyEntry.value?.reasons.includes(REASON.INDUSTRY_MODEL_PENDING))
 const isEdited = ref(false)
 const assumptionsEdited = ref(false)
 const showPublished = computed(() => !isManual.value && !isEdited.value && policyEntry.value?.status === 'ok')

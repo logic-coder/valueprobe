@@ -17,15 +17,15 @@
 
 | 任务 | 状态 | 主要落点 |
 | --- | --- | --- |
-| A 刷新发布闸门 | 完成 | `scripts/lib/publish-gate.mjs`、发布状态、故障注入 |
-| B 上传前浏览器门禁 | CI 完成，本地未验 | `pages.yml` 上传前运行 `test:e2e:upload` |
+| A 刷新发布闸门 | 已实现并加入回归 | 采用的报价、上游新响应、404 故障注入、提交历史批次链 |
+| B 上传前浏览器门禁 | 已实现 | 同一份生产构建先静态冒烟，再运行 `test:e2e:upload` |
 | C 报价币种 | 完成 | 原币显示、换算提示、交互回归 |
 | D live 校验与限流 | 完成 | `validate.js`、`limiter.js`、`registry.js` |
 | E 情景与图表 | 完成 | 基准快照、自定义标记、请求竞态 |
 | F 文档 | 完成 | POLICY、CALCULATION、DEVIATIONS、SECURITY、README |
-| G 模型误路由 | 完成并入 v2 | 分类证据、候选差异、`CLASSIFICATION_UNVERIFIED` |
+| G 模型误路由 | 已修路由，行业模型待验证 | 分类证据与 REIT/炼化仅试算状态 |
 | H 区间 | 完成并入 v2 | 残差同模型端点、单侧区间 |
-| I 终值边界 | 完成并入 v2 | 续营保护、有效增速、零/负利率 |
+| I 终值边界 | 已采用共同有效增速 | 第二阶段、续营和反推共享有效域，保留 v1 对照 |
 | J 收益契约与旧内核 | 完成 | 首日前后口径、短窗原因、极限测试 |
 | K 输入边界与 A/H 桥 | 完成并入 v2 | 有限数 EPS、利率取值域、差异桥 |
 | L 研究接续条件 | 完成 | 本地研究稿的接续条件（未入库） |
@@ -47,7 +47,7 @@
 
 对应位置为 [.github/workflows/pages.yml](../.github/workflows/pages.yml)、[snapshot.mjs](../scripts/snapshot.mjs)、[verify-data.mjs](../scripts/verify-data.mjs)、[App.vue](../src/App.vue)、[EditableValue.vue](../src/components/EditableValue.vue)、[DcfCalculator.vue](../src/components/DcfCalculator.vue)、[registry.js](../src/data/registry.js)、[limiter.js](../src/data/limiter.js)、[dcf.js](../src/store/dcf.js)、[DEVIATIONS.md](DEVIATIONS.md)和 [SECURITY.md](../SECURITY.md)。
 
-原审查排除的两点继续成立。构建插件生成 `data/valuation/` 的发布目录，静态冒烟已经检查摘要与详情使用同一 release。WACC 中可编辑的 5% ERP 与发布版固定加 6 个百分点属于两种明确的输入来源。当前发布的是 500 条，410 条可估、90 条拒绝，110 条带 `STALE_DATA`，其中 89 条仍可估。陈旧标记以工件生成日对盈利期来算。它表明财务输入较旧，无法单凭这项计数判断有多少次供应商刷新失败。[发布数据](../public/data/intrinsic/v2.json)（冻结 v1 仍在同目录） · [交付插件](../scripts/lib/policy-delivery.mjs) · [WACC](../src/lib/wacc.js)
+原审查排除的两点继续成立。构建插件生成 `data/valuation/` 的发布目录，静态冒烟检查摘要与详情是否同一发布批次。WACC 中可编辑的 5% ERP 与发布版固定加 6 个百分点属于两种明确的输入来源。此处的 410 条可估历史基线为 v1，修订后的 v2 在 500 个标的中公开 407 条，O、WELL、PSX 仅供试算。[v2 发布记录](RELEASE_V2.md) · [交付插件](../scripts/lib/policy-delivery.mjs) · [WACC](../src/lib/wacc.js)
 
 ## 新评估的独立复核
 
@@ -122,7 +122,7 @@
 
 ### 任务 I · 明确永续估值的可用边界
 
-优先让试算在 `g ≥ r` 时给出清晰参数提示，头条、反推、区间与敏感性同时撤掉对应的永续数值。若保留有限期现值，独立标注其含义。对于 `0 < r−g < 2` 个百分点，明确现有终值资本化所用的有效增速。若采用任何新夹取方案，同时校对现金路径、有效增速和折现分母。把原报告建议的无条件加永续排除出默认修法。
+最终规则为共同有效增速 `min(终值增速, 折现率 − 2 个百分点)`。用该增速计算第一阶段淡出目标、第二阶段及续营，反推和矩阵共用同一有效域。触发封顶时直接披露有效增速，第二阶段有限值和续营分列。最初建议的有限期回退会改变估值期限，作为冻结 v1 对照保留。同参数的经济影响见[跨界算例](RELEASE_V2.md#终值区间与冻结对照)。
 
 **验收**：覆盖 `r=10%` 时 `g=9.99% / 10% / 10.01%`、安全利差边界、`r=0` 和负增速。正向估值与反推在同一有效域往返，区间和矩阵的非法格明确为空。当前正常公开参数的头条逐条复算。若改变冻结边界，单列该方法变化。
 
@@ -148,8 +148,4 @@ A/H 先做值差归因，用相同股本权益单位、同一财报期间与汇�
 
 ## 本次验证范围
 
-新增评估用独立探针复算；实施后完整单元套件 58 个文件、436 项通过，`npm run lint` 通过。旧测试确认旧行为可重复，各任务均带最小回归用例。
-
-`verify:data` 20 项全过，覆盖 500 个标的、502 个文件哈希、发布摘要、A/H 基线和三个独立重算；v1/v2 哈希核对不变。生产构建已在本机通过；Playwright 受沙箱阻止浏览器子进程的限制未在本地执行。任务 B 的 CI 步骤须先在 Ubuntu/Node 22 跑绿，再设为主分支阻断。
-
-本地证据包括[刷新故障报告](../tmp-valueprobe-engineering-review/refresh/report.json)、[限流、坏报价和图表竞态探针](../tmp-valueprobe-engineering-review/probe.mjs)和[生产构建交互探针](../tmp-valueprobe-engineering-review/browser.mjs)。
+以仓库内可执行检查为准。运行 `npm run verify`、`npm run verify:data -- --check-lineage`、`npm run audit:policy:diff`，并在生产构建后运行 `npm run test:e2e:upload`。故障注入、同批摘要、已保留的核验时刻、旧内核金样本与试算隔离均有入库回归。历史完整复算通过 `npm run research:check` 读取本地 SEC 缓存。旧临时报告仅作历史排查记录。

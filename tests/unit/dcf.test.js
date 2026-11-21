@@ -149,7 +149,7 @@ describe('presentValue', () => {
 
 describe('calculateReverse', () => {
   it('solves the growth rate that justifies the market price', () => {
-    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-7.34')
+    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('0.71')
   })
 
   it('returns null instead of an astronomical rate when the base is not positive', () => {

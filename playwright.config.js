@@ -38,6 +38,7 @@ if (baseMode) {
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: distMode ? [] : ['**/upload-gate.spec.js'],
   timeout: 60000,
   use: {
     baseURL: 'http://127.0.0.1:5173',

@@ -176,14 +176,17 @@ describe('policyValue semantics', () => {
 })
 
 describe('classification evidence is disclosed, never a silent guess', () => {
-  it('warns on a REIT valued on earnings and records the evidence', () => {
-    const stock = stockOf(snapshots.find((row) => row.symbol === 'NYSE:O').raw)
-    const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
-    expect(value.status).toBe('ok')
-    expect(value.warnings).toEqual(expect.arrayContaining([WARNING.MODEL_CAVEAT]))
-    expect(value.warnings).not.toContain(WARNING.CLASSIFICATION_UNVERIFIED)
-    expect(value.inputs).toMatchObject({ model: 'owner', classification: 'industry', industry: 'reit' })
-  })
+  it.each([['NYSE:O', 'reit'], ['NYSE:WELL', 'reit'], ['NYSE:PSX', 'refining']])(
+    '%s ships inputs for trial without a published value or margin', (symbol, industry) => {
+      const stock = stockOf(snapshots.find(row => row.symbol === symbol).raw)
+      const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
+      expect(value).toMatchObject({ status: 'refused', value: null, band: null, marginOfSafety: null })
+      expect(value.reasons).toContain('INDUSTRY_MODEL_PENDING')
+      expect(value.warnings).toContain(WARNING.MODEL_CAVEAT)
+      expect(value.warnings).not.toContain(WARNING.CLASSIFICATION_UNVERIFIED)
+      expect(value.inputs).toMatchObject({ model: 'owner', classification: 'industry', industry })
+    },
+  )
 
   it('warns when only missing columns produced the route and the other model differs materially', () => {
     const raw = {
