@@ -20,10 +20,12 @@ const FORMS = new Set(['10-K', '20-F', '40-F'])
 const SPLITS = [2, 3, 4, 5, 10, 20, 25, 50]
 const EPS_CONCEPTS = ['EarningsPerShareDiluted', 'EarningsPerShareBasicAndDiluted', 'EarningsPerShareBasic']
 const REVENUE_CONCEPTS = ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues', 'SalesRevenueNet', 'RevenueFromContractWithCustomerIncludingAssessedTax']
+const OIL_AND_GAS_CAPEX = 'PaymentsToAcquireOilAndGasPropertyAndEquipment'
+const OTHER_CAPEX = 'PaymentsToAcquireOtherPropertyPlantAndEquipment'
 const CAPEX_CONCEPTS = [
   'PaymentsToAcquirePropertyPlantAndEquipment',
   'PaymentsToAcquireProductiveAssets',
-  'PaymentsToAcquireOtherPropertyPlantAndEquipment',
+  OTHER_CAPEX,
   'PurchaseOfPropertyAndEquipment',
 ]
 const IFRS_EQUITY_CONCEPTS = ['EquityAttributableToOwnersOfParent']
@@ -87,10 +89,10 @@ function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEa
     const prev = byYear.get(year)
     const newerOrOlder = !prev ? true : (preferEarliest ? filed < prev.filed : filed >= prev.filed)
     const better = !prev || (full && !prev.full) || (full === prev.full && newerOrOlder)
-    if (better) byYear.set(year, { val: item.val, full, filed, start: item.start || null, end: item.end || null })
+    if (better) byYear.set(year, { val: item.val, full, filed, start: item.start || null, end: item.end || null, accn: item.accn })
   }
   return [...byYear.entries()].sort((a, b) => a[0] - b[0])
-    .map(([fy, { val, filed, start, end }]) => ({ fy, val, filed, start, end }))
+    .map(([fy, { val, filed, start, end, accn }]) => ({ fy, val, filed, start, end, accn }))
 }
 
 /**
@@ -123,6 +125,30 @@ function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest =
   if (gaap.length >= 2) return gaap
   if (ifrsConcepts?.length) return annual(facts, ifrsConcepts, unit, 'ifrs-full', preferEarliest)
   return gaap
+}
+
+// Some 10-Ks disclose oil and gas additions separately from other PP&E.
+// Use those lines only when both reconcile to the same filing and cash-flow period.
+function sameFilingCapitalSpending (facts, operatingCash, totalConcepts) {
+  const days = durationDays(operatingCash)
+  if (!operatingCash.accn || days == null || days < 300) return null
+
+  const gaap = taxonomy(facts)['us-gaap']
+  const matchingPayment = (concept) => {
+    const entries = gaap?.[concept]?.units?.USD || []
+    const payments = new Set(entries.filter((item) =>
+      item.accn === operatingCash.accn && item.start === operatingCash.start && item.end === operatingCash.end &&
+      FORMS.has(item.form) && item.fp === 'FY' && Number.isFinite(item.val),
+    ).map((item) => Math.abs(item.val)))
+    return payments.size === 1 ? payments.values().next().value : null
+  }
+  for (const concept of totalConcepts) {
+    const payment = matchingPayment(concept)
+    if (payment != null) return payment
+  }
+  const oilAndGas = matchingPayment(OIL_AND_GAS_CAPEX)
+  const other = matchingPayment(OTHER_CAPEX)
+  return oilAndGas == null || other == null ? null : oilAndGas + other
 }
 
 /** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
@@ -502,7 +528,9 @@ function assemble (facts) {
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
   const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], 'USD', 'ifrs-full')
   const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, 'USD')
-  const capex = annualPrefer(facts, CAPEX_CONCEPTS, IFRS_CAPEX_CONCEPTS, 'USD')
+  const separatesOilAndGas = annualConcept(facts, OIL_AND_GAS_CAPEX, 'USD').length > 0
+  const capexConcepts = separatesOilAndGas ? CAPEX_CONCEPTS.filter((concept) => concept !== OTHER_CAPEX) : CAPEX_CONCEPTS
+  const capex = annualPrefer(facts, capexConcepts, IFRS_CAPEX_CONCEPTS, 'USD')
   // Later 10-Ks sometimes restate older share counts onto a post-split basis.
   // Keep the original filing so the jump stays in the split year; otherwise
   // the same split is also detected from EPS and applied twice.
@@ -513,10 +541,12 @@ function assemble (facts) {
   const cliffYears = new Set(restatedEps.map((point) => point.fy))
   for (const point of dropCliffs(restatedEps, [revenue, operating])) cliffYears.delete(point.fy)
   const keptEps = restatedEps.filter((point) => !cliffYears.has(point.fy))
-  const ocfByYear = new Map(ocf.map((item) => [item.fy, item.val]))
-  const fcf = capex
-    .filter((item) => ocfByYear.has(item.fy))
-    .map((item) => ({ fy: item.fy, val: ocfByYear.get(item.fy) - Math.abs(item.val) }))
+  const fcf = []
+  for (const point of ocf) {
+    const total = findYear(capex, point.fy)
+    const spending = total ?? (separatesOilAndGas ? sameFilingCapitalSpending(facts, point, capexConcepts) : null)
+    if (spending != null) fcf.push({ fy: point.fy, val: point.val - Math.abs(spending) })
+  }
   const years = [...new Set([...keptEps, ...revenue, ...operating, ...equity, ...fcf, ...shares].map((item) => item.fy))].sort((a, b) => a - b)
   const shareFor = (fy) => {
     const match = [...adjusted.entries()].reverse().find(([year]) => year <= fy)

@@ -412,6 +412,49 @@ describe('EDGAR per-share facts', () => {
 })
 
 
+describe('US GAAP capital spending', () => {
+  const filing = (fy, val, extra = {}) => year(fy, val, { accn: `annual-${fy}`, ...extra })
+  const operating = ['USD', [filing(2024, 12143e6), filing(2025, 10044e6)]]
+  const shares = ['shares', [filing(2024, 569e6), filing(2025, 546e6)]]
+  const oilAndGas = ['USD', [filing(2024, 5353e6), filing(2025, 6115e6)]]
+  const other = ['USD', [filing(2024, 1019e6), filing(2025, 479e6)]]
+
+  function history (capitalSpending) {
+    return financialsFromFacts(facts({
+      NetCashProvidedByUsedInOperatingActivities: operating,
+      WeightedAverageNumberOfDilutedSharesOutstanding: shares,
+      ...capitalSpending,
+    })).annual.map((row) => row.free_cash_flow_per_share)
+  }
+
+  it('deducts both disclosed components and prefers a reported total when present', () => {
+    const components = {
+      PaymentsToAcquireOilAndGasPropertyAndEquipment: oilAndGas,
+      PaymentsToAcquireOtherPropertyPlantAndEquipment: other,
+      PaymentsToAcquireOilAndGasProperty: ['USD', [filing(2025, 269e6)]],
+    }
+    expect(history(components)).toEqual([10.1424, 6.3187])
+    expect(history({
+      ...components,
+      PaymentsToAcquirePropertyPlantAndEquipment: ['USD', [filing(2025, -6000e6)]],
+    })).toEqual([10.1424, 7.4066])
+  })
+
+  it('leaves cash flow missing if a component cannot be matched to the same filing and period', () => {
+    expect(history({
+      PaymentsToAcquireOilAndGasPropertyAndEquipment: ['USD', [
+        filing(2024, 5353e6, { accn: 'other-filing' }),
+        filing(2025, 6115e6, { start: '2025-01-01' }),
+      ]],
+      PaymentsToAcquireOtherPropertyPlantAndEquipment: other,
+    })).toEqual([null, null])
+  })
+
+  it('keeps the existing capex alias for issuers without evidence of separate oil and gas spending', () => {
+    expect(history({ PaymentsToAcquireOtherPropertyPlantAndEquipment: other })).toEqual([19.5501, 17.5183])
+  })
+})
+
 describe('US growth windows', () => {
   const points = (values, start = 2016) => values.map((val, index) => ({ fy: start + index, val }))
 
