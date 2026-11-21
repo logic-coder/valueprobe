@@ -53,6 +53,35 @@ test('recalculates when the discount rate changes', async ({ page }) => {
   await expect(page.locator('.input-section').first()).toHaveValue('11')
 })
 
+test('marks a manual dial change as custom and always rebases presets', async ({ page }) => {
+  const discount = page.getByTestId('field-discount')
+  const preset = (name) => page.locator('.dcf__scenario-btns').getByRole('button', { name })
+  await preset('牛市').click()
+  await expect(discount).toHaveValue('7')
+  await expect(preset('牛市')).toHaveClass(/is-active/)
+  await discount.fill('20')
+  await expect(discount).toHaveValue('20')
+  await expect(preset('牛市')).not.toHaveClass(/is-active/)
+  await expect(page.locator('.dcf__scenario-custom')).toBeVisible()
+  // The bear preset applies to the saved baseline (8), not the edited 20.
+  await preset('熊市').click()
+  await expect(discount).toHaveValue('9')
+  await preset('牛市').click()
+  await preset('熊市').click()
+  await expect(discount).toHaveValue('9')
+  await preset('基准').click()
+  await expect(discount).toHaveValue('8')
+  await expect(page.locator('.dcf__scenario-custom')).toHaveCount(0)
+})
+
+test('keeps the current preset when only the quote changes', async ({ page }) => {
+  await page.locator('.dcf__scenario-btns').getByRole('button', { name: '牛市' }).click()
+  await page.getByRole('button', { name: /^参考报价/ }).click()
+  await page.getByRole('spinbutton', { name: /参考报价/ }).fill('7')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.dcf__scenario-btns').getByRole('button', { name: '牛市' })).toHaveClass(/is-active/)
+})
+
 test('switches between eps and free cash flow bases', async ({ page }) => {
   await page.locator('.q-radio').nth(1).click()
   await page.waitForTimeout(400)

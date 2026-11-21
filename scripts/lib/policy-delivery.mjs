@@ -5,16 +5,21 @@ import { peerRow } from '../../src/lib/peers.js'
 import { parseSymbol } from '../../src/config/markets.js'
 
 const prefix = 'data/valuation/'
-const full = 'public/data/intrinsic/v1.json'
+import { POLICY_VERSION } from '../../src/lib/policy.js'
+const full = 'public/data/intrinsic/' + POLICY_VERSION + '.json'
 const manifest = 'public/data/manifest.json'
+const publish = 'public/data/publish.json'
 
 export function policyDelivery (root = process.cwd()) {
   let cached
   const release = () => {
     const raw = readFileSync(resolve(root, full))
     const manifestBytes = readFileSync(resolve(root, manifest))
-    if (cached?.raw.equals(raw) && cached.manifestBytes.equals(manifestBytes)) return cached
+    const publishBytes = (() => { try { return readFileSync(resolve(root, publish)) } catch { return Buffer.from('{}') } })()
+    if (cached?.raw.equals(raw) && cached.manifestBytes.equals(manifestBytes) && cached.publishBytes.equals(publishBytes)) return cached
     const { entries, ...meta } = JSON.parse(raw)
+    const { status, batch, generatedAt, upstreamCheckedAt, latestPeriod } = JSON.parse(publishBytes)
+    meta.publication = { status, batch, generatedAt, upstreamCheckedAt, latestPeriod }
     const summaries = {}
     for (const [symbol, entry] of Object.entries(entries)) {
       const file = symbol.replace(':', '-') + '.json'
@@ -26,9 +31,9 @@ export function policyDelivery (root = process.cwd()) {
         pe: sameSnapshot ? ratios.pe : null, pb: sameSnapshot ? ratios.pb : null }
     }
     // Include the derived representation so URLs also change when its schema changes.
-    const id = createHash('sha256').update(raw).update(manifestBytes)
+    const id = createHash('sha256').update(raw).update(manifestBytes).update(publishBytes)
       .update(JSON.stringify(summaries)).digest('hex').slice(0, 20)
-    cached = { raw, manifestBytes, id, meta: { ...meta, release: id, symbols: Object.keys(entries) }, entries, summaries }
+    cached = { raw, manifestBytes, publishBytes, id, meta: { ...meta, release: id, symbols: Object.keys(entries) }, entries, summaries }
     return cached
   }
   const payload = (d, name) => {

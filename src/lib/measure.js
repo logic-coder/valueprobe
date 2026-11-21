@@ -14,6 +14,9 @@ export const ReturnMethod = Object.freeze({
   NOT_APPLICABLE: 'not_applicable',
 })
 
+/** Whether value[0] was observed before or after the flows dated on the first date. */
+export const FirstValue = Object.freeze({ BEFORE: 'before', AFTER: 'after' })
+
 export const QualityStatus = Object.freeze({ OK: 'ok', PARTIAL: 'partial', NO_DATA: 'no_data', NOT_APPLICABLE: 'not_applicable' })
 
 export const Reason = Object.freeze({
@@ -144,9 +147,22 @@ export function xirr (flows) {
 
 /**
  * Measure a dated observation series.
+ *
+ * Observations are closes: `value` is the position's market value *after* that
+ * date's external flows, and a flow dated that date is placed at the start of the
+ * next period. A flow dated the first observation is therefore already inside
+ * value[0] and must not be counted twice. Pass `firstValue: FirstValue.BEFORE`
+ * when the caller's value[0] was taken *before* the day-0 flows: the net flow is
+ * then added to the opening balance (and so to the XIRR seed) instead of ignored.
+ *
+ * Flows dated the same date aggregate into one net flow. A flow dated on no
+ * observation (before the first point or between points) is an UNKNOWN_FLOW and
+ * nulls every chained metric - TWR, XIRR and risk - because the chain is then a
+ * guess; only the raw value return survives, since it is a plain value ratio.
+ *
  * @param {{date:string|number|Date, value:number}[]} points ordered, one per observation
  * @param {{date:string|number|Date, inflow:number, outflow:number}[]} flows
- * @param {{method?:string, openingDate?:any}} options
+ * @param {{method?:string, firstValue?:string, openingDate?:any}} options
  */
 export function measure (points, flows = [], options = {}) {
   const result = empty()
@@ -161,15 +177,32 @@ export function measure (points, flows = [], options = {}) {
 
   const dates = ordered.map((point) => point.date)
   const values = ordered.map((point) => Number(point.value))
+
+  const flowByIndex = new Map()
+  const unknownFlows = []
+  for (const flow of flows) {
+    const inflow = Number(flow.inflow) || 0
+    const outflow = Number(flow.outflow) || 0
+    if (!inflow && !outflow) continue
+    const index = dates.findIndex((date) => new Date(date).getTime() === new Date(flow.date).getTime())
+    if (index < 0) {
+      unknownFlows.push(flow)
+      continue
+    }
+    const cell = flowByIndex.get(index)
+    if (cell) {
+      cell.inflow += inflow
+      cell.outflow += outflow
+    } else flowByIndex.set(index, { inflow, outflow })
+  }
+  if (unknownFlows.length) result.quality.reasons.push(Reason.UNKNOWN_FLOW)
+
+  // Under AFTER the first flow is already inside value[0]; under BEFORE it is not.
+  const opening = flowByIndex.get(0)
+  if (opening && options.firstValue === FirstValue.BEFORE) values[0] += opening.inflow - opening.outflow
   if (!(values[0] > 0)) {
     result.quality.reasons.push(Reason.NON_POSITIVE_START)
     return result
-  }
-
-  const flowByIndex = new Map()
-  for (const flow of flows) {
-    const index = dates.findIndex((date) => new Date(date).getTime() === new Date(flow.date).getTime())
-    if (index > 0) flowByIndex.set(index, { inflow: Number(flow.inflow) || 0, outflow: Number(flow.outflow) || 0 })
   }
 
   const steps = []
@@ -205,6 +238,8 @@ export function measure (points, flows = [], options = {}) {
   const valueReturn = values[0] > 0 ? values[values.length - 1] / values[0] - 1 : null
   result.returns.valueReturn = Number.isFinite(valueReturn) ? valueReturn : null
   result.returns.annualizedValueReturn = annualize(dates[0], dates[dates.length - 1], result.returns.valueReturn)
+  // Non-fatal (filtered out below): the level is measurable, only the rate is not.
+  if (coveredDays < MIN_ANNUALIZATION_DAYS) result.quality.reasons.push(Reason.ANNUALIZATION_TOO_SHORT)
 
   if (chained && steps.length === values.length - 1) {
     result.returns.twr = factor - 1
@@ -216,9 +251,18 @@ export function measure (points, flows = [], options = {}) {
     result.quality.reasons.push(Reason.NO_RETURNS)
   }
 
+  if (unknownFlows.length) {
+    result.returns.twr = null
+    result.returns.annualizedTwr = null
+    result.risk = empty().risk
+  }
+
   // Money-weighted return needs dated external flows, not just prices.
-  if (steps.length) {
-    const cashFlows = [{ date: dates[0], amount: -(values[0] + (flowByIndex.get(0)?.inflow || 0)) }]
+  if (result.quality.method === ReturnMethod.PRICE) {
+    // No position, no money-weighted answer: say so instead of implying one.
+    result.quality.warnings.push(Reason.PRICE_ONLY)
+  } else if (steps.length && !unknownFlows.length) {
+    const cashFlows = [{ date: dates[0], amount: -values[0] }]
     for (let i = 1; i < values.length; i++) {
       const flow = flowByIndex.get(i) || { inflow: 0, outflow: 0 }
       if (flow.inflow) cashFlows.push({ date: dates[i], amount: -flow.inflow })
@@ -232,13 +276,6 @@ export function measure (points, flows = [], options = {}) {
     } else {
       result.quality.reasons.push(solved.reason || Reason.NO_CONVERGENCE)
     }
-  }
-
-  if (result.quality.method === ReturnMethod.PRICE) {
-    // No position, no money-weighted answer: say so instead of implying one.
-    result.returns.irr = null
-    result.returns.annualizedIrr = null
-    result.quality.warnings.push(Reason.PRICE_ONLY)
   }
 
   const fatal = result.quality.reasons.filter((reason) => reason !== Reason.ANNUALIZATION_TOO_SHORT)

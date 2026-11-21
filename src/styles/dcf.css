@@ -109,6 +109,7 @@
 .dcf__scenario-btns .q-btn { min-height: 28px; font-size: 13px !important; text-transform: none; border-radius: 999px; color: var(--text-muted); }
 .dcf__scenario-btns .q-btn.is-active { background: var(--surface); color: var(--text); font-weight: 650; box-shadow: var(--shadow-sm); }
 .dcf .dcf__scenario-note { font-size: 13px; line-height: 1.55; color: var(--text-muted); }
+.dcf__scenario-custom { padding: 2px 8px; border: 1px dashed var(--border); border-radius: 999px; font-size: 12px; color: var(--text-muted); }
 .dcf .dcf__model-note { font-weight: 500; color: var(--text); }
 .dcf__rate-note { display: flex; align-items: flex-start; gap: 6px; padding: 2px 4px 10px; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
 .dcf__rate-note > .q-icon { flex: none; margin-top: 3px; }

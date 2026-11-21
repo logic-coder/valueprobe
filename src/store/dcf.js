@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { api } from '../api'
 
 const VIEW_ID = 1983
+// One chart request at a time: an older answer must not overwrite a newer one.
+let chartRequest = 0
 
 // Per-symbol DCF data store: financials, view and indicator state.
 export const useDcfStore = defineStore('dcf', {
@@ -11,7 +13,6 @@ export const useDcfStore = defineStore('dcf', {
     view: { loading: false, data: null },
     indicator: { loading: false, indicator: null, source: 'live' },
     rates: { loading: false, byCurrency: { USD: null, CNY: null } },
-    chartData: {},
     // The calculator's price, shared with the page header so both edit one number.
     // Empty symbol means no calculator is mounted and the header shows the snapshot quote.
     workingPrice: { symbol: '', value: null },
@@ -73,19 +74,20 @@ export const useDcfStore = defineStore('dcf', {
       }
     },
     async loadIndicatorData (symbol, indicator, params) {
-      const requested = symbol
-      const stale = () => requested && this.symbol && this.symbol !== requested
+      const request = ++chartRequest
+      const stale = () => request !== chartRequest || (symbol && this.symbol && this.symbol !== symbol)
       this.indicator.dataLoading = true
       try {
         const data = await api.getIndicatorData(symbol, indicator, params)
-        if (stale()) return
+        if (stale()) return false
         this.indicator.data = data
-        this.chartData[indicator] = data
+        return true
       } catch (error) {
-        if (stale()) return
+        if (stale()) return false
         this.indicator.data = []
+        return true
       } finally {
-        if (!stale()) this.indicator.dataLoading = false
+        if (request === chartRequest) this.indicator.dataLoading = false
       }
     },
   },

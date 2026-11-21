@@ -2,14 +2,20 @@ import { cp, readFile, readdir, unlink } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { snapshotFiles } from './policy-artifact.mjs'
 import { atomicWrite, readOptionalJson } from './snapshot-transport.mjs'
+import { POLICY_VERSION } from '../../src/lib/policy.js'
 
-const releaseFiles = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'manifest.json']
+const releaseFiles = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/' + POLICY_VERSION + '.json', 'manifest.json', 'publish.json']
 const journalPath = backup => resolve(backup, 'install.json')
 const filePattern = /^[A-Z]{2,}-[A-Z0-9.^-]+\.json$/
+const validName = name => filePattern.test(name) || releaseFiles.includes(name)
 
 async function copyChanged (names, from, to, write = atomicWrite) {
   for (const name of names) {
-    const bytes = await readFile(resolve(from, name))
+    const bytes = await readFile(resolve(from, name)).catch(error => {
+      if (error.code === 'ENOENT') return null
+      throw error
+    })
+    if (!bytes) continue
     const path = resolve(to, name)
     const old = await readFile(path).catch(error => {
       if (error.code === 'ENOENT') return null
@@ -26,7 +32,7 @@ async function removeIfPresent (path) {
 export async function recoverInstall (live, backup) {
   const journal = await readOptionalJson(journalPath(backup))
   if (!journal) return false
-  if (!Array.isArray(journal.added) || journal.added.some(name => !filePattern.test(name))) {
+  if (!Array.isArray(journal.added) || journal.added.some(name => !validName(name))) {
     throw new Error('Invalid snapshot install journal')
   }
   const oldNames = snapshotFiles(process.cwd(), backup)
@@ -44,6 +50,14 @@ export async function installSnapshots (staged, live, backup, run, write = atomi
   const oldNames = snapshotFiles(process.cwd(), live)
   const current = new Set(names)
   const previous = new Set(oldNames)
+  const releaseAdded = []
+  for (const name of releaseFiles) {
+    const exists = await readFile(resolve(live, name)).then(() => true).catch(error => {
+      if (error.code === 'ENOENT') return false
+      throw error
+    })
+    if (!exists) releaseAdded.push(name)
+  }
   const backupFiles = await readdir(backup).catch(error => {
     if (error.code === 'ENOENT') return null
     throw error
@@ -55,7 +69,7 @@ export async function installSnapshots (staged, live, backup, run, write = atomi
     }
   }
   await copyChanged([...oldNames, ...releaseFiles], live, backup)
-  const added = names.filter(name => !previous.has(name))
+  const added = [...names.filter(name => !previous.has(name)), ...releaseAdded]
   // All recovery inputs must be written before changing the published directory.
   await atomicWrite(journalPath(backup), JSON.stringify({ added }))
   try {

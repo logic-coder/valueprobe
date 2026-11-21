@@ -32,5 +32,12 @@ export function useMoney () {
     return amount * rate
   }
 
-  return { moneyIn, amountIn, available, display }
+  /** Converted reference only when the display currency really differs. */
+  const convertedIn = (nativeCurrency, value) => {
+    const nativeCode = codeOf(nativeCurrency)
+    if (!display.currency || !nativeCode || nativeCode === display.currency) return ''
+    return moneyIn(nativeCurrency, value)
+  }
+
+  return { moneyIn, amountIn, convertedIn, available, display }
 }

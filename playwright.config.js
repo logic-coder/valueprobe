@@ -9,21 +9,27 @@ const channel = process.env.PW_CHANNEL || 'chromium'
 // by scripts/build-base.mjs, served under /valueprobe/ with the direct transport.
 // It stays a second server so the plain suite keeps using the dev server only.
 const baseMode = process.env.PW_BASE === '1'
+// PW_DIST=1 serves the dist a build already produced instead of rebuilding it;
+// the pre-upload gate uses it to check the exact artifact that gets deployed.
+const distMode = process.env.PW_DIST === '1'
 
-const webServer = [
-  {
+const webServer = []
+
+if (!distMode) {
+  webServer.push({
     command: 'npm run dev',
     url: 'http://127.0.0.1:5173',
     reuseExistingServer: true,
     timeout: 120000,
-  },
-]
+  })
+}
 
 if (baseMode) {
   webServer.push({
     // Build first, then serve: `npm run test:e2e:base` already builds, but a
-    // raw PW_BASE=1 run should also work from a clean checkout.
-    command: 'npm run build:base && npm run preview:base',
+    // raw PW_BASE=1 run should also work from a clean checkout. PW_DIST reuses
+    // the dist/ that npm run build already wrote.
+    command: distMode ? 'npm run preview:base' : 'npm run build:base && npm run preview:base',
     url: 'http://127.0.0.1:4173/valueprobe/',
     reuseExistingServer: true,
     timeout: 180000,

@@ -8,6 +8,7 @@ import { POLICY_V1, POLICY_V1_HASH, policyValue } from '../src/lib/policy.js'
 import { isKnownReason, isKnownWarning } from '../src/lib/reasons.js'
 import { toStock } from '../src/lib/stockRecord.js'
 import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts, policyHash, readRates, snapshotFiles } from './lib/policy-artifact.mjs'
+import { PUBLISH_PATH, isPublishReady, latestPeriod } from './lib/publish-gate.mjs'
 
 // Verify from the repository root even when npm runs the script from a workspace.
 const root = process.cwd()
@@ -38,6 +39,25 @@ const ageDays = (Date.now() - generation) / 86_400_000
 ageDays <= POLICY_V1.staleness.fundamentalsDays
   ? ok('artifact fresh', artifact.generatedAt + ' (' + Math.floor(ageDays) + 'd)')
   : warn('artifact age', artifact.generatedAt + ' is older than ' + POLICY_V1.staleness.fundamentalsDays + ' days; refresh snapshots and artifacts before announcing values')
+
+// The release records which upstream batch produced it. A stale digest means the
+// artifact was edited without a refresh; a blocked status means the refresh was short.
+let publish = null
+try { publish = readJson(PUBLISH_PATH) } catch { fail('publish state', 'missing ' + PUBLISH_PATH) }
+if (publish) {
+  isPublishReady(publish, artifact, manifest)
+    ? ok('publish state', publish.status + ' batch ' + String(publish.batch).slice(0, 12) + '… mode ' + publish.mode)
+    : fail('publish state', publish.status + ' batch ' + String(publish.batch).slice(0, 12) + '…')
+  if (publish.status === 'partial') warn('publish partial', (publish.partial || []).length + ' kept/limited item(s)')
+  if (publish.latestPeriod !== latestPeriod(artifact)) fail('publish latest period', publish.latestPeriod + ' vs ' + latestPeriod(artifact))
+  if (publish.status === 'rebuilt') {
+    publish.upstreamCheckedAt === null
+      ? warn('publish upstream check', 'unknown for local rebuild')
+      : ok('publish upstream check', 'inherited ' + publish.upstreamCheckedAt)
+  } else if (!(Date.parse(publish.upstreamCheckedAt) >= Date.parse(artifact.generatedAt))) {
+    fail('publish checked date', publish.upstreamCheckedAt)
+  }
+}
 
 // Rate rows must accompany the date they were captured; age is disclosed only.
 for (const code of ['CNY', 'USD', 'HKD']) {

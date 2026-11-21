@@ -85,7 +85,9 @@
               <editable-value
                 class="ticker__quote"
                 :model-value="workingPrice.value"
-                :display="moneyIn(stock.currency, workingPrice.value)"
+                :display="money(stock.currency, workingPrice.value)"
+                :native="codeOf(stock.currency) || stock.currency"
+                :converted="convertedIn(stock.currency, workingPrice.value)"
                 :label="t('working_price')"
                 :currency="codeOf(stock.currency) || stock.currency"
                 @update:model-value="dcfStore.setWorkingPrice(currentSymbol, $event)"
@@ -194,7 +196,7 @@ const workingPrice = computed(() => (currentSymbol.value && dcfStore.workingPric
 const priceEdited = computed(() => workingPrice.value !== null && Number(workingPrice.value.value) !== Number(priceValue.value))
 watch(pageTitle, (value) => { document.title = value }, { immediate: true })
 const display = useDisplayStore()
-const { moneyIn } = useMoney()
+const { moneyIn, convertedIn } = useMoney()
 
 const currencyOptions = computed(() => [
   { label: t('currency_native'), value: '' },

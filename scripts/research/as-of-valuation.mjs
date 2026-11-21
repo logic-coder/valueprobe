@@ -1,7 +1,6 @@
 import { fundamentalsFromFacts } from '../../src/data/providers/edgar-xbrl.js'
 import { toStock } from '../../src/lib/stockRecord.js'
-import { policyValue } from '../../src/lib/policy.js'
-import { presentValue } from '../../src/lib/dcf.js'
+import { classifyV1, policyValueV1 as policyValue, presentValueV1 as presentValue } from './kernel-v1.mjs'
 import { median, shareholderValue } from './owner-earnings.mjs'
 
 export const round = x => Number.isFinite(x) ? Math.round(x * 10000) / 10000 : null
@@ -51,6 +50,8 @@ export function estimateAt ({ symbol, facts, row, splitInfo, yieldRate, entryYie
   const { date, price, splitFromStart } = row
   const stock = toStock({ ...fields, financials, price, as_of: date, quote_as_of: date })
   const annual = financials.annual.filter(r => r.eps_without_nri != null)
+  // Replay only the filing's explicit flag and the frozen v1 classification.
+  stock.financial_institution = fields.financial_institution === true || classifyV1(fields, financials.annual)
   const last = annual.at(-1)
   if (!last || !stock.eps_as_of || days(date, stock.eps_as_of) > 540) return { ...row, reason: 'missingRecentEarnings' }
   if (splitFromStart !== 1 && last.date < splitInfo[0].slice(0, 7)) return { ...row, reason: 'ambiguousShareBasis' }

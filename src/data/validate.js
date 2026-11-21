@@ -1,5 +1,6 @@
 // Quote sanity gate: a source that answers with junk must not win the race.
 import { DataError, ErrorCode } from './errors'
+import { parseAmount } from '../lib/format'
 
 /** Largest plausible single-share price; keeps pasted error payloads out. */
 const MAX_PRICE = 1e7
@@ -15,8 +16,9 @@ export function validateQuote (quote, options = {}) {
   const fail = (message) => new DataError(ErrorCode.VALIDATION, quote?.provider || 'unknown', message)
 
   if (!quote || typeof quote !== 'object') return fail('empty quote')
-  const price = Number(quote.price)
-  if (!Number.isFinite(price)) return fail('price not numeric')
+  // Snapshots keep a display price ("¥9.03"); parse it the same way the page does.
+  const price = parseAmount(quote.price)
+  if (price == null || !Number.isFinite(price)) return fail('price not numeric')
   if (price <= 0) return fail('price not positive')
   if (price > MAX_PRICE) return fail('price above sanity bound')
 

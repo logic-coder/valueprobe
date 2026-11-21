@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { availableFacts, days, estimateAt, round } from './as-of-valuation.mjs'
 import { median } from './owner-earnings.mjs'
 import { fundamentalsFromFacts } from '../../src/data/providers/edgar-xbrl.js'
-import { POLICY_VERSION, POLICY_V1_HASH } from '../../src/lib/policy.js'
+import { V1_POLICY as POLICY_VERSION, V1_POLICY_HASH as POLICY_V1_HASH } from './kernel-v1.mjs'
 
 const read = path => JSON.parse(readFileSync(path))
 const roster = read('scripts/research/sectors-2015.json')

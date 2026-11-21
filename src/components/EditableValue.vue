@@ -1,6 +1,7 @@
 <template>
   <button type="button" class="edit-value" :aria-label="t('edit_value_label', { label, value: display })">
-    <span class="edit-value__text">{{ display }}</span>
+    <span class="edit-value__text">{{ display }}<span v-if="native" class="edit-value__code">{{ native }}</span></span>
+    <span v-if="converted" class="edit-value__converted">{{ converted }}</span>
     <q-icon class="edit-value__icon" name="edit" />
     <q-popup-edit v-slot="scope" :model-value="modelValue" buttons :label-set="t('apply')" :label-cancel="t('cancel')" @update:model-value="emit('update:modelValue', $event)">
       <q-input
@@ -23,6 +24,8 @@ defineProps({
   display: { type: String, default: '' },
   label: { type: String, required: true },
   currency: { type: String, default: '' },
+  native: { type: String, default: '' },
+  converted: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()

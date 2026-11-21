@@ -33,16 +33,23 @@ describe('rate limiter', () => {
     const { limiter } = make(slept)
     limiter.tryAcquire('src')
     limiter.tryAcquire('src')
-    const waited = await limiter.acquire('src')
-    expect(waited).toBe(1000)
-    expect(slept.length).toBeGreaterThan(0)
+    expect(await limiter.acquire('src')).toBe(true)
+    expect(slept).toEqual([1000])
   })
 
   it('gives up inside the wait budget', async () => {
     const { limiter } = make()
     limiter.configure('slow', { requestsPerMinute: 1, burst: 1 })
     limiter.tryAcquire('slow')
-    const waited = await limiter.acquire('slow', { maxWaitMs: 500 })
-    expect(waited).toBeLessThanOrEqual(500)
+    expect(await limiter.acquire('slow', { maxWaitMs: 500 })).toBe(false)
+  })
+
+  it('takes the source again once the refill passes the wait budget', async () => {
+    const { limiter, advance } = make()
+    limiter.configure('slow', { requestsPerMinute: 10, burst: 1 })
+    expect(await limiter.acquire('slow')).toBe(true)
+    expect(await limiter.acquire('slow')).toBe(false)
+    advance(6000)
+    expect(await limiter.acquire('slow')).toBe(true)
   })
 })

@@ -59,16 +59,16 @@ export class RateLimiter {
     return Math.ceil((1 - bucket.tokens) / bucket.ratePerMs)
   }
 
-  /** Wait for a token. Returns the waited milliseconds. */
+  /** Wait for a token. True when one was taken, false when the budget is spent. */
   async acquire (providerId, { maxWaitMs = 5_000 } = {}) {
     let waited = 0
     while (!this.tryAcquire(providerId)) {
       const delay = Math.min(this.msUntilAvailable(providerId), maxWaitMs - waited)
-      if (delay <= 0 || waited >= maxWaitMs) return waited
+      if (delay <= 0 || waited >= maxWaitMs) return false
       await this.sleep(delay)
       waited += delay
     }
-    return waited
+    return true
   }
 
   reset () {

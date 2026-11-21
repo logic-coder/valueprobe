@@ -116,11 +116,11 @@
               <q-space />
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else-if="dcfBasedOn === 'eps'" class="dcf__value">
-                <editable-value v-if="isManual" v-model="form.eps" :display="money(stock.currency, form.eps)" :label="t('eps')" :currency="currencyCode" />
+                <editable-value v-if="isManual" v-model="form.eps" :display="money(stock.currency, form.eps)" :native="currencyCode" :label="t('eps')" :currency="currencyCode" />
                 <template v-else>{{ money(stock.currency, form.eps) }}</template>
               </div>
               <div v-else class="dcf__value">
-                <editable-value v-if="isManual" v-model="form.freecashflow" :display="money(stock.currency, form.freecashflow)" :label="t('total_freecashflow')" :currency="currencyCode" />
+                <editable-value v-if="isManual" v-model="form.freecashflow" :display="money(stock.currency, form.freecashflow)" :native="currencyCode" :label="t('total_freecashflow')" :currency="currencyCode" />
                 <template v-else>{{ money(stock.currency, form.freecashflow) }}</template>
               </div>
             </div>
@@ -175,7 +175,7 @@
               </div>
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
               <div v-else class="dcf__value">
-                <editable-value v-if="isManual" v-model="result.tbv" :display="moneyIn(stock.currency, result.tbv)" :label="t('book')" :currency="currencyCode" />
+                <editable-value v-if="isManual" v-model="result.tbv" :display="money(stock.currency, result.tbv)" :native="currencyCode" :converted="convertedIn(stock.currency, result.tbv)" :label="t('book')" :currency="currencyCode" />
                 <template v-else>{{ moneyIn(stock.currency, result.tbv) }}</template>
               </div>
               <p v-if="result.addToFairValue && !residualIncome" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
@@ -392,7 +392,7 @@ const policyStore = usePolicyStore()
 const sourceStore = useDataStateStore()
 const props = defineProps({ symbol: { type: String, default: '' } })
 const router = useRouter()
-const { moneyIn, display } = useMoney()
+const { moneyIn, convertedIn, display } = useMoney()
 
 const emit = defineEmits(['change', 'change-result', 'reload'])
 
@@ -592,9 +592,9 @@ const initData = async () => {
     if (freecashflow.value == null) form.freecashflow = null
   }
   activeScenario.value = 'base'
-  baseAssumptions.value = null
   calculate()
   await nextTick()
+  baseAssumptions.value = snapshotAssumptions()
   seeding = false
 }
 
@@ -690,6 +690,9 @@ const pinSource = (id) => {
 const scenarioKeys = ['base', 'bull', 'bear']
 const activeScenario = ref('base')
 const baseAssumptions = ref(null)
+// Assignments made by a preset must not look like a manual edit: the watcher
+// below only clears the highlight once this flag is down.
+const applyingScenario = ref(false)
 const growthField = () => (dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate')
 const snapshotAssumptions = () => ({
   discountRate: Number(form.discountRate) || 0,
@@ -697,21 +700,43 @@ const snapshotAssumptions = () => ({
   terminalGrowthRate: Number(form.terminalGrowthRate) || 0,
   field: growthField(),
 })
-const setScenario = (key) => {
-  if (activeScenario.value === 'base') baseAssumptions.value = snapshotAssumptions()
-  activeScenario.value = key
+const applyAssumptions = (assumptions) => {
+  form.discountRate = assumptions.discountRate
+  form[assumptions.field] = assumptions.growthRate
+  form.terminalGrowthRate = assumptions.terminalGrowthRate
+}
+// Every preset is applied to the saved baseline, never to the current values,
+// so repeatedly hopping bull -> bear cannot stack the deltas.
+const setScenario = async (key) => {
+  if (!baseAssumptions.value) baseAssumptions.value = snapshotAssumptions()
   const next = applyScenario(baseAssumptions.value, key)
+  activeScenario.value = key
+  applyingScenario.value = true
   form.discountRate = clamp(next.discountRate, 0, 50)
   form[baseAssumptions.value.field] = next.growthRate
   form.terminalGrowthRate = next.terminalGrowthRate
+  await nextTick()
+  applyingScenario.value = false
 }
-const resetScenario = () => {
-  if (baseAssumptions.value) {
-    form.discountRate = baseAssumptions.value.discountRate
-    form[baseAssumptions.value.field] = baseAssumptions.value.growthRate
-    form.terminalGrowthRate = baseAssumptions.value.terminalGrowthRate
-  }
+const resetScenario = async () => {
+  if (!baseAssumptions.value) return
+  applyingScenario.value = true
+  applyAssumptions(baseAssumptions.value)
   activeScenario.value = 'base'
+  await nextTick()
+  applyingScenario.value = false
+}
+const markScenarioEdited = () => {
+  if (!seeding) { activeScenario.value = 'custom' }
+}
+const rebase = async () => {
+  applyingScenario.value = true
+  activeScenario.value = 'base'
+  baseAssumptions.value = null
+  calculate()
+  await nextTick()
+  baseAssumptions.value = snapshotAssumptions()
+  applyingScenario.value = false
 }
 
 // WACC build-up: fills the discount input; the kernel only ever sees the result.
@@ -782,10 +807,10 @@ watch(() => ({ ...form }), () => {
   calculate()
   persistManual()
   markAssumptionsEdited()
+  if (!applyingScenario.value) markScenarioEdited()
 }, { deep: true })
 watch(model, () => {
-  activeScenario.value = 'base'
-  baseAssumptions.value = null
+  if (!seeding) rebase()
   calculate()
   markAssumptionsEdited()
 })
@@ -793,8 +818,7 @@ watch(firmClaim, (blocked) => {
   if (blocked && dcfBasedOn.value === 'freecashflow') dcfBasedOn.value = 'eps'
 })
 watch(dcfBasedOn, () => {
-  activeScenario.value = 'base'
-  baseAssumptions.value = null
+  if (!seeding) rebase()
   calculate()
   markAssumptionsEdited()
 })

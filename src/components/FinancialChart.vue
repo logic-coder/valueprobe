@@ -118,8 +118,8 @@ const chartOptions = computed(() => {
 
 const getData = async () => {
   if (!props.indicator) return
-  await dcfStore.loadIndicatorData(props.symbol || stock.value.stockid, props.indicator, { type: 'annual', get_ratio: false })
-  if (data.value.length > 2) trend.value = buildTrend(data.value)
+  const fresh = await dcfStore.loadIndicatorData(props.symbol || stock.value.stockid, props.indicator, { type: 'annual', get_ratio: false })
+  if (fresh && data.value.length > 2) trend.value = buildTrend(data.value)
 }
 
 const render = () => {

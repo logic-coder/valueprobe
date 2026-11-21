@@ -35,7 +35,7 @@ function provider (id, priority, behaviour, extra = {}) {
 const build = (providers, options = {}) => new ProviderRegistry({
   providers,
   breaker: options.breaker || new CircuitBreaker(),
-  limiter: new RateLimiter({ sleep: async () => {} }),
+  limiter: options.limiter || new RateLimiter({ sleep: async () => {} }),
   preferences: options.preferences || (() => ({ order: [], pinned: {} })),
 })
 
@@ -151,6 +151,56 @@ describe('provider registry', () => {
     expect(result.value.price).toBe('10')
     expect(result.value.company).toBe('p')
     expect(result.provider).toBe('q+p')
+  })
+
+  it('rejects a bad stock price and tries the next source', async () => {
+    const bogus = provider('bogus-stock', 10)
+    bogus.fetchStock = async () => ({ symbol: 'X', price: 0, currency: 'USD' })
+    const registry = build([bogus, provider('sane-stock', 20)])
+    const result = await registry.fetchStock('NASDAQ:AAPL')
+    expect(result.provider).toBe('sane-stock')
+    expect(result.diagnostics.errors[0].error).toContain('positive')
+  })
+
+  it('rejects a bad merged quote and tries the next quote source', async () => {
+    const badQuote = provider('bad-quote', 10, 'ok', { capabilities: { stock: false, profile: false } })
+    badQuote.fetchQuote = async () => ({ price: -1, currency: 'USD', timestamp: Date.now() })
+    const saneQuote = provider('sane-quote', 20, 'ok', { capabilities: { stock: false, profile: false } })
+    const profileOnly = provider('profile', 30, 'ok', { capabilities: { stock: false, quote: false } })
+    const registry = build([badQuote, saneQuote, profileOnly])
+    const result = await registry.fetchStockRecord('NASDAQ:AAPL')
+    expect(result.provider).toBe('sane-quote+profile')
+    expect(result.diagnostics.errors.some((entry) => entry.error.includes('positive'))).toBe(true)
+  })
+
+  it('skips a locally throttled source without penalising its breaker', async () => {
+    const breaker = new CircuitBreaker({ failureThreshold: 1 })
+    const limiter = new RateLimiter({ sleep: async () => {} })
+    const registry = build([provider('throttled', 10), provider('ok', 20)], { breaker, limiter })
+    limiter.configure('throttled', { requestsPerMinute: 1, burst: 1 })
+    limiter.tryAcquire('throttled')
+    const result = await registry.fetchStock('NASDAQ:AAPL')
+    expect(result.provider).toBe('ok')
+    expect(result.diagnostics.skips[0]).toMatchObject({ providerId: 'throttled', reason: SkipReason.RATE_LIMITED })
+    expect(breaker.isAllowed('throttled')).toBe(true)
+  })
+
+  it('reads an old snapshot by its own date instead of rejecting it as stale', async () => {
+    const file = provider('snapshot', 15)
+    file.fetchStock = async () => ({ symbol: '601398', price: '9.06', _as_of: '2020-01-02' })
+    const registry = build([file])
+    const result = await registry.readSnapshot('SHSE:601398')
+    expect(result.value.price).toBe('9.06')
+  })
+
+  it('does not read a snapshot with an exhausted local budget', async () => {
+    const limiter = new RateLimiter({ sleep: async () => {} })
+    const file = provider('snapshot', 15)
+    file.fetchStock = async () => ({ symbol: '601398', price: '9.06' })
+    const registry = build([file], { limiter })
+    limiter.configure('snapshot', { requestsPerMinute: 1, burst: 1 })
+    limiter.tryAcquire('snapshot')
+    await expect(registry.readSnapshot('SHSE:601398')).rejects.toMatchObject({ code: ErrorCode.RATE_LIMIT_LOCAL })
   })
 
   it('reports no data when nothing is eligible', async () => {

@@ -1,7 +1,7 @@
 import { availableFacts, estimateAt, round, days } from './as-of-valuation.mjs'
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { POLICY_VERSION, POLICY_V1_HASH } from '../../src/lib/policy.js'
+import { V1_POLICY as POLICY_VERSION, V1_POLICY_HASH as POLICY_V1_HASH } from './kernel-v1.mjs'
 import { createHash } from 'node:crypto'
 import { median, discountPath } from './owner-earnings.mjs'
 

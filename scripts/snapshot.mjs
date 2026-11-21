@@ -15,10 +15,12 @@ import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
+import { POLICY_VERSION } from '../src/lib/policy.js'
 import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote } from './lib/snapshot-transport.mjs'
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
+import { PUBLISH_PATH, assessPublish, classifyOutcome, previousRelease, publishState, publishStatus } from './lib/publish-gate.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const root = resolve(here, '..')
@@ -85,6 +87,8 @@ async function refresh (existing, baseline) {
   const active = symbols ?? declared.filter(symbol => !baseline.has(symbol) && (options.candidates === 'new' || !existing.has(symbol)))
   if (!active.length && !stageOnly) throw new Error('No symbols to refresh')
   const day = new Date().toISOString().slice(0, 10)
+  const scope = requested.length ? 'targeted' : options.candidates ? 'candidates' : 'all'
+  const prior = await previousRelease(OUT)
   const getJson = transport({ headers: HEADERS, cacheDir })
   const secJson = transport({ headers: { 'User-Agent': UA, Accept: 'application/json' }, cacheDir,
     valid: body => body?.facts || Object.values(body ?? {}).some(entry => entry?.cik_str && entry.ticker) })
@@ -95,17 +99,24 @@ async function refresh (existing, baseline) {
   async function writeRates () {
     const url = 'https://datacenter-web.eastmoney.com/api/data/v1/get?pageSize=10&pageNumber=1&reportName=RPTA_WEB_TREASURYYIELD&columns=ALL&sortColumns=SOLAR_DATE&sortTypes=-1'
     const file = resolve(OUT, 'rates.json')
+    const stats = { requested: true, live: [], kept: [], failed: [] }
+    const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'))
     try {
       const body = await getJson(url)
       const live = parseEastMoneyYields(body)
-      const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'))
       const pick = (code, row) => {
         const prev = existing[code]
         if (row && Number.isFinite(row.value) && row.value > 0 && row.asOf &&
           (!prev?.as_of || row.asOf >= prev.as_of)) {
+          stats.live.push(code)
           return { value: row.value, as_of: row.asOf, tenor: '10Y' }
         }
-        return prev && Number(prev.value) > 0 ? prev : null
+        if (prev && Number(prev.value) > 0) {
+          stats.kept.push(code)
+          return prev
+        }
+        stats.failed.push(code)
+        return null
       }
       const record = {
         as_of: new Date().toISOString().slice(0, 10),
@@ -116,8 +127,14 @@ async function refresh (existing, baseline) {
       await atomicWrite(file, JSON.stringify(record, null, 2) + '\n')
       console.log('wrote rates.json', 'CNY', record.CNY && record.CNY.value, 'USD', record.USD && record.USD.value)
     } catch (error) {
+      for (const code of ['USD', 'CNY']) {
+        if (Number(existing[code]?.value) > 0) stats.kept.push(code)
+        else if (!stats.failed.includes(code)) stats.failed.push(code)
+      }
+      stats.error = error.message
       console.error('keep existing rates.json -', error.message)
     }
+    return stats
   }
 
 
@@ -287,7 +304,7 @@ async function refresh (existing, baseline) {
     return fields.ttm_eps != null || fields.tangible_book != null || annual.some((row) => row.eps_without_nri != null || row.book_value_per_share != null)
   }
 
-  if (options.rates !== 'keep') await writeRates()
+  const rates = options.rates === 'keep' ? { requested: false } : await writeRates()
 
   const outcomes = []
   const workers = Math.min(8, active.length)
@@ -363,9 +380,10 @@ async function refresh (existing, baseline) {
           fundamentalError = error.message
           if (prev && quote && !US.has(market)) record = useQuote(prev, quote)
         }
+        const classified = classifyOutcome({ mode, quote, prev, patch: record, fundamentals, fundamentalError })
         if (record && JSON.stringify(record) !== JSON.stringify(prev)) await atomicWrite(file, JSON.stringify(record, null, 2) + '\n')
         outcomes.push({ symbol, available: Boolean(record), fundamentals, datedQuote: Boolean(record?.quote_as_of), shareRatio,
-          quoteError, fundamentalError })
+          quoteError, fundamentalError, ...classified })
         await atomicWrite(resolve(tempRoot, 'outcomes', symbol.replace(':', '-') + '.json'), JSON.stringify(outcomes.at(-1)) + '\n')
     }
   }))
@@ -399,18 +417,28 @@ async function refresh (existing, baseline) {
     for (const reason of entry.reasons) marketStats.reasons[reason] = (marketStats.reasons[reason] ?? 0) + 1
   }
   if (Object.values(built.artifact.rates).some(rate => !rate)) built.problems.push('missing currency yield')
+  const assessment = assessPublish({ mode, scope, outcomes, previous: prior.artifact, current: built.artifact, rates })
+  for (const problem of built.problems) assessment.blocked.push('artifact: ' + problem)
+  const status = publishStatus(assessment)
+  const publish = publishState({
+    status, blocked: assessment.blocked, partial: assessment.partial, mode, scope, rates,
+    generatedAt: day, upstreamCheckedAt: new Date().toISOString(), artifact: built.artifact, manifest: built.manifest,
+    previousBatch: prior.publish?.batch,
+  })
+  await atomicWrite(resolve(OUT, 'intrinsic/' + POLICY_VERSION + '.json'), JSON.stringify(built.artifact, null, 2) + '\n')
+  await atomicWrite(resolve(OUT, 'manifest.json'), JSON.stringify(built.manifest, null, 2) + '\n')
+  await atomicWrite(resolve(OUT, PUBLISH_PATH.replace('public/data/', '')), JSON.stringify(publish, null, 2) + '\n')
   await atomicWrite(resolve(tempRoot, 'report.json'), JSON.stringify({
     outcomes: outcomes.sort((a, b) => a.symbol.localeCompare(b.symbol)),
     coverage: built.artifact.coverage, universe: built.artifact.universe, byMarket, problems: built.problems,
+    publish,
   }, null, 2) + '\n')
-  if (built.problems.length) {
-    for (const problem of built.problems) console.error('artifact problem: ' + problem)
-    throw new Error('Incomplete staging area: ' + tempRoot)
-  }
-  await atomicWrite(resolve(OUT, 'intrinsic/v1.json'), JSON.stringify(built.artifact, null, 2) + '\n')
-  await atomicWrite(resolve(OUT, 'manifest.json'), JSON.stringify(built.manifest, null, 2) + '\n')
+  for (const blocked of publish.blocked) console.error('publish blocked: ' + blocked)
+  for (const partial of publish.partial) console.warn('publish partial: ' + partial)
+  if (publish.status === 'blocked') throw new Error('Publish blocked; inspect ' + tempRoot + '/report.json')
   if (!stageOnly) {
     await installSnapshots(OUT, liveDir, backup, tempRoot)
   }
+  console.log('publish', publish.status, 'batch', publish.batch.slice(0, 12))
   console.log('valuation coverage', built.artifact.coverage.valued, 'valued', built.artifact.coverage.refused, 'refused:', tempRoot)
 }

@@ -31,9 +31,12 @@
     "research:holdout": "vite-node scripts/research/holdout.mjs",
     "research:claims": "node scripts/research/actions.mjs",
     "research:cash-path": "vite-node scripts/research/cash-path.mjs",
+    "research:kernel": "vitest run tests/unit/research-kernel.test.js",
+    "research:check": "vite-node scripts/research/history.mjs -- --check && vite-node scripts/research/holdout.mjs -- --check && vite-node scripts/research/cash-path.mjs -- --check && node scripts/research/actions.mjs --check",
     "icons": "node scripts/icons.mjs",
     "smoke:pages": "node scripts/pages-smoke.mjs",
     "test:e2e:base": "node scripts/build-base.mjs && playwright test tests/e2e/base-path.spec.js",
+    "test:e2e:upload": "node scripts/test-upload.mjs",
     "rehearse:pages": "node scripts/rehearse-pages.mjs",
     "audit:contrast": "node scripts/contrast-audit.mjs"
   },

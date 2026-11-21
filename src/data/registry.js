@@ -15,6 +15,16 @@ import { validateQuote } from './validate'
 /** Operations a provider can serve. */
 const Operation = Object.freeze({ STOCK: 'stock', QUOTE: 'quote', PROFILE: 'profile', HISTORY: 'history', FINANCIALS: 'financials' })
 
+/** The fields the quote gate can actually verify on a stock record. */
+function quoteSubject (value) {
+  const stamp = value?.timestamp ?? value?.as_of ?? value?._as_of
+  return {
+    price: value?.price,
+    currency: value?.currency,
+    timestamp: stamp == null ? undefined : typeof stamp === 'number' ? stamp : Date.parse(stamp),
+  }
+}
+
 export class ProviderRegistry {
   constructor ({ providers = [], breaker = new CircuitBreaker(), limiter = new RateLimiter(), preferences = readPreferences, validate = validateQuote } = {}) {
     this.providers = providers
@@ -77,24 +87,30 @@ export class ProviderRegistry {
 
     let lastError = null
     for (const provider of candidates) {
-      await this.limiter.acquire(provider.id)
+      if (!(await this.limiter.acquire(provider.id))) {
+        diagnostics.recordSkip(provider.id, SkipReason.RATE_LIMITED)
+        lastError = new DataError(ErrorCode.RATE_LIMIT_LOCAL, provider.id, 'local rate limit for ' + provider.id)
+        continue
+      }
       try {
         const value = await run(provider)
         if (value == null) {
           diagnostics.recordError(provider.id, 'empty result')
           continue
         }
-        if (operation === Operation.QUOTE) {
-          // A source that is honest about being quarterly says how old its quotes may
-          // be; the validator's week-long default would otherwise reject it.
-          const problem = this.validate({ ...value, provider: provider.id }, { maxAgeMs: provider.maxQuoteAgeMs })
-        if (problem) {
-          // A bad payload is not a healthy response. Recording success here kept
-          // a source that only returns junk at the front of every later attempt.
-          diagnostics.recordError(provider.id, problem.message)
-          lastError = problem
-          continue
-        }
+        if (operation === Operation.QUOTE || operation === Operation.STOCK) {
+          // The same price gate covers a quote and the quote part of a stock record;
+          // a bad price must not win just because the source also returns filings.
+          // A snapshot declares its own age window, so a quarterly file is not junk.
+          const subject = operation === Operation.QUOTE ? value : quoteSubject(value)
+          const problem = this.validate({ ...subject, provider: provider.id }, { maxAgeMs: provider.maxQuoteAgeMs })
+          if (problem) {
+            // A bad payload is not a healthy response. Recording success here kept
+            // a source that only returns junk at the front of every later attempt.
+            diagnostics.recordError(provider.id, problem.message)
+            lastError = problem
+            continue
+          }
         }
         this.breaker.recordSuccess(provider.id)
         diagnostics.recordSuccess(provider.id)
@@ -141,10 +157,16 @@ export class ProviderRegistry {
     const provider = this.providers.find((item) => item.id === 'snapshot')
     if (!provider?.fetchStock) throw new DataError(ErrorCode.NO_DATA, 'registry', '没有季度快照')
     const diagnostics = new FetchDiagnostics()
-    await this.limiter.acquire(provider.id)
+    if (!(await this.limiter.acquire(provider.id))) {
+      throw new DataError(ErrorCode.RATE_LIMIT_LOCAL, provider.id, 'local rate limit for ' + provider.id)
+    }
     try {
       const value = await provider.fetchStock(symbol)
       if (value == null) throw new DataError(ErrorCode.NO_DATA, provider.id, 'empty result')
+      // A snapshot is an archived fact. Its date is disclosed by the policy
+      // (STALE_PRICE), not used to reject a file that is still the latest one.
+      const problem = this.validate({ ...quoteSubject(value), provider: provider.id }, { maxAgeMs: Infinity })
+      if (problem) throw problem
       this.breaker.recordSuccess(provider.id)
       diagnostics.recordSuccess(provider.id)
       return { value, provider: provider.id, diagnostics }

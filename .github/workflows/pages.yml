@@ -1,9 +1,10 @@
 name: pages
 
 # One workflow for both verification and publishing. A push to main pays for a
-# single npm ci + lightweight gates + deploy; the expensive browser gates run on
-# pull requests only. Two independent workflows used to pay for the same install
-# and the same lint/test/build twice on every push.
+# single npm ci + lightweight gates + build + deploy; the expensive browser
+# drills run on pull requests only. A small pre-upload browser set still checks
+# the built dist on push and manual deploy. Two independent workflows used to pay
+# for the same install and the same lint/test/build twice on every push.
 on:
   push:
     branches: [master, main]
@@ -29,6 +30,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run test
+      - name: Frozen historical kernel vectors
+        run: npm run research:kernel
       - name: Real-company regression on committed snapshots
         run: npm run test:real
       - name: Data gate (artifact, manifest, snapshots)
@@ -44,12 +47,6 @@ jobs:
           npm run audit:contrast
           PW_BASE=1 npm run test:e2e:base
           npm run rehearse:pages
-      - if: failure() && github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
 
       - name: Static-host smoke
         run: npm run smoke:pages
@@ -64,11 +61,28 @@ jobs:
           # with npm run snapshot, then push. No browser gateway is baked in.
           VITE_TRANSPORT: direct
 
+      # The dist above is the only artifact that gets uploaded, so check it
+      # before the upload: sub-path boot, published value, search and axe. No
+      # rebuild — the step serves dist/ through vite preview. A failure here
+      # leaves the upload step skipped and the deploy job waiting.
+      - name: Pre-upload browser gate on the built dist
+        if: github.event_name != 'pull_request'
+        run: |
+          npx playwright install --with-deps --no-shell chromium
+          npm run test:e2e:upload
+
       - name: Upload Pages artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   deploy:
     if: github.event_name != 'pull_request'

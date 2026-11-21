@@ -41,7 +41,7 @@ it('restores the previous snapshot and removes new entries after a failed or int
     await mkdir(run)
     const existing = 'NASDAQ-AAPL.json'
     const added = 'NYSE-IBM.json'
-    const release = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'manifest.json']
+    const release = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/v2.json', 'manifest.json', 'publish.json']
     for (const name of [existing, ...release]) {
       await atomicWrite(resolve(live, name), '{"value":"old"}')
       await atomicWrite(resolve(staged, name), '{"value":"new"}')
@@ -65,6 +65,35 @@ it('restores the previous snapshot and removes new entries after a failed or int
     await installSnapshots(staged, live, backup, run)
     expect(await readFile(resolve(live, existing), 'utf8')).toBe('{"value":"new"}')
     expect(await readFile(resolve(live, added), 'utf8')).toBe('{}')
+  } finally {
+    if (dirname(root) === process.cwd() && basename(root).startsWith('tmp-snapshot-test-')) {
+      await rm(root, { recursive: true, force: true })
+    }
+  }
+})
+
+it('removes fresh release assets when the first upgrade fails', { timeout: 30_000 }, async () => {
+  const root = await mkdtemp(resolve('tmp-snapshot-test-'))
+  try {
+    const live = resolve(root, 'live')
+    const staged = resolve(root, 'staged')
+    const backup = resolve(root, 'backup')
+    const run = resolve(root, 'run')
+    await mkdir(run)
+    const existing = 'NASDAQ-AAPL.json'
+    const added = 'NYSE-IBM.json'
+    const oldRelease = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'manifest.json']
+    const newRelease = ['intrinsic/v2.json', 'publish.json']
+    for (const name of [existing, ...oldRelease]) await atomicWrite(resolve(live, name), '{"value":"old"}')
+    for (const name of [existing, ...oldRelease, ...newRelease]) await atomicWrite(resolve(staged, name), '{"value":"new"}')
+    await atomicWrite(resolve(staged, added), '{}')
+    const fail = async (path, bytes) => {
+      if (path.endsWith('manifest.json')) throw new Error('simulated write failure')
+      await atomicWrite(path, bytes)
+    }
+    await expect(installSnapshots(staged, live, backup, run, fail)).rejects.toThrow('simulated write failure')
+    for (const name of [existing, ...oldRelease]) expect(await readFile(resolve(live, name), 'utf8')).toBe('{"value":"old"}')
+    for (const name of [added, ...newRelease]) await expect(readFile(resolve(live, name))).rejects.toMatchObject({ code: 'ENOENT' })
   } finally {
     if (dirname(root) === process.cwd() && basename(root).startsWith('tmp-snapshot-test-')) {
       await rm(root, { recursive: true, force: true })

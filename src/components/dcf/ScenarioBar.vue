@@ -14,6 +14,7 @@
         @click="emit(key === 'base' ? 'reset' : 'pick', key)"
       />
     </div>
+    <span v-if="active === 'custom'" class="dcf__scenario-custom">{{ t('scenario_custom') }}</span>
     <span class="faint dcf__scenario-note">{{ t('scenario_note') }}</span>
   </div>
 </template>
