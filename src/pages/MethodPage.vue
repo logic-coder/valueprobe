@@ -130,11 +130,46 @@
       </div>
     </section>
 
+    <section v-if="crossRows.length" class="panel method__block">
+      <div class="panel__head"><span class="panel__title">{{ t('method_cross_title') }}</span></div>
+      <div class="panel__body">
+        <p>{{ t('method_cross_lead') }}</p>
+        <table class="method__table">
+          <thead>
+            <tr>
+              <th scope="col">{{ t('method_cross_pair') }}</th>
+              <th scope="col">{{ t('method_cross_eps') }}</th>
+              <th scope="col">{{ t('method_cross_growth') }}</th>
+              <th scope="col">{{ t('method_cross_book') }}</th>
+              <th scope="col">{{ t('method_cross_rate') }}</th>
+              <th scope="col">{{ t('method_cross_value') }}</th>
+              <th scope="col">{{ t('method_cross_status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in crossRows" :key="row.id">
+              <th scope="row">{{ row.a }}<br>{{ row.h }}</th>
+              <td>{{ fmtPct(row.bridge.eps.diffPct) }}</td>
+              <td>{{ fmtPp(row.bridge.growth.diffPp) }}</td>
+              <td>{{ fmtPct(row.bridge.book.diffPct) }}</td>
+              <td>{{ fmtPp(row.bridge.discountRate.diffPp) }}</td>
+              <td>{{ fmtPct(row.valueDiffPct) }}</td>
+              <td>
+                <span>{{ t('method_cross_' + row.status.replace('-', '_')) }}</span>
+                <span v-if="row.reasons.length" class="faint">{{ row.reasons.map((code) => t('method_cross_reason_' + code)).join(' · ') }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="faint">{{ t('method_cross_note') }}</p>
+      </div>
+    </section>
+
     <section class="panel method__block">
       <div class="panel__head"><span class="panel__title">{{ t('method_repro_title') }}</span></div>
       <div class="panel__body">
         <p>{{ t('method_repro_body') }}</p>
-        <p><a :href="dataBase + 'intrinsic/v1.json'">{{ t('method_download') }}</a>
+        <p><a :href="dataBase + 'intrinsic/v2.json'">{{ t('method_download') }}</a>
           · <a :href="REPO_URL + '/blob/main/docs/POLICY.md'" target="_blank" rel="noreferrer">{{ t('method_repro_link') }}</a></p>
       </div>
     </section>
@@ -226,6 +261,9 @@ onMounted(async () => {
 const countRows = (rows) => Object.entries(rows || {}).map(([code, count]) => ({ code, count }))
 const reasonCounts = computed(() => countRows(artifact.value?.coverage?.reasons))
 const warningCounts = computed(() => countRows(artifact.value?.coverage?.warnings))
+const crossRows = computed(() => artifact.value?.crossListing || [])
+const fmtPct = (value) => value == null ? 'n/a' : (value > 0 ? '+' : '') + value.toFixed(2) + '%'
+const fmtPp = (value) => value == null ? 'n/a' : (value > 0 ? '+' : '') + value.toFixed(2) + ' pp'
 const rateRows = computed(() => ['CNY', 'USD', 'HKD']
   .map((code) => {
     const row = artifact.value?.rates?.[code]

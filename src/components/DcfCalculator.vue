@@ -77,6 +77,7 @@
                 />
               </div>
               <span class="dcf__scenario-note dcf__model-note">{{ t('model_suggested', { model: t('model_' + suggested) }) }}</span>
+              <span v-if="classificationHint" class="dcf__scenario-note dcf__model-note">{{ classificationHint }}</span>
             </div>
             <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
             <!-- stock price: the header is the only editor; this line only echoes it -->
@@ -267,7 +268,11 @@
                 <div class="stage-row stage-row--result">
                   <span>{{ t('terminal_fair_value') }}</span>
                   <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                  <strong v-else>{{ moneyIn(stock.currency, result.terminalValue) }}</strong>
+                  <strong v-else>{{ moneyIn(stock.currency, result.finiteTerminalValue) }}</strong>
+                </div>
+                <div v-if="!loading && result.continuationValue != null" class="stage-row stage-row--result">
+                  <span>{{ t('continuation_value') }}</span>
+                  <strong>{{ moneyIn(stock.currency, result.continuationValue) }}</strong>
                 </div>
               </section>
             </div>
@@ -431,7 +436,10 @@ const stageNote = computed(() => {
   const years = (Number(form.years) || 0) + (Number(form.yearsOfTerminalGrowth) || 0)
   const discount = Number(form.discountRate)
   const terminal = Number(form.terminalGrowthRate)
-  if (Number.isFinite(discount) && Number.isFinite(terminal) && terminal >= discount) return t('stage_rate_note')
+  const effective = result.effectiveTerminalGrowth
+  if (Number.isFinite(discount) && Number.isFinite(terminal) && Number.isFinite(effective) && terminal - effective > 0.005) {
+    return t('stage_cap_note', { effective: effective.toFixed(2) })
+  }
   return t('stage_horizon_note', { years })
 })
 const isManual = computed(() => sourceStore.stateOf(props.symbol) === 'manual')
@@ -447,6 +455,12 @@ const freecashflow = computed(() => {
 })
 const models = VALUATION_MODELS
 const suggested = computed(() => suggestedModel(stock.value))
+const classificationHint = computed(() => {
+  const record = stock.value
+  if (!record) return ''
+  if (record.industry) return t('industry_' + record.industry)
+  return record.classification_basis === 'columns' ? t('classification_columns') : ''
+})
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const policyEntry = computed(() => policyStore.entryOf(props.symbol))
@@ -497,7 +511,7 @@ const form = reactive({
   growthRate: null, terminalGrowthRate: null, yearsOfTerminalGrowth: null, discountRate: null,
 })
 const result = reactive({
-  tbv: null, stockPrice: null, growthValue: null, terminalValue: null, reverseGrowthRate: null,
+  tbv: null, stockPrice: null, growthValue: null, terminalValue: null, finiteTerminalValue: null, continuationValue: null, reverseGrowthRate: null,
   marginOfSafety: null, addToFairValue: false, fairValue: null, fairLow: null, fairHigh: null,
 })
 const headline = computed(() => {
@@ -609,6 +623,8 @@ const calculate = () => {
     result.fairHigh = null
     result.growthValue = null
     result.terminalValue = null
+    result.finiteTerminalValue = null
+    result.continuationValue = null
     result.marginOfSafety = 'n/a'
     result.reverseGrowthRate = null
     return
@@ -619,6 +635,8 @@ const calculate = () => {
     result.fairHigh = null
     result.growthValue = null
     result.terminalValue = null
+    result.finiteTerminalValue = null
+    result.continuationValue = null
     result.marginOfSafety = 'n/a'
     result.reverseGrowthRate = residualIncome.value
       ? null
@@ -645,6 +663,8 @@ const calculate = () => {
     result.fairValue = residualIncomeValue(result.tbv, base, form.discountRate, growth, form.terminalGrowthRate, form.years)?.fairValue ?? null
     result.growthValue = null
     result.terminalValue = null
+    result.finiteTerminalValue = null
+    result.continuationValue = null
     result.marginOfSafety = result.fairValue == null ? 'n/a' : marginOfSafety(result.stockPrice, result.fairValue)
     result.reverseGrowthRate = null
     return
@@ -653,6 +673,8 @@ const calculate = () => {
   result.fairValue = computedValues.fairValue
   result.growthValue = computedValues.growthValue
   result.terminalValue = computedValues.terminalValue
+  result.finiteTerminalValue = computedValues.finiteTerminalValue
+  result.continuationValue = computedValues.continuationValue
   result.marginOfSafety = marginOfSafety(result.stockPrice, result.fairValue)
   result.reverseGrowthRate = impliedGrowth(
     result.tbv, form.years, form.discountRate, base, result.stockPrice,

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
-  POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyGrowth, policyModel, policyValue, quoteDateStatus,
+  POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyEps, policyGrowth, policyModel, policyValue, quoteDateStatus,
 } from '../../src/lib/policy'
 import { buildDefaults, presentValue, residualIncomeValue } from '../../src/lib/dcf'
 import { rateForCurrency } from '../../src/lib/riskFree'
@@ -11,7 +11,7 @@ import { REASON, WARNING, isKnownReason, isKnownWarning } from '../../src/lib/re
 import { defaultView } from '../../src/lib/watchlistView'
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'))
-const artifact = readJson('public/data/intrinsic/v1.json')
+const artifact = readJson('public/data/intrinsic/v2.json')
 const ratesFile = readJson('public/data/rates.json')
 const catalog = readJson('public/data/catalog.json')
 const rateRows = {
@@ -22,10 +22,10 @@ const snapshots = catalog.map((row) => ({ symbol: row.symbol, raw: readJson('pub
 const stockOf = (raw) => toStock(raw)
 const yieldOf = (stock) => rateForCurrency(rateRows, stock.currency)?.value ?? null
 
-describe('public policy v1 is frozen', () => {
+describe('public policy v2 is frozen', () => {
   it('pins the hash so an unversioned edit cannot ship', () => {
     expect(createHash('sha256').update(JSON.stringify(POLICY_V1)).digest('hex')).toBe(POLICY_V1_HASH)
-    expect(POLICY_VERSION).toBe('v1')
+    expect(POLICY_VERSION).toBe('v2')
   })
 
   it('keeps the contested constants explicit', () => {
@@ -47,11 +47,33 @@ describe('discount rate tool', () => {
     expect(policyDiscountRate(6)).toBe(12)
   })
 
-  it('refuses a missing or non-positive yield', () => {
+  it('turns a missing yield into null and lets a negative one through', () => {
     expect(policyDiscountRate(null)).toBeNull()
-    expect(policyDiscountRate(0)).toBeNull()
-    expect(policyDiscountRate(-1)).toBeNull()
     expect(policyDiscountRate(undefined)).toBeNull()
+    expect(policyDiscountRate(0)).toBe(6)
+    expect(policyDiscountRate(-1)).toBe(5)
+    expect(policyDiscountRate(-2.5)).toBe(4)
+  })
+})
+
+describe('earnings input boundary', () => {
+  it('keeps explicit zero and string zero for publish and the calculator', () => {
+    for (const stock of [{ ttm_eps_nri: 0 }, { ttm_eps: '0' }, { ttm_eps_nri: '', ttm_eps: 0 }]) {
+      expect(policyEps(stock)).toBe(0)
+      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBe(0)
+      expect(policyValue({ ...stock, currency: '$', earning_growth_10y: 3, price: '$10' }, { rates: rateRows }).reasons).toContain(REASON.NON_POSITIVE_EPS)
+    }
+  })
+
+  it('skips blanks and invalid values instead of turning them into zero', () => {
+    for (const stock of [{ ttm_eps_nri: null, ttm_eps: 2 }, { ttm_eps_nri: '', ttm_eps: 2 }, { ttm_eps_nri: 'n/a', ttm_eps: 2 }]) {
+      expect(policyEps(stock)).toBe(2)
+      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBe(2)
+    }
+    for (const stock of [null, {}, { ttm_eps_nri: null, ttm_eps: '' }, { ttm_eps: 'n/a' }]) {
+      expect(policyEps(stock)).toBeNull()
+      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBeNull()
+    }
   })
 })
 
@@ -109,12 +131,26 @@ describe('policyValue semantics', () => {
     expect(value.reasons).toContain(REASON.NO_BOOK)
   })
 
-  it('clamps an out-of-range rate and discloses it', () => {
+  it('clamps both ends of the rate domain and discloses it', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
-    const value = policyValue(stock, { rates: { CNY: { value: 60, asOf: '2026-11-18' } } })
-    expect(value.status).toBe('ok')
-    expect(value.inputs.discountRate).toBe(50)
-    expect(value.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
+    const high = policyValue(stock, { rates: { CNY: { value: 60, asOf: '2026-11-18' } } })
+    expect(high.status).toBe('ok')
+    expect(high.inputs.discountRate).toBe(50)
+    expect(high.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
+    const low = policyValue(stock, { rates: { CNY: { value: -100, asOf: '2026-11-18' } } })
+    expect(low.status).toBe('ok')
+    expect(low.inputs.discountRate).toBe(0)
+    expect(low.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
+  })
+
+  it('uses a zero or negative yield as observed instead of falling back', () => {
+    const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
+    const zero = policyValue(stock, { rates: { CNY: { value: 0, asOf: '2026-11-18' } } })
+    expect(zero.inputs.discountRate).toBe(6)
+    expect(zero.warnings).not.toContain(WARNING.RATE_FALLBACK)
+    const negative = policyValue(stock, { rates: { CNY: { value: -2.5, asOf: '2026-11-18' } } })
+    expect(negative.inputs.discountRate).toBe(4)
+    expect(negative.warnings).not.toContain(WARNING.RATE_FALLBACK)
   })
 
   it('keeps quote freshness and earnings vintage independent of snapshot capture', () => {
@@ -139,6 +175,28 @@ describe('policyValue semantics', () => {
   })
 })
 
+describe('classification evidence is disclosed, never a silent guess', () => {
+  it('warns on a REIT valued on earnings and records the evidence', () => {
+    const stock = stockOf(snapshots.find((row) => row.symbol === 'NYSE:O').raw)
+    const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
+    expect(value.status).toBe('ok')
+    expect(value.warnings).toEqual(expect.arrayContaining([WARNING.MODEL_CAVEAT]))
+    expect(value.warnings).not.toContain(WARNING.CLASSIFICATION_UNVERIFIED)
+    expect(value.inputs).toMatchObject({ model: 'owner', classification: 'industry', industry: 'reit' })
+  })
+
+  it('warns when only missing columns produced the route and the other model differs materially', () => {
+    const raw = {
+      exchange_: 'NYSE', symbol: 'X', company: 'Acme', price: '$50', ttm_eps: 1,
+      tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
+      financials: { annual: [{ book_value_per_share: 100 }] },
+    }
+    const value = policyValue(stockOf(raw), { rates: rateRows, generatedAt: artifact.generatedAt })
+    expect(value.status).toBe('ok')
+    expect(value.inputs).toMatchObject({ model: 'residual', classification: 'columns' })
+    expect(value.warnings).toEqual(expect.arrayContaining([WARNING.CLASSIFICATION_UNVERIFIED]))
+  })
+})
 describe('the committed artifact is what the policy produces', () => {
   it('covers the whole declared universe with the expected shape', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
@@ -179,7 +237,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeGreaterThan(50)
+    expect(byd.valueDiffPct).toBeLessThan(-50)
   })
 })
 

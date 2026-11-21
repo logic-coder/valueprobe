@@ -1,6 +1,6 @@
-# 公开口径 v1（public policy v1）
+# 公开口径 v2（public policy v2）
 
-这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v1.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。
+这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v2.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。
 
 修改 `POLICY_V1` 会改变每一个发布数字。必须同时升 `POLICY_VERSION`、重算并更新 `POLICY_V1_HASH`，否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
@@ -36,7 +36,7 @@
 
 - 折现率：`rateForCurrency()`（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6）→ 夹到 0–50；取不到当地利率时 `policyValue()` 用兜底值并加 `RATE_FALLBACK`。
 - 增速：`policyGrowth()` → `adoptGrowth()`（`src/lib/assumptions.js`）：缺失给 `NO_GROWTH`，超过 15% 按 15% 并给 `CAPPED_GROWTH`，负值照常并给 `NEGATIVE_HISTORY_GROWTH`。
-- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 用同一模型算低/中/高。
+- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 在同一模型上扰动折现率：一般公司用 `presentValue` 跑较低、当前、较高折现率；残差公司在 `residualIncomeValue` 上跑更高折现率、基准、更低折现率，经营 ROE 假设保持不变。真实无效的一端返回缺项，允许单侧区间。
 - 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
@@ -76,9 +76,9 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 
 两个文件都只能由 `npm run intrinsic`（即 `scripts/policy-values.mjs`）生成，不要手改。构建函数在 `scripts/lib/policy-artifact.mjs`，写入与校验共用这一个函数，所以同一份输入得到同一份字节。
 
-路径约定：`scripts/lib/policy-artifact.mjs` 的 `ARTIFACT_PATH` 与 `src/api/policy.js` 的 `ARTIFACT_PATH` 目前都把 `v1` 写死在文件名里。升 `POLICY_VERSION` 时，这两处、方法页显示的路径与本文必须同一次更新；否则浏览器会去读一个不存在的 `intrinsic/v2.json`。
+路径约定：`ARTIFACT_PATH` 由 `POLICY_VERSION` 派生为 `public/data/intrinsic/<version>.json`；`scripts/pages-smoke.mjs`、方法页下载链接与本文仍需同一次更新。`public/data/intrinsic/v1.json` 是已冻结的上一版发布值，保留复现，不再被应用读取。版本变化和前后差异见 `RELEASE_V2.md`。
 
-`public/data/intrinsic/v1.json`（`ARTIFACT_PATH`）：
+`public/data/intrinsic/v2.json`（`ARTIFACT_PATH`）：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -88,7 +88,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `rates` | `{ asOf, CNY, USD, HKD }`；每行 `{ value, asOf, source, proxy? }`，HKD 为 `usd_proxy`。 |
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
-| `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, epsFxDiffPct, growthDiffPp, valueDiffPct }`。只报告差异，不平均、不回写。 |
+| `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。 |
 | `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
@@ -101,12 +101,27 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `rates` | 与发布值文件的 `rates` 相同，便于页面单独读利率。 |
 | `files[]` | `{ name, bytes, sha256 }`：`catalog.json`、`rates.json` 和清单内快照；发布值文件由校验重算比对。 |
 
-## 5. 刷新与校验
+### 4.1 发布状态 `public/data/publish.json`
+
+每次刷新写出候选批次的状态与内容摘要，随发布安装和回滚。它不是页面输入，只供发布闸门与 CI 审计。
+
+| 字段 | 含义 |
+| --- | --- |
+| `schema` / `status` | 结构版本；`ok`、`partial`、`verified-unchanged`、`rebuilt` 或 `blocked`。 |
+| `blocked[]` / `partial[]` | 阻断与披露原因；blocked 时暂存不安装。 |
+| `mode` / `scope` | 刷新模式（all/quotes/fundamentals）与范围（all/targeted/candidates）。 |
+| `rates` | `{ requested, live[], kept[], failed[] }`；显式 `--rates=keep` 时 `requested=false`。 |
+| `generatedAt` / `upstreamCheckedAt` / `latestPeriod` | 工件生成日、上游实际核验时刻、工件内最大报告期。刷新批次的核验时间不早于生成日。离线重算沿用已有核验时间，缺少记录时为 `null`。 |
+| `batch` / `previousBatch` | artifact 与 manifest 精确写入字节的 sha256，以及上一批摘要。 |
+
+`npm run snapshot` 在建好暂存工件后判定：所需链路全失败、定向代码失败、估值数低于上一批 90%、拒绝数增加超过 max(5, 声明数 2%)、任一市场失去全部估值、没有可用利率，或存在 artifact 构建问题时为 `blocked`；局部失败保留旧记录与真实期间/日期并记 `partial`；供应商成功而期间未更新记 `verified-unchanged`。失败保留的报价或财报不改变旧行日期。手工 `npm run intrinsic` 写 `rebuilt`。阈值取自上一发布批次的覆盖，不用 120 天统一线。
+
+## 5. 刷新、发布与校验
 
 ```bash
-npm run snapshot     # 刷新 public/data/*.json 与 rates.json（本机运行）
-npm run intrinsic    # 生成 intrinsic/v1.json 与 manifest.json
-npm run verify:data  # 数据校验
+npm run snapshot     # 刷新 public/data/*.json、rates.json 与 publish.json（本机运行，闸门可阻断安装）
+npm run intrinsic    # 生成 intrinsic/<version>.json、manifest.json 与 rebuilt 状态
+npm run verify:data  # 数据与发布状态校验
 npm run refresh      # 暂存生成快照与估值，随后校验
 npm run verify       # lint → test → test:real → verify:data → smoke:pages
 ```
@@ -115,13 +130,14 @@ npm run verify       # lint → test → test:real → verify:data → smoke:pag
 
 1. `POLICY_V1` 的 sha256 等于 `POLICY_V1_HASH`；
 2. committed artifact/manifest 可由已提交文件重算且字节一致（否则 `run npm run intrinsic`）；
-3. `generatedAt` 距 120 天（`staleness.fundamentalsDays`）以内；超过只打 `warn`，不使校验失败（口径是“保留并标注”，过期由数值上的 `STALE_DATA` 披露）；
-4. CNY/USD/HKD 都有利率行；`asOf` 超过 10 天（`staleness.ratesDays`）同样只 `warn`；缺利率行本身仍是硬失败；
+3. `publish.json` 存在且状态允许发布。`batch` 与重算的 artifact/manifest 字节一致，`generatedAt` 与 artifact 相同，`latestPeriod` 等于工件最大报告期。刷新批次的 `upstreamCheckedAt` 须不早于生成日，`rebuilt` 可沿用此前的核验时间或记录为未知。部分刷新及离线重算的未知核验时间会产生提示。
+4. `generatedAt` 距 120 天（`staleness.fundamentalsDays`）以内；超过只打 `warn`，不使校验失败（口径是“保留并标注”，过期由数值上的 `STALE_DATA` 披露）；
+5. CNY/USD/HKD 都有利率行；`asOf` 超过 10 天（`staleness.ratesDays`）同样只 `warn`；缺利率行本身仍是硬失败；
    这样 `verify:data` 的结果只取决于已提交文件，不取决于运行当天的日期（CI 不会在刷新后第 11 天开始因无关提交变红）；
-5. `scripts/watchlist.json`、已提交快照、`catalog.json`、artifact entries 四者集合一致；
-6. manifest 里每个文件的 bytes/sha256 与磁盘一致；
-7. 每条 entry 的 reason/warning 都是已知代码，且带 `inputs.rate`；
-8. 快照 schema 的必需键存在；9 组 A/H 对照齐全；抽样重算 `SHSE:601398`、`NASDAQ:AAPL`、`NYSE:TSM` 一致。
+6. `scripts/watchlist.json`、已提交快照、`catalog.json`、artifact entries 四者集合一致；
+7. manifest 里每个文件的 bytes/sha256 与磁盘一致；
+8. 每条 entry 的 reason/warning 都是已知代码，且带 `inputs.rate`；
+9. 快照 schema 的必需键存在；9 组 A/H 对照齐全；抽样重算 `SHSE:601398`、`NASDAQ:AAPL`、`NYSE:TSM` 一致。
 
 CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；冒烟与浏览器套件另列。
 
@@ -138,13 +154,14 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 ## 7. 当前发布（示例）
 
-以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v1.json` 为准**：
+以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v2.json` 为准**：
 
-- `generatedAt` 2026-11-20；`rates.asOf` 2026-11-19。
+- `generatedAt` 2026-11-21；`rates.asOf` 2026-11-19。
 - 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。
 - 声明、快照与估值条目各 500 条，有值 410 条，拒绝 90 条。
 - 拒绝原因出现次数，`NO_GROWTH` 84、`NON_POSITIVE_EPS` 26、`NO_EPS` 1。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 110 条。模型为 `owner` 457 条、`residual` 43 条。
+- 过期基本面标记 `STALE_DATA` 110 条。模型为 `owner` 460 条、`residual` 40 条。
+- 本次升版新增 `MODEL_CAVEAT` 3 条，`CLASSIFICATION_UNVERIFIED` 0 条；`NEGATIVE_HISTORY_GROWTH` 57 条。前后差异见 `RELEASE_V2.md`。
 - 币种覆盖为 CNY 50 条、USD 399 条、HKD 51 条。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

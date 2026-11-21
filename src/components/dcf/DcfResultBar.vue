@@ -96,8 +96,15 @@ const props = defineProps({
 const { t } = useI18n()
 const { moneyIn } = useMoney()
 
-const hasBand = computed(() => Number.isFinite(Number(props.result.fairLow)) && Number.isFinite(Number(props.result.fairHigh)) && props.result.fairLow !== props.result.fairHigh)
-const bandText = computed(() => moneyIn(props.stock.currency, props.result.fairLow) + ' – ' + moneyIn(props.stock.currency, props.result.fairHigh))
+const bandLow = computed(() => (Number.isFinite(Number(props.result.fairLow)) && Number(props.result.fairLow) > 0 ? Number(props.result.fairLow) : null))
+const bandHigh = computed(() => (Number.isFinite(Number(props.result.fairHigh)) && Number(props.result.fairHigh) > 0 ? Number(props.result.fairHigh) : null))
+const hasBand = computed(() => (bandLow.value !== null || bandHigh.value !== null) && !(bandLow.value !== null && bandLow.value === bandHigh.value))
+// A missing endpoint means that scenario has no value, so it stays visible.
+const bandText = computed(() => {
+  const low = bandLow.value === null ? t('band_missing') : moneyIn(props.stock.currency, bandLow.value)
+  const high = bandHigh.value === null ? t('band_missing') : moneyIn(props.stock.currency, bandHigh.value)
+  return low + ' – ' + high
+})
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
 </script>

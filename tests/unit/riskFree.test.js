@@ -14,11 +14,13 @@ describe('defaultDiscountRate', () => {
     expect(defaultDiscountRate(5.14)).toBe(12)
   })
 
-  it('falls back to eight when the yield is missing, zero, or not a number', () => {
+  it('keeps zero and negative yields, and falls back only when missing', () => {
+    expect(defaultDiscountRate(0)).toBe(6)
+    expect(defaultDiscountRate(-2.5)).toBe(4)
     expect(defaultDiscountRate(null)).toBe(8)
-    expect(defaultDiscountRate(0)).toBe(8)
     expect(defaultDiscountRate(undefined)).toBe(8)
     expect(defaultDiscountRate('')).toBe(8)
+    expect(defaultDiscountRate('n/a')).toBe(8)
   })
 
   it('keeps the retired coupon file out of the bundle and the fallback at 8%', () => {
@@ -80,5 +82,16 @@ describe('parseEastMoneyYields', () => {
     })
     expect(parsed.CNY).toEqual({ value: 1.5892, asOf: '2026-11-18', source: 'live' })
     expect(parsed.USD).toEqual({ value: 5.1, asOf: '2026-11-17', source: 'live' })
+  })
+
+  it('keeps a zero or negative observation instead of skipping it', () => {
+    const parsed = parseEastMoneyYields({
+      result: { data: [
+        { SOLAR_DATE: '2026-11-18 00:00:00', EMM00166466: 0, EMG00001310: -0.2 },
+        { SOLAR_DATE: '2026-11-17 00:00:00', EMM00166466: 1.6, EMG00001310: 5.1 },
+      ] },
+    })
+    expect(parsed.CNY.value).toBe(0)
+    expect(parsed.USD.value).toBe(-0.2)
   })
 })

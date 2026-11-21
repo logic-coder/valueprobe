@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { discountPath, shareholderValue } from '../../scripts/research/owner-earnings.mjs'
+import { discountCash, forecastCash, historicalCashBase } from '../../scripts/research/cash-forecast.mjs'
 import { marginStress } from '../../src/lib/marginStress'
-import release from '../../public/data/intrinsic/v1.json'
+import release from '../../public/data/intrinsic/v2.json'
 import history from '../../public/research/dia-2015.json'
 import cashStudy from '../../public/research/cash-path-2006-2015.json'
 import cashInputs from '../../scripts/research/cash-path-inputs.json'
@@ -14,6 +15,18 @@ describe('growth funded by retained earnings', () => {
     expect(shareholderValue(10, 0.06, inputs).value).toBeLessThan(105)
     expect(shareholderValue(10, 0.04, inputs)).toBeNull()
   })
+})
+
+it('holds cash fixed when the required return changes and capitalizes flat cash as a perpetuity', () => {
+  const forecast = forecastCash(historicalCashBase([8, 10, 700]), { years: 10, growth: 0, terminalGrowthRate: 0 })
+  expect(forecast.flows).toEqual(Array(10).fill(10))
+  expect(discountCash(forecast, 10).value).toBeCloseTo(100, 8)
+  expect(discountCash(forecast, 20).value).toBeCloseTo(50, 8)
+  expect(discountCash(forecast, 0)).toBeNull()
+  expect(historicalCashBase([8, null, 700])).toBeNull()
+  expect(historicalCashBase([-8, -2, 700])).toBeNull()
+  expect(forecastCash(10, { years: 10, growth: -100, terminalGrowthRate: 3 })).toBeNull()
+  expect(discountCash({ ...forecast, terminalGrowthRate: 10 }, 10)).toBeNull()
 })
 
 describe('historical discounts', () => {

@@ -26,7 +26,11 @@ export function calGr2fv (tbv, years, discountRate, growthRate, base, terminalGr
   // annuity factor of the fast-growth window
   const c = m === 1 ? m * years : (m * (1 - Math.pow(m, years))) / (1 - m)
   // terminal window, discounted back after the fast-growth window
-  const u = Math.pow(m, years) * (g / (1 - g)) * (1 - Math.pow(g, yearsOfTerminalGrowth))
+  // The finite geometric series is valid on both sides of g = 1; only the
+  // closed form divides by zero exactly there, where the limit is years.
+  const u = Math.abs(1 - g) < 1e-12
+    ? Math.pow(m, years) * yearsOfTerminalGrowth
+    : Math.pow(m, years) * (g / (1 - g)) * (1 - Math.pow(g, yearsOfTerminalGrowth))
   let fair = base * (c + u)
   if (addToFairValue) fair += tbv
   return {
@@ -44,16 +48,20 @@ export function calGr2fv (tbv, years, discountRate, growthRate, base, terminalGr
  * `calGr2fv` stays the constant-rate closed form.
  */
 export function presentValue (tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue) {
-  const { fairValue, growthValue, terminalValue } = unroundedPresentValue(tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
+  const result = unroundedPresentValue(tbv, years, discountRate, growthRate, base, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
   return {
-    fairValue: round2(fairValue),
-    growthValue: round2(growthValue),
-    terminalValue: round2(terminalValue),
+    fairValue: round2(result.fairValue),
+    growthValue: round2(result.growthValue),
+    terminalValue: round2(result.terminalValue),
+    finiteTerminalValue: round2(result.finiteTerminalValue),
+    continuationValue: round2(result.continuationValue),
+    continuation: result.continuation,
+    effectiveTerminalGrowth: result.effectiveTerminalGrowth,
   }
 }
 
-// Keeps the capitalization multiple at or under 1 / 2% when terminal growth
-// sits just under the discount rate.
+// The capitalized rate is never closer than this to the discount rate, so the
+// multiple stays at or under 1 / 2% and the r = gT boundary does not jump.
 const CONTINUATION_SPREAD = 0.02
 
 // Year 1 grows at g0 and the last fast-growth year at gT, then gT for the
@@ -65,35 +73,39 @@ function unroundedPresentValue (tbv, years, discountRate, growthRate, base, term
   const n = Math.max(0, Math.round(Number(years) || 0))
   const m = Math.max(0, Math.round(Number(yearsOfTerminalGrowth) || 0))
   const start = Number(base)
-  const invalid = { fairValue: NaN, growthValue: NaN, terminalValue: NaN }
+  const invalid = { fairValue: NaN, growthValue: NaN, terminalValue: NaN, finiteTerminalValue: NaN, continuationValue: NaN, continuation: false, effectiveTerminalGrowth: null }
   if (!(r > -1) || !Number.isFinite(g0) || !Number.isFinite(gT) || !Number.isFinite(start)) return invalid
+  // One effective rate for the fade target, the terminal years and the continuing
+  // value. Above the cap, changing raw terminal growth therefore changes nothing.
+  const gc = Math.min(gT, r - CONTINUATION_SPREAD)
   let flow = start
   let growthValue = 0
-  let terminalValue = 0
+  let finiteTerminalValue = 0
   for (let t = 1; t <= n; t++) {
     const weight = n <= 1 ? 0 : (t - 1) / (n - 1)
-    flow *= 1 + g0 + (gT - g0) * weight
+    flow *= 1 + g0 + (gc - g0) * weight
     const discounted = flow / Math.pow(1 + r, t)
     if (!Number.isFinite(discounted)) return invalid
     growthValue += discounted
   }
   for (let k = 1; k <= m; k++) {
-    flow *= 1 + gT
+    flow *= 1 + gc
     const discounted = flow / Math.pow(1 + r, n + k)
     if (!Number.isFinite(discounted)) return invalid
-    terminalValue += discounted
+    finiteTerminalValue += discounted
   }
-  // The business outlives the explicit window: capitalize the following year at
-  // r - g. Without r > g there is no finite multiple, so the annuity stands alone.
-  if (r > gT) {
-    const gc = Math.min(gT, r - CONTINUATION_SPREAD)
-    const continuing = (flow * (1 + gc)) / (r - gc) / Math.pow(1 + r, n + m)
-    if (!Number.isFinite(continuing)) return invalid
-    terminalValue += continuing
-  }
+  // The business outlives the explicit window. Always capitalize at the same
+  // effective rate: crossing gT = r then changes that rate only, not the horizon.
+  // The finite part above stays separately reportable.
+  const continuing = (flow * (1 + gc)) / (r - gc) / Math.pow(1 + r, n + m)
+  if (!Number.isFinite(continuing)) return invalid
+  const terminalValue = finiteTerminalValue + continuing
   let fairValue = growthValue + terminalValue
   if (addToFairValue) fairValue += Number(tbv) || 0
-  return { fairValue, growthValue, terminalValue }
+  return {
+    fairValue, growthValue, terminalValue, finiteTerminalValue, continuationValue: continuing,
+    continuation: true, effectiveTerminalGrowth: gc * 100,
+  }
 }
 
 const IMPLIED_LOW = -99
@@ -125,7 +137,9 @@ export function impliedGrowth (tbv, years, discountRate, base, price, terminalGr
 
 /**
  * Reverse DCF: solve the fast-growth rate whose fair value equals the market price.
- * Same half-interval search as the original (start 75, step h/2, 2e6 iterations cap).
+ * Same half-interval search as the original (start 75, step h/2, 2e6 iterations cap),
+ * now on the same fading path and continuation caliber as `presentValue`.
+ * @remarks The page reads `impliedGrowth`; this export remains the historical name.
  */
 export function calculateReverse (tbv, years, discountRate, base, price, terminalGrowthRate, priceAgain, yearsOfTerminalGrowth, addToFairValue) {
   let iterations = 0
@@ -142,8 +156,7 @@ export function calculateReverse (tbv, years, discountRate, base, price, termina
     iterations++
     if (iterations > 2e6) return null
     const candidate = h - 50
-    const result = calGr2fv(tbv, years, discountRate, candidate, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue)
-    fair = result.fairValue
+    fair = unroundedPresentValue(tbv, years, discountRate, candidate, baseNum, terminalGrowthRate, yearsOfTerminalGrowth, addToFairValue).fairValue
     last = candidate
     if (!Number.isFinite(fair) || fair <= 0) return null
     if (fair < target) h += h / 2
@@ -184,10 +197,13 @@ export function residualIncomeValue (tbv, eps, discountRate, growthRate, termina
   const earnings0 = Number(eps)
   const r = Number(discountRate) / 100
   const n = Math.max(1, Math.round(Number(years) || 10))
-  if (!(book0 > 0) || !(earnings0 > 0) || !(r > 0)) return null
+  if (!(book0 > 0) || !(earnings0 > 0) || !(r >= 0)) return null
   const roe0 = earnings0 / book0
-  const gStable = Math.min(Math.max(Number(terminalGrowthRate) / 100, 0), r - 0.005)
-  const retainStable = clamp01(gStable / r)
+  // At a zero cost of equity nothing is discounted and g/r is undefined; keep
+  // every excess return and let book compound at ROE. Band ends below zero
+  // still stay missing.
+  const gStable = r > 0 ? Math.min(Math.max(Number(terminalGrowthRate) / 100, 0), r - 0.005) : Math.max(Number(terminalGrowthRate) / 100, 0)
+  const retainStable = r > 0 ? clamp01(gStable / r) : 1
   const gHist = Number(growthRate) / 100
   const retainNow = roe0 > 0 ? clamp01(gHist / roe0) : retainStable
   let book = book0
@@ -210,12 +226,7 @@ export function valueBand (input) {
   const terminal = input.terminalGrowthRate
   const horizon = input.yearsOfTerminalGrowth
   const add = input.addToFairValue
-  if (input.residual) {
-    const mid = residualIncomeValue(input.tbv, input.base, input.discountRate, input.growthRate, terminal, years)?.fairValue
-    const high = enduringBookValue(input.tbv, input.base, input.discountRate, input.growthRate, terminal)
-    const low = residualIncomeValue(input.tbv, input.base, Number(input.discountRate) + 2, input.growthRate, terminal, years)?.fairValue
-    return orderBand(low, mid, high)
-  }
+  if (input.residual) return residualIncomeBand(input)
   const at = (discount) => presentValue(input.tbv, years, discount, input.growthRate, input.base, terminal, horizon, add).fairValue
   const mid = at(input.discountRate)
   const low = at(Number(input.discountRate) + 2)
@@ -224,10 +235,30 @@ export function valueBand (input) {
   return orderBand(low, mid, high)
 }
 
-function orderBand (low, mid, high) {
-  const values = [low, mid, high].filter((value) => Number.isFinite(value) && value > 0).sort((a, b) => a - b)
-  if (!values.length || !Number.isFinite(mid)) return { low: null, mid: null, high: null }
-  return { low: round2(values[0]), mid: round2(mid), high: round2(values[values.length - 1]) }
+// One residual model, three discount rates. The convergence target is the
+// discount rate, so it moves with the perturbed rate by design; the headline
+// stays the base rate. A case that has no value (e.g. rate - 2 <= 0) keeps a
+// missing endpoint instead of inventing width.
+export function residualIncomeBand (input) {
+  const spread = Number(input.bandSpread ?? 2)
+  const at = (discount) => (Number(discount) > 0
+    ? residualIncomeValue(input.tbv, input.base, discount, input.growthRate, input.terminalGrowthRate, input.years)?.fairValue
+    : null)
+  return orderBand(at(Number(input.discountRate) + spread), at(input.discountRate), at(Number(input.discountRate) - spread))
+}
+
+export function orderBand (low, mid, high) {
+  const usable = (value) => (Number.isFinite(value) && value > 0 ? round2(value) : null)
+  const middle = usable(mid)
+  if (middle === null) return { low: null, mid: null, high: null }
+  const values = [low, mid, high].map(usable).filter((value) => value !== null).sort((a, b) => a - b)
+  const floor = values[0]
+  const ceiling = values[values.length - 1]
+  return {
+    low: floor < middle ? floor : null,
+    mid: middle,
+    high: ceiling > middle ? ceiling : null,
+  }
 }
 
 /** Margin of safety in percent, or "n/a" exactly like the original. */
@@ -254,9 +285,20 @@ export const DCF_DEFAULTS = {
  * @param {object} stock stock payload
  * @param {number} freeCashFlow free cash flow per share
  */
+/** Prefer reported diluted EPS, then basic; explicit 0 is a value, not missing. */
+export function preferredEps (stock) {
+  for (const value of [stock?.ttm_eps_nri, stock?.ttm_eps]) {
+    if (value === null || value === undefined || value === '') continue
+    const parsed = Number(value)
+    if (Number.isFinite(parsed)) return parsed
+  }
+  return null
+}
+
 export function buildDefaults (indicator, stock, freeCashFlow) {
+  stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)
-  const eps = stock.ttm_eps_nri ? stock.ttm_eps_nri : (stock.ttm_eps ?? stock.ttm_eps_nri ?? null)
+  const eps = preferredEps(stock)
   const earnings = adoptGrowth(stock.earning_growth_10y)
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {

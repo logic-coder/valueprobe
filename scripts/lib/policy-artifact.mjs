@@ -11,7 +11,7 @@ import { toStock } from '../../src/lib/stockRecord.js'
 import { LISTING_GROUPS } from '../../src/data/listingGroups.js'
 
 export const DATA_DIR = 'public/data'
-export const ARTIFACT_PATH = 'public/data/intrinsic/v1.json'
+export const ARTIFACT_PATH = 'public/data/intrinsic/' + POLICY_VERSION + '.json'
 export const MANIFEST_PATH = 'public/data/manifest.json'
 export const SNAPSHOT_PATTERN = /^[A-Z]{2,}-.+\.json$/
 export const CURRENCY_ORDER = ['CNY', 'USD', 'HKD']
@@ -19,6 +19,7 @@ export const CURRENCY_ORDER = ['CNY', 'USD', 'HKD']
 const readJson = (root, path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 const round2 = (value) => Math.round(value * 100) / 100
+const round4 = (value) => Math.round(value * 10_000) / 10_000
 const sortedObject = (rows, order) => Object.fromEntries(order.filter((key) => rows[key] != null).map((key) => [key, rows[key]]))
 
 export function policyHash () {
@@ -33,7 +34,11 @@ export function snapshotFiles (root, dataDir = DATA_DIR) {
 
 export function readRates (root, dataDir = DATA_DIR) {
   const raw = readJson(root, dataDir + '/rates.json')
-  const entry = (row) => (row && Number(row.value) > 0 ? { value: Number(row.value), asOf: String(row.as_of || row.asOf || ''), source: 'snapshot' } : null)
+  const entry = (row) => {
+    if (!row || row.value === null || row.value === undefined || row.value === '') return null
+    const value = Number(row.value)
+    return Number.isFinite(value) ? { value, asOf: String(row.as_of || row.asOf || ''), source: 'snapshot' } : null
+  }
   const usd = entry(raw.USD)
   return {
     asOf: String(raw.as_of || ''),
@@ -68,24 +73,37 @@ const entryOf = (symbol, stock, value) => ({
   ratesAsOf: value.ratesAsOf,
 })
 
+const pctGap = (a, hInA) => a != null && hInA != null && a !== 0
+  ? round2((hInA / a - 1) * 100)
+  : null
+
+/** Same-period A/H inputs, converted into the A-share quote currency. */
 const crossListingOf = (groups, entries, rawBySymbol) => {
   const rows = []
   for (const group of groups) {
     const a = entries[group.a]
     const h = entries[group.h]
     const fx = Number(rawBySymbol[group.h]?.fx_to_quote)
-    const epsA = a?.inputs?.eps
-    const epsH = h?.inputs?.eps
-    const growthA = a?.inputs?.growth
-    const growthH = h?.inputs?.growth
-    const epsFxDiffPct = epsA > 0 && epsH > 0 && fx > 0 ? round2(((epsH / fx) / epsA - 1) * 100) : null
-    const growthDiffPp = growthA != null && growthH != null ? round2(growthA - growthH) : null
-    const valueHInA = h?.value != null && fx > 0 ? h.value / fx : null
-    const diffPct = a?.value != null && valueHInA != null ? round2((a.value / valueHInA - 1) * 100) : null
-    const aligned = epsFxDiffPct != null && growthDiffPp != null
-      // A-share EPS prefers 扣非 while H files carry diluted EPS; a few percent of
-      // basis difference is normal. Larger gaps are a data problem, not a market one.
-      && Math.abs(epsFxDiffPct) <= 5 && Math.abs(growthDiffPp) <= 2
+    const inA = (value) => value != null && fx > 0 ? round4(value / fx) : null
+    const epsGap = pctGap(a?.inputs?.eps, inA(h?.inputs?.eps))
+    const growthGap = a?.inputs?.growth != null && h?.inputs?.growth != null ? round2(a.inputs.growth - h.inputs.growth) : null
+    const bookGap = pctGap(a?.inputs?.tangibleBook, inA(h?.inputs?.tangibleBook))
+    const rateGap = a?.inputs?.discountRate != null && h?.inputs?.discountRate != null ? round2(a.inputs.discountRate - h.inputs.discountRate) : null
+    const valueHInA = h?.value != null && fx > 0 ? round4(h.value / fx) : null
+    const reasons = []
+    if (!(fx > 0)) reasons.push('FX_MISSING')
+    if (a?.earningsPeriod !== h?.earningsPeriod || a?.earningsDate !== h?.earningsDate) reasons.push('PERIOD')
+    if (epsGap == null) reasons.push('EPS_MISSING')
+    // A-share EPS prefers 扣非 while H files carry diluted EPS; a few percent of
+    // basis difference is normal. Larger gaps are a data problem, not a market one.
+    else if (Math.abs(epsGap) > 5) reasons.push('EPS_BASIS')
+    if (growthGap == null) reasons.push('GROWTH_MISSING')
+    else if (Math.abs(growthGap) > 2) reasons.push('GROWTH')
+    if (bookGap == null) reasons.push('BOOK_MISSING')
+    else if (Math.abs(bookGap) > 5) reasons.push('BOOK_BASIS')
+    if (rateGap == null) reasons.push('RATE_MISSING')
+    else if (Math.abs(rateGap) >= 1) reasons.push('RATE_CURRENCY')
+    const aligned = epsGap != null && growthGap != null && !reasons.includes('PERIOD') && Math.abs(epsGap) <= 5 && Math.abs(growthGap) <= 2
     rows.push({
       id: group.id,
       a: group.a,
@@ -94,9 +112,17 @@ const crossListingOf = (groups, entries, rawBySymbol) => {
       valueA: a?.value ?? null,
       valueH: h?.value ?? null,
       fxToA: fx > 0 ? fx : null,
-      epsFxDiffPct,
-      growthDiffPp,
-      valueDiffPct: diffPct,
+      valueHInA,
+      epsFxDiffPct: epsGap,
+      growthDiffPp: growthGap,
+      valueDiffPct: pctGap(a?.value, valueHInA),
+      bridge: {
+        eps: { a: a?.inputs?.eps ?? null, hInA: inA(h?.inputs?.eps), diffPct: epsGap },
+        growth: { a: a?.inputs?.growth ?? null, h: h?.inputs?.growth ?? null, diffPp: growthGap },
+        book: { a: a?.inputs?.tangibleBook ?? null, hInA: inA(h?.inputs?.tangibleBook), diffPct: bookGap },
+        discountRate: { a: a?.inputs?.discountRate ?? null, h: h?.inputs?.discountRate ?? null, diffPp: rateGap },
+      },
+      reasons,
     })
   }
   return rows

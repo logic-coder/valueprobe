@@ -15,7 +15,6 @@ import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
-import { POLICY_VERSION } from '../src/lib/policy.js'
 import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote } from './lib/snapshot-transport.mjs'
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
@@ -425,7 +424,7 @@ async function refresh (existing, baseline) {
     generatedAt: day, upstreamCheckedAt: new Date().toISOString(), artifact: built.artifact, manifest: built.manifest,
     previousBatch: prior.publish?.batch,
   })
-  await atomicWrite(resolve(OUT, 'intrinsic/' + POLICY_VERSION + '.json'), JSON.stringify(built.artifact, null, 2) + '\n')
+  await atomicWrite(resolve(OUT, 'intrinsic/v2.json'), JSON.stringify(built.artifact, null, 2) + '\n')
   await atomicWrite(resolve(OUT, 'manifest.json'), JSON.stringify(built.manifest, null, 2) + '\n')
   await atomicWrite(resolve(OUT, PUBLISH_PATH.replace('public/data/', '')), JSON.stringify(publish, null, 2) + '\n')
   await atomicWrite(resolve(tempRoot, 'report.json'), JSON.stringify({

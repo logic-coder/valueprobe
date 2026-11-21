@@ -75,7 +75,7 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 - CSS class 仍用于视觉与既有测试；重命名 class 属于可见变更，要同步更新测试与 DEVIATIONS。
 - 门禁：`npm run lint`、`npm run test`、`npx playwright test`、`npm run smoke:pages`、`npm run rehearse:pages`、`npm run audit:contrast`，以及 `PW_BASE=1` 基路径用例。改 `src/lib/dcf.js` 时 `kernel-parity` 必须照旧通过。
 
-## 公开口径与发布值（v1）
+## 公开口径与发布值（v2）
 
 发布数字有一个独立于页面表单的口径层。页面只显示随数据提交的发布值，不为显示重算：
 
@@ -87,7 +87,7 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 | `src/data/listingGroups.js` | 9 组 A/H 对照 |
 | `scripts/lib/policy-artifact.mjs` | 用 `policyValue()` 构建发布值文件 + manifest；写入与校验共用同一函数 |
 | `scripts/policy-values.mjs` / `scripts/verify-data.mjs` | `npm run intrinsic` / `npm run verify:data` |
-| `public/data/intrinsic/v1.json` | 唯一发布值文件：entries、coverage（覆盖计数）、rates、crossListing |
+| `public/data/intrinsic/v2.json` | 唯一发布值文件（v1 冻结保留复现）：entries、coverage（覆盖计数）、rates、crossListing |
 | `public/data/manifest.json` | universe/coverage/rates + 每个快照的 bytes/sha256 |
 | `src/api/policy.js` / `src/store/policy.js` | 读发布值文件的门面与响应式状态（fetch 一次、`entryOf(symbol)`） |
 | `src/pages/MethodPage.vue` | `#/method` 方法页：参数/代码表由 policy 常量生成，发布事实经 `api/policy` 读发布值文件 |

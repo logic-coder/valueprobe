@@ -2,7 +2,7 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth } from './assumptions'
-import { isFinancialInstitution } from './financialInstitution'
+import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
 export function yearSeries (annual, field) {
@@ -65,7 +65,12 @@ export function toStock (raw) {
   applyCleanGrowth(stock, raw.financials?.annual)
   delete stock.history
   delete stock.financials
-  if (isFinancialInstitution(stock, raw.financials?.annual)) stock.financial_institution = true
+  const classification = classify(stock, raw.financials?.annual)
+  if (classification.financial) stock.financial_institution = true
+  stock.classification_basis = classification.basis
+  if (classification.industry) stock.industry = classification.industry
+  const gaps = dataGaps(raw.financials?.annual)
+  if (gaps.length) stock.data_gaps = gaps
   stock._as_of = raw.as_of || stock._as_of || null
   return stock
 }

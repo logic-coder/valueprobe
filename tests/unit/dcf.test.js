@@ -43,7 +43,7 @@ describe('presentValue', () => {
 
   it('values the ICBC defaults with the continuing value', () => {
     // 10.45 of finite annuity plus 3.04 for the years after the second stage.
-    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false)).toEqual({ fairValue: 13.49, growthValue: 7.11, terminalValue: 6.38 })
+    expect(presentValue(11.24, 10, 12, 3, 1.08, 4, 10, false)).toMatchObject({ fairValue: 13.49, growthValue: 7.11, terminalValue: 6.38 })
   })
 
   it('adds the capitalized year after the second stage when discount exceeds terminal growth', () => {
@@ -77,17 +77,22 @@ describe('presentValue', () => {
     expect(fair).toBe(round2(sum + continuing))
   })
 
-  it('keeps only the finite annuity when terminal growth meets the discount rate', () => {
-    expect(presentValue(0, 10, 10, 8, 2, 10, 10, false).fairValue).toBe(round2(finiteAnnuity(0.10, 0.08, 0.10, 2).sum))
+  it('capitalizes at two points under the rate instead of dropping the continuation there', () => {
+    const result = presentValue(0, 10, 10, 8, 2, 10, 10, false)
+    const below = presentValue(0, 10, 10, 8, 2, 4, 10, false)
+    expect(result.fairValue).toBeGreaterThan(below.fairValue)
+    expect(result.effectiveTerminalGrowth).toBe(8)
+    expect(result.continuationValue).toBeGreaterThan(0)
+    expect(result.terminalValue).toBe(round2(result.finiteTerminalValue + result.continuationValue))
   })
 
-  it('does not explode when terminal growth meets or passes the discount rate', () => {
-    const at = presentValue(0, 10, 5, 5, 1, 5, 10, false).fairValue
-    const above = presentValue(0, 10, 5, 5, 1, 6, 10, false).fairValue
-    expect(Number.isFinite(at)).toBe(true)
-    expect(Number.isFinite(above)).toBe(true)
-    expect(at).toBeLessThan(25)
-    expect(above).toBeLessThan(30)
+  it('keeps one value when terminal growth crosses the discount rate', () => {
+    const at = presentValue(0, 10, 5, 5, 1, 5, 10, false)
+    const above = presentValue(0, 10, 5, 5, 1, 6, 10, false)
+    expect(Number.isFinite(at.fairValue)).toBe(true)
+    expect(at.fairValue).toBe(above.fairValue)
+    expect(at.effectiveTerminalGrowth).toBeCloseTo(3, 10)
+    expect(at.fairValue).toBeLessThan(60)
   })
 
   it('caps the capitalization growth two points under the discount rate', () => {
@@ -144,7 +149,7 @@ describe('presentValue', () => {
 
 describe('calculateReverse', () => {
   it('solves the growth rate that justifies the market price', () => {
-    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('0.71')
+    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-7.34')
   })
 
   it('returns null instead of an astronomical rate when the base is not positive', () => {

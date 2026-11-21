@@ -11,16 +11,17 @@
 
 ## 索引
 
-方法页提供[逐公司历史研究数据](../public/research)，包括估值回放、逐年现金和股东权益记录。
+方法页提供[逐公司历史研究数据](../public/research)，包括估值回放、逐年现金和股东权益记录。研究结论、原始档案与 `eval/` 审计留在本地，不随仓库发布。
 
 | 文档 | 内容 | 主要读者 |
 | --- | --- | --- |
-| [POLICY.md](POLICY.md) | 公开口径 v1：参数、拒绝/警告码、发布值文件与 manifest 结构、刷新与数据校验、覆盖清单替换 | 改发布值的人 |
+| [POLICY.md](POLICY.md) | 公开口径 v2：参数、拒绝/警告码、发布值文件与 manifest 结构、刷新与数据校验、覆盖清单替换 | 改发布值的人 |
 | [CALCULATION.md](CALCULATION.md) | 模型、度量口径与计算边界（含公开口径对计算的影响） | 改公式/度量的实现者 |
 | [DATA_SOURCES.md](DATA_SOURCES.md) | 数据源、传输模式、利率、快照与发布值生成 | 改数据层的实现者 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、依赖方向、数据流与词汇表 | 第一次读代码的人 |
 | [DESIGN.md](DESIGN.md) | 界面与交互的设计原则、实现约束、已知取舍 | 改 UI/视觉的人 |
 | [DEVIATIONS.md](DEVIATIONS.md) | 每条用户可见的行为差异与理由（编号不复用） | 评审可见变更的人 |
+| [RELEASE_V2.md](RELEASE_V2.md) | v2 相对冻结 v1 的发布决定、全量差异、审计证据与回滚 | 发布与复核 v2 的人 |
 
 ## 术语表
 
@@ -29,7 +30,7 @@
 | 词 | 含义 | 出现位置 |
 | --- | --- | --- |
 | 覆盖清单（universe） | 产品公开覆盖、随数据提交的股票列表，快照、搜索目录和发布值必须与 `scripts/watchlist.json` 一致 | POLICY、DATA_SOURCES |
-| 发布值文件（artifact） | `public/data/intrinsic/v1.json`：自选 / 对比 / 方法页只读的发布数值；代码路径与字段名保留英文 artifact | POLICY、DATA_SOURCES |
+| 发布值文件（artifact） | `public/data/intrinsic/v2.json`：自选 / 对比 / 方法页只读的发布数值；代码路径与字段名保留英文 artifact | POLICY、DATA_SOURCES |
 | 校验 / 门禁（gate） | `npm run verify` 与 CI 的自动检查；发布值的专用检查是 `npm run verify:data` | 全部 |
 | 公开口径（policy） | 决定发布值的固定参数与规则，带版本号；代码在 `src/lib/policy.js` | POLICY |
 | 快照（snapshot） | 某天抓取并提交的季度基本面数据（`public/data/<MARKET>-<CODE>.json`） | DATA_SOURCES |
@@ -47,6 +48,7 @@
 
 - 用户可见行为变化 → `DEVIATIONS.md` 加一条（带理由与位置）。
 - 发布口径参数、代码、发布值文件结构 → `POLICY.md`；改 `POLICY_V1` 必须同时升版本与 hash，并重跑 `npm run intrinsic`。
+- 升版发布 → 在同一冻结数据上做全量前后差异，写 `RELEASE_V<版本>.md`，归档上一版工件。
 - 数据结构、来源与降级 → `DATA_SOURCES.md`。
 - 分层、词表与依赖方向 → `ARCHITECTURE.md`。
 - 计算边界与度量 → `CALCULATION.md`；设计规范与取舍 → `DESIGN.md`。

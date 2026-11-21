@@ -1,16 +1,16 @@
-// ValueProbe public policy v1: the single place that decides which inputs the
+// ValueProbe public policy v2: the single place that decides which inputs the
 // published intrinsic value uses, and which caveats travel with it. Pure
 // functions only — the browser, the tests and scripts/policy-values.mjs all call
 // this module, so the committed artifact and the screen cannot drift apart.
 //
-// Editing POLICY_V1 changes every published number. Bump POLICY_VERSION and
+// Editing POLICY_V1 or the policy functions changes every published number. Bump POLICY_VERSION and
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
 import { adoptGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS } from './assumptions'
 import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE } from './riskFree'
-import { DCF_DEFAULTS, marginOfSafety, presentValue, residualIncomeValue, valueBand } from './dcf'
+import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
-export const POLICY_VERSION = 'v1'
+export const POLICY_VERSION = 'v2'
 
 const deepFreeze = (value) => {
   if (value && typeof value === 'object') {
@@ -22,6 +22,8 @@ const deepFreeze = (value) => {
 
 export const POLICY_V1 = deepFreeze({
   version: POLICY_VERSION,
+  // Semantics added in v2; listed here so the pinned hash changes with them.
+  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'continuation-guard', band: 'model-consistent-one-sided' },
   // The published number is always a discounted-earnings number. Free cash flow
   // stays a cross-check on the stock page, never the published value.
   basis: 'eps',
@@ -72,7 +74,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'a39917f214d2e1e60b91480cd1b9398c4a027d6214dc9847239d9bc1cb6721d9'
+export const POLICY_V1_HASH = 'd699ffe7cec9cc65b112cd1baa00b5bb2712572d9f2917781fb1090e6efefc6a'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -106,10 +108,7 @@ export function quoteDateStatus (price, priceDate, referenceDate = new Date().to
 }
 
 /** Same EPS preference as buildDefaults, so a seeded calculator equals the artifact. */
-export function policyEps (stock) {
-  if (!stock) return null
-  return stock.ttm_eps_nri ? stock.ttm_eps_nri : (stock.ttm_eps ?? stock.ttm_eps_nri ?? null)
-}
+export const policyEps = (stock) => preferredEps(stock)
 
 /** Reported 10y earnings growth with the underwritten cap; null when missing. */
 export function policyGrowth (value) {
@@ -119,7 +118,7 @@ export function policyGrowth (value) {
 /** Default discount rate in percent from a real local ten-year yield, or null. */
 export function policyDiscountRate (yieldPct) {
   const value = num(yieldPct)
-  if (value === null || value <= 0) return null
+  if (value === null) return null
   const rate = POLICY_V1.discount.rounding === 'none'
     ? value + POLICY_V1.discount.spread
     : Math.ceil(value) + POLICY_V1.discount.spread
@@ -157,6 +156,8 @@ const emptyInputs = () => ({
   addToFairValue: false,
   currency: null,
   rate: null,
+  classification: 'none',
+  industry: null,
 })
 
 const finish = (entry, reasons, warnings) => ({
@@ -196,7 +197,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   let rateRow = null
   if (rate !== undefined) {
     const resolved = num(rate)
-    if (resolved !== null && resolved > 0) rateRow = { value: resolved, asOf: null, source: 'caller', proxy: null }
+    if (resolved !== null) rateRow = { value: resolved, asOf: null, source: 'caller', proxy: null }
   } else if (rates) {
     const resolved = rateForCurrency(rates, currency)
     if (resolved && resolved.value != null) rateRow = resolved
@@ -253,6 +254,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   const tangibleBook = num(stock.tangible_book)
   const model = policyModel(stock)
   inputs.model = model
+  inputs.classification = stock.classification_basis || 'none'
+  inputs.industry = stock.industry || null
   inputs.tangibleBook = tangibleBook
   if (model === POLICY_V1.model.financialInstitution && !(tangibleBook > 0)) reasons.push(REASON.NO_BOOK)
 
@@ -264,17 +267,40 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   // ---- value --------------------------------------------------------------
   const horizon = POLICY_V1.horizon
-  let value = null
-  let terminalShare = null
-  if (model === POLICY_V1.model.financialInstitution) {
-    const result = residualIncomeValue(tangibleBook, eps, discountRate, growth, horizon.terminalGrowthRate, horizon.years)
-    value = result && Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null
-  } else {
+  const valueFor = (which) => {
+    if (which === POLICY_V1.model.financialInstitution) {
+      const result = residualIncomeValue(tangibleBook, eps, discountRate, growth, horizon.terminalGrowthRate, horizon.years)
+      return { value: result && Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null, terminalShare: null, effectiveTerminalGrowth: null }
+    }
     const result = presentValue(tangibleBook, horizon.years, discountRate, growth, eps, horizon.terminalGrowthRate, horizon.yearsOfTerminalGrowth, false)
-    value = Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null
-    const total = result.growthValue + result.terminalValue
-    terminalShare = value != null && total > 0 ? round4(result.terminalValue / total) : null
-    if (tangibleBook > 0 && eps > 0 && growth / 100 > eps / tangibleBook) warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
+    const ownerValue = Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null
+    return {
+      value: ownerValue,
+      terminalShare: ownerValue != null && result.growthValue + result.terminalValue > 0
+        ? round4(result.terminalValue / (result.growthValue + result.terminalValue))
+        : null,
+      effectiveTerminalGrowth: result.effectiveTerminalGrowth,
+    }
+  }
+  const chosen = valueFor(model)
+  let value = chosen.value
+  // Near or above the discount rate the capitalized growth is cut, so the value
+  // sits on the shared capped caliber rather than switching horizons.
+  if (value !== null && chosen.effectiveTerminalGrowth != null && horizon.terminalGrowthRate - chosen.effectiveTerminalGrowth > 0.005) {
+    warnings.push(WARNING.TERMINAL_CAPPED)
+  }
+  let terminalShare = chosen.terminalShare
+  if (value !== null) {
+    // Only a column-shaped route is unverified; record it when the other model
+    // would publish a materially different number, so the page can say so.
+    if (stock.classification_basis === 'columns') {
+      const alternate = valueFor(model === POLICY_V1.model.financialInstitution ? POLICY_V1.model.nonFinancial : POLICY_V1.model.financialInstitution).value
+      if (alternate !== null && Math.abs(alternate / value - 1) >= 0.25) warnings.push(WARNING.CLASSIFICATION_UNVERIFIED)
+    }
+    if (model !== POLICY_V1.model.financialInstitution && tangibleBook > 0 && eps > 0 && growth / 100 > eps / tangibleBook) {
+      warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
+    }
+    if (stock.industry === 'reit' || stock.industry === 'refining') warnings.push(WARNING.MODEL_CAVEAT)
   }
   if (value === null) {
     reasons.push(REASON.NOT_FINITE)
@@ -283,6 +309,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   const band = valueBand({
     residual: model === POLICY_V1.model.financialInstitution,
+    bandSpread: POLICY_V1.band.discountSpread,
     tbv: tangibleBook,
     base: eps,
     discountRate,
@@ -299,7 +326,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   return finish({
     ...base,
     value,
-    band: band.low === null ? null : { low: band.low, mid: band.mid, high: band.high },
+    band: band.low === null && band.high === null ? null : { low: band.low, mid: band.mid, high: band.high },
     terminalShare,
     marginOfSafety: Number.isFinite(margin) ? margin : null,
   }, reasons, warnings)
@@ -309,6 +336,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 export function policySummary () {
   return {
     version: POLICY_VERSION,
+    // Semantics added in v2; listed here so the pinned hash changes with them.
+    revision: { classification: 'industry+ocf+columns', terminalBoundary: 'continuation-guard', band: 'model-consistent-one-sided' },
     basis: POLICY_V1.basis,
     models: { ...POLICY_V1.model },
     horizon: { ...POLICY_V1.horizon },

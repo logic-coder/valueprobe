@@ -22,6 +22,14 @@ export const WARNING = Object.freeze({
   STALE_DATA: 'STALE_DATA',
   QUOTE_DATE_UNKNOWN: 'QUOTE_DATE_UNKNOWN',
   EARNINGS_DATE_UNKNOWN: 'EARNINGS_DATE_UNKNOWN',
+  // Route rests on missing provider columns, and the other model would differ.
+  CLASSIFICATION_UNVERIFIED: 'CLASSIFICATION_UNVERIFIED',
+  // Owner model on a REIT/refiner: no FFO/AFFO or mid-cycle normalisation.
+  MODEL_CAVEAT: 'MODEL_CAVEAT',
+  // Historical: value used to stop at the explicit years. Kept for old artifacts.
+  TERMINAL_DROPPED: 'TERMINAL_DROPPED',
+  // Terminal growth was cut to (at most) two points under the discount rate.
+  TERMINAL_CAPPED: 'TERMINAL_CAPPED',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

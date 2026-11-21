@@ -1,10 +1,12 @@
 import { createHash } from 'node:crypto'
-import { readFileSync, readdirSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { LISTING_GROUPS } from '../../src/data/listingGroups'
 import { POLICY_V1_HASH, POLICY_VERSION } from '../../src/lib/policy'
 import { isKnownReason, isKnownWarning } from '../../src/lib/reasons'
+import { readRates } from '../../scripts/lib/policy-artifact.mjs'
 
 // Contract for the committed public data a static deploy reads directly with no
 // build step: artifact, manifest, catalog, rates and snapshots must describe one
@@ -19,7 +21,7 @@ const symbolOf = (name) => name.replace(/\.json$/, '').replace(/^([A-Z]+)-/, '$1
 const snapshotFiles = readdirSync(DATA).filter((name) => SNAPSHOT_FILE.test(name)).sort()
 const snapshotSymbols = snapshotFiles.map(symbolOf)
 
-const artifact = readJson('public/data/intrinsic/v1.json')
+const artifact = readJson('public/data/intrinsic/v2.json')
 const manifest = readJson('public/data/manifest.json')
 const catalog = readJson('public/data/catalog.json')
 const rates = readJson('public/data/rates.json')
@@ -27,7 +29,7 @@ const watchlist = readJson('scripts/watchlist.json')
 const entries = Object.entries(artifact.entries)
 
 describe('policy pin', () => {
-  it('is built from the frozen public policy v1', () => {
+  it('is built from the frozen public policy v2', () => {
     expect(artifact.schema).toBe(1)
     expect(manifest.schema).toBe(1)
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
@@ -147,6 +149,21 @@ describe('freshness metadata', () => {
   })
 })
 
+describe('snapshot rate domain', () => {
+  it('keeps zero and negative observations and rejects only blanks', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'vp-rates-'))
+    mkdirSync(join(dir, 'data'))
+    writeFileSync(join(dir, 'data/rates.json'), JSON.stringify({
+      CNY: { value: 0, as_of: '2026-11-18' },
+      USD: { value: -0.2, as_of: '2026-11-18' },
+    }))
+    const rows = readRates(dir, 'data').rates
+    expect(rows.CNY).toEqual({ value: 0, asOf: '2026-11-18', source: 'snapshot' })
+    expect(rows.USD.value).toBe(-0.2)
+    expect(rows.HKD.value).toBe(-0.2)
+  })
+})
+
 describe('cross-listing report', () => {
   it('covers the nine curated pairs and flags the BYD input mismatch', () => {
     const rows = artifact.crossListing
@@ -159,5 +176,18 @@ describe('cross-listing report', () => {
       expect(['aligned', 'input-mismatch', 'not-valued']).toContain(row.status)
     }
     expect(rows.find((row) => row.id === 'BYD').status).toBe('input-mismatch')
+  })
+
+  it('explains the gap input by input in the A-share currency', () => {
+    const byd = artifact.crossListing.find((row) => row.id === 'BYD')
+    expect(byd.reasons).toEqual(expect.arrayContaining(['EPS_BASIS', 'GROWTH']))
+    expect(byd.bridge.eps.diffPct).toBe(byd.epsFxDiffPct)
+    expect(byd.bridge.growth.diffPp).toBe(byd.growthDiffPp)
+    expect(byd.bridge.book.hInA).toBeGreaterThan(0)
+    const icbc = artifact.crossListing.find((row) => row.id === 'ICBC')
+    expect(icbc.status).toBe('aligned')
+    expect(icbc.bridge.eps.diffPct).toBe(icbc.epsFxDiffPct)
+    expect(icbc.reasons).toContain('RATE_CURRENCY')
+    expect(icbc.valueHInA).toBeCloseTo(icbc.valueH / icbc.fxToA, 4)
   })
 })

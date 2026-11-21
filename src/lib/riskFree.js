@@ -1,5 +1,6 @@
 // Default discount rate: ceil(local 10-year government yield) + 6.
-// The rate must match the cash-flow currency, not the display currency.
+// A zero or negative yield is still a real observation; only a missing or
+// non-finite one falls back. The rate must match the cash-flow currency.
 const CODE_BY_SYMBOL = { '¥': 'CNY', '￥': 'CNY', '$': 'USD', 'HK$': 'HKD', '€': 'EUR', '£': 'GBP' }
 const codeOf = (currency) => CODE_BY_SYMBOL[currency] || (/^[A-Z]{3}$/.test(currency || '') ? currency : null)
 
@@ -8,10 +9,11 @@ export const FALLBACK_DISCOUNT_RATE = 8
 export const CNY_YIELD_ID = 'EMM00166466'
 export const USD_YIELD_ID = 'EMG00001310'
 
-/** @param {unknown} rate ten-year yield in percent */
+/** @param {unknown} rate ten-year yield in percent; zero and negatives are valid */
 export function defaultDiscountRate (rate) {
+  if (rate === null || rate === undefined || rate === '') return FALLBACK_DISCOUNT_RATE
   const value = Number(rate)
-  if (!Number.isFinite(value) || value <= 0) return FALLBACK_DISCOUNT_RATE
+  if (!Number.isFinite(value)) return FALLBACK_DISCOUNT_RATE
   return Math.ceil(value) + EQUITY_PREMIUM
 }
 
@@ -41,7 +43,7 @@ export function rateForCurrency (rates, currency) {
 
 function pick (row) {
   const value = Number(row?.value)
-  if (!row || !Number.isFinite(value) || value <= 0) return null
+  if (!row || row.value == null || !Number.isFinite(value)) return null
   return { value, asOf: row.asOf || row.as_of || null, source: row.source || 'snapshot' }
 }
 
@@ -50,8 +52,10 @@ export function parseEastMoneyYields (body) {
   const rows = [...(body?.result?.data || [])].sort((left, right) => String(right.SOLAR_DATE || '').localeCompare(String(left.SOLAR_DATE || '')))
   const pickId = (key) => {
     for (const row of rows) {
-      const value = Number(row?.[key])
-      if (Number.isFinite(value) && value > 0) {
+      const raw = row?.[key]
+      if (raw === null || raw === undefined || raw === '') continue
+      const value = Number(raw)
+      if (Number.isFinite(value)) {
         return { value, asOf: String(row.SOLAR_DATE || '').slice(0, 10), source: 'live' }
       }
     }

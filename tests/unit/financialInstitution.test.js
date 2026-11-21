@@ -2,14 +2,18 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { presentValue, residualIncomeValue } from '../../src/lib/dcf'
-import { isFinancialInstitution } from '../../src/lib/financialInstitution'
+import { classify, dataGaps, isFinancialInstitution } from '../../src/lib/financialInstitution'
 import { buildSensitivityGrid } from '../../src/lib/sensitivity'
 import { defaultView } from '../../src/lib/watchlistView'
 
 const read = (dir, name) => {
   const stock = JSON.parse(fs.readFileSync(path.resolve(dir, name + '.json'), 'utf8'))
   stock.exchange_ = name.split('-')[0]
-  if (isFinancialInstitution(stock)) stock.financial_institution = true
+  const found = classify(stock)
+  if (found.financial) stock.financial_institution = true
+  stock.classification_basis = found.basis
+  if (found.industry) stock.industry = found.industry
+  stock.data_gaps = dataGaps(stock.financials?.annual)
   return stock
 }
 
@@ -29,12 +33,12 @@ describe('residual income', () => {
     expect(faded.fairValue).toBeLessThan(66.09)
   })
 
-  it('refuses a value without positive book, earnings, or discount rate', () => {
+  it('refuses a value without positive book or earnings but keeps a zero rate', () => {
     expect(residualIncomeValue(46.87, 0, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(46.87, -1, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(0, 5.84, 10, 4, 4)).toBeNull()
     expect(residualIncomeValue(-3, 5.84, 10, 4, 4)).toBeNull()
-    expect(residualIncomeValue(46.87, 5.84, 0, 4, 4)).toBeNull()
+    expect(residualIncomeValue(46.87, 5.84, 0, 4, 4).fairValue).toBeGreaterThan(46.87)
   })
 
   it('feeds the sensitivity centre cell', () => {
@@ -48,6 +52,7 @@ describe('financial institution detector', () => {
     for (const name of ['SHSE-600036', 'SHSE-601398', 'SHSE-601318', 'SHSE-600030', 'SZSE-000001', 'HKSE-01398', 'NYSE-BAC']) {
       expect(loadSnapshot(name).financial_institution, name).toBe(true)
     }
+    expect(loadSnapshot('NYSE-BAC').classification_basis).toBe('name')
   })
 
   it('flags HK insurers and HSBC by name', () => {
@@ -56,23 +61,46 @@ describe('financial institution detector', () => {
     }
   })
 
-  it('flags US filers with book but no operating income and no cash flow or revenue', () => {
-    for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS']) {
-      expect(loadSnapshot(name).financial_institution, name).toBe(true)
+  it('routes US financials on citable SIC and filing evidence, not missing columns', () => {
+    for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS', 'NASDAQ-PFG', 'NYSE-APO', 'NYSE-CB', 'NYSE-EG',
+      'NYSE-PNC', 'NYSE-PRU', 'NYSE-SYF', 'NYSE-TFC', 'NYSE-USB', 'NYSE-WFC']) {
+      const stock = loadSnapshot(name)
+      expect(stock.financial_institution, name).toBe(true)
+      expect(stock.classification_basis, name).toBe('industry')
     }
   })
 
+  it('keeps REITs and refiners on the owner model through industry evidence', () => {
+    for (const [name, industry] of [['NYSE-O', 'reit'], ['NYSE-WELL', 'reit'], ['NYSE-PSX', 'refining']]) {
+      const stock = loadSnapshot(name)
+      expect(stock.financial_institution, name).toBeUndefined()
+      expect(stock.industry, name).toBe(industry)
+      expect(stock.classification_basis, name).toBe('industry')
+      expect(stock.data_gaps, name).toHaveLength(2)
+    }
+  })
+
+  it('separates missing provider columns from the business classification', () => {
+    expect(dataGaps(loadSnapshot('NYSE-O').financials.annual)).toEqual(['operating_income_per_share', 'free_cash_flow_per_share'])
+    expect(dataGaps(loadSnapshot('NYSE-CVX').financials.annual)).toEqual(['operating_income_per_share'])
+    expect(classify(loadSnapshot('NYSE-O')).basis).toBe('industry')
+    expect(classify(loadSnapshot('NYSE-CVX')).basis).toBe('none')
+    const unlisted = { exchange_: 'NYSE', symbol: 'X', company: 'Acme', financials: { annual: [{ book_value_per_share: 10 }] } }
+    expect(classify(unlisted).basis).toBe('columns')
+    expect(isFinancialInstitution(unlisted)).toBe(true)
+  })
+
   it('leaves Hong Kong non-financials and ordinary companies alone', () => {
-    for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'HKSE-00388', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'NYSE-CVX', 'NYSE-LLY', 'NYSE-TSM', 'SHSE-600519']) {
+    for (const name of ['HKSE-00700', 'HKSE-03690', 'HKSE-00941', 'HKSE-00388', 'NASDAQ-AAPL', 'NASDAQ-MSFT', 'NASDAQ-NVDA', 'NASDAQ-GOOGL', 'NYSE-KO', 'NYSE-CVX', 'NYSE-LLY', 'NYSE-TSM', 'NYSE-O', 'NYSE-WELL', 'NYSE-PSX', 'SHSE-600519']) {
       expect(loadSnapshot(name).financial_institution, name).toBeUndefined()
     }
   })
 
   it('reads annual rows passed apart from a payload that dropped them', () => {
-    const { financials, ...jpm } = loadSnapshot('NYSE-JPM')
-    delete jpm.financial_institution
-    expect(isFinancialInstitution(jpm)).toBe(false)
-    expect(isFinancialInstitution(jpm, financials.annual)).toBe(true)
+    const annual = [{ book_value_per_share: 10 }]
+    const bare = { exchange_: 'NYSE', symbol: 'X', company: 'Acme', financials: {} }
+    expect(isFinancialInstitution(bare)).toBe(false)
+    expect(isFinancialInstitution(bare, annual)).toBe(true)
   })
 })
 

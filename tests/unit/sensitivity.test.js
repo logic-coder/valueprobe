@@ -28,6 +28,14 @@ describe('sensitivity grid', () => {
     expect(high.growths.at(-1)).toBe(60)
   })
 
+  it('keeps one centre column and no duplicates at an axis edge', () => {
+    const low = buildSensitivityGrid({ ...base, discountRate: 0, growthRate: -20 })
+    expect(low.growths[0]).toBe(-20)
+    expect(new Set(low.growths).size).toBe(low.growths.length)
+    expect(low.rows[0]).toHaveLength(low.growths.length)
+    expect(low.rows[0][0]).toBe(presentValue(0, 10, 0, -20, 1, 4, 10, false).fairValue)
+  })
+
   it('centres on the exact inputs instead of rounding them', () => {
     const grid = buildSensitivityGrid({ ...base, discountRate: 10.6, growthRate: 21.05 })
     expect(grid.center).toEqual({ discountRate: 10.6, growthRate: 21.05 })

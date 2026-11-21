@@ -183,7 +183,9 @@
   缓存按季度快照照常工作，实时行情仍需联网；每次成功导航会刷新外壳。
 - 不改：构建产物哈希与数据请求逻辑。
 
-## D24 · 斜杠聚焦搜索
+## D44 · 斜杠聚焦搜索
+
+编号曾与下文的 D24 重复，现改用唯一编号。
 
 早期版本没有键盘入口。
 
@@ -288,20 +290,20 @@
 - 行为：股票页沿用原有结果条与表单，不再额外渲染重复的发布值面板；政策版本、asOf 与覆盖率在方法页展示；情景只切假设。
 - 文案：用户可见的英文统一为 “Intrinsic value”，中文统一「内在价值」；不再用“fair value”作产品自称。
 
-## D34 · 覆盖清单替换与 150 只全量
+## D34 · 覆盖清单替换与历史 150 只全量
 
-公开覆盖清单固定 150 只（`scripts/watchlist.json`），`public/data`、`catalog.json`、发布值文件的 `entries` 必须一致。两处替换：
+150 只是历史发布规模。当前公开覆盖以 `scripts/watchlist.json` 为准（现为 500 只），`public/data`、`catalog.json`、发布值文件的 `entries` 必须一致。两处替换：
 
 - `HKSE:00823`（领展房产基金）东方财富无可用数据 → `HKSE:00002`（中电控股）。
 - `NYSE:XOM` 的 ticker 在 2026 年指向新的控股实体、SEC facts 不可用 → `HKSE:00066`（港铁公司）。
 
 - 位置：`scripts/watchlist.json`、`public/data/`、`scripts/policy-values.mjs`。
 - 行为：替换只换标的，不改口径；universe 检查不通过时 `verify:data` 直接失败。
-- 不改：拒绝出值的 27 只仍留在覆盖清单里并如实标注原因，不为了凑数换掉。
+- 不改：发布时拒绝出值的 27 只（当前数量以发布值文件为准）仍留在覆盖清单里并如实标注原因，不为了凑数换掉。
 
 ## D35 · 发布值文件 + manifest + verify:data
 
-可复现的发布值：`npm run intrinsic` 生成 `public/data/intrinsic/v1.json` 与 `public/data/manifest.json`；`npm run verify:data` 用同一构建函数重算并比对字节、policy hash、universe、manifest sha256、过期时间与抽样记录。
+可复现的发布值：`npm run intrinsic` 生成 `public/data/intrinsic/v2.json` 与 `public/data/manifest.json`；`npm run verify:data` 用同一构建函数重算并比对字节、policy hash、universe、manifest sha256、过期时间与抽样记录。
 
 - 位置：`scripts/policy-values.mjs`、`scripts/lib/policy-artifact.mjs`、`scripts/verify-data.mjs`、`tests/unit/data-contract.test.js`。
 - 行为：发布值文件是唯一的对外发布值，自选、对比与方法页只读它；提交面数据必须同时提交发布值文件与 manifest，否则校验失败。
@@ -330,7 +332,7 @@
 早期个股页把一套空白计算器交给读者，头条显示计算器结果；发布值只在自选、对比、方法页出现。同一只股票因此可能出现两个不同的内在价值头条。
 
 - 行为：覆盖范围内且有发布值的股票，头条直接显示发布值文件里的 `value`、`marginOfSafety`、独立的财报期间与报价日期，以及发布日和政策版本，并在标题处标为「ValueProbe 公允价」。计算器从同一条 entry 的 `inputs` 播种，所以未编辑时头条等于发布值。
-- 编辑：改股价或任一假设只改本页的响应式状态，头条随即标为「试算」并说明不影响公开口径；「恢复默认值」回到发布输入。编辑不写回 `src/lib/policy.js`、`public/data/intrinsic/v1.json`、`manifest.json`，也不进入跨页共享状态。
+- 编辑：改股价或任一假设只改本页的响应式状态，头条随即标为「试算」并说明不影响公开口径；「恢复默认值」回到发布输入。编辑不写回 `src/lib/policy.js`、`public/data/intrinsic/v2.json`、`manifest.json`，也不进入跨页共享状态。
 - 非覆盖 / 政策拒绝出值的股票：明确显示「暂无公开估值」及原因（或「不在公开覆盖清单内」），下方仍可试算，但不冒充官方结论。
 - 位置：`DcfCalculator.vue`（播种、编辑标记、恢复）、`dcf/DcfResultBar.vue`（标题与口径行）、`styles/dcf.css`、`i18n/legal-messages.js`、`tests/e2e/dcf.spec.js`。
 - 理由：目标是让读者打开一只覆盖内的股票就看到「在既定政策下它值多少、相对现价的安全边际、算到哪一天、依据哪一版政策」；同时保留改参数做对比的能力。两者不能是两套并列的数字，否则读者无法判断哪个是发布结论。
@@ -360,3 +362,94 @@
 - 位置：`DcfCalculator.vue`、`App.vue` 旁注未变、`i18n/zh-Hans.json`、`i18n/en-US.json`、`i18n/legal-messages.js`、`styles/dcf.css`、E2E 与 `tests/unit/copy-policy.test.js`。
 - 理由：在「官方价默认 + 本地试算」模型下，编辑入口必须唯一，否则读者不知道改的是哪一份状态；日期标签必须区分数据源日期与发布日，否则无法判断数据的新鲜度。
 - 不改：发布值、政策、计算口径、页眉改价链路与 `isEdited` 状态机。
+
+## D41 · 第二阶段、续营与反推共用一个有效终值增速
+
+折现率不高于终值增速时，永续资本化项 `(flow × (1 + g)) / (r − g)` 没有有限正数。最初版本在 `r = g` 时撤掉续营项，头条仍从 63.92 跳到 17.70，因为前后换了估值期限：有限年金和永续不是同一个口径。只把永续部分夹到 `r − 2` 也不够，第二阶段仍在用原增速，`g = 9.99 / 10 / 10.01` 仍给出不同值。
+
+- 行为：`unroundedPresentValue` 先算 `gc = min(terminalGrowth, r − 2)`，第一阶段的增速衰减目标、第二阶段逐年的增速、续营资本化三处都用 `gc`。续营始终计入，不再因 `r ≤ g` 消失；`r = g = 10` 时 `gc = 8`，三个相邻终值增速得到同一个数（55.8）。`terminalValue` 仍等于第二阶段有限价值加续营价值，另返回 `finiteTerminalValue` 与 `continuationValue`，页面把两者分开显示。
+- 披露：`effectiveTerminalGrowth` 返回实际采用的 `gc`；政策在原始终值增速高于有效值 0.5 个百分点时补 `TERMINAL_CAPPED`。旧产物里的 `TERMINAL_DROPPED` 保留在代码与文案中。
+- 反推：`calculateReverse` 改为求解同一个 `unroundedPresentValue`，601398 金样本与页面 `impliedGrowth` 同为 −7.34%。`calGr2fv` 仍是冻结的有限年金，只用于对照；其比率等于 1 时取极限、大于 1 时置 0。
+- 利率取值域：零和负收益率不再一律回退 8%。负值照常取 `ceil(yield) + 6` 后夹到 [0, 50]；负值足够深时 `gc` 可为负，三个阶段仍同号。
+- 位置：`src/lib/dcf.js` 的 `unroundedPresentValue` / `presentValue` / `calculateReverse`、`src/lib/policy.js` 的 `policyDiscountRate` 与发布分支、`src/lib/riskFree.js` 的 `pick`、`DcfCalculator.vue` 的阶段面板与 `stageNote`。
+- 审计：`eval/audit-hi.mjs`。冻结数据 40 只残差样本的正常折现率都高于 4%，续营项逐条保留；残差矩阵以 1% 为中心时 20 格有 5 格折现率为 0 或负，明确为空。
+- 测试：`tests/unit/terminal.test.js`、`tests/unit/dcf.test.js`、`tests/unit/policy.test.js`、`tests/unit/kernel-parity.test.js`。
+
+## D42 · 残差区间用同一模型扰动折现率
+
+残差区间的上限此前取 `enduringBookValue`，那是条件续营情景而不是区间端点。冻结的 40 只已发布残差样本里，旧上限有 13 只与基准值完全相等，区间塌成一点。
+
+- 行为：低值、基准、高值都由 `residualIncomeValue` 计算，只在折现率上作 ±2 个百分点扰动，收敛目标随折现率同步移动；基准仍是发布头条。端点没有超过基准时不补宽、返回 `null`，结果条只渲染真实存在的半边并显示「区间缺项」。
+- 缺口：`r − 2 ≤ 0` 时高值无法计算，保留缺项；折现率调节下限为 0，当前发布样本尚未触发。
+- 位置：`src/lib/dcf.js` 的 `valueBand` / `residualIncomeBand` / `orderBand`、`src/lib/policy.js` 的区间发布、`dcf/DcfResultBar.vue`。
+- 审计：`eval/h-band.json`，40 只逐条旧区间与新区间，O / WELL / PSX 为旧口径误分流样本。
+- 测试：`tests/unit/band.test.js`。
+
+## D43 · 反推仍用旧内核，只在测试里作历史对照
+
+`calculateReverse` 解的是固定增速的 `calGr2fv`，页面正向值走 `presentValue` 的线性衰减路径，两者对同一组参数本来就会不同（601398 金样本：旧反推 0.71%，衰减模型反推约 −7.34%）。页面正向与 `impliedGrowth` 成对，反推面板也只读 `impliedGrowth`。
+
+- 行为：`calculateReverse` 保留导出并加 `@remarks`，由 `kernel-parity` 的冻结金样本锁住；不作为对外库 API 承诺。`calGr2fv` 的等比系数为 1 时取有限级数极限，等于 `base × (years + yearsOfTerminalGrowth)`，大于 1 时置 0。
+- 位置：`src/lib/dcf.js` 的两个内核、`tests/unit/kernel-parity.test.js`、`tests/unit/dcf.test.js`。
+- 不改：页面正向调用、金样本数值、`impliedGrowth` 契约。
+
+## D45 · EPS 与利率边界按有限数判断，零值不再当缺失
+
+旧选择器用真值判断（`stock.ttm_eps_nri ? … : …`），显式 0 会落到下一口径或变成缺失；发布脚本只接受大于 0 的利率，快照里的零和负收益率到不了政策。两处都可能把真实观测改写成另一个数。
+
+- 行为：`preferredEps()` 依次取 `ttm_eps_nri`、`ttm_eps`，只跳过 `null`、`undefined`、空串和非有限数；0 与 `'0'` 保留。发布与页面共用这一函数。利率只跳过缺失，有限数（含 0 和负值）都进入 `ceil(yield) + 6` 再夹到 0–50；只有缺失才回退 8%。`readRates()` 不再丢掉 `≤ 0` 的行。
+- 残差模型在折现率 0 时没有贴现，全部超额收益保留、账面按 ROE 复利；区间上沿因 `r − 2 ≤ 0` 留空。这是夹取后的边界值，不是可长期维持的 0% 股权成本。
+- 位置：`src/lib/dcf.js` 的 `preferredEps`/`buildDefaults`/`residualIncomeValue`、`src/lib/policy.js`、`src/lib/riskFree.js`、`scripts/lib/policy-artifact.mjs` 的 `readRates`。
+- 审计：`eval/i-boundary.json`（残差矩阵零利率一侧为空）。
+- 测试：`tests/unit/policy.test.js`（0/`'0'`/空串/非法值、`NON_POSITIVE_EPS`、速率 60 与 −100 两端、0 → 6%、−2.5% → 4%）、`tests/unit/riskFree.test.js`、`tests/unit/data-contract.test.js`、`tests/unit/sensitivity.test.js`。
+- 不改：拒绝非正 EPS 的 `NON_POSITIVE_EPS` 语义；上限 50 与 `DISCOUNT_CLAMPED`。
+
+## D46 · A/H 对照从倍数差改为逐项差异桥
+
+旧 `crossListing` 只给 EPS 折算差、增长差和估值倍数差，读者无法知道估值差来自哪一项；页面也没有展示。
+
+- 行为：H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种，再分别给出 EPS、增长、账面值和折现率差及原因码。`valueDiffPct` 改为 `valueHInA / valueA − 1`（负值＝H 更低），方向与其它差值一致。`aligned` 只要求 EPS 差 ≤5%、增长差 ≤2 个百分点、期间相同，折现率差只作为 `RATE_CURRENCY` 原因披露。方法页表格逐组展示，未估值记 `not-valued`。
+- 已知常量：H 股一律走美元十年期代理，A 股走人民币，因此每组折现率差都是 −4 个百分点；`aligned` 不代表估值相同。
+- 位置：`scripts/lib/policy-artifact.mjs` 的 `crossListingOf`、`src/pages/MethodPage.vue`、`src/i18n/legal-messages.js`。
+- 审计：`eval/k-cross.json`。
+- 测试：`tests/unit/data-contract.test.js`、`tests/unit/policy.test.js`。
+- 不改：`listingGroups` 的 9 组标的与汇率来源；不平均、不回写任何一方发布值。
+
+
+## D47 · 刷新结果接入发布闸门与批次摘要
+
+旧刷新最后只按“artifact 构建问题”拦截；报价或财报整批失败、定向代码缺数据、覆盖骤降都可能被当作成功发布，且没有状态区分新期间、无更新和失败保留。
+
+- 行为：刷新记录模式、范围（all/targeted/candidates）、逐标的报价与财报结果和逐币种利率结果。结果分新期间、已核验无更新、失败保留旧值（failed-kept）、失败且无旧值（failed-missing）、明确跳过。整批必需链路全失败、定向代码失败、估值数跌破上一批 90%、拒绝数增加超过 max(5, 声明数 2%)、任一市场失去全部估值、没有任何可用利率时状态为 blocked，命令非零退出且不安装暂存。局部失败保留旧记录与真实期间/日期，状态 partial，继续发布。
+- 发布文件新增 `public/data/publish.json`：`schema`、`status`（ok/partial/verified-unchanged/rebuilt/blocked）、`blocked[]`、`partial[]`、`mode`、`scope`、`rates`、`generatedAt`、`upstreamCheckedAt`、`latestPeriod`、`batch`、`previousBatch`。`batch` 是本次 artifact 与 manifest 精确写入字节的 sha256；安装/回滚包含该文件。
+- CI：`verify:data` 要求 publish 存在、状态非 blocked、`batch` 等于重算文件、`generatedAt` 等于 artifact 日期、`upstreamCheckedAt` 不早于生成日、`latestPeriod` 等于 artifact 最大报告期。手工 `npm run intrinsic` 也写同批 `rebuilt` 状态，避免摘要在手工重算后失效。
+- 失败语义：必需链路全挂时暂存文件仍写出，已发布 artifact/manifest/publish 保持原字节，前次成功批次的日期不前移；报告路径和原因输出到 stderr。
+- 位置：`scripts/lib/publish-gate.mjs`、`scripts/snapshot.mjs`、`scripts/policy-values.mjs`、`scripts/verify-data.mjs`、`scripts/lib/snapshot-install.mjs`、`scripts/pages-smoke.mjs`、`scripts/lib/policy-delivery.mjs`。
+- 测试：`tests/unit/publish-gate.test.js`（首跑、全失败、定向失败、部分保留、无更新、覆盖/拒绝/市场退化、利率、摘要与就绪）、`tests/unit/snapshot-refresh.test.js`（publish 随安装回滚）。
+- 不改：阈值来源是上一发布批次的覆盖；不是 120 天统一拒绝线。指标年龄仍只警告。
+
+## D49 · 验收修正：发布事务、行业证据、共同终值域与冻结回放
+
+发布验收退回 `6225f78` 后，以下问题按根因修正；v2 字节与发布证据随之更新。
+
+- 发布事务：安装日志现在同时记录新快照和本批首次出现的发布资产（含 `intrinsic/v2.json`、`publish.json`）。回滚恢复旧发布并删除本批新增的每个文件；首次升级失败用无 v2/publish 的直播目录回归（`tests/unit/snapshot-refresh.test.js`）。
+- 发布状态：报价是否更新改由 `useQuote` 比较，旧日期报价不再算 `updated`。本机 `npm run intrinsic` 继承上一批的真实核验时间，没有则写 null；`verify:data` 对本地重建允许未知或更早的核验时间，对在线刷新仍要求不早于生成时间。
+- 行业证据：13 家仅因缺列被归为金融的美国公司补入 SEC SIC 与 2025 年 10-K 来源，分类依据为 `industry`；`CLASSIFICATION_UNVERIFIED` 从 11 条降为 0。O、WELL、PSX 仍按暂定 owner 口径发布并带 `MODEL_CAVEAT`，理由与重访条件见 `RELEASE_V2.md`。
+- 共同终值域：第二阶段淡出目标、逐年终值与续营价值都用 `min(gT, r−2pp)`，续营始终计入；标题值与矩阵中心不再出现 r=g 的 17.70 悬崖，gT 9.99/10/10.01 在 r=10 同为 55.8。有限第二阶段价值与续营价值分列展示，反推走同一函数。
+- 有限年金：`calGr2fv` 在 g>r 时不再把终值窗口置零，有限几何级数在 g=1 两侧连续；隔离算例不再从 15.22 跳到 8.44。
+- 冻结回放：`scripts/research/kernel-v1.mjs` 固定 v1 策略、哈希和旧分类器，四个历史研究脚本不再导入现行 v2；`npm run research:check` 对旧结果逐字节校验，CI 运行 `npm run research:kernel` 的 6 条向量，400 MB 原始缓存仍只留本地。
+- 快照年龄：读取已保存快照时不再按今天检查报价年龄，日期由策略披露（`STALE_PRICE`）；快照作为历史事实继续可读。
+- 浏览器上传闸门：断言改为当前语言的公司名或代码加估值金额，避免中文界面等待英文名而阻断 Pages；本机沙箱仍阻止 Playwright 浏览器子进程，未本地执行。
+- 最终 v2：410 有值 / 90 拒绝，sha256 `490188d047a11082da199e820c6899fefae4bb683e169af1444511d319d1f9e5`；58 个文件 436 项单测、lint、20 项 `verify:data` 通过。
+- 提交范围：内部研究、档案与 `eval/` 留在本地；工程修复与待批准的 v2 政策发布分成两个提交，发布提交包含版本、工件、manifest 与发布记录。
+- 位置：`scripts/lib/publish-gate.mjs`、`scripts/lib/snapshot-install.mjs`、`src/lib/{dcf,policy,financialInstitution,reasons}.js`、`src/config/industry.js`、`src/data/registry.js`、`scripts/research/*`、`tests/unit/*`、`docs/RELEASE_V2.md`。
+
+v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆盖旧字节。发布边界要求先在同一冻结快照上做全量前后差异，再给新版本号并归档旧版。
+
+- 基线：`public/data/intrinsic/v1.json` 保持提交 `f4fb58a` 的释放字节，`generatedAt` 2026-11-20，sha256 `51312f479d4da2ada8e5f6caa4da3ee628d63df4071d91ddd7d5aa39bd61776b`；安装清单保留该文件，应用不再读取。
+- 当前：`public/data/intrinsic/v2.json`，`generatedAt` 2026-11-21，sha256 `490188d047a11082da199e820c6899fefae4bb683e169af1444511d319d1f9e5`。
+- 差异：值 3 条（O 23.51→16.71、PSX 173.03→624.11、WELL 43.96→18.63），模型 3 条转 owner，区间 40 条，终值占比 3 条，警告 3 条（`MODEL_CAVEAT`），输入分类 500、行业 16；拒绝、有效状态与原因计数不变。逐条见 `eval/release-v2-diff.json`。
+- 决定记录：`docs/RELEASE_V2.md`（理由、样例、验证、回滚）。研究接续条件保留在本地研究稿，不把 v2 结果回写成历史 v1 结论。
+- 位置：`src/lib/policy.js`（版本、revision、派生路径）、`scripts/lib/policy-artifact.mjs`、`scripts/pages-smoke.mjs`、`public/data/intrinsic/*`、`docs/RELEASE_V2.md`。
+- 测试：v1→v2 差异脚本 `eval/v2-diff.mjs`；全量单测 436、lint、20 项 `verify:data` 通过；生产构建已本地完成。Playwright 受本机浏览器子进程限制未跑，仍以 CI 为准。
+- 回滚：把 `ARTIFACT_PATH` 指回 v1 并恢复 `pages-smoke` 的版本断言，或 revert 发布提交；v1 哈希用于核对，不覆盖归档。

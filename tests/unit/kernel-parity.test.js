@@ -24,7 +24,7 @@ describe('frozen kernel parity', () => {
   })
 
   it('case 5: reverse DCF against the market price', () => {
-    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('0.71')
+    expect(calculateReverse(11.24, 10, 12, 1.08, 8.85, 4, 8.85, 10, false)).toBe('-7.34')
   })
 
   it('case 6: margin of safety against the market price', () => {
@@ -34,5 +34,10 @@ describe('frozen kernel parity', () => {
   it('retains the legacy annuity behaviour and leaves an invalid margin empty', () => {
     expect(marginOfSafety(8.85, 0)).toBe('n/a')
     expect(Number.isFinite(calGr2fv(0, 10, 0, 5, 1, 4, 10, false).fairValue)).toBe(true)
+  })
+
+  it('uses the geometric limit when the stage rate equals the discount rate', () => {
+    // ratio 1: every year discounts to base, one fast year and one terminal year.
+    expect(calGr2fv(0, 1, 10, 10, 1, 10, 1, false).fairValue).toBe(2)
   })
 })
