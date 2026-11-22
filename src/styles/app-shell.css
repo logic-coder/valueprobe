@@ -60,7 +60,7 @@ main:focus { outline: none; }
 .brand__tag { font-size: 12px; color: var(--text-faint); padding-left: 8px; border-left: 1px solid var(--border); margin-left: 2px; }
 
 .symbol-search { position: relative; flex: 1 1 auto; max-width: 460px; min-width: 120px; margin-inline: auto; }
-.symbol-search .q-field__control { background: var(--surface-2); border-radius: 999px; height: 34px; }
+.symbol-search .q-field__control { background: var(--surface-2); border-radius: var(--radius-sm); height: 34px; }
 .symbol-search .q-field__native { padding-left: 12px; font-size: 16px; }
 .symbol-search__submit { border: 0; background: transparent; color: var(--text-muted); cursor: pointer; padding: 7px 10px; border-radius: 50%; }
 .symbol-search__panel {
@@ -84,7 +84,7 @@ main:focus { outline: none; }
 .mobile-display { display: none; }
 .mobile-display__menu { min-width: 150px; }
 .mobile-display__menu .q-item { width: 100%; border: 0; text-align: start; background: transparent; color: inherit; }
-.header-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; color: var(--text-muted); font-size: 13px; }
+.header-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: var(--radius-sm); color: var(--text-muted); font-size: 13px; }
 .header-link:hover { background: var(--bg-soft); color: var(--text); text-decoration: none; }
 .watch-link { gap: 5px; }
 .watch-link__count { font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text-muted); }
@@ -111,7 +111,7 @@ main:focus { outline: none; }
 .icon-button {
   width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); background: var(--surface); color: var(--text-muted);
-  border-radius: 999px; cursor: pointer;
+  border-radius: var(--radius-sm); cursor: pointer;
 }
 .icon-button:hover { color: var(--text); border-color: var(--border-strong); }
 .icon-button.is-on { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }

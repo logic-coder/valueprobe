@@ -39,6 +39,12 @@
 .dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
 .dcf__strip-context { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
 .dcf__provenance { display: grid; gap: 3px; padding: 8px 4px 0; color: var(--text-muted); font-size: 13px; }
+.dcf__evidence-tier { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 4px 0; font-size: 12px; }
+.dcf__evidence-badge { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 8px; }
+.dcf__evidence--strong .dcf__evidence-badge { color: var(--accent-strong); }
+.dcf__evidence--caveat .dcf__evidence-badge { color: var(--text); }
+.dcf__evidence--weak .dcf__evidence-badge { color: var(--danger); }
+.dcf__evidence-note { color: var(--text-muted); }
 .dcf__explanation summary { cursor: pointer; color: var(--text); font-weight: 600; }
 .dcf__explanation p, .dcf__explanation ul { margin: 6px 0 0; }
 .dcf__explanation ul { padding-inline-start: 18px; }
@@ -51,14 +57,44 @@
   padding: 8px 10px;
   margin-bottom: 8px;
 }
+/* One short, staggered entrance for the three elements that carry the answer.
+   Opacity/transform only, never visibility: Playwright's toBeVisible() must not
+   race the animation, and a reduced-motion user gets the final state at once. */
+@keyframes dcf-arrive {
+  from { opacity: 0.6; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+.dcf__strip, .dcf .stress, .dcf__scenario-btns {
+  animation: dcf-arrive 150ms ease-out both;
+}
+.dcf .stress { animation-delay: 60ms; }
+.dcf__scenario-btns { animation-delay: 120ms; }
+@media (prefers-reduced-motion: reduce) {
+  .dcf__strip, .dcf .stress, .dcf__scenario-btns { animation: none; }
+}
+
+/* The headline value is the reason someone opens this page. A single accent
+   rule and a soft top wash make that hierarchy legible without adding weight;
+   both use theme tokens so the dark theme and contrast gates stay intact. */
 .dcf__strip {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 16px;
+  padding: 16px 16px 16px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface-2);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--accent) 5%, var(--surface-2)), var(--surface-2) 42%),
+    var(--surface-2);
+}
+.dcf__strip::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 14px; bottom: 14px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--accent-strong);
 }
 .dcf__block { display: flex; align-items: center; gap: 10px; }
 .dcf__block > .button-font-weight, .dcf__block > .text-h6 { margin-left: auto; text-align: right; padding-right: 1px; }
@@ -115,7 +151,7 @@
 .dcf__scenario-btns .q-btn { min-height: 28px; font-size: 13px !important; text-transform: none; border-radius: 999px; color: var(--text-muted); }
 .dcf__scenario-btns .q-btn.is-active { background: var(--surface); color: var(--text); font-weight: 650; box-shadow: var(--shadow-sm); }
 .dcf .dcf__scenario-note { font-size: 13px; line-height: 1.55; color: var(--text-muted); }
-.dcf__scenario-custom { padding: 2px 8px; border: 1px dashed var(--border); border-radius: 999px; font-size: 12px; color: var(--text-muted); }
+.dcf__scenario-custom { padding: 2px 8px; border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); }
 .dcf .dcf__model-note { font-weight: 500; color: var(--text); }
 .dcf__rate-note { display: flex; align-items: flex-start; gap: 6px; padding: 2px 4px 10px; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
 .dcf__rate-note > .q-icon { flex: none; margin-top: 3px; }
@@ -205,6 +241,16 @@
 .mcheck__table thead th:first-child { text-align: left; }
 .mcheck__table tbody th { text-align: left; color: var(--text-muted); }
 .mcheck__input { width: 72px; height: 28px; font-size: 13px; }
+/* The reference row is the same arithmetic with a fixed multiple: it reads as a
+   value, never as another dial, and a stronger rule marks it off the inputs. */
+.mcheck__foot th, .mcheck__foot td { border-top: 1px solid var(--border-strong); background: var(--surface-2); }
+.mcheck__foot th { text-align: left; color: var(--text-muted); }
+.mcheck__fixed { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.mcheck__tag {
+  display: inline-block; margin-left: 6px; padding: 0 5px; border: 1px solid var(--border-strong);
+  border-radius: 3px; font-size: 11px; font-weight: 500; line-height: 16px; color: var(--text-muted);
+  vertical-align: 1px; white-space: nowrap;
+}
 .mcheck__note { margin: 8px 0 0; font-size: 13px; line-height: 1.55; color: var(--text-muted); }
 .mcheck__good { color: var(--accent-strong); }
 .mcheck__bad { color: var(--danger); }
@@ -227,7 +273,7 @@
   .dcf__strip-col > .stress { grid-column: 2; grid-row: 1 / span 3; }
   .dcf__strip-col:has(.stress) > .dcf__provenance { grid-column: 1; padding-top: 0; }
   .dcf__strip-col > .dcf__official-note { grid-column: 1 / -1; }
-  .dcf__strip { padding: 18px; }
+  .dcf__strip { padding: 18px 18px 18px 22px; }
   .dcf__strip-head { margin-bottom: 6px; }
   .dcf__fair .text-h6 { font-size: 42px; }
   .dcf__mos { margin-top: 8px; }

@@ -29,8 +29,11 @@
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
   --shadow: 0 8px 24px -12px rgba(16, 24, 40, 0.18);
 
-  --font: "Source Sans 3", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
-  --display: "Source Serif 4", "Songti SC", "Noto Serif SC", "Source Sans 3", serif;
+  /* Latin webfonts ship with the bundle; Chinese text falls back to the system
+     stack. --display is therefore Latin-only (numbers, tickers, price): using a
+     serif CJK stack made the same heading look serif on one OS and sans on another. */
+  --font: "Source Sans 3", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  --display: "Source Serif 4", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --page-width: 1280px;
 }
@@ -118,6 +121,9 @@ h3 { font-size: 18px; }
 h4 { font-size: 16px; }
 h5 { font-size: 14px; }
 h6 { font-size: 13px; }
+/* Display face is Latin-only. Chinese glyphs resolve to the system sans stack,
+   so headings keep one voice across platforms; the serif character shows up on
+   tickers, prices and figures where Latin is the actual content. */
 h1, h2, .ticker__name, .dcf__fair .text-h6, .brand__name { font-family: var(--display); font-weight: 600; }
 
 code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }

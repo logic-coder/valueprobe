@@ -27,7 +27,7 @@
             {{ t('adjust_assumptions') }}
           </button>
           <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
-            :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited"
+            :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited" :currency="stock.currency || '¥'"
             :expectation="priceExpectation" />
           <div v-if="!resultLoading && policyEntry && !isManual" class="dcf__provenance" data-testid="valuation-provenance">
             <span>{{ earningsDateLabel }}</span>

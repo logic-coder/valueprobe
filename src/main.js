@@ -15,6 +15,8 @@ import zhHans from './i18n/zh-Hans.json'
 import legalMessages from './i18n/legal-messages'
 import { readStored } from './lib/storage'
 import enUS from './i18n/en-US.json'
+// Latin-only webfonts keep the bundle small on GitHub Pages. Chinese text uses
+// the system stack (see theme.css); the serif face renders figures and tickers.
 import '@fontsource/source-sans-3/latin-400.css'
 import '@fontsource/source-sans-3/latin-600.css'
 import '@fontsource/source-serif-4/latin-600.css'

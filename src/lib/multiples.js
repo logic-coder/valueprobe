@@ -2,6 +2,9 @@
 // Uses the per-share inputs already on screen; nothing is written back to the kernel.
 /** No-growth cross-check: about 1 / 8%, not a fair value. */
 export const LONG_RUN_PE = 12
+/** The required return LONG_RUN_PE implies, disclosed so it is not read as
+ *  the page's own discount rate (that one is ceil(10y) + 6 and moves). */
+export const NO_GROWTH_RATE = Math.round(1000 / LONG_RUN_PE) / 10
 
 export const MULTIPLES = Object.freeze([
   { key: 'pe', labelKey: 'multiple_pe', baseField: 'eps' },

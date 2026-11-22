@@ -169,7 +169,7 @@
       <div class="panel__head"><span class="panel__title">{{ t('method_repro_title') }}</span></div>
       <div class="panel__body">
         <p>{{ t('method_repro_body') }}</p>
-        <p><a :href="dataBase + 'intrinsic/v2.json'">{{ t('method_download') }}</a>
+        <p><a :href="dataBase + 'intrinsic/' + POLICY_V1.version + '.json'">{{ t('method_download') }}</a>
           · <a :href="REPO_URL + '/blob/main/docs/POLICY.md'" target="_blank" rel="noreferrer">{{ t('method_repro_link') }}</a></p>
       </div>
     </section>

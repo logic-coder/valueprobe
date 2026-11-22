@@ -8,7 +8,11 @@
     </header>
     <small>{{ t(custom ? 'stress_trial_quote' : 'stress_quote', { price: quote }) }}</small>
     <div v-for="(row, i) in rows" :key="i" class="stress__row">
-      <span>{{ t(labels[i]) }}</span><strong>{{ percent(row.margin) }}</strong>
+      <span>{{ t(labels[i]) }}</span>
+      <span class="stress__figures">
+        <span v-if="row.value > 0" class="stress__value">{{ moneyOf(row.value) }}</span>
+        <strong>{{ percent(row.margin) }}</strong>
+      </span>
       <div class="stress__track" aria-hidden="true">
         <i :class="{ negative: row.margin < 0 }" :style="{ width: Math.abs(row.margin) / axisLimit * 50 + '%' }" />
       </div>
@@ -22,11 +26,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { percent } from '../../lib/format'
+import { money, percent } from '../../lib/format'
 const props = defineProps({ rows: { type: Array, required: true }, bank: Boolean, custom: Boolean,
-  quote: { type: String, required: true }, expectation: { type: String, default: '' } })
+  quote: { type: String, required: true }, expectation: { type: String, default: '' }, currency: { type: String, default: '¥' } })
 const { t } = useI18n()
 const labels = ['stress_default', 'stress_earnings', 'stress_joint']
+const moneyOf = (value) => money(props.currency, value)
 const axisLimit = computed(() => Math.max(100, Math.ceil(Math.max(...props.rows.map(row => Math.abs(row.margin))) / 50) * 50))
 </script>
 
@@ -35,6 +40,8 @@ const axisLimit = computed(() => Math.max(100, Math.ceil(Math.max(...props.rows.
 .stress h3 { margin: 0 0 8px; font-size: 15px; line-height: 1.4; font-weight: 650; }
 .stress__headline { display: none; }
 .stress__row { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; margin: 5px 0; font-size: 13px; }
+.stress__figures { display: inline-flex; align-items: baseline; gap: 10px; }
+.stress__value { color: var(--text); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stress__track { position: relative; grid-column: 1 / -1; height: 5px; background: var(--surface-2); }
 .stress__track::after { content: ''; position: absolute; left: 50%; top: -1px; bottom: -1px; border-left: 1px solid var(--text-muted); }
 .stress__track i { position: absolute; left: 50%; height: 100%; background: var(--accent-strong); }

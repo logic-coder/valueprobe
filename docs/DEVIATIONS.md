@@ -465,3 +465,77 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 位置：`src/lib/dcf.js`（`sustainableCashBase`）、`src/lib/stockRecord.js`、`src/lib/policy.js`、`src/lib/reasons.js`、`scripts/lib/policy-artifact.mjs`、`DcfResultBar.vue`、`DcfCalculator.vue`、i18n 与样式。
 - 测试：`tests/unit/dcf.test.js`（中位数、少于三年/空值/非正数为空）、`tests/unit/policy.test.js`（差距警告、空基数不加警告、发布值不变）；`verify:data` 全过。
 - 限制：现金同样是单点 TTM + 历史增速外推，没有现金桥；REIT 的维护性资本开支和炼化的周期正常化仍未处理。
+
+> **D50–D52 未并入默认。** 这一组（正常化基数、按市场校准的折现率、所有者收益基线）只存在于分支
+> `wip/v3-owner-earnings`，尚未发布。main 的默认政策仍是 v2：`POLICY_VERSION = 'v2'`，发布值取自
+> `public/data/intrinsic/v2.json`。下面三节的数值只描述该分支，不代表线上；D53–D55 已并入 main。
+
+### D50 正常化收益基数、折减增速与按市场校准的折现率
+
+2026-11-22。TTM EPS 在一次性项目和周期低点会失真，十年历史增速又会系统性外推过头。v3 把基数改为五年正常化值，把增速减半，并用全市场隐含折现率校准国别溢价。
+
+- 基数：最近五年年度 `eps_without_nri`；最新一年与五年中位数相差超过 40% 时取中位数。非金融企业再乘 `min(1, max(0.5, 五年正现金中位数 / 五年中位数))`。最新值缺失或为负时保留 `preferredEps` 回退。发布基数与最新 EPS 相差 ≥25% 加 `NORMALIZED_EPS`，`inputs.epsLatest` 保留原值。
+- 增速：5 年 50%、10 年 30%、1 年 20% 混合，经 `adoptGrowth` 上限 15% 后统一乘 0.5（`GROWTH_DAMPENING`）。三个窗口不全时回退 10 年；全缺仍 `NO_GROWTH`。
+- 折现率：当地十年期收益率向上取整 + 国家 ERP（CNY 4.83 / HKD 1.89 / USD 0.44）+ 金融机构溢价（CNY 7.52 / HKD 14.66 / USD −6.16）。溢价来自全市场按发布基数反解的隐含折现率中位数，并扣除取整造成的 1 个百分点；不是外部参数。缺失利率回退 8%（金融 15.52%）并标 `RATE_FALLBACK`。
+- 全样本结果：413 条有值，217 条高于现价，中位安全边际 +1.80%，10% 分位 −129.4%，90% 分位 +48.4%。Moutai 2708.36→1696.07，ICBC 11.86→9.22，GPC 1.13→71.41，JPM 140.64→220.97。美国金融股仍普遍低估（JPM 折现率 0.28%，220.97 对 329.96），是残差模型与高 P/B 的结构差异，未再强行调参。
+- 状态变化：6 条此前因最新年度亏损被拒的记录由五年正常化基数恢复估值（HKSE:00960、NASDAQ:FISV/TRMB、NYSE:CARR/GPN、SZSE:002304）。
+- 位置：`src/lib/{dcf,policy,stockRecord,riskFree,assumptions}.js`、`src/lib/reasons.js`、i18n、`scripts/snapshot.mjs`、`scripts/pages-smoke.mjs`、`public/data/intrinsic/v3.json`、`docs/RELEASE_V3.md`。
+- 测试：`tests/unit/dcf.test.js`（正常化基数边界）、`tests/unit/policy.test.js`（基差警告、折现率表、发布值）、`tests/unit/riskFree.test.js`、`tests/unit/financialInstitution.test.js`；全量 451、lint、`verify:data` 全过。
+- 限制：现金折减用历史现金/收益比，未做现金桥；国家 ERP 由同一批价格反解，属于样本内校准；美元金融负溢价使利率可低至 0.28%，尚未做样本外滚动验证。
+
+### D51 折现率识别边界、预测检验与证据分层（v3 工作版本内改进，未升版本）
+
+2026-11-22。v3 的国别与金融 ERP 由同一批标的当前价格反解，再用它生成被价格评价的发布值：价格同时作为输入和裁判。2015 冻结时点的样本外检验中，train 28 / 留出 17，owner 与 residual 隐含折现率中位数分别为 8.96% 与 8.99%，留出 MAE 2.52pp，不支持六组拆分与负的美元金融溢价。
+
+- 行为：删除 `COUNTRY_ERP` / `FINANCIAL_ERP`，折现率恢复为当地十年期收益率向上取整加单一外生 6 个百分点。币种和模型不再改变要求回报。缺失利率回退 8% 并标 `RATE_FALLBACK`。v3 的正常化收益基数与折半增速保留，属独立假设。
+- 不改：v2 的模型路由、终值有效域、残差区间与单侧规则；500 条覆盖与发布拒绝集合。
+- 新增：`scripts/research/forecast-validation.mjs` 只用 2006 起点可见字段预测十年现金，结果写入 `public/research/forecast-validation.json` 并接入 `npm run research:check`。门禁只校验重算字节一致，不强制候选击败零增长基准。
+- 新增：个股结果栏显示证据强度标签与终值占比、现金核对、正常化状态；只披露，不修改发布值或试算。
+- 理由：目标量、观测量与决策参数必须来源分离。预测检验的对象是未来现金预测误差，不是发布值与价格的距离。
+- 位置：`src/lib/{riskFree,policy,dcf}.js`、`src/components/DcfCalculator.vue`、`src/styles/dcf.css`、i18n、`scripts/research/forecast-validation.mjs`、`public/research/forecast-validation.json`、`public/data/intrinsic/v3.json`（已重定义）、`docs/RELEASE_V3.md`。
+- 公开差异：413 条有值、87 条拒绝不变；茅台 1696.07→1296.56，工行 9.22→11.64，JPM 220.97→136.89，GPC 71.41→31.25。有报价的中位安全边际由 +1.80% 变为 −130.36%，反映模型保守性的真实暴露，不是校准退步。
+- 限制：预测检验仅 4 家完整配对，不能当全市场验证；终值占比普遍超过 60%，证据标签只披露不修正。
+
+### D52 所有者收益作为发布基数（v3 工作版本内再次改进，未升版本）
+
+2026-11-22。依据巴菲特 1986 年股东信的所有者收益定义，把发布基数从 EPS 正常化改为可观测近似：最近三年每股自由现金流（`经营现金流 − 全部资本开支`）中位数。全部资本开支被当作维护支出，是"保守全扣"读法。三年 FCF 非正时回退原 EPS 正常化，保持覆盖。
+
+- 测算：413 条覆盖不变；中位安全边际 −130%→−104%，极端（<−200%）129→106。样本外 2006 十年累计现金误差 26.0%→10.5%，2015 留出 42.5%→42.2%。另一参数组合在横截面更优但样本外不一致，未采纳增速与终值改动。
+- 二阶修正：`CASH_DIVERGENCE` 原对照发布值与现金值，基数互换后退化为自比；改为对照所有者收益基数与报告收益，100 条触发，中英文案同步。
+- 位置：`src/lib/dcf.js`、`src/lib/policy.js`、`src/i18n/*`、`public/data/intrinsic/v3.json`（再次重定义）、`docs/RELEASE_V3.md`。
+- 理由：巴菲特把所有者收益定义为报告收益加非现金费用减维持资本开支，并明确 (c) 必须估计。用可核验的三年 FCF 中位数代替"EPS 乘历史现金比"，减少对异常年份的机械放大。
+- 限制：快照无 D&A 与维护资本开支单列，全扣 capex 对扩张期企业偏保守；改善是基数可复核性，不是估值精度。基准仍未发布。
+- 研究档案：[所有者收益原型验证](research-archive/2026-11-22/owner-earnings/RESULTS.md)。
+
+### D53 毛估估展示：默认最佳估计 + 三档假设，不做能力圈拒绝
+
+2026-11-22。产品定位澄清：能力圈属于选股，由使用者对自己选的标的负责；工具的职责是出估值并把假设摊开。因此不因"看不懂"拒绝出值或隐藏标的。
+
+- 行为：头条仍是单一最佳内在价值估计（默认口径，未变）。`margin-stress` 从"还剩多少安全边际"改为"毛估估：换组假设，价值会变成多少"，每档在安全边际之外显示对应每股价值。三档为最佳估计、生意只值八成、生意八成且回报要求更高（金融为账面不变）。计算函数与三档参数不变；参考报价与推断文案不变。
+- 不改：发布值、覆盖集合、拒绝集合、试算与政策口径。三档只展示，不参与安全边际头条。
+- 理由：段永平"未来现金流折现是思维方式不是公式"，其价值在于展示不同假设下的结果而不是给唯一数字；"能力圈"是投资者的选股纪律，不是估值工具的准入规则。
+- 标签措辞：证据标签的中性化（口径一致 / 口径有分歧 / 基数差异较大）依附于 D51 的分层展示，本次未并入，随 v3 分支。
+- 位置：`src/components/dcf/MarginStress.vue`、`src/components/DcfCalculator.vue`、`src/i18n/{zh-Hans,en-US}.json`。
+- 验证：lint、58 文件单测、verify:data、build、smoke 全过；三档随折价与回报要求逐档下降。具体数值取决于默认口径版本：`wip/v3-owner-earnings` 上按 v3 测得茅台 1183→947→694、工行 11.64→10.84→10.42；main 的 v2 默认下工行从 11.86 起算。
+
+### D54 前端视觉层级与 GitHub Pages 约束下的收敛
+
+2026-11-22。按设计审查执行三批视觉改动，全部为 CSS/文案，不改发布值、政策、计算内核。
+
+- 字体：`--display` 从中文衬线栈改为拉丁 webfont + 中文系统 sans 栈（`theme.css:32-34`）。中文 webfont 体积对 Pages 首屏不可接受，且外部字体违反 local-first；同一标题在 macOS/Windows 不再一个 serif 一个 sans。拉丁 webfont 仅用于数字、Ticker 与报价。
+- 圆角：保留状态类 pill（状态标签、代码、分段控件、收藏键、滚动条），把搜索框、页头链接、图标按钮、首页 chip、工具按钮、日期按钮收敛到 `--radius-sm`（16 处降至 6 处）。
+- 毛估估：三档估值金额从 `text-muted` 改为 `var(--text)` 并加字重，与安全边际同权重（`MarginStress.vue`）。
+- 结果锚点：`.dcf__strip` 加 5% 强调色顶部渐变与左侧 3px 强调竖线，双主题走 token。静态计算最坏对比度：浅色 faint 4.57、深色 faint 5.05，超过 AA 4.5。
+- 动效：CSS-only 阶梯入场 150ms（0/60/120ms），只改 opacity 与 transform，不用 visibility，避免 Playwright `toBeVisible()` 竞态；`prefers-reduced-motion` 下完全关闭。
+- 验证：lint、58 文件 452 项、verify:data、research:check、build、smoke 全过。对比度审计与上传前 e2e 本机因缺 Chromium 未执行，由 CI（`npx playwright install` 后）负责。
+
+### D55 零增长对照并入倍数表，成为参考行
+
+2026-11-22。"利润停在现在、按 12 倍：HK$ 151.30"原来是一句独立说明，读者得自己在两种格式之间搬 `HK$ 151.30` 和 `HK$ 126.08` 做比较，而它恰恰是三行里最该横着比的一行。现在做成表格的脚注行。
+
+- 位置：`src/components/MultipleCheckPanel.vue` 的 `<tfoot>`、`src/styles/dcf.css` 的 `.mcheck__foot` / `.mcheck__fixed` / `.mcheck__tag`、i18n 的 `multiple_pe_no_growth` / `multiple_reference` / `multiple_ref_note`（删掉 `long_run_pe`）。
+- 行为：倍数位渲染固定文本 `12×` 而不是输入框——它是参照点，不是第四个旋钮；行首加"参考"标记，上边线换 `--border-strong` 并铺 `--surface-2`，与三行可编辑项区分。当前列照常显示同一倍数：它与 P/E 行同值，是同一个观测，不构成第二重证据。显示时机不变（非金融且每股收益为正），银行走剩余收益时不出现。
+- 披露：这个 12 是固定常数，隐含要求回报 8.33%；页面折现率是 `ceil(10y)+6` 且随市场与情景移动，两个数不联动。新增 `NO_GROWTH_RATE` 并把 8.3% 写进注脚，避免读者把 12 倍读成上方折现率的另一种写法。
+- 不改：`LONG_RUN_PE`、`impliedPrice`、可编辑的目标倍数、发布值与内核。
+- 测试：`tests/unit/multiples.test.js` 增加 `NO_GROWTH_RATE` 断言；`tests/e2e/dcf.spec.js` 的数字断言仍打 `long-run-pe`（现在是 `tfoot`），否定语义改打 `long-run-note`。
+- 遗留：v3 把 `earnings_base` 换成所有者收益（三年 FCF 中位数）后，表内 P/E 行的基数是现金流而非报告 EPS，与 P/FCF 行同源。截图里两行同为 29.57× 即由此而来。标签与基数是否要分开，待定。
