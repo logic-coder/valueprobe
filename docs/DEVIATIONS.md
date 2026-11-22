@@ -437,7 +437,7 @@
 - 行业证据：13 家仅因缺列被归为金融的美国公司补入监管来源。O、WELL、PSX 改为仅试算，以 `INDUSTRY_MODEL_PENDING` 保留适用限制。复核条件见 [RELEASE_V2.md](RELEASE_V2.md)。
 - 共同终值域：第一阶段淡出目标、第二阶段与续营价值都用 `min(gT, r−2pp)`。同参算例在三个跨界点的 v2 值均为 55.80，续营 38.57，页面分列有限第二段及续营，反推走同一函数。
 - 有限年金：`calGr2fv` 在 g>r 时不再把终值窗口置零，有限几何级数在 g=1 两侧连续；隔离算例不再从 15.22 跳到 8.44。
-- 冻结回放：`scripts/research/kernel-v1.mjs` 固定 v1 策略、哈希和旧分类器，四个历史研究脚本不再导入现行 v2；`npm run research:check` 对旧结果逐字节校验，CI 运行 `npm run research:kernel` 的 6 条向量，400 MB 原始缓存仍只留本地。
+- 冻结回放：`scripts/research/kernel-v1.mjs` 保留 v1 策略、哈希和分类器。`npm run research:check` 逐字节核对旧结果。CI 同时运行冻结内核向量和 `npm run research:cash-path -- --check`，用仓库内输入校验完整现金路径。现金路径的 EPS 清洗仍复用通用代码，输出变化会触发工件校验失败。较大的原始财报缓存保留在本地。
 - 快照年龄：读取已保存快照时不再按今天检查报价年龄，日期由策略披露（`STALE_PRICE`）；快照作为历史事实继续可读。
 - 浏览器上传闸门：使用部署产物运行同版本、搜索、仅试算及 axe 检查。配置错误会使指定的门禁失败。静态冒烟与浏览器共用生产 `dist`。
 - 发布证据：报价按实际暂存结果归类。全失败或仅沿用本地记录时保留原核验时间。CI 校验 Git 历史批次链，新克隆可运行 `npm run audit:policy:diff` 复算。

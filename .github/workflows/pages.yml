@@ -34,6 +34,8 @@ jobs:
       - run: npm run test
       - name: Frozen historical kernel vectors
         run: npm run research:kernel
+      - name: Frozen cash path artifact
+        run: npm run research:cash-path -- --check
       - name: Real-company regression on committed snapshots
         run: npm run test:real
       - name: Data gate (artifact, manifest, snapshots)

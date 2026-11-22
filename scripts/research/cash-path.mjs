@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { growthWindow } from '../../src/data/providers/edgar-xbrl.js'
 import { classifyV1, policyValueV1 as policyValue, presentValueV1 as presentValue, V1_POLICY, V1_POLICY_HASH } from './kernel-v1.mjs'
-import { toStock } from '../../src/lib/stockRecord.js'
+import { applyCleanGrowth } from '../../src/lib/stockRecord.js'
 import { median, shareholderValue } from './owner-earnings.mjs'
 import { forecastCash } from './cash-forecast.mjs'
 import { round } from './as-of-valuation.mjs'
@@ -18,10 +18,12 @@ function project (c) {
   const series = c.epsFrom1995.map((val, i) => ({ fy: 1995 + i, val })).filter(r => r.val != null)
   const revenues = new Map((c.revenueChecks || []).map(v => [v.fy, v.revenue / v.shares]))
   const annual = series.map(r => ({ date: r.fy + '-12', eps_without_nri: r.val, revenue_per_share: revenues.get(r.fy) }))
-  const stock = toStock({ symbol: c.ticker, exchange_: c.ticker === 'INTC' ? 'NASDAQ' : 'NYSE', currency: '$',
-    financials: { annual }, ttm_eps: series.at(-1).val, eps_period: 'FY', as_of: study.asOf,
-    earning_growth_10y: growthWindow(series, 10) })
-  stock.financial_institution = stock.financial_institution || classifyV1(stock, annual)
+  const stock = applyCleanGrowth({
+    symbol: c.ticker, exchange_: c.ticker === 'INTC' ? 'NASDAQ' : 'NYSE', currency: '$',
+    ttm_eps: series.at(-1).val, eps_period: 'FY', as_of: study.asOf,
+    earning_growth_10y: growthWindow(series, 10),
+  }, annual)
+  stock.financial_institution = classifyV1(stock, annual)
   const policy = policyValue(stock, { rate: study.yieldPct, generatedAt: study.asOf })
   if (!policy.value || policy.inputs.model !== 'owner') throw Error('Unexpected policy inputs for ' + c.ticker)
   const p = policy.inputs
