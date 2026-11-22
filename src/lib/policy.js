@@ -7,7 +7,7 @@
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
 import { adoptGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS } from './assumptions'
 import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE } from './riskFree'
-import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, valueBand } from './dcf'
+import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
 export const POLICY_VERSION = 'v2'
@@ -23,7 +23,7 @@ const deepFreeze = (value) => {
 export const POLICY_V1 = deepFreeze({
   version: POLICY_VERSION,
   // Semantics added in v2; listed here so the pinned hash changes with them.
-  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'shared-effective-growth', band: 'model-consistent-one-sided' },
+  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'shared-effective-growth', band: 'model-consistent-one-sided', cashCrossCheck: 'three-year-median' },
   trialOnlyIndustries: ['reit', 'refining'],
   // The published number is always a discounted-earnings number. Free cash flow
   // stays a cross-check on the stock page, never the published value.
@@ -75,7 +75,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'e3d89664feaaa8d604f963563f3da3148c8b11a589c178a55552fe99201101f8'
+export const POLICY_V1_HASH = '98f36be9fbcc802e9639fd4616950175e108423913572b96b0d687bb8682d680'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -265,7 +265,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   }
 
   const base = {
-    symbol: symbolOf(stock), value: null, band: null, terminalShare: null, price, priceDate,
+    symbol: symbolOf(stock), value: null, band: null, terminalShare: null, cash: null, price, priceDate,
     marginOfSafety: null, inputs, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf: inputs.rate.asOf,
   }
   if (reasons.length) return finish(base, reasons, warnings)
@@ -295,7 +295,19 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     warnings.push(WARNING.TERMINAL_CAPPED)
   }
   let terminalShare = chosen.terminalShare
+  let cash = null
   if (value !== null) {
+    if (model !== POLICY_V1.model.financialInstitution) {
+      const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
+      const cashValue = cashBase === null
+        ? null
+        : presentValue(tangibleBook, horizon.years, discountRate, growth, cashBase, horizon.terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
+      if (cashValue !== null && Number.isFinite(cashValue) && cashValue > 0) {
+        const gap = cashValue / value - 1
+        cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100) }
+        if (Math.abs(gap) >= 0.5) warnings.push(WARNING.CASH_DIVERGENCE)
+      }
+    }
     // Only a column-shaped route is unverified; record it when the other model
     // would publish a materially different number, so the page can say so.
     if (stock.classification_basis === 'columns') {
@@ -332,6 +344,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     value,
     band: band.low === null && band.high === null ? null : { low: band.low, mid: band.mid, high: band.high },
     terminalShare,
+    cash,
     marginOfSafety: Number.isFinite(margin) ? margin : null,
   }, reasons, warnings)
 }
@@ -342,6 +355,7 @@ export function policySummary () {
     version: POLICY_VERSION,
     // Semantics added in v2; listed here so the pinned hash changes with them.
     revision: { ...POLICY_V1.revision },
+    cashCrossCheck: POLICY_V1.revision.cashCrossCheck,
     basis: POLICY_V1.basis,
     models: { ...POLICY_V1.model },
     horizon: { ...POLICY_V1.horizon },

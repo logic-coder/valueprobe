@@ -36,6 +36,11 @@ jobs:
         run: npm run research:kernel
       - name: Frozen cash path artifact
         run: npm run research:cash-path -- --check
+      - name: Frozen historical replays
+        run: |
+          python3 scripts/research/fetch-facts.py
+          python3 scripts/research/fetch-facts.py tmp-historical-facts sectors-2015.json
+          npm run research:check
       - name: Real-company regression on committed snapshots
         run: npm run test:real
       - name: Data gate (artifact, manifest, snapshots)

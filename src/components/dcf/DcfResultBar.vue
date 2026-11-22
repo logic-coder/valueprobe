@@ -28,6 +28,14 @@
         <div v-if="hasBand" class="dcf__range" data-testid="dcf-fair-range">{{ bandText }}</div>
       </div>
     </div>
+    <div v-if="cash" class="dcf__cash" data-testid="dcf-cash-check">
+      <a-popover placement="top">
+        <span class="dcf__cash-label">{{ t('cash_cross_check') }}</span>
+        <template #content>{{ t('cash_cross_desc') }}</template>
+      </a-popover>
+      <span class="dcf__cash-value">{{ moneyIn(stock.currency, cash.value) }}</span>
+      <span class="dcf__cash-gap">{{ t('cash_cross_gap', { gap: percent(cash.gapPct) }) }}</span>
+    </div>
 
     <!-- margin of safety -->
     <div class="dcf__block dcf__mos">
@@ -93,6 +101,7 @@ const props = defineProps({
   unavailable: { type: Boolean, default: false },
   marginLabel: { type: String, default: 'margin_of_safety' },
   reverseState: { type: String, required: true },
+  cash: { type: Object, default: null },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()
@@ -106,6 +115,7 @@ const bandText = computed(() => {
   const high = bandHigh.value === null ? t('band_missing') : moneyIn(props.stock.currency, bandHigh.value)
   return low + ' – ' + high
 })
+const cash = computed(() => (props.cash && Number.isFinite(Number(props.cash.value)) && Number(props.cash.value) > 0 ? props.cash : null))
 const safetyIsNeutral = computed(() => !isNum(props.result.marginOfSafety) || Number(props.result.marginOfSafety) === 0)
 const safetyColor = computed(() => (safetyIsNeutral.value ? 'var(--text-muted)' : props.result.marginOfSafety < 0 ? 'var(--danger)' : 'var(--accent-strong)'))
 </script>

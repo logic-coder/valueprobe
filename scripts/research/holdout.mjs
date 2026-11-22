@@ -117,9 +117,13 @@ summary.compounders = { classifiable: companies.filter(c => typeof c.compounder 
   doubled: comp.map(c => c.ticker), comparable: comp.filter(c => c.initial.candidate > 0).map(c => c.ticker),
   lostDiscount: comp.filter(c => c.initial.value > c.initial.price && c.initial.candidate > 0 &&
     c.initial.candidate <= c.initial.price).map(c => c.ticker) }
-const serialized = JSON.stringify({ start, end, policy: POLICY_VERSION, policyHash: POLICY_V1_HASH, summary, companies }, null, 2) + '\n'
+const report = { start, end, policy: POLICY_VERSION, policyHash: POLICY_V1_HASH, summary, companies }
+const serialized = JSON.stringify(report, null, 2) + '\n'
 const path = 'public/research/sector-holdout-2015.json'
+// Later SEC filings change factsSha256 but not this replay; rows and summary are gated.
+const scrub = value => JSON.parse(JSON.stringify(value), (key, item) => key === 'factsSha256' ? undefined : item)
 if (process.argv.includes('--check')) {
-  if (readFileSync(path, 'utf8') !== serialized) throw Error('Holdout differs from published observations')
+  const published = JSON.parse(readFileSync(path, 'utf8'))
+  if (JSON.stringify(scrub(published)) !== JSON.stringify(scrub(report))) throw Error('Holdout differs from published observations')
 } else writeFileSync(path, serialized)
 console.log(JSON.stringify(summary, null, 2))

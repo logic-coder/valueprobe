@@ -60,6 +60,7 @@ const entryOf = (symbol, stock, value) => ({
   value: value.value,
   band: value.band,
   terminalShare: value.terminalShare,
+  cash: value.cash,
   price: value.price,
   priceDate: value.priceDate,
   marginOfSafety: value.marginOfSafety,

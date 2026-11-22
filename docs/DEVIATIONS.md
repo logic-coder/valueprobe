@@ -437,7 +437,7 @@
 - 行业证据：13 家仅因缺列被归为金融的美国公司补入监管来源。O、WELL、PSX 改为仅试算，以 `INDUSTRY_MODEL_PENDING` 保留适用限制。复核条件见 [RELEASE_V2.md](RELEASE_V2.md)。
 - 共同终值域：第一阶段淡出目标、第二阶段与续营价值都用 `min(gT, r−2pp)`。同参算例在三个跨界点的 v2 值均为 55.80，续营 38.57，页面分列有限第二段及续营，反推走同一函数。
 - 有限年金：`calGr2fv` 在 g>r 时不再把终值窗口置零，有限几何级数在 g=1 两侧连续；隔离算例不再从 15.22 跳到 8.44。
-- 冻结回放：`scripts/research/kernel-v1.mjs` 保留 v1 策略、哈希和分类器。`npm run research:check` 逐字节核对旧结果。CI 同时运行冻结内核向量和 `npm run research:cash-path -- --check`，用仓库内输入校验完整现金路径。现金路径的 EPS 清洗仍复用通用代码，输出变化会触发工件校验失败。较大的原始财报缓存保留在本地。
+- 冻结回放：`scripts/research/kernel-v1.mjs` 保留 v1 策略、哈希和分类器。`npm run research:check` 核对企业行、汇总和政策哈希；`factsSha256` 会随后续 SEC 申报变化，不参与比对。CI 按冻结名单下载两批财报后运行同一检查，并保留冻结内核向量和现金路径工件校验。精确字节可解压本地档案对照。较大的原始缓存保留在本地。
 - 快照年龄：读取已保存快照时不再按今天检查报价年龄，日期由策略披露（`STALE_PRICE`）；快照作为历史事实继续可读。
 - 浏览器上传闸门：使用部署产物运行同版本、搜索、仅试算及 axe 检查。配置错误会使指定的门禁失败。静态冒烟与浏览器共用生产 `dist`。
 - 发布证据：报价按实际暂存结果归类。全失败或仅沿用本地记录时保留原核验时间。CI 校验 Git 历史批次链，新克隆可运行 `npm run audit:policy:diff` 复算。
@@ -451,5 +451,17 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 差异：存档 v1 与现行 v2 可用 `npm run audit:policy:diff` 全量核对，保留估值的头条一致。
 - 决定记录：`docs/RELEASE_V2.md`（理由、样例、验证、回滚）。研究接续条件保留在本地研究稿，不把 v2 结果回写成历史 v1 结论。
 - 位置：`src/lib/policy.js`（版本、revision、派生路径）、`scripts/lib/policy-artifact.mjs`、`scripts/pages-smoke.mjs`、`public/data/intrinsic/*`、`docs/RELEASE_V2.md`。
-- 测试：v1→v2 差异脚本 `eval/v2-diff.mjs`；全量单测 436、lint、20 项 `verify:data` 通过；生产构建已本地完成。Playwright 受本机浏览器子进程限制未跑，仍以 CI 为准。
+- 测试：v1→v2 差异脚本 `eval/v2-diff.mjs`；全量单测 451、lint、20 项 `verify:data` 通过；生产构建与 Playwright 受本机子进程限制本轮未重跑，仍以 CI 为准。
 - 回滚：把 `ARTIFACT_PATH` 指回 v1 并恢复 `pages-smoke` 的版本断言，或 revert 发布提交；v1 哈希用于核对，不覆盖归档。
+
+### D49 现金口径只做公开发布值的对照
+
+2026-11-22。TTM 收益在一次性项目和周期低点时会失真，但研究中的现金候选还不足以替换发布基数，于是把现金结果作为并列核对，不改 `value`、区间、反推或安全边际。
+
+- 基数：最近三个财年每股经营现金流减资本开支（`free_cash_flow_per_share`）全部为正时取中位数；少于三年或任一年非正数为空。必须按财年位置取，不能取最近三条非空值，否则拆股前的旧单位会混入（如 COP）。
+- 计算：只对一般公司，沿用同一组窗口、折现率、终值和 `presentValue`，结果四舍五入到分。金融机构因基数本身是收益，不做现金核对。
+- 披露：entry 新增 `cash: { value, base, gapPct } | null`，页面显示核对值和差距；绝对差距 ≥50% 加 `CASH_DIVERGENCE`。
+- 规模：273/407 条有可用现金基数，绝对差距中位数 3.84%，10% 分位 −43.83%，90% 分位 +68.46%，55 条触发警告；GPC 由 EPS 0.26 的 1.13 对照出中位现金 4.8966 的 21.26。
+- 位置：`src/lib/dcf.js`（`sustainableCashBase`）、`src/lib/stockRecord.js`、`src/lib/policy.js`、`src/lib/reasons.js`、`scripts/lib/policy-artifact.mjs`、`DcfResultBar.vue`、`DcfCalculator.vue`、i18n 与样式。
+- 测试：`tests/unit/dcf.test.js`（中位数、少于三年/空值/非正数为空）、`tests/unit/policy.test.js`（差距警告、空基数不加警告、发布值不变）；`verify:data` 全过。
+- 限制：现金同样是单点 TTM + 历史增速外推，没有现金桥；REIT 的维护性资本开支和炼化的周期正常化仍未处理。

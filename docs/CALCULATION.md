@@ -109,6 +109,7 @@ IRR 收敛与不收敛、缺失汇率。E2E 只验证界面显示 `n/a` 与原�
 - 窗口与默认：`DCF_DEFAULTS` 的两段各 10 年、终值增速 4%；历史增速窗口 10 年、承保上限 15%（`MAX_UNDERWRITTEN_GROWTH`）。没有历史增速时发布值为 `null` + `NO_GROWTH`，不代填；负增长照常出值并加 `NEGATIVE_HISTORY_GROWTH`。
 - 折现率：`ceil(当地十年期国债收益率) + 6`，再夹到 0–50（`policyDiscountRate()`）。有限数（含 0 和负值）都算观测，只有缺失才回退。港币现金流用美元十年期作代理；取不到当地利率时用 8% 兜底并标 `RATE_FALLBACK`。折现率跟随报价/现金流币种，显示货币不改它。
 - 区间：同一模型把折现率上下浮动 2 个百分点（`POLICY_V1.band.discountSpread`）；金融机构的端点也是 `residualIncomeValue`，只移动折现率并固定经营 ROE。头条是 `mid`，终值占比 `terminalShare` 一并披露。
+- 现金口径核对：只对一般公司，取最近三个财年 `free_cash_flow_per_share` 都为正时的中位数，套用同一组窗口、折现率和终值假设算 `presentValue`，展示在旁边供对照。少于三年或任一年非正数为空；与收益口径相差 ≥50% 加 `CASH_DIVERGENCE`。现金值不替代 `value`、区间、终值占比、反推和安全边际。
 - 价格：只进入安全边际；缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，都不改内在价值；基本面过期给 `STALE_DATA` 也不拒绝出值。
 - 一致性：`buildDefaults()` 与 `policyValue()` 对同一快照给出同一组输入（EPS、增速、折现率、两段窗口），由 `tests/unit/policy.test.js` 的默认输入对齐用例锁住；页面默认参数与发布值文件因此不会分叉。
 - 自选、对比与方法页读发布值文件；股票页按同一组默认输入在本地计算（seed 对齐测试锁住），不再显示重复的发布值面板。刷新与校验见 `POLICY.md`。

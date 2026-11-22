@@ -2,6 +2,7 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth } from './assumptions'
+import { sustainableCashBase } from './dcf'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -63,6 +64,7 @@ export function toStock (raw) {
   if (!raw || typeof raw !== 'object') return null
   const stock = { ...raw }
   applyCleanGrowth(stock, raw.financials?.annual)
+  stock.cash_base = sustainableCashBase(raw)
   delete stock.history
   delete stock.financials
   const classification = classify(stock, raw.financials?.annual)

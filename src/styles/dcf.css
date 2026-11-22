@@ -68,6 +68,9 @@
 .dcf__fair-figures { margin-left: auto; text-align: right; }
 .dcf__range { margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dcf__fair .text-h6 { font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.dcf__cash { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 13px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.dcf__cash-label { border-bottom: 1px dashed var(--border-strong); cursor: help; }
+.dcf__cash-value { color: var(--text); font-weight: 600; }
 .dcf__mos { margin-top: 12px; }
 .dcf__mos .button-font-weight { display: inline-flex; align-items: center; gap: 4px; font-size: 24px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text); }
 .dcf__implied { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border); align-items: flex-start; }

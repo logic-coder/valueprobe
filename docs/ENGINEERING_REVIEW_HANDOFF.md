@@ -148,4 +148,4 @@ A/H 先做值差归因，用相同股本权益单位、同一财报期间与汇�
 
 ## 本次验证范围
 
-以仓库内可执行检查为准。运行 `npm run verify`、`npm run verify:data -- --check-lineage`、`npm run audit:policy:diff`，并在生产构建后运行 `npm run test:e2e:upload`。故障注入、同批摘要、已保留的核验时刻、旧内核金样本与试算隔离均有入库回归。历史完整复算通过 `npm run research:check` 读取本地 SEC 缓存。旧临时报告仅作历史排查记录。
+以仓库内可执行检查为准。运行 `npm run verify`、`npm run verify:data -- --check-lineage`、`npm run audit:policy:diff`，并在生产构建后运行 `npm run test:e2e:upload`。故障注入、同批摘要、已保留的核验时刻、旧内核金样本与试算隔离均有入库回归。历史完整复算在 CI 按冻结名单下载 SEC 财报后运行 `npm run research:check`，本地缓存可离线重放。旧临时报告仅作历史排查记录。

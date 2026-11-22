@@ -293,6 +293,18 @@ export function preferredEps (stock) {
   return null
 }
 
+/**
+ * Median after-capex cash of the latest three fiscal years, or null unless all
+ * three are reported and positive. It is a cross-check, never the published base.
+ */
+export function sustainableCashBase (stock) {
+  const annual = stock?.financials?.annual
+  if (!Array.isArray(annual) || annual.length < 3) return null
+  const recent = annual.slice(-3).map((row) => Number(row?.free_cash_flow_per_share))
+  if (!recent.every((value) => Number.isFinite(value) && value > 0)) return null
+  return Number([...recent].sort((a, b) => a - b)[1].toFixed(4))
+}
+
 export function buildDefaults (indicator, stock, freeCashFlow) {
   stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)

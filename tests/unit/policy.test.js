@@ -200,6 +200,31 @@ describe('classification evidence is disclosed, never a silent guess', () => {
     expect(value.warnings).toEqual(expect.arrayContaining([WARNING.CLASSIFICATION_UNVERIFIED]))
   })
 })
+
+describe('cash is a cross-check, never the published base', () => {
+  const raw = (annual) => ({
+    exchange_: 'SHSE', symbol: '600000', price: '¥50', ttm_eps: 10,
+    tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
+    financials: { annual: annual.map((free_cash_flow_per_share) => ({ free_cash_flow_per_share })) },
+  })
+
+  it('shows the three-year median cash value and warns at 50% divergence', () => {
+    const value = policyValue(stockOf(raw([1, 2, 3])), { rates: rateRows, generatedAt: artifact.generatedAt })
+    expect(value.status).toBe('ok')
+    expect(value.cash).toMatchObject({ base: 2 })
+    expect(value.cash.value).toBeGreaterThan(0)
+    expect(value.cash.gapPct).toBeLessThan(-50)
+    expect(value.warnings).toContain(WARNING.CASH_DIVERGENCE)
+  })
+
+  it('stays null without three reported positive years', () => {
+    const value = policyValue(stockOf(raw([1, null, 3])), { rates: rateRows, generatedAt: artifact.generatedAt })
+    expect(value.status).toBe('ok')
+    expect(value.cash).toBeNull()
+    expect(value.warnings).not.toContain(WARNING.CASH_DIVERGENCE)
+  })
+})
+
 describe('the committed artifact is what the policy produces', () => {
   it('covers the whole declared universe with the expected shape', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)

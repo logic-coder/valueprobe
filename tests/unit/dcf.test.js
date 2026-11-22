@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDefaults, calGr2fv, calculateReverse, impliedGrowth, marginOfSafety, presentValue, round2 } from '../../src/lib/dcf'
+import { buildDefaults, calGr2fv, calculateReverse, impliedGrowth, marginOfSafety, presentValue, round2, sustainableCashBase } from '../../src/lib/dcf'
 
 // Locked reference numbers for the 601398 payload:
 // eps 1.08, fcf 6.64, tbv 11.24, price 8.85, indicator 5.14, growth 5, terminal 4.
@@ -176,6 +176,21 @@ describe('marginOfSafety', () => {
     expect(marginOfSafety('', 11.56)).toBe('n/a')
     expect(marginOfSafety(null, 11.56)).toBe('n/a')
     expect(marginOfSafety(Infinity, 11.56)).toBe('n/a')
+  })
+})
+
+describe('sustainableCashBase', () => {
+  it('takes the median of the latest three positive fiscal years only', () => {
+    const stock = { financials: { annual: [1, 10, 2, 9, 3].map((free_cash_flow_per_share) => ({ free_cash_flow_per_share })) } }
+    expect(sustainableCashBase(stock)).toBe(3)
+  })
+
+  it('is null unless all three latest years are reported and positive', () => {
+    const row = (free_cash_flow_per_share) => ({ free_cash_flow_per_share })
+    expect(sustainableCashBase({ financials: { annual: [row(1), row(2)] } })).toBeNull()
+    expect(sustainableCashBase({ financials: { annual: [row(1), row(null), row(3)] } })).toBeNull()
+    expect(sustainableCashBase({ financials: { annual: [row(1), row(0), row(3)] } })).toBeNull()
+    expect(sustainableCashBase({})).toBeNull()
   })
 })
 

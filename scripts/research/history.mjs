@@ -87,8 +87,11 @@ const report = { policy: POLICY_VERSION, policyHash: POLICY_V1_HASH, researchVer
 mkdirSync('public/research', { recursive: true })
 const output = 'public/research/dia-2015.json'
 const serialized = JSON.stringify(report, null, 2) + '\n'
+// Later SEC filings change factsSha256 but not this replay; rows and summary are gated.
+const scrub = value => JSON.parse(JSON.stringify(value), (key, item) => key === 'factsSha256' ? undefined : item)
 if (process.argv.includes('--check')) {
-  if (readFileSync(output, 'utf8') !== serialized) throw Error('Historical inputs or results differ from the published replay')
+  const published = JSON.parse(readFileSync(output, 'utf8'))
+  if (JSON.stringify(scrub(published)) !== JSON.stringify(scrub(report))) throw Error('Historical inputs or results differ from the published replay')
 } else {
   writeFileSync(output, serialized)
 }

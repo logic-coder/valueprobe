@@ -8,7 +8,7 @@
 
 | 参数 | v1 值 | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `eps`（每股收益；自由现金流只作对照，不发布） | `POLICY_V1.basis` |
+| 估值基数 | `eps`（每股收益；自由现金流和三年现金中位数只作对照，不发布） | `POLICY_V1.basis` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
@@ -69,6 +69,9 @@
 | `STALE_DATA` | 估值采用较早的盈利期间。 |
 | `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |
+| `MODEL_CAVEAT` | REIT 或炼化企业，模型口径仍属试算。 |
+| `TERMINAL_CAPPED` | 终值输入高于折现率减 2 个百分点，按有效增速封顶。 |
+| `CASH_DIVERGENCE` | 三年现金中位数核对与收益口径相差 50% 以上。 |
 
 UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/legal-messages.js`，由 `src/main.js` 合并进 i18n。数据校验拒绝未知代码。
 
@@ -89,7 +92,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
 | `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。 |
-| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
+| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
 

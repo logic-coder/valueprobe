@@ -27,6 +27,8 @@ export const WARNING = Object.freeze({
   CLASSIFICATION_UNVERIFIED: 'CLASSIFICATION_UNVERIFIED',
   // Owner model on a REIT/refiner: no FFO/AFFO or mid-cycle normalisation.
   MODEL_CAVEAT: 'MODEL_CAVEAT',
+  // After-capex cash cross-check differs from the published earnings value by 50%+.
+  CASH_DIVERGENCE: 'CASH_DIVERGENCE',
   // Terminal growth was cut to (at most) two points under the discount rate.
   TERMINAL_CAPPED: 'TERMINAL_CAPPED',
 })

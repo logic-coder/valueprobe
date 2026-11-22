@@ -21,6 +21,7 @@
             :unavailable="!trialActive && !showPublished"
             :margin-label="marginLabel"
             :reverse-state="reverseState"
+            :cash="showPublished ? policyEntry?.cash : null"
           />
           <button class="dcf__jump" type="button" :disabled="resultLoading" @click="focusAssumptions">
             {{ t('adjust_assumptions') }}
