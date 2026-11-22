@@ -81,6 +81,9 @@ main:focus { outline: none; }
 .symbol-search__status { margin: 0; padding: 10px 14px; font-size: 13px; color: var(--text-muted); }
 
 .header-actions { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.mobile-display { display: none; }
+.mobile-display__menu { min-width: 150px; }
+.mobile-display__menu .q-item { width: 100%; border: 0; text-align: start; background: transparent; color: inherit; }
 .header-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; color: var(--text-muted); font-size: 13px; }
 .header-link:hover { background: var(--bg-soft); color: var(--text); text-decoration: none; }
 .watch-link { gap: 5px; }
@@ -173,7 +176,8 @@ main:focus { outline: none; }
   /* Search gets the second row so the field stays readable; taps stay 40px. */
   .site-header__inner { flex-wrap: wrap; height: auto; padding: 8px 0 10px; row-gap: 8px; }
   .header-actions { margin-left: auto; gap: 4px; }
-  .header-actions .locale-link { display: none; }
+  .header-actions .locale-link, .header-actions .theme-button { display: none; }
+  .mobile-display { display: inline-flex; width: 40px; height: 40px; }
   .symbol-search { order: 3; flex: 1 1 100%; min-width: 0; margin: 0; }
   .symbol-search .q-field__control { height: 40px; }
   .header-link, .icon-button { min-width: 40px; height: 40px; }

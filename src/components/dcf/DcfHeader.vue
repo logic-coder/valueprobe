@@ -1,6 +1,6 @@
 <template>
   <div class="row items-center">
-    <h3 class="text-body1 text-bold">{{ t('assumptions') }}</h3>
+    <h3 class="text-body1 text-bold" tabindex="-1">{{ t('assumptions') }}</h3>
     <q-space />
     <span class="faint dcf__head-hint">{{ t('assumptions_hint') }}</span>
     <div>

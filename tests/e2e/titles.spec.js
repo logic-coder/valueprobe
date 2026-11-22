@@ -15,7 +15,7 @@ test('the title names the stock and the tool', async ({ page }) => {
 
 test('static pages keep their own title', async ({ page }) => {
   await page.goto('/#/')
-  await expect(page).toHaveTitle(/算出股票的内在价值 · valueprobe/)
+  await expect(page).toHaveTitle(/查看股票的内在价值 · valueprobe/)
   await page.goto('/#/watchlist')
   await expect(page).toHaveTitle(/自选股 · valueprobe/)
   await page.goto('/#/compare')

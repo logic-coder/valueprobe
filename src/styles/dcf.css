@@ -28,6 +28,9 @@
 .dcf__head { grid-area: head; padding: 0 0 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
 .dcf__head > .row { flex: 1 1 auto; min-width: 0; }
 .dcf__head h3 { font-size: 16px; line-height: 1.4; color: var(--text); font-weight: 650; }
+.dcf__jump { display: none; }
+.dcf__advanced { margin-top: 10px; padding-inline: 2px; }
+.dcf__advanced > summary { width: max-content; max-width: 100%; min-height: 40px; padding: 9px 0; font-weight: 600; cursor: pointer; }
 
 .dcf__strip-head { margin-bottom: 10px; }
 .dcf__strip-col { grid-area: strip; min-width: 0; }
@@ -228,6 +231,8 @@
 }
 
 @media (max-width: 1023px) {
+  .dcf__head { scroll-margin-top: 124px; }
+  .dcf__jump { display: block; width: 100%; min-height: 42px; margin-top: 10px; border: 1px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent-strong); font: inherit; font-weight: 650; cursor: pointer; }
   .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
   .dcf__fair .text-h6 { font-size: 34px; }
   .dcf__implied-value { font-size: 18px; }

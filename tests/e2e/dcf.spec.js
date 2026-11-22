@@ -3,6 +3,7 @@ import { mockApi } from './support/api-mock'
 import { STOCK } from './support/pages/stock'
 
 const FAIR = STOCK.fairValue
+const openAdvanced = page => page.getByTestId('advanced-assumptions').locator('summary').click()
 
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
@@ -12,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 
 test('shows the published value by default and only edits this page', async ({ page }) => {
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
-  await expect(page.getByTestId('value-context')).toContainText('v1')
+  await expect(page.getByTestId('value-context')).toContainText('v2')
   await expect(page.locator(FAIR)).toContainText('11.86')
   const stress = page.getByTestId('margin-stress')
   await expect(stress.locator('.stress__headline')).toHaveText(await stress.locator('.stress__row strong').last().innerText())
@@ -26,7 +27,7 @@ test('shows the published value by default and only edits this page', async ({ p
 
   await page.locator('.input-section').first().fill('12')
   await expect(page.getByTestId('value-title')).toContainText('试算')
-  await expect(page.getByTestId('value-context')).toContainText('参考口径 v1')
+  await expect(page.getByTestId('value-context')).toContainText('参考口径 v2')
   await expect(page.locator(FAIR)).not.toContainText('11.86')
 
   // Reset returns to the published inputs; the artifact itself is untouched.
@@ -83,6 +84,7 @@ test('keeps the current preset when only the quote changes', async ({ page }) =>
 })
 
 test('switches between eps and free cash flow bases', async ({ page }) => {
+  await openAdvanced(page)
   await page.locator('.q-radio').nth(1).click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('116.66')
@@ -92,6 +94,7 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
 })
 
 test('adds tangible book value to the fair value', async ({ page }) => {
+  await openAdvanced(page)
   await page.getByRole('button', { name: '每股折现' }).click()
   await expect(page.getByTestId('long-run-pe')).toContainText('12.60')
   await expect(page.getByTestId('long-run-pe')).toContainText('不是内在价值')
@@ -101,6 +104,7 @@ test('adds tangible book value to the fair value', async ({ page }) => {
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
+  await openAdvanced(page)
   await page.getByRole('button', { name: '每股折现' }).click()
   await expect(page.locator(STOCK.result)).toContainText('价格隐含增速')
   await expect(page.getByTestId('reverse-growth')).toBeVisible()
@@ -118,6 +122,12 @@ test('reset restores the defaults from the menu', async ({ page }) => {
 
 test('mobile trials preserve the published stress comparison and let readers reach the controls', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
+  const jump = page.getByRole('button', { name: '调整估值假设' })
+  await expect(jump).toBeInViewport()
+  await jump.click()
+  await expect(page.getByRole('heading', { name: '参数与假设' })).toBeFocused()
+  await expect(page.getByRole('button', { name: /每股收益.*点击修改/ })).toBeInViewport()
+  await expect(page.getByTestId('advanced-assumptions')).not.toHaveAttribute('open', '')
   const comparison = page.getByTestId('margin-stress')
   await expect(comparison).toBeVisible()
   const original = await comparison.locator('strong').allTextContents()
@@ -130,6 +140,7 @@ test('mobile trials preserve the published stress comparison and let readers rea
 })
 
 test('shows field help in a popover', async ({ page }) => {
+  await openAdvanced(page)
   // dispatch rather than hover: the popover opens on mouseenter, and a real
   // pointer move races the layout under parallel workers.
   const growthHelp = page.locator('.dcf .a-popover', { hasText: '快速成长阶段' }).first()
@@ -159,13 +170,39 @@ test('the header price is the working price', async ({ page }) => {
   await expect(page.getByRole('button', { name: /^参考报价 ¥ ?7\.00/ })).toBeVisible()
   await expect(page.getByTestId('price-echo')).toContainText('¥ 7.00')
   await expect(stress.locator('strong').first()).not.toHaveText(stressBefore[0])
-  await expect(page.getByTestId('value-title')).toContainText('试算')
+  await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
+  await expect(page.getByText('查看估值依据')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '按自填报价的安全边际' })).toBeVisible()
+  await expect(page.getByTestId('valuation-provenance')).toContainText('参考报价由你输入')
   await expect(page.locator(STOCK.margin)).not.toHaveText(marginBefore)
   await page.getByRole('button', { name: /^参考报价 ¥ ?7\.00/ }).click()
   await page.getByRole('spinbutton', { name: /参考报价/ }).fill('')
   await page.keyboard.press('Enter')
   await expect(page.locator(STOCK.margin)).toContainText('n/a')
   await expect(stress).toHaveCount(0)
+  await expect(page.locator(FAIR)).toContainText('11.86')
+  await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
+})
+
+test('uses a shared pressure axis for margins below minus 100 percent', async ({ page }) => {
+  await page.getByRole('button', { name: /^参考报价/ }).click()
+  await page.getByRole('spinbutton', { name: /参考报价/ }).fill('50')
+  await page.keyboard.press('Enter')
+  const stress = page.getByTestId('margin-stress')
+  await expect(stress.locator('.stress__axis')).not.toContainText('−100%')
+  const widths = await stress.locator('.stress__track i').evaluateAll(bars => bars.map(bar => bar.getBoundingClientRect().width))
+  expect(widths[2]).toBeGreaterThan(widths[1])
+  expect(widths[1]).toBeGreaterThan(widths[0])
+})
+
+test('editing earnings starts a trial and restores the original value on reset', async ({ page }) => {
+  await page.getByRole('button', { name: /每股收益.*点击修改/ }).click()
+  await page.getByRole('spinbutton', { name: /每股收益/ }).fill('0.8')
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('value-title')).toContainText('试算')
+  await expect(page.locator(FAIR)).not.toContainText('11.86')
+  await page.locator('.q-btn:has-text("more_vert")').first().click()
+  await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
   await expect(page.locator(FAIR)).toContainText('11.86')
 })
 
@@ -198,12 +235,13 @@ test('keeps the card rows in a fixed order', async ({ page }) => {
     const rows = [...document.querySelectorAll('.dcf__strip > div, .dcf__form > div')]
     return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
   })
-  // The two growth windows share one row, so only their container is a direct child.
-  const expected = ['内在价值', '快照安全边际', '股价', '基于每股收益', '折现率', '每股有形账面价值', '快速成长阶段', '盈利年份']
+  const expected = ['内在价值', '快照安全边际', '每股收益', '折现率', '首年增长率', '情景']
   const indexes = expected.map((label) => order.findIndex((row) => row.startsWith(label)))
   expect(indexes.every((index) => index >= 0)).toBe(true)
   expect([...indexes].sort((a, b) => a - b)).toEqual(indexes)
-  await expect(page.locator('.dcf__form')).toContainText('第二阶段')
+  await expect(page.getByTestId('field-growth-years')).toBeHidden()
+  await openAdvanced(page)
+  await expect(page.getByTestId('field-growth-years')).toBeVisible()
 })
 
 
@@ -224,6 +262,7 @@ test('shows a sensitivity matrix around the current assumptions', async ({ page 
   await expect(center).toHaveText(await page.locator(FAIR).innerText())
   // A bank's return fades to the discount rate, so this window stays in one band.
   // Owner earnings still spreads far enough to tint a cell.
+  await openAdvanced(page)
   await page.getByRole('button', { name: '每股折现' }).click()
   await expect(page.locator('.sens__grid td.cell--good, .sens__grid td.cell--bad').first()).toBeVisible()
 })
@@ -237,6 +276,7 @@ test('the matrix follows a changed discount rate', async ({ page }) => {
 })
 
 test('builds the discount rate from its parts', async ({ page }) => {
+  await openAdvanced(page)
   await page.locator('.dcf__wacc-btn').click()
   const dialog = page.locator('.q-dialog')
   await expect(dialog).toBeVisible()

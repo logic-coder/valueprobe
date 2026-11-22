@@ -36,7 +36,7 @@ test('shows an empty state that links back', async ({ page }) => {
   await expect(page.locator('.watchlist .muted')).toContainText('还没有自选股')
   await expect(page.locator('.ticker')).toHaveCount(0)
   await page.locator('.watchlist .muted a').click()
-  await expect(page.locator(FAIR)).toContainText('11.86', { timeout: 20000 })
+  await expect(page.getByTestId('home-valuation-preview')).toContainText('11.86', { timeout: 20000 })
 })
 
 test('exports the list and imports it back', async ({ page }) => {

@@ -31,7 +31,24 @@
       <button v-if="recent.length" type="button" class="home__clear" @click="clear">{{ t('recent_clear') }}</button>
     </section>
 
-    <stock-dcf-page class="home__calc" />
+    <section class="home__preview panel" :aria-label="t('home_example')" data-testid="home-valuation-preview">
+      <div class="home__preview-heading">
+        <span class="faint">{{ t('home_example') }}</span>
+        <h2>{{ names.get(previewSymbol) || t('home_preview_company') }}</h2>
+        <span class="home__example-code">{{ previewSymbol }}</span>
+      </div>
+      <dl v-if="preview?.status === 'ok'" class="home__preview-values">
+        <div>
+          <dt>{{ t('fair_value') }}</dt>
+          <dd>{{ moneyIn(preview.inputs.currency, preview.value) }}</dd>
+        </div>
+        <div v-if="preview.marginOfSafety != null">
+          <dt>{{ t('valuation_snapshot_margin') }}</dt>
+          <dd :class="preview.marginOfSafety < 0 ? 'home__preview-loss' : 'home__preview-gain'">{{ percent(preview.marginOfSafety) }}</dd>
+        </div>
+      </dl>
+      <a class="home__chip" :href="'#/stock/' + previewSymbol + '/dcf'">{{ t('home_open_valuation') }}</a>
+    </section>
   </div>
 </template>
 
@@ -41,13 +58,20 @@ import { getCatalog } from '../api/catalog'
 import { clearRecent, readRecent } from '../lib/recent'
 import { useWatchlistStore } from '../store/watchlist'
 import { useI18n } from 'vue-i18n'
-import StockDcfPage from './StockDcfPage.vue'
+import { DEFAULT_SYMBOL } from '../config/markets'
+import { useMoney } from '../composables/useMoney'
+import { percent } from '../lib/format'
+import { usePolicyStore } from '../store/policy'
 
 const { t } = useI18n()
 const emit = defineEmits(['find-stock'])
 const recent = ref([])
 const names = ref(new Map())
 const watchlist = useWatchlistStore()
+const policy = usePolicyStore()
+const { moneyIn, display } = useMoney()
+const previewSymbol = DEFAULT_SYMBOL
+const preview = computed(() => policy.entryOf(previewSymbol))
 // Watchlist entries first, then recents, deduped: one "continue" list instead of two.
 const continueItems = computed(() => {
   const watched = watchlist.symbols.map((symbol) => ({
@@ -65,7 +89,8 @@ const clear = () => {
 }
 onMounted(async () => {
   recent.value = readRecent()
-  const rows = await getCatalog()
+  if (display.converted && !display.asOf) display.loadRates()
+  const [rows] = await Promise.all([getCatalog(), policy.load(previewSymbol)])
   if (rows) names.value = new Map(rows.map(row => [row.symbol, row.name]))
 })
 const examples = [

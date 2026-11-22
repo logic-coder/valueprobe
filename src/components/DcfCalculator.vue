@@ -5,7 +5,7 @@
           <div class="dcf__strip-col">
           <div v-if="!resultLoading && publicationNotice" class="dcf__official-note" data-testid="official-unavailable">
             {{ publicationNotice }}
-            <button v-if="industryTrialOnly && !isEdited && basisReady" type="button" class="wl__tool" @click="markAssumptionsEdited">
+            <button v-if="industryTrialOnly && !trialActive && basisReady" type="button" class="wl__tool" @click="markAssumptionsEdited">
               {{ t('valuation_start_trial') }}
             </button>
           </div>
@@ -18,9 +18,13 @@
             :official="showPublished"
             :official-context="officialContext"
             :trial-context="trialContext"
-            :unavailable="!isEdited && !isManual && !showPublished"
+            :unavailable="!trialActive && !showPublished"
             :margin-label="marginLabel"
+            :reverse-state="reverseState"
           />
+          <button class="dcf__jump" type="button" :disabled="resultLoading" @click="focusAssumptions">
+            {{ t('adjust_assumptions') }}
+          </button>
           <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
             :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited"
             :expectation="priceExpectation" />
@@ -51,7 +55,7 @@
           </details>
           </div>
 
-        <q-card-section class="dcf__head">
+        <q-card-section ref="assumptionsHead" class="dcf__head">
           <dcf-header
             :providers="providers"
             :pinned-source="pinnedSource || ''"
@@ -61,84 +65,16 @@
         </q-card-section>
 
           <div class="line-height-2 dcf__form">
-            <div class="dcf__scenario">
-              <a-popover placement="top">
-                <span class="dcf__scenario-label">{{ t('model') }} <q-icon class="text-grey-7" name="help" size="14px" /></span>
-                <template #content>{{ t('model_help') }}</template>
-              </a-popover>
-              <div class="dcf__scenario-btns" role="group" :aria-label="t('model')">
-                <q-btn
-                  v-for="key in models"
-                  :key="key"
-                  dense
-                  flat
-                  size="sm"
-                  padding="xs md"
-                  :class="{ 'is-active': model === key }"
-                  :label="t('model_' + key)"
-                  @click="model = key"
-                />
-              </div>
-              <span class="dcf__scenario-note dcf__model-note">{{ t('model_suggested', { model: t('model_' + suggested) }) }}</span>
-              <span v-if="classificationHint" class="dcf__scenario-note dcf__model-note">{{ classificationHint }}</span>
-            </div>
-            <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
-            <!-- stock price: the header is the only editor; this line only echoes it -->
-            <div class="dcf__row dcf__price-echo">
-              <div class="text-left">{{ t('stock_price') }}</div>
+            <div class="dcf__row">
+              <span>{{ t(baseField === 'eps' ? 'earnings_per_share' : 'cash_per_share') }}</span>
+              <span v-if="baseField === 'eps' && stock.eps_period === 'FY'" class="faint">{{ t('eps_period_fy') }}</span>
               <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-              <div v-else class="dcf__value" data-testid="price-echo">
-                {{ money(stock.currency, result.stockPrice) }}
-              </div>
-            </div>
-            <div v-if="!loading && headerPriceHint" class="dcf__price-hint">{{ headerPriceHint }}</div>
-            <q-separator />
-
-            <!-- earnings basis -->
-            <div class="dcf__row basis-row" role="radiogroup" :aria-label="t('earnings_basis')">
-              <span class="basis-option">
-                <label class="basis-option__choice">
-                  <q-radio v-model="dcfBasedOn" dense val="eps" :aria-label="t('eps')" />
-                  {{ t('eps') }}
-                  <span v-if="stock.eps_period === 'FY'" class="faint">{{ t('eps_period_fy') }}</span>
-                </label>
-                <a-popover placement="top">
-                  <q-icon class="text-grey-7" name="help" />
-                  <template #content>{{ t('eps_desc') }}</template>
-                </a-popover>
-              </span>
-              <span class="basis-option">
-                <label class="basis-option__choice">
-                  <q-radio v-model="dcfBasedOn" dense val="freecashflow" :disable="firmClaim" :aria-label="t('total_freecashflow')" />
-                  {{ t('total_freecashflow') }}
-                </label>
-                <a-popover placement="top">
-                  <q-icon class="text-grey-7" name="help" />
-                  <template #content>{{ t('total_freecashflow_desc') }}</template>
-                </a-popover>
-              </span>
-              <q-space />
-              <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-              <div v-else-if="dcfBasedOn === 'eps'" class="dcf__value">
-                <editable-value v-if="isManual" v-model="form.eps" :display="money(stock.currency, form.eps)" :native="currencyCode" :label="t('eps')" :currency="currencyCode" />
-                <template v-else>{{ money(stock.currency, form.eps) }}</template>
-              </div>
               <div v-else class="dcf__value">
-                <editable-value v-if="isManual" v-model="form.freecashflow" :display="money(stock.currency, form.freecashflow)" :native="currencyCode" :label="t('total_freecashflow')" :currency="currencyCode" />
-                <template v-else>{{ money(stock.currency, form.freecashflow) }}</template>
+                <editable-value v-model="form[baseField]" :display="money(stock.currency, form[baseField])"
+                  :native="currencyCode" :label="t(baseField === 'eps' ? 'earnings_per_share' : 'cash_per_share')" :currency="currencyCode" />
               </div>
             </div>
-            <div
-              v-if="!loading && stock.cashflow_basis && (stock.cashflow_basis !== 'invest' || dcfBasedOn === 'freecashflow')"
-              class="dcf__rate-note"
-              data-testid="fcf-basis-note"
-            >
-              <q-icon v-if="stock.cashflow_basis === 'invest'" name="info" size="16px" />
-              {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : stock.cashflow_basis === 'invest' ? t('fcf_basis_invest') : t('fcf_basis_equity') }}
-            </div>
-            <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
             <q-separator />
-
             <!-- discount rate -->
             <div class="dcf__row">
               <div class="text-left text-subtitle2">
@@ -152,7 +88,6 @@
                 <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
                 <input v-else v-model.number="form.discountRate" class="input-section" data-testid="field-discount" :aria-label="t('discount_rate')" type="number" @change="clampDiscount" />
                 <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.discountRate++" />
-                <q-btn flat dense size="sm" class="dcf__wacc-btn" icon="functions" :label="t('wacc')" :aria-label="t('wacc')" @click="openWacc" />
               </div>
             </div>
             <div v-if="!loading && rateNote" class="dcf__rate-note" data-testid="discount-currency-note">
@@ -162,157 +97,231 @@
             <div v-if="!loading && !basisReady" class="dcf__rate-note">{{ t('basis_unavailable') }}</div>
             <q-separator />
 
-            <!-- tangible book value -->
-            <div class="dcf__row dcf__book">
-              <div class="dcf__book-label">
-                <a-popover placement="top">
-                  <font>
-                    {{ t('book') }}
-                    <q-icon class="text-grey-7" name="help" />
-                  </font>
-                  <template #content>{{ t('book_desc') }}</template>
-                </a-popover>
-                <label class="dcf__toggle">
-                  <q-checkbox v-model="result.addToFairValue" size="xs" :disable="residualIncome" :aria-label="t('add_to_fair_value')" />
-                  {{ t('add_to_fair_value') }}
-                </label>
-              </div>
-              <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-              <div v-else class="dcf__value">
-                <editable-value v-if="isManual" v-model="result.tbv" :display="money(stock.currency, result.tbv)" :native="currencyCode" :converted="convertedIn(stock.currency, result.tbv)" :label="t('book')" :currency="currencyCode" />
-                <template v-else>{{ moneyIn(stock.currency, result.tbv) }}</template>
-              </div>
-              <p v-if="result.addToFairValue && !residualIncome" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
-            </div>
-            <q-separator />
-
-            <div class="stage-grid">
-              <section class="stage-panel">
-                <h5 class="stage-panel__title">
-                  <a-popover placement="top">
-                    <font>
-                      {{ t('dcf_growth_in_the_next') }}
-                      <q-icon class="text-grey-7" name="help" />
-                    </font>
-                    <template #content>{{ t('dcf_growth_in_the_next_desc') }}</template>
-                  </a-popover>
-                </h5>
-                <div class="stage-row">
-                  <span>{{ t('dcf_years') }}</span>
-                  <div class="stepper">
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.years > 0 ? form.years-- : (form.years = 0)" />
-                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                    <input v-else v-model="form.years" class="input-section" data-testid="field-growth-years" :aria-label="t('growth_year_in_the_next')" type="number" outlined />
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.years++" />
-                  </div>
-                </div>
-                <div class="stage-row">
-                  <span>{{ t('growth_rate') }}</span>
-                  <div class="stepper">
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decGrowthRate" />
-                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                    <input
-                      v-else-if="dcfBasedOn === 'eps'"
-                      v-model="form.growthRate"
-                      class="input-section"
-                      data-testid="field-growth"
-                      :aria-label="t('growth_rate')"
-                      type="number"
-                      outlined
-                    />
-                    <input
-                      v-else-if="dcfBasedOn === 'freecashflow'"
-                      v-model="form.freecashflowGrowthRate"
-                      class="input-section"
-                      :aria-label="t('growth_rate')"
-                      type="number"
-                      outlined
-                    />
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="incGrowthRate" />
-                  </div>
-                </div>
-                <p v-if="!loading && growthNote" class="stage-panel__note">{{ growthNote }}</p>
-                <div class="stage-row stage-row--result">
-                  <span>{{ t('growth_in_the_next_fair_value') }}</span>
-                  <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                  <strong v-else>{{ moneyIn(stock.currency, result.growthValue) }}</strong>
-                </div>
-              </section>
-
-              <section class="stage-panel">
-                <h5 class="stage-panel__title">
-                  <a-popover placement="top">
-                    <font>
-                      {{ t('dcf_terminal') }}
-                      <q-icon class="text-grey-7" name="help" />
-                    </font>
-                    <template #content>{{ t('dcf_terminal_desc') }}</template>
-                  </a-popover>
-                </h5>
-                <div class="stage-row">
-                  <span>{{ t('dcf_years') }}</span>
-                  <div class="stepper">
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decTerminalYears" />
-                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                    <input v-else v-model="form.yearsOfTerminalGrowth" class="input-section" :aria-label="t('years_of_terminal_growth')" type="number" outlined />
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.yearsOfTerminalGrowth++" />
-                  </div>
-                </div>
-                <div class="stage-row">
-                  <span>{{ t('growth_rate') }}</span>
-                  <div class="stepper">
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
-                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                    <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_rate')" outlined />
-                    <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
-                  </div>
-                </div>
-                <p v-if="!loading" class="stage-panel__note">{{ stageNote }}</p>
-                <div class="stage-row stage-row--result">
-                  <span>{{ t('terminal_fair_value') }}</span>
-                  <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                  <strong v-else>{{ moneyIn(stock.currency, result.finiteTerminalValue) }}</strong>
-                </div>
-                <div v-if="!loading && result.continuationValue != null" class="stage-row stage-row--result">
-                  <span>{{ t('continuation_value') }}</span>
-                  <strong>{{ moneyIn(stock.currency, result.continuationValue) }}</strong>
-                </div>
-              </section>
-            </div>
-            <q-separator />
-
-            <!-- business predictability -->
             <div class="dcf__row">
-              <div class="text-left text-subtitle2">
-                <a-popover placement="top">
-                  <font>{{ t('business_predictability') }} <q-icon class="text-grey-7" name="help" /></font>
-                  <template #content>{{ t('business_predictability_desc') }}</template>
-                </a-popover>
-              </div>
-              <div class="dcf__value">
-                <q-skeleton v-if="loading" type="rect" height="15px" width="150px" />
-                <q-rating
-                  v-else
-                  class="dcf__rating"
-                  :model-value="stock.predictability"
-                  :max="5"
-                  color="grey"
-                  color-selected="orange"
-                  icon="star_border"
-                  icon-half="star_half"
-                  color-half="orange"
-                  icon-selected="star"
-                  size="1rem"
-                  readonly
-                  no-dimming
+              <span>{{ t('initial_growth') }}</span>
+              <div class="stepper">
+                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decGrowthRate" />
+                <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                <input
+                  v-else-if="dcfBasedOn === 'eps'"
+                  v-model="form.growthRate"
+                  class="input-section"
+                  data-testid="field-growth"
+                  :aria-label="t('growth_rate')"
+                  type="number"
+                  outlined
                 />
+                <input
+                  v-else-if="dcfBasedOn === 'freecashflow'"
+                  v-model="form.freecashflowGrowthRate"
+                  class="input-section"
+                  :aria-label="t('growth_rate')"
+                  type="number"
+                  outlined
+                />
+                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="incGrowthRate" />
               </div>
             </div>
+            <q-separator />
+
+            <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
             <div v-if="!loading && stock.predictability != null && stock.predictability <= 1" class="dcf__warn">
               <q-icon name="error" size="15px" />
               <span>{{ t('dcf_low_predictability_warning') }}</span>
             </div>
             <q-separator />
+            <details class="dcf__advanced" data-testid="advanced-assumptions">
+              <summary>{{ t('advanced_assumptions') }}</summary>
+              <div class="dcf__scenario">
+                <a-popover placement="top">
+                  <span class="dcf__scenario-label">{{ t('model') }} <q-icon class="text-grey-7" name="help" size="14px" /></span>
+                  <template #content>{{ t('model_help') }}</template>
+                </a-popover>
+                <div class="dcf__scenario-btns" role="group" :aria-label="t('model')">
+                  <q-btn
+                    v-for="key in models"
+                    :key="key"
+                    dense
+                    flat
+                    size="sm"
+                    padding="xs md"
+                    :class="{ 'is-active': model === key }"
+                    :label="t('model_' + key)"
+                    @click="model = key"
+                  />
+                </div>
+                <span class="dcf__scenario-note dcf__model-note">{{ t('model_suggested', { model: t('model_' + suggested) }) }}</span>
+                <span v-if="classificationHint" class="dcf__scenario-note dcf__model-note">{{ classificationHint }}</span>
+              </div>
+              <!-- earnings basis -->
+              <div class="dcf__row basis-row" role="radiogroup" :aria-label="t('earnings_basis')">
+                <span class="basis-option">
+                  <label class="basis-option__choice">
+                    <q-radio v-model="dcfBasedOn" dense val="eps" :aria-label="t('eps')" />
+                    {{ t('eps') }}
+                    <span v-if="stock.eps_period === 'FY'" class="faint">{{ t('eps_period_fy') }}</span>
+                  </label>
+                  <a-popover placement="top">
+                    <q-icon class="text-grey-7" name="help" />
+                    <template #content>{{ t('eps_desc') }}</template>
+                  </a-popover>
+                </span>
+                <span class="basis-option">
+                  <label class="basis-option__choice">
+                    <q-radio v-model="dcfBasedOn" dense val="freecashflow" :disable="firmClaim" :aria-label="t('total_freecashflow')" />
+                    {{ t('total_freecashflow') }}
+                  </label>
+                  <a-popover placement="top">
+                    <q-icon class="text-grey-7" name="help" />
+                    <template #content>{{ t('total_freecashflow_desc') }}</template>
+                  </a-popover>
+                </span>
+              </div>
+              <div
+                v-if="!loading && stock.cashflow_basis && (stock.cashflow_basis !== 'invest' || dcfBasedOn === 'freecashflow')"
+                class="dcf__rate-note"
+                data-testid="fcf-basis-note"
+              >
+                <q-icon v-if="stock.cashflow_basis === 'invest'" name="info" size="16px" />
+                {{ stock.cashflow_basis === 'ocf' ? t('fcf_basis_ocf') : stock.cashflow_basis === 'none' ? t('fcf_basis_none') : stock.cashflow_basis === 'fcff' ? t('fcf_basis_fcff') : stock.cashflow_basis === 'invest' ? t('fcf_basis_invest') : t('fcf_basis_equity') }}
+              </div>
+              <div v-if="!loading && residualIncome" class="dcf__rate-note" data-testid="residual-income-note">{{ t('residual_income_note') }}</div>
+              <q-separator />
+
+              <!-- stock price: the header is the only editor; this line only echoes it -->
+              <div class="dcf__row dcf__price-echo">
+                <div class="text-left">{{ t('stock_price') }}</div>
+                <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                <div v-else class="dcf__value" data-testid="price-echo">
+                  {{ money(stock.currency, result.stockPrice) }}
+                </div>
+              </div>
+              <div v-if="!loading && headerPriceHint" class="dcf__price-hint">{{ headerPriceHint }}</div>
+              <q-separator />
+
+              <!-- tangible book value -->
+              <div class="dcf__row dcf__book">
+                <div class="dcf__book-label">
+                  <a-popover placement="top">
+                    <font>
+                      {{ t('book') }}
+                      <q-icon class="text-grey-7" name="help" />
+                    </font>
+                    <template #content>{{ t('book_desc') }}</template>
+                  </a-popover>
+                  <label class="dcf__toggle">
+                    <q-checkbox v-model="result.addToFairValue" size="xs" :disable="residualIncome" :aria-label="t('add_to_fair_value')" />
+                    {{ t('add_to_fair_value') }}
+                  </label>
+                </div>
+                <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                <div v-else class="dcf__value">
+                  <editable-value v-if="isManual" v-model="result.tbv" :display="money(stock.currency, result.tbv)" :native="currencyCode" :converted="convertedIn(stock.currency, result.tbv)" :label="t('book')" :currency="currencyCode" />
+                  <template v-else>{{ moneyIn(stock.currency, result.tbv) }}</template>
+                </div>
+                <p v-if="result.addToFairValue && !residualIncome" class="dcf__book-note">{{ t('tbv_double_count_note') }}</p>
+              </div>
+              <q-separator />
+
+              <div class="stage-grid">
+                <section class="stage-panel">
+                  <h5 class="stage-panel__title">
+                    <a-popover placement="top">
+                      <font>
+                        {{ t('dcf_growth_in_the_next') }}
+                        <q-icon class="text-grey-7" name="help" />
+                      </font>
+                      <template #content>{{ t('dcf_growth_in_the_next_desc') }}</template>
+                    </a-popover>
+                  </h5>
+                  <div class="stage-row">
+                    <span>{{ t('dcf_years') }}</span>
+                    <div class="stepper">
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.years > 0 ? form.years-- : (form.years = 0)" />
+                      <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                      <input v-else v-model="form.years" class="input-section" data-testid="field-growth-years" :aria-label="t('growth_year_in_the_next')" type="number" outlined />
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.years++" />
+                    </div>
+                  </div>
+                  <p v-if="!loading && growthNote" class="stage-panel__note">{{ growthNote }}</p>
+                  <div class="stage-row stage-row--result">
+                    <span>{{ t('growth_in_the_next_fair_value') }}</span>
+                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                    <strong v-else>{{ moneyIn(stock.currency, result.growthValue) }}</strong>
+                  </div>
+                </section>
+
+                <section class="stage-panel">
+                  <h5 class="stage-panel__title">
+                    <a-popover placement="top">
+                      <font>
+                        {{ t('dcf_terminal') }}
+                        <q-icon class="text-grey-7" name="help" />
+                      </font>
+                      <template #content>{{ t('dcf_terminal_desc') }}</template>
+                    </a-popover>
+                  </h5>
+                  <div class="stage-row">
+                    <span>{{ t('dcf_years') }}</span>
+                    <div class="stepper">
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decTerminalYears" />
+                      <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                      <input v-else v-model="form.yearsOfTerminalGrowth" class="input-section" :aria-label="t('years_of_terminal_growth')" type="number" outlined />
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.yearsOfTerminalGrowth++" />
+                    </div>
+                  </div>
+                  <div class="stage-row">
+                    <span>{{ t('growth_rate') }}</span>
+                    <div class="stepper">
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
+                      <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                      <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_rate')" outlined />
+                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
+                    </div>
+                  </div>
+                  <p v-if="!loading" class="stage-panel__note">{{ stageNote }}</p>
+                  <div class="stage-row stage-row--result">
+                    <span>{{ t('terminal_fair_value') }}</span>
+                    <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                    <strong v-else>{{ moneyIn(stock.currency, result.finiteTerminalValue) }}</strong>
+                  </div>
+                  <div v-if="!loading && result.continuationValue != null" class="stage-row stage-row--result">
+                    <span>{{ t('continuation_value') }}</span>
+                    <strong>{{ moneyIn(stock.currency, result.continuationValue) }}</strong>
+                  </div>
+                </section>
+              </div>
+              <q-separator />
+
+              <!-- business predictability -->
+              <div class="dcf__row">
+                <div class="text-left text-subtitle2">
+                  <a-popover placement="top">
+                    <font>{{ t('business_predictability') }} <q-icon class="text-grey-7" name="help" /></font>
+                    <template #content>{{ t('business_predictability_desc') }}</template>
+                  </a-popover>
+                </div>
+                <div class="dcf__value">
+                  <q-skeleton v-if="loading" type="rect" height="15px" width="150px" />
+                  <q-rating
+                    v-else
+                    class="dcf__rating"
+                    :model-value="stock.predictability"
+                    :max="5"
+                    color="grey"
+                    color-selected="orange"
+                    icon="star_border"
+                    icon-half="star_half"
+                    color-half="orange"
+                    icon-selected="star"
+                    size="1rem"
+                    readonly
+                    no-dimming
+                  />
+                </div>
+              </div>
+              <q-btn flat dense size="sm" class="dcf__wacc-btn" icon="functions" :label="t('wacc')" :aria-label="t('wacc')" @click="openWacc" />
+            </details>
             <div v-if="display.converted" class="text-caption faint q-px-sm q-py-xs">
               {{ t('converted_note', { currency: display.currency, native: stock.currency || '' }) }}
             </div>
@@ -469,9 +478,11 @@ const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const policyEntry = computed(() => policyStore.entryOf(props.symbol))
 const industryTrialOnly = computed(() => policyEntry.value?.reasons.includes(REASON.INDUSTRY_MODEL_PENDING))
-const isEdited = ref(false)
 const assumptionsEdited = ref(false)
-const showPublished = computed(() => !isManual.value && !isEdited.value && policyEntry.value?.status === 'ok')
+const trialActive = computed(() => isManual.value || assumptionsEdited.value)
+const showPublished = computed(() => !trialActive.value && policyEntry.value?.status === 'ok')
+const defaultPrice = ref('')
+const quoteEdited = computed(() => finiteOrNull(result.stockPrice) !== finiteOrNull(defaultPrice.value))
 let seeding = false
 const officialContext = computed(() => {
   const artifact = policyStore.metadataOf(props.symbol)
@@ -490,9 +501,11 @@ const publicationNotice = computed(() => {
   return policyEntry.value.status === 'ok' ? '' : t('official_unavailable', { reason: officialReason.value })
 })
 const priceStatus = computed(() => quoteDateStatus(policyEntry.value?.price, policyEntry.value?.priceDate))
-const marginLabel = computed(() => showPublished.value && ['historical', 'unknown'].includes(priceStatus.value)
-  ? 'valuation_snapshot_margin'
-  : 'margin_of_safety')
+const marginLabel = computed(() => {
+  if (quoteEdited.value && !isManual.value && Number(result.stockPrice) > 0) return 'valuation_custom_margin'
+  if (!quoteEdited.value && showPublished.value && ['historical', 'unknown'].includes(priceStatus.value)) return 'valuation_snapshot_margin'
+  return 'margin_of_safety'
+})
 const earningsDateLabel = computed(() => {
   const entry = policyEntry.value
   if (!entry?.earningsDate) return t('valuation_earnings_unknown')
@@ -500,6 +513,7 @@ const earningsDateLabel = computed(() => {
 })
 const quoteDateLabel = computed(() => {
   const entry = policyEntry.value
+  if (quoteEdited.value) return t(Number(result.stockPrice) > 0 ? 'valuation_custom_quote' : 'quote_missing')
   if (priceStatus.value === 'missing' || priceStatus.value === 'unknown') return t('quote_' + priceStatus.value)
   return t(priceStatus.value === 'historical' ? 'valuation_quote_historical' : 'valuation_quote_dated', { date: entry.priceDate })
 })
@@ -509,8 +523,21 @@ const inputWarnings = computed(() => (policyEntry.value?.warnings || []).filter(
 const headerPriceHint = computed(() => t('price_edit_here'))
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
+const reverseState = computed(() => {
+  if (!showPublished.value && !trialActive.value) return 'reverse_not_started'
+  if (!basisReady.value || !(Number(result.stockPrice) > 0) || !(Number(form.years) > 0) ||
+    finiteOrNull(form.discountRate) === null || finiteOrNull(form.terminalGrowthRate) === null) return 'reverse_missing_inputs'
+  return headline.value.reverseGrowthRate == null ? 'reverse_no_solution' : ''
+})
+const assumptionsHead = ref(null)
+const focusAssumptions = () => {
+  const section = assumptionsHead.value?.$el
+  section?.scrollIntoView({ block: 'start' })
+  section?.querySelector('h3')?.focus({ preventScroll: true })
+}
 
 const dcfBasedOn = ref('eps')
+const baseField = computed(() => dcfBasedOn.value === 'eps' ? 'eps' : 'freecashflow')
 const form = reactive({
   eps: null, freecashflow: null, freecashflowGrowthRate: null, years: null,
   growthRate: null, terminalGrowthRate: null, yearsOfTerminalGrowth: null, discountRate: null,
@@ -520,20 +547,20 @@ const result = reactive({
   marginOfSafety: null, addToFairValue: false, fairValue: null, fairLow: null, fairHigh: null,
 })
 const headline = computed(() => {
-  if (!isManual.value && !assumptionsEdited.value && policyEntry.value?.status === 'ok') {
+  if (showPublished.value) {
     const entry = policyEntry.value
     return {
       ...result,
       fairValue: entry.value,
-      marginOfSafety: isEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
+      marginOfSafety: quoteEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
       fairLow: entry.band?.low ?? null,
       fairHigh: entry.band?.high ?? null,
     }
   }
-  if (isEdited.value || isManual.value) return result
+  if (trialActive.value) return result
   return { fairValue: null, marginOfSafety: null, fairLow: null, fairHigh: null, reverseGrowthRate: null }
 })
-const stressQuote = computed(() => isEdited.value ? result.stockPrice : policyEntry.value?.price)
+const stressQuote = computed(() => result.stockPrice)
 const stressRows = computed(() => isManual.value
   ? null
   : calculateMarginStress(policyEntry.value, stressQuote.value))
@@ -603,7 +630,7 @@ const initData = async () => {
   } else {
     model.value = suggested.value
   }
-  isEdited.value = false
+  defaultPrice.value = result.stockPrice
   assumptionsEdited.value = false
   // The calculator always seeds from the public policy. The pasted-link preset
   // was removed together with the share surface (DEVIATIONS D37).
@@ -807,7 +834,6 @@ const resetToDefaults = () => initData()
 
 const markAssumptionsEdited = () => {
   if (seeding) return
-  isEdited.value = true
   assumptionsEdited.value = true
 }
 
@@ -857,7 +883,6 @@ watch(() => [result.tbv, result.addToFairValue], () => {
 watch(() => result.stockPrice, () => {
   calculate()
   persistManual()
-  if (!seeding) isEdited.value = true
 })
 watch(() => [props.symbol, result.stockPrice], ([symbol, price]) => dcfStore.setWorkingPrice(symbol, price))
 watch(() => dcfStore.workingPrice, (shared) => {

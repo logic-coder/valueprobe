@@ -54,12 +54,9 @@ app.use(router)
 app.use(i18n)
 app.use(Quasar, { plugins: { Notify, Dialog: DialogPlugin }, config: {} })
 
-// The document language and title follow the interface locale, so screen readers and
-// browser tabs do not keep the boot-time Chinese after a switch. Quasar sets html[lang]
-// from the browser during install, so this has to run after it.
+// Quasar sets html[lang] during install. Keep it in sync with the interface locale.
 const applyLang = (value) => {
   document.documentElement.lang = value === 'en-us' ? 'en' : 'zh-hans'
-  document.title = i18n.global.t('doc_title')
 }
 applyLang(savedLocale)
 watch(i18n.global.locale, applyLang)

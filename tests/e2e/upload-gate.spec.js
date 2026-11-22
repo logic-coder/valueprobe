@@ -79,6 +79,7 @@ test('industry trials stay out of published margins and highlighting', async ({ 
   await expect(psx.getByRole('cell', { name: 'n/a', exact: true }).first()).toBeVisible()
   await psx.getByRole('link').click()
   await expect(page.getByTestId('official-unavailable')).toContainText('仅供试算')
+  await expect(page.getByTestId('reverse-growth')).toContainText('开始试算后可查看隐含增速')
   await expect(page.getByTestId('dcf-fair-value')).toContainText('n/a')
   await expect(page.getByTestId('margin-stress')).toHaveCount(0)
   await page.getByRole('button', { name: '开始试算', exact: true }).click()

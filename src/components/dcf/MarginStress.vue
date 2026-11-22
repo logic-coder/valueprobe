@@ -10,22 +10,24 @@
     <div v-for="(row, i) in rows" :key="i" class="stress__row">
       <span>{{ t(labels[i]) }}</span><strong>{{ percent(row.margin) }}</strong>
       <div class="stress__track" aria-hidden="true">
-        <i :class="{ negative: row.margin < 0 }" :style="{ width: Math.min(100, Math.abs(row.margin)) / 2 + '%' }" />
+        <i :class="{ negative: row.margin < 0 }" :style="{ width: Math.abs(row.margin) / axisLimit * 50 + '%' }" />
       </div>
     </div>
-    <div class="stress__axis" aria-hidden="true"><span>−100%</span><span>0</span><span>+100%</span></div>
+    <div class="stress__axis" aria-hidden="true"><span>−{{ axisLimit }}%</span><span>0</span><span>+{{ axisLimit }}%</span></div>
     <small>{{ t(bank ? 'stress_bank_note' : 'stress_owner_note') }}</small>
     <small v-if="expectation">{{ expectation }}</small>
   </section>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { percent } from '../../lib/format'
-defineProps({ rows: { type: Array, required: true }, bank: Boolean, custom: Boolean,
+const props = defineProps({ rows: { type: Array, required: true }, bank: Boolean, custom: Boolean,
   quote: { type: String, required: true }, expectation: { type: String, default: '' } })
 const { t } = useI18n()
 const labels = ['stress_default', 'stress_earnings', 'stress_joint']
+const axisLimit = computed(() => Math.max(100, Math.ceil(Math.max(...props.rows.map(row => Math.abs(row.margin))) / 50) * 50))
 </script>
 
 <style scoped>

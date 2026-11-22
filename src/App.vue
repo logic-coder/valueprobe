@@ -41,6 +41,22 @@
           <button class="icon-button theme-button" type="button" :aria-label="theme === 'dark' ? t('theme_to_light') : t('theme_to_dark')" @click="toggleTheme">
             <q-icon :name="theme === 'dark' ? 'light_mode' : 'dark_mode'" size="17px" />
           </button>
+          <q-btn class="mobile-display" round flat icon="more_horiz" :aria-label="t('display_settings')">
+            <q-menu auto-close>
+              <q-list class="mobile-display__menu">
+                <q-item tag="button" type="button" clickable :aria-pressed="locale === 'zh-hans'" @click="switchLocale('zh-hans')">
+                  <q-item-section>简体中文</q-item-section>
+                </q-item>
+                <q-item tag="button" type="button" clickable :aria-pressed="locale === 'en-us'" @click="switchLocale('en-us')">
+                  <q-item-section>English</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item tag="button" type="button" clickable @click="toggleTheme">
+                  <q-item-section>{{ t(theme === 'dark' ? 'theme_to_light' : 'theme_to_dark') }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
         </div>
       </div>
     </header>

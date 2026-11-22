@@ -59,14 +59,14 @@
       <q-space />
       <q-skeleton v-if="loading" type="rect" height="22px" width="50px" />
       <div
-        v-else-if="result.reverseGrowthRate != null"
+        v-else-if="!reverseState"
         class="dcf__implied-value"
         data-testid="reverse-growth"
       >
         {{ percent(result.reverseGrowthRate) }}
       </div>
       <div v-else class="dcf__implied-empty" data-testid="reverse-growth">
-        {{ t('reverse_no_solution') }}
+        {{ t(reverseState) }}
       </div>
     </div>
     <span class="sr-only" role="status" aria-live="polite">{{ liveSummary }}</span>
@@ -92,6 +92,7 @@ const props = defineProps({
   trialContext: { type: String, default: '' },
   unavailable: { type: Boolean, default: false },
   marginLabel: { type: String, default: 'margin_of_safety' },
+  reverseState: { type: String, required: true },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()

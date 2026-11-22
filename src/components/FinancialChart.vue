@@ -1,8 +1,9 @@
 <template>
   <div>
-    <date-selector :value="date" :range="props.range" @on-change="onDateChange" />
+    <date-selector :value="date" :range="props.range" :dates="annualRanges" @on-change="onDateChange" />
     <div v-if="!loading && chartOptions" ref="chartEl" style="width: 100%; height: 280px" />
     <div v-else-if="!loading" class="chart-empty faint">{{ t('chart_empty') }}</div>
+    <p v-if="!loading && trend" class="chart-fit-note muted">{{ t('chart_fit_note', { correlation: trend.r }) }}</p>
     <q-skeleton v-if="loading" type="rect" height="280px" />
   </div>
 </template>
@@ -21,7 +22,7 @@ import { useDcfStore } from '../store/dcf'
 import { axisExtent } from '../lib/axis'
 import { buildTrend } from '../lib/trend'
 import DateSelector from './DateSelector.vue'
-import { rangeDate } from '../lib/ranges'
+import { RANGE_KEYS, rangeDate } from '../lib/ranges'
 
 const props = defineProps({
   indicator: { type: String, default: '' },
@@ -36,7 +37,7 @@ const dcfStore = useDcfStore()
 // D3: the original opens on a 30-year window, which is mostly empty for newer
 // listings and unreadable at 280px. Open on 3 years; the selector still offers all.
 const date = ref(new Date(new Date().getFullYear() - 3, new Date().getMonth(), new Date().getDate()).getTime())
-const trend = ref(null)
+const annualRanges = RANGE_KEYS.filter(key => !['1M', '3M', '6M', 'YTD'].includes(key.toUpperCase()))
 const chartEl = ref(null)
 const ink = ref({ line: '', trend: '', text: '', grid: '' })
 let instance = null
@@ -57,21 +58,20 @@ const stock = computed(() => stockStore.stock || {})
 const data = computed(() => dcfStore.indicator.data || [])
 const loading = computed(() => dcfStore.indicator.dataLoading)
 
-const percent = (value) => (100 * Number(value || 0)).toFixed(2) + '%'
+const visible = computed(() => data.value.filter(([period, value]) =>
+  new Date(period).getTime() > date.value && value != null && value !== '' && Number.isFinite(Number(value))))
+const trend = computed(() => {
+  const fit = visible.value.length >= 3 ? buildTrend(visible.value) : null
+  return fit && Number.isFinite(Number(fit.r)) ? fit : null
+})
 
 const chartOptions = computed(() => {
-  if (!data.value || !data.value.length) return null
-  const raw = data.value.map((point) => {
-    const time = new Date(point[0]).getTime()
-    return { time, label: point[0], value: point[1] }
-  })
-  const visible = raw.filter((point) => point.time > date.value)
-  const trendVisible = (trend.value?.simData || []).filter((point) => new Date(point[0]).getTime() > date.value)
+  if (!visible.value.length) return null
   const child = (dcfStore.view.data?.children || []).find((item) => item.name === props.indicator)
   const label = child ? child.display_name : props.indicator
   const values = [
-    ...visible.map((point) => point.value),
-    ...trendVisible.map((point) => point[1]),
+    ...visible.value.map((point) => point[1]),
+    ...(trend.value?.simData ?? []).map((point) => point[1]),
   ]
   const extent = axisExtent(values)
   return {
@@ -88,11 +88,11 @@ const chartOptions = computed(() => {
         return html
       },
     },
-    grid: { left: 56, right: 16, top: 32, bottom: 64 },
+    grid: { left: 56, right: 16, top: 32, bottom: 36 },
     xAxis: {
       type: 'category',
-      data: visible.map((point) => point.label),
-      axisLabel: { rotate: 60, color: ink.value.text },
+      data: visible.value.map(([period]) => 'FY' + String(period).slice(0, 4)),
+      axisLabel: { color: ink.value.text, hideOverlap: true },
       axisLine: { lineStyle: { color: ink.value.grid } },
     },
     yAxis: {
@@ -104,22 +104,22 @@ const chartOptions = computed(() => {
       ...(extent ? { min: extent.min, max: extent.max } : {}),
     },
     series: [
-      { type: 'line', name: label, data: visible.map((point) => point.value), color: ink.value.line, showSymbol: false },
-      {
+      { type: 'line', name: label, data: visible.value.map((point) => point[1]), color: ink.value.line, showSymbol: false },
+      ...(trend.value ? [{
         type: 'line',
-        name: label + t('trendline') + '(' + percent(trend.value && trend.value.r) + ')',
-        data: trendVisible.map((point) => point[1]),
+        name: t('trendline'),
+        data: trend.value.simData.map((point) => point[1]),
         color: ink.value.trend,
+        lineStyle: { type: 'dashed' },
         showSymbol: false,
-      },
+      }] : []),
     ],
   }
 })
 
 const getData = async () => {
   if (!props.indicator) return
-  const fresh = await dcfStore.loadIndicatorData(props.symbol || stock.value.stockid, props.indicator, { type: 'annual', get_ratio: false })
-  if (fresh && data.value.length > 2) trend.value = buildTrend(data.value)
+  await dcfStore.loadIndicatorData(props.symbol || stock.value.stockid, props.indicator, { type: 'annual', get_ratio: false })
 }
 
 const render = () => {
@@ -160,3 +160,7 @@ onBeforeUnmount(() => {
   if (instance) instance.dispose()
 })
 </script>
+
+<style scoped>
+.chart-fit-note { margin: 6px 0 0; font-size: 13px; line-height: 1.5; }
+</style>

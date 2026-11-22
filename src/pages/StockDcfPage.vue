@@ -1,11 +1,6 @@
 <template>
   <stock-not-found-page v-if="!parsed.ok" />
   <div v-else>
-    <header v-if="embedded" class="example-head">
-      <span class="example-head__kicker">{{ t('home_example') }}</span>
-      <a :href="'#/stock/' + symbol + '/dcf'">{{ stockStore.stock?.company || t('default_company') }}</a>
-      <span class="example-head__code">{{ symbol }}</span>
-    </header>
     <data-state-banner
       :state="state"
       :data-at="dataAt"
@@ -42,7 +37,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { DEFAULT_SYMBOL, parseSymbol } from '../config/markets'
+import { parseSymbol } from '../config/markets'
 import { addRecent } from '../lib/recent'
 import { useStockStore } from '../store/stock'
 import { useDcfStore } from '../store/dcf'
@@ -60,9 +55,8 @@ const dcfStore = useDcfStore()
 const sourceStore = useDataStateStore()
 const policyStore = usePolicyStore()
 
-const embedded = computed(() => !route.params.symbol)
-const parsed = computed(() => parseSymbol(route.params.symbol || DEFAULT_SYMBOL))
-const symbol = computed(() => (parsed.value.ok ? parsed.value.symbol : DEFAULT_SYMBOL))
+const parsed = computed(() => parseSymbol(route.params.symbol || ''))
+const symbol = computed(() => (parsed.value.ok ? parsed.value.symbol : ''))
 
 const isManual = computed(() => sourceStore.stateOf(symbol.value) === 'manual')
 const settled = ref(false)

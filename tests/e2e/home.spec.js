@@ -1,8 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { mockApi } from './support/api-mock'
 
-// The landing page: it has to explain the tool, keep the default example usable and
-// stay out of the way of the calculator below it.
+// The landing page presents one result preview and opens the calculator on demand.
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/')
@@ -14,14 +13,18 @@ test.beforeEach(async ({ page }) => {
 test('explains the tool and still renders the default example', async ({ page }) => {
   await expect(page.locator('.home__title')).toContainText('内在价值')
   await expect(page.locator('.home__lead')).toContainText('公司名或代码')
-  await expect(page.locator('.example-head')).toContainText('工商银行')
-  await expect(page.locator('.example-head')).toContainText('SHSE:601398')
+  const preview = page.getByTestId('home-valuation-preview')
+  await expect(preview).toContainText('工商银行')
+  await expect(preview).toContainText('SHSE:601398')
   await expect(page.locator('.site-footer')).toContainText('不构成投资建议')
   await expect(page.locator('.home__hero')).not.toContainText('内核')
   await expect(page.locator('.site-footer')).not.toContainText('内核')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.86', { timeout: 20000 })
+  await expect(preview).toContainText('11.86', { timeout: 20000 })
+  await expect(page.getByTestId('dcf')).toHaveCount(0)
   await expect(page.locator('.ticker')).toHaveCount(0)
   await expect(page.locator('.home__recent')).toHaveCount(0)
+  await preview.getByRole('link', { name: '打开估值' }).click()
+  await expect(page.getByTestId('dcf-fair-value')).toContainText('11.86')
 })
 
 test('lists a recently viewed symbol and clears it', async ({ page }) => {
