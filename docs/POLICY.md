@@ -26,7 +26,7 @@
 | 利率币种 | `quote`：跟随报价/现金流币种，不跟显示货币 | `discount.currency` |
 | 港币代理 | `USD`：港币用美元十年期作代理 | `discount.hkdProxy` |
 | 缺失利率 | `fallback`：照常出值，回退值 + `RATE_FALLBACK` | `discount.missing` |
-| 兜底折现率 | `FALLBACK_DISCOUNT_RATE` = 8% | `discount.fallback` |
+| 兜底折现率 | `FALLBACK_DISCOUNT_RATE` = 10%；要求回报下限 10% | `discount.fallback` / `discount.floor` |
 | 折现率夹取 | 0–50% | `discount.min` / `discount.max` |
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
 | 基本面过期 | 盈利所属期间距发布日超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
@@ -69,7 +69,7 @@
 | `SHORT_HISTORY` | 官方增速只用了五年窗，或在没有窗口时按 0% 起点处理。 |
 | `NO_WINDOW_ZERO_START` | 没有十年或五年窗口，但可重复盈利为正：起点 0%，再淡出到默认终值 4%。不是「永远零增长」。 |
 | `GROWTH_ABOVE_RETENTION` | 增速高于留存收益能支撑的水平。 |
-| `RATE_FALLBACK` | 取不到当地十年期利率，折现率回退为 8%。 |
+| `RATE_FALLBACK` | 取不到当地十年期利率，折现率回退为 10%。 |
 | `DISCOUNT_CLAMPED` | 折现率被夹到 0–50% 的公开区间。 |
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
@@ -172,7 +172,7 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
 - `generatedAt` 2026-11-23；`rates.asOf` 2026-11-19。
-- 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。折现率仍是当地十年期向上取整加 6 个百分点（人民币 8%，美元与港币 12%）。
+- 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。要求回报是 `max(10%, ceil(当地十年期)+6)`，缺失回退 10%（人民币 10%，美元与港币 12%）。
 - 声明、快照与估值条目各 500 条，有值 461 条，拒绝 39 条（相对冻结的 v2：407 有值 / 93 拒绝；相对上一版未发布本地 v3：403 / 97）。
 - 拒绝原因出现次数，`CASH_UNRECONCILED` 24、`NO_GROWTH` 12、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
 - 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 207 条，`CASH_DIVERGENCE`（25–49%）47 条。`NEGATIVE_HISTORY_ZEROED` 111 条，`SHORT_HISTORY` 67 条，`NO_WINDOW_ZERO_START` 45 条，`CAPPED_GROWTH` 92 条，`LIFE_BOOK_QUALITY` 3 条。模型为 `owner` 451 条、`residual` 49 条。

@@ -222,7 +222,7 @@ const parameterRows = computed(() => [
   {
     label: t('method_discount'),
     values: [
-      t('method_rule_discount', { spread: summary.discount.spread }),
+      t('method_rule_discount', { spread: summary.discount.spread, floor: summary.discount.floor }),
       t('method_rule_currency'),
       t('method_rule_hkd', { proxy: summary.discount.hkdProxy }),
       t('method_rule_fallback', { fallback: summary.discount.fallback }),

@@ -30,7 +30,7 @@ test('falls back to the not-found page for an unrelated path', async ({ page }) 
 test('the header lookup navigates to a typed ticker', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.66', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.76', { timeout: 20000 })
   await page.locator('.symbol-search input').fill('nasdaq:aapl')
   await page.locator('.symbol-search input').press('Enter')
   await expect(page).toHaveURL(/#\/stock\/NASDAQ:AAPL\/dcf$/)
@@ -65,7 +65,7 @@ test('the slash key jumps to the lookup', async ({ page }) => {
 test('the header lookup reports a bad symbol', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.66', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.76', { timeout: 20000 })
   await page.locator('.symbol-search input').fill('not a code!')
   await page.locator('.symbol-search input').press('Enter')
   await expect(page.locator('text=格式：交易所')).toBeVisible()

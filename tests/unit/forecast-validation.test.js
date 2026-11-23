@@ -44,7 +44,7 @@ describe('forecast-validation harness', () => {
     expect(report.policyVersion).toBe(POLICY_VERSION)
     expect(report.policyHash).toBe(POLICY_V1_HASH)
     expect(report.growthRule).toBe('adopted-10y-window-capped')
-    expect(report.discountRule).toBe('local-10y-ceil+6')
+    expect(report.discountRule).toBe('max(floor, local-10y-ceil+6)')
     expect(report.discountRate).toBe(officialDiscountRate(study))
     expect(report.discountRate).toBe(11)
     expect(report.terminalIncluded).toBe(false)

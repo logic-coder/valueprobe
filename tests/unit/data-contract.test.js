@@ -190,4 +190,14 @@ describe('cross-listing report', () => {
     expect(icbc.reasons).toContain('RATE_CURRENCY')
     expect(icbc.valueHInA).toBeCloseTo(icbc.valueH / icbc.fxToA, 4)
   })
+
+  it('records about a two-point A/H required-return gap at current yields, not a fixed four-point gap', () => {
+    const valued = artifact.crossListing.filter((row) => row.valueA != null && row.valueH != null)
+    expect(valued.length).toBeGreaterThan(0)
+    for (const row of valued) {
+      expect(row.bridge.discountRate.a, row.id).toBe(10)
+      expect(row.bridge.discountRate.h, row.id).toBe(12)
+      expect(row.bridge.discountRate.diffPp, row.id).toBe(-2)
+    }
+  })
 })

@@ -32,31 +32,32 @@ describe('public policy is frozen', () => {
     expect(POLICY_V1.discount.rounding).toBe('ceil')
     expect(POLICY_V1.discount.currency).toBe('quote')
     expect(POLICY_V1.discount.missing).toBe('fallback')
-    expect(POLICY_V1.discount.fallback).toBe(8)
+    expect(POLICY_V1.discount.fallback).toBe(10)
+    expect(POLICY_V1.discount.floor).toBe(10)
     expect(POLICY_V1.growth.cap).toBe(15)
     expect(POLICY_V1.growth.shortCap).toBe(10)
     expect(POLICY_V1.growth.negative).toBe('zero-start-and-terminal')
     expect(POLICY_V1.growth.missingWindow).toBe('zero-start')
     expect(POLICY_V1.horizon).toEqual({ years: 10, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10 })
-    expect(POLICY_V1.discount.rule).toBe('local-10y-ceil+6')
+    expect(POLICY_V1.discount.rule).toBe('max(floor, local-10y-ceil+6)')
     expect(POLICY_V1.basis).toBe('repeatable-earnings')
   })
 })
 
 describe('discount rate tool', () => {
-  it('is the local ten-year yield rounded up plus six points', () => {
+  it('is the local ten-year yield rounded up plus six points, with a 10% floor', () => {
     expect(policyDiscountRate(5.07)).toBe(12)
     expect(policyDiscountRate(5.14)).toBe(12)
-    expect(policyDiscountRate(1.5892)).toBe(8)
+    expect(policyDiscountRate(1.5892)).toBe(10)
     expect(policyDiscountRate(6)).toBe(12)
   })
 
-  it('turns a missing yield into null and lets a negative one through', () => {
+  it('turns a missing yield into null and floors a zero or negative observation at 10%', () => {
     expect(policyDiscountRate(null)).toBeNull()
     expect(policyDiscountRate(undefined)).toBeNull()
-    expect(policyDiscountRate(0)).toBe(6)
-    expect(policyDiscountRate(-1)).toBe(5)
-    expect(policyDiscountRate(-2.5)).toBe(4)
+    expect(policyDiscountRate(0)).toBe(10)
+    expect(policyDiscountRate(-1)).toBe(10)
+    expect(policyDiscountRate(-2.5)).toBe(10)
   })
 })
 
@@ -103,11 +104,11 @@ describe('policyValue semantics', () => {
     expect(policyValue(null).reasons).toEqual([REASON.NO_SNAPSHOT])
   })
 
-  it('publishes a value with the 8% fallback and says so when the yield is missing', () => {
+  it('publishes a value with the 10% fallback and says so when the yield is missing', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
     const value = policyValue(stock, { rates: {}, generatedAt: artifact.generatedAt })
     expect(value.status).toBe('ok')
-    expect(value.inputs.discountRate).toBe(8)
+    expect(value.inputs.discountRate).toBe(10)
     expect(value.inputs.rate.source).toBe('fallback')
     expect(value.warnings).toContain(WARNING.RATE_FALLBACK)
   })
@@ -149,17 +150,17 @@ describe('policyValue semantics', () => {
     expect(high.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
     const low = policyValue(stock, { rates: { CNY: { value: -100, asOf: '2026-11-18' } } })
     expect(low.status).toBe('ok')
-    expect(low.inputs.discountRate).toBe(0)
-    expect(low.warnings).toContain(WARNING.DISCOUNT_CLAMPED)
+    expect(low.inputs.discountRate).toBe(10)
+    expect(low.warnings).not.toContain(WARNING.DISCOUNT_CLAMPED)
   })
 
   it('uses a zero or negative yield as observed instead of falling back', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
     const zero = policyValue(stock, { rates: { CNY: { value: 0, asOf: '2026-11-18' } } })
-    expect(zero.inputs.discountRate).toBe(6)
+    expect(zero.inputs.discountRate).toBe(10)
     expect(zero.warnings).not.toContain(WARNING.RATE_FALLBACK)
     const negative = policyValue(stock, { rates: { CNY: { value: -2.5, asOf: '2026-11-18' } } })
-    expect(negative.inputs.discountRate).toBe(4)
+    expect(negative.inputs.discountRate).toBe(10)
     expect(negative.warnings).not.toContain(WARNING.RATE_FALLBACK)
   })
 
@@ -292,7 +293,7 @@ describe('the committed artifact is what the policy produces', () => {
 
   it('publishes the pinned values and refusals', () => {
     const entry = (symbol) => artifact.entries[symbol]
-    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 11.66 })
+    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.76 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(108.17)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 125.1, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
@@ -321,7 +322,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeLessThan(-50)
+    expect(byd.valueDiffPct).toBeCloseTo(-39.22, 2)
   })
 })
 

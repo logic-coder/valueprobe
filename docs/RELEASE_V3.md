@@ -2,11 +2,30 @@
 
 本文件记录的是本仓库尚未推送的官方 v3。线上 GitHub Pages 在推送并完成部署前继续交付冻结的 v2。D50–D52 是研究实验，不是本口径。
 
-## 本轮修订（2026-11-23，增速、负历史终值 0、保险分类）
+## 本轮修订（2026-11-23，D58 要求回报下限 10%）
+
+政策版本仍为 v3。要求回报改为 `max(10%, ceil(当地十年期) + 6)`，缺失回退同步改为 10%。当前利率下人民币从 8% 提到 10%，美元与港币仍是 12%，已对齐的 A/H 组折现差约为 −2 个百分点，不再钉死 −4。政策哈希 `7bdd4538858b4c71a584cd5e2acaa3d481c6df1b5e997e23e64d7c486ece646d`，工件文件 SHA-256 `99be233e71680085dc9e26e5a66163c3700486649e86eb81d695b552acad9c65`，生成日 2026-11-23。覆盖与 D57 相同：有值 461、拒绝 39。`upstreamCheckedAt` 仍为空。12 倍零增长对照行仍按固定 8.33% 隐含回报，不与官方折现挂钩。
+
+相对上一轮本地 v3（D57）：全部 47 条已有发布值的人民币标的下调，美元与港币标的本轮不变。没有新的覆盖增减。
+
+| 标的 | D57 | 本轮 | 说明 |
+| --- | ---: | ---: | --- |
+| SHSE:601398 工行 | 11.66（8%） | 10.76（10%） | 人民币折现上调，发布值下降 |
+| SZSE:000333 美的 | 150.06 | 99.15 | 同上 |
+| SZSE:002594 比亚迪 | 134.05 | 87.71 | 同上 |
+| SHSE:600519 茅台 | 2167.07 | 1424.80 | 同上 |
+| HKSE:00700 腾讯 | 311.30 | 311.30 | 港币仍为 12% |
+| NASDAQ:AAPL 苹果 | 108.17 | 108.17 | 美元仍为 12% |
+| HKSE:02331 李宁 | 28.71 | 28.71 | 港币不变 |
+| NYSE:GPC 佳品零件 | 47.36 | 47.36 | 美元不变 |
+
+A/H 已对齐组（工行、建行、中国人寿、太保、农行、中行、交行）折现率差均为 −2 个百分点（10% 对 12%）。
+
+## 修订记录：D57（2026-11-23，增速、负历史终值 0、保险分类）
 
 政策版本仍为 v3，折现哲学未改：当地十年期向上取整加 6 个百分点，缺失回退 8%，人民币 8%、美元与港币 12%。修订的是官方增速、负历史的终值输入，以及承保保险的证据路由。政策哈希 `1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb`，工件 `public/data/intrinsic/v3.json` 文件 SHA-256 `ad51d6e8ce6253467039e9a796d9b7c04d5d0e0dcaab8b421ed73a6fa08dd5df`，生成日 2026-11-23。`upstreamCheckedAt` 仍为空，首次对外前还需一次带日期的真实上游核验。
 
-### 覆盖（现行工件）
+### 覆盖（D57 当时工件）
 
 仍覆盖声明的 500 条。有值 461、拒绝 39。
 
@@ -14,7 +33,7 @@
 | --- | ---: | ---: |
 | 冻结 v2 | 407 | 93 |
 | 上一版本地 v3（D56，哈希 `020fbf8f…`） | 403 | 97 |
-| 本轮修订后 | 461 | 39 |
+| D57 修订后 | 461 | 39 |
 
 拒绝原因：`CASH_UNRECONCILED` 24、`NO_GROWTH` 12、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。警告：`NORMALIZED_EPS` 207、`QUOTE_DATE_UNKNOWN` 150、`STALE_DATA` 111、`NEGATIVE_HISTORY_ZEROED` 111、`CAPPED_GROWTH` 92、`SHORT_HISTORY` 67、`CASH_DIVERGENCE` 47、`NO_WINDOW_ZERO_START` 45、`LIFE_BOOK_QUALITY` 3。模型 `owner` 451、`residual` 49。现行工件不再使用 `NEGATIVE_HISTORY_GROWTH`。
 
@@ -76,7 +95,8 @@
 | --- | --- | --- |
 | `public/data/intrinsic/v2.json`（冻结） | 2026-11-22 | `74d3dafa9781521f78c646f59a88826357971bdb951d2adb0901a0dd30565198` |
 | `public/data/intrinsic/v3.json`（D56 首次落地，已被本轮修订取代） | 2026-11-23 | 文件 `d2a3e00d7250e1fefe3db4f091adccf7ad699f869fafac3820248245e6dd8db2`；`policyHash` `020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c` |
-| `public/data/intrinsic/v3.json`（现行：D57 增速与保险修订） | 2026-11-23 | 文件 `ad51d6e8ce6253467039e9a796d9b7c04d5d0e0dcaab8b421ed73a6fa08dd5df`；`policyHash` `1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb` |
+| `public/data/intrinsic/v3.json`（D57 增速与保险修订，已被 D58 取代） | 2026-11-23 | 文件 `ad51d6e8ce6253467039e9a796d9b7c04d5d0e0dcaab8b421ed73a6fa08dd5df`；`policyHash` `1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb` |
+| `public/data/intrinsic/v3.json`（现行：D58 要求回报下限 10%） | 2026-11-23 | 文件 `99be233e71680085dc9e26e5a66163c3700486649e86eb81d695b552acad9c65`；`policyHash` `7bdd4538858b4c71a584cd5e2acaa3d481c6df1b5e997e23e64d7c486ece646d` |
 
 D56 首次落地时：仍覆盖声明的 500 条。v2 为 407 条有值、93 条无公开值；当时的 v3 为 403 条有值、97 条无公开值。利率与报价未刷新：`rates.asOf` 仍为 2026-11-19，CNY 1.5892%、USD/HKD 5.07%。现行覆盖与哈希见上文「本轮修订」。
 

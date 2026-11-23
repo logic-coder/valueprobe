@@ -39,7 +39,7 @@
   "rate_live_note": "The risk-free rate is the local 10-year government yield for the cash-flow currency, rounded up, plus 6 percentage points. Hong Kong dollar cash flows use the US 10-year as a proxy.",
   "rate_bundled_note": "The discount rate uses a previously recorded 10-year government bond yield. You can adjust it.",
   "rate_cached_note": "The discount rate uses the most recently available 10-year government bond yield.",
-  "discount_rate_desc": "Round the 10-year government bond yield for the cash-flow currency up, then add 6 percentage points. HKD uses the US Treasury yield as a proxy. If a benchmark is unavailable, the discount rate is 8%. You can adjust it to your required return.",
+  "discount_rate_desc": "Round the 10-year government bond yield for the cash-flow currency up, then add 6 percentage points. The required return is at least 10%. HKD uses the US Treasury yield as a proxy. If a benchmark is unavailable, the discount rate is 10%. You can adjust it to your required return.",
   "discount_currency_note": "The default discount rate uses the 10-year government bond yield for the cash-flow currency.",
   "search_for_your_stocks": "Search company or ticker",
   "stock_search_results": "Stock search results",
@@ -336,5 +336,5 @@
   "skip_PREFERRED_OVERRIDE": "another data source was selected",
   "trades_tab": "Institutional trades",
   "discount_hkd_proxy_note": "The Hong Kong 10-year benchmark is empty, so the default discount rate uses the US 10-year Treasury as a proxy.",
-  "discount_fallback_note": "The local 10-year government bond yield is unavailable. The discount rate is 8%, and you can adjust it to your required return."
+  "discount_fallback_note": "The local 10-year government bond yield is unavailable. The discount rate is 10%, and you can adjust it to your required return."
 }

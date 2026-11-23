@@ -6,7 +6,7 @@
 // Editing POLICY_V1 or the policy functions changes every published number. Bump POLICY_VERSION and
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
 import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, SHORT_HISTORY_GROWTH_CAP } from './assumptions'
-import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE } from './riskFree'
+import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
 import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
@@ -32,6 +32,7 @@ export const POLICY_V1 = deepFreeze({
     publicationGate: 'cash-unreconciled-veto',
     officialGrowth: 'dual-window-min-zeroed-terminal',
     insuranceEvidence: 'underwriting-insurers',
+    requiredReturn: 'floor-10-or-local-10y-ceil-plus-6',
   },
   trialOnlyIndustries: ['reit', 'refining'],
   // Repeatable earning power: five-year normalised EPS, and for non-financial
@@ -56,15 +57,16 @@ export const POLICY_V1 = deepFreeze({
     missingWindow: 'zero-start',
   },
   discount: {
-    rule: 'local-10y-ceil+6',
+    rule: 'max(floor, local-10y-ceil+6)',
     spread: EQUITY_PREMIUM,
     rounding: 'ceil',
+    floor: REQUIRED_RETURN_FLOOR,
     // The rate follows the quote currency of the listing. The committed snapshot
     // stores per-share figures in that currency (HK files are converted to HKD),
     // so the rate and the cash flow it discounts stay in one currency.
     currency: 'quote',
     hkdProxy: 'USD',
-    // A missing local yield keeps the value and uses the disclosed 8% fallback;
+    // A missing local yield keeps the value and uses the disclosed 10% fallback;
     // the entry carries a RATE_FALLBACK warning and the rate row says so.
     missing: 'fallback',
     fallback: FALLBACK_DISCOUNT_RATE,
@@ -88,7 +90,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb'
+export const POLICY_V1_HASH = '7bdd4538858b4c71a584cd5e2acaa3d481c6df1b5e997e23e64d7c486ece646d'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -133,10 +135,11 @@ export function policyGrowth (value) {
 export function policyDiscountRate (yieldPct) {
   const value = num(yieldPct)
   if (value === null) return null
-  const rate = POLICY_V1.discount.rounding === 'none'
+  const raw = POLICY_V1.discount.rounding === 'none'
     ? value + POLICY_V1.discount.spread
     : Math.ceil(value) + POLICY_V1.discount.spread
-  return Number.isFinite(rate) ? round4(rate) : null
+  if (!Number.isFinite(raw)) return null
+  return round4(Math.max(POLICY_V1.discount.floor, raw))
 }
 
 /** The published discount rate used when no local yield is available. */

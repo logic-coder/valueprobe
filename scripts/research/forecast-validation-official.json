@@ -1,9 +1,9 @@
 {
   "kind": "official-policy-run",
   "policyVersion": "v3",
-  "policyHash": "1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb",
+  "policyHash": "7bdd4538858b4c71a584cd5e2acaa3d481c6df1b5e997e23e64d7c486ece646d",
   "growthRule": "adopted-10y-window-capped",
-  "discountRule": "local-10y-ceil+6",
+  "discountRule": "max(floor, local-10y-ceil+6)",
   "asOf": "2006-03-15",
   "note": "Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is the adopted 10-year window (capped at 15%). Flat, historical, blended and dampened columns are experiments only; official v3 does not publish a 5/10/1 blend. Discount is the official local-10y-ceil+6 rate. Terminal value is omitted because this panel has no observed continuation cash; later official reruns that expand the sample must include official terminal growth. n is small. This is not a license to change official growth or discount, and it is not an official published value.",
   "discountRate": 11,

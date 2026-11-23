@@ -33,7 +33,7 @@ test('the built app renders under /valueprobe/ without same-origin /_api calls',
     await expect(banner).toContainText('暂时无法获取估值数据')
     await expect(banner).not.toContainText('季度快照')
   } else {
-    await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.66', { timeout: 20000 })
+    await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.76', { timeout: 20000 })
   }
   await page.waitForTimeout(500)
   await page.screenshot({ path: 'test-results/base-path.png' })
@@ -82,11 +82,11 @@ test('the shell still opens with the network off', async ({ page, context, baseU
   await page.reload()
   await expect(page.locator('.home__hero')).toBeVisible({ timeout: 20000 })
   const preview = page.getByTestId('home-valuation-preview')
-  await expect(preview).toContainText('11.66', { timeout: 20000 })
+  await expect(preview).toContainText('10.76', { timeout: 20000 })
 
   await context.setOffline(true)
   await page.reload()
   await expect(page.locator('.home__hero')).toBeVisible({ timeout: 20000 })
-  await expect(preview).toContainText('11.66', { timeout: 20000 })
+  await expect(preview).toContainText('10.76', { timeout: 20000 })
   await context.setOffline(false)
 })

@@ -31,12 +31,12 @@ describe('public policy v3 regression runs on the committed artifact', () => {
 })
 
 describe('SHSE:601398 - residual income on a real bank', () => {
-  it('publishes the public v3 value around 11.66 on the residual model', () => {
+  it('publishes the public v3 value around 10.76 on the residual model', () => {
     const value = valueOf('SHSE:601398')
     expect(value.status).toBe('ok')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
     // Public policy v3 golden for ICBC: update only with a policy version bump.
-    expect(value.value).toBeCloseTo(11.66, 2)
+    expect(value.value).toBeCloseTo(10.76, 2)
     expect(value.value).toBe(published('SHSE:601398').value)
     expect(value.inputs.rate.proxy).toBeNull()
     expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.CNY.value))

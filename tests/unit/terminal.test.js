@@ -59,15 +59,15 @@ describe('the continuing value shares the capped domain across the rate boundary
   })
 })
 
-describe('the policy discloses a dropped continuing value', () => {
-  it('warns and shows a zero terminal share under the rate', () => {
+describe('the official required-return floor', () => {
+  it('does not publish a rate below 10%, so a yield of -2.5% no longer produces a 4% official discount', () => {
     const stock = toStock(read('public/data/NASDAQ-AAPL.json'))
-    const rate = -2.5
-    expect(policyDiscountRate(rate)).toBe(4)
-    const value = policyValue(stock, { rates: { USD: { value: rate, asOf: null } } })
+    expect(policyDiscountRate(-2.5)).toBe(10)
+    const value = policyValue(stock, { rates: { USD: { value: -2.5, asOf: null } } })
     expect(value.status).toBe('ok')
-    expect(value.warnings).toContain('TERMINAL_CAPPED')
+    expect(value.inputs.discountRate).toBe(10)
     expect(value.warnings).not.toContain('RATE_FALLBACK')
+    expect(value.warnings).not.toContain('TERMINAL_CAPPED')
     expect(value.terminalShare).toBeGreaterThan(0)
     expect(value.terminalShare).toBeLessThan(1)
   })

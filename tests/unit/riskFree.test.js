@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { defaultDiscountRate, FALLBACK_DISCOUNT_RATE, parseEastMoneyYields, rateForCurrency, yieldForStock } from '../../src/lib/riskFree'
+import { defaultDiscountRate, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR, parseEastMoneyYields, rateForCurrency, yieldForStock } from '../../src/lib/riskFree'
 
 const rates = {
   USD: { value: 5.1, asOf: '2026-11-17', source: 'live' },
@@ -8,27 +8,28 @@ const rates = {
 }
 
 describe('defaultDiscountRate', () => {
-  it('ceils a local ten-year yield and adds six points', () => {
+  it('ceils a local ten-year yield, adds six points, and never goes below ten', () => {
     expect(defaultDiscountRate(5.1)).toBe(12)
-    expect(defaultDiscountRate(1.5892)).toBe(8)
+    expect(defaultDiscountRate(1.5892)).toBe(10)
     expect(defaultDiscountRate(5.14)).toBe(12)
   })
 
-  it('keeps zero and negative yields, and falls back only when missing', () => {
-    expect(defaultDiscountRate(0)).toBe(6)
-    expect(defaultDiscountRate(-2.5)).toBe(4)
-    expect(defaultDiscountRate(null)).toBe(8)
-    expect(defaultDiscountRate(undefined)).toBe(8)
-    expect(defaultDiscountRate('')).toBe(8)
-    expect(defaultDiscountRate('n/a')).toBe(8)
+  it('keeps zero and negative yields as observations, then applies the 10% floor, and falls back only when missing', () => {
+    expect(defaultDiscountRate(0)).toBe(10)
+    expect(defaultDiscountRate(-2.5)).toBe(10)
+    expect(defaultDiscountRate(null)).toBe(10)
+    expect(defaultDiscountRate(undefined)).toBe(10)
+    expect(defaultDiscountRate('')).toBe(10)
+    expect(defaultDiscountRate('n/a')).toBe(10)
   })
 
-  it('keeps the retired coupon file out of the bundle and the fallback at 8%', () => {
+  it('keeps the retired coupon file out of the bundle and the fallback at 10%', () => {
     // Average outstanding coupon rates (5.14, 3.399) are not ten-year yields
     // and were never a fallback. The orphan file must stay deleted.
     const bundled = 'src/data/bundled'
     expect(fs.existsSync(bundled + '/latest_indicator.json')).toBe(false)
-    expect(FALLBACK_DISCOUNT_RATE).toBe(8)
+    expect(FALLBACK_DISCOUNT_RATE).toBe(10)
+    expect(REQUIRED_RETURN_FLOOR).toBe(10)
     const rates = JSON.parse(fs.readFileSync(bundled + '/risk_free.json', 'utf8'))
     for (const code of ['USD', 'CNY']) {
       expect(rates[code].value).toBeGreaterThan(0)

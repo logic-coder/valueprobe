@@ -39,7 +39,7 @@
 | 内核（kernel） | `src/lib/dcf.js` 的公式函数；`calGr2fv` 已冻结（frozen），不再改 | ARCHITECTURE、CONTRIBUTING |
 | 红线 / 护栏 | 不可越过的项目约定：内核冻结、只改显示边界、可见差异必须写 DEVIATIONS | CONTRIBUTING |
 | 契约（contract） | 模块之间、或测试与代码之间约定的行为与字段 | ARCHITECTURE |
-| 兜底（fallback） | 首选来源/输入不可用时的次选值；发布值里缺失利率的 8% 是明确标注的兜底 | CALCULATION、DATA_SOURCES |
+| 兜底（fallback） | 首选来源/输入不可用时的次选值；发布值里缺失利率的 10% 是明确标注的兜底 | CALCULATION、DATA_SOURCES |
 | 熔断 / 限流 / 令牌桶 | 数据层防止连续失败与超频的内部机制（circuit breaker / rate limiter / token bucket） | DATA_SOURCES |
 | 夹具（fixture） | 测试里使用的固定数据文件 | CONTRIBUTING |
 | 扣非 / 拆股重述 | 金融数据术语：扣除非经常性损益后的每股收益；把历史每股数字按后来的拆股口径重算 | DATA_SOURCES |

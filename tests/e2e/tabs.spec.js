@@ -7,7 +7,7 @@ const FAIR = '.text-h6.button-font-weight'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('11.66', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.76', { timeout: 20000 })
 })
 
 test('shows the calculator and no leftover tab strip', async ({ page }) => {
@@ -21,5 +21,5 @@ test('an old tab link opens the calculator on its defaults', async ({ page }) =>
   await expect(page).toHaveURL(/\/dcf\?r=15/)
   // Query strings are no longer a share channel, so they do not seed the form.
   await expect(page.locator('.input-section').first()).toHaveValue('8', { timeout: 20000 })
-  await expect(page.locator(FAIR)).toContainText('11.66')
+  await expect(page.locator(FAIR)).toContainText('10.76')
 })

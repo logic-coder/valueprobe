@@ -58,7 +58,7 @@
 
 无风险利率不走注册表。十年期国债取自东财 `RPTA_WEB_TREASURYYIELD`（`EMM00166466` 为中国十年期，`EMG00001310` 为美国十年期；美国当日可能尚未写入，取最近一个非空值）。该接口无 CORS，开发时走 Vite `/emdcweb` 代理，发布页读取 `public/data/rates.json`（由 `npm run snapshot` 一并刷新），再退到随包的 `src/data/bundled/risk_free.json`。
 
-**禁止事项**：不要用美国存量国债平均票息（历史上的 `5.14`、`3.399` 等），它们不是十年期收益率，也不是任何兜底值。不要拿这些数字更新 `risk_free.json`。缺当地十年期收益率时，折现率回退为 8%（`FALLBACK_DISCOUNT_RATE`），并在界面写明；不得静默改用美债收益率——只有港币现金流明确使用美元十年期作为代理。旧的 `latest_indicator.json` 已删除，不要恢复。
+**禁止事项**：不要用美国存量国债平均票息（历史上的 `5.14`、`3.399` 等），它们不是十年期收益率，也不是任何兜底值。不要拿这些数字更新 `risk_free.json`。缺当地十年期收益率时，折现率回退为 10%（`FALLBACK_DISCOUNT_RATE`），并在界面写明；不得静默改用美债收益率——只有港币现金流明确使用美元十年期作为代理。旧的 `latest_indicator.json` 已删除，不要恢复。
 
 本机运行 `npm run refresh`，重建并校验快照、估值和发布清单。发布闸门判定为 blocked 时暂存不安装，已发布字节不前进。GitHub Pages 只构建已生成的数据。
 

@@ -22,7 +22,7 @@ test('the build degrades through its sources with the snapshot ' + snapshot, asy
   await page.goto('/valueprobe/#/stock/SHSE:601398/dcf')
   const banner = page.locator('.data-banner')
   await expect(banner).toBeVisible({ timeout: 30000 })
-  await expect(page.getByTestId('dcf-fair-value')).toContainText('11.66')
+  await expect(page.getByTestId('dcf-fair-value')).toContainText('10.76')
   if (snapshot === 'off') {
     await expect(banner).toContainText('暂时无法获取估值数据')
     await expect(banner).not.toContainText('季度快照')

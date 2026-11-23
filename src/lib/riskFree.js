@@ -1,11 +1,13 @@
-// Default discount rate: ceil(local 10-year government yield) + 6.
-// A zero or negative yield is still a real observation; only a missing or
-// non-finite one falls back. The rate must match the cash-flow currency.
+// Default required return: max(10%, ceil(local 10-year government yield) + 6).
+// A zero or negative yield is still a real observation and is not replaced by
+// the fallback; the 10% floor still applies. Only a missing or non-finite
+// yield falls back. The rate must match the cash-flow currency.
 const CODE_BY_SYMBOL = { '¥': 'CNY', '￥': 'CNY', '$': 'USD', 'HK$': 'HKD', '€': 'EUR', '£': 'GBP' }
 const codeOf = (currency) => CODE_BY_SYMBOL[currency] || (/^[A-Z]{3}$/.test(currency || '') ? currency : null)
 
 export const EQUITY_PREMIUM = 6
-export const FALLBACK_DISCOUNT_RATE = 8
+export const FALLBACK_DISCOUNT_RATE = 10
+export const REQUIRED_RETURN_FLOOR = 10
 export const CNY_YIELD_ID = 'EMM00166466'
 export const USD_YIELD_ID = 'EMG00001310'
 
@@ -14,7 +16,7 @@ export function defaultDiscountRate (rate) {
   if (rate === null || rate === undefined || rate === '') return FALLBACK_DISCOUNT_RATE
   const value = Number(rate)
   if (!Number.isFinite(value)) return FALLBACK_DISCOUNT_RATE
-  return Math.ceil(value) + EQUITY_PREMIUM
+  return Math.max(REQUIRED_RETURN_FLOOR, Math.ceil(value) + EQUITY_PREMIUM)
 }
 
 /** Reporting currency of the cash flows, never the display currency. */
@@ -25,7 +27,7 @@ export function cashflowCurrency (stock) {
 /**
  * Pick a 10-year yield for one cash-flow currency.
  * HKD uses the USD 10-year as a proxy (HKMA 10-year benchmark is empty).
- * A missing local yield stays empty: callers fall back to 8% and say so.
+ * A missing local yield stays empty: callers fall back to 10% and say so.
  * USD is never substituted for CNY.
  */
 export function rateForCurrency (rates, currency) {
