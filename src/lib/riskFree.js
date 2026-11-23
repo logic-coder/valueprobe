@@ -96,5 +96,5 @@ export function parseEastMoneyYields (body) {
 
 /** Number `buildDefaults` should receive for this stock, or null when the yield is missing. */
 export function yieldForStock (rates, stock) {
-  return rateForCurrency(rates, cashflowCurrency(stock) || stock?.currency).value
+  return rateForCurrency(rates, reportingCurrency(stock) || cashflowCurrency(stock) || stock?.currency).value
 }

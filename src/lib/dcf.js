@@ -218,31 +218,86 @@ export function residualIncomeValue (tbv, eps, discountRate, growthRate, termina
   return { fairValue: round2(fair), roe: round2(roe0 * 100), growth: round2(gStable * 100) }
 }
 
-/** Low, mid and high from the same model. Mid is the headline. */
-export function valueBand (input) {
-  const years = input.years
-  const terminal = input.terminalGrowthRate
-  const horizon = input.yearsOfTerminalGrowth
-  const add = input.addToFairValue
-  if (input.residual) return residualIncomeBand(input)
-  const at = (discount) => presentValue(input.tbv, years, discount, input.growthRate, input.base, terminal, horizon, add).fairValue
-  const mid = at(input.discountRate)
-  const low = at(Number(input.discountRate) + 2)
-  const eased = Math.max(Number(input.discountRate) - 2, Number(terminal) + 2)
-  const high = at(eased)
-  return orderBand(low, mid, high)
+/**
+ * Disclosed growth and discount scenarios around a centered point estimate.
+ * Mid is always the official assumptions. Low and high are the more adverse
+ * and more favourable already-disclosed cases: discount ±2 points, a lower or
+ * higher starting rate, and a 0% terminal when the regime is uncertain.
+ * Short five-year history widens the growth span to 0–15%. A missing window
+ * does not invent a 15% high. The official mid is never replaced by the
+ * arithmetic middle of an asymmetric envelope.
+ */
+export function envelopeScenarios (input) {
+  const spread = Number(input.bandSpread ?? 2)
+  const cap = Number.isFinite(Number(input.growthCap)) ? Number(input.growthCap) : 15
+  const officialG = Number(input.growthRate)
+  const officialT = Number(input.terminalGrowthRate)
+  const five = input.growth5 == null || input.growth5 === '' ? null : Number(input.growth5)
+  const fiveAdopted = five != null && Number.isFinite(five) ? Math.min(Math.max(five, 0), cap) : null
+  const short = input.window === '5y'
+  const noWindow = input.window === 'none'
+  const regime = input.regimeUncertain === true
+  const lowDiscount = Number(input.discountRate) + spread
+  const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
+  let highGrowth = officialG
+  if (fiveAdopted != null && fiveAdopted > officialG) highGrowth = fiveAdopted
+  if (short) highGrowth = cap
+
+  const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }
+  const low = [
+    { discount: lowDiscount, growth: officialG, terminal: officialT },
+    { discount: lowDiscount, growth: 0, terminal: officialT },
+  ]
+  if (fiveAdopted != null && fiveAdopted < officialG) {
+    low.push({ discount: lowDiscount, growth: fiveAdopted, terminal: officialT })
+  }
+  if (regime) {
+    low.push({ discount: lowDiscount, growth: officialG, terminal: 0 })
+    low.push({ discount: lowDiscount, growth: 0, terminal: 0 })
+    if (fiveAdopted != null) low.push({ discount: lowDiscount, growth: fiveAdopted, terminal: 0 })
+  }
+  const high = noWindow
+    ? [{ discount: highDiscount, growth: officialG, terminal: officialT }]
+    : [
+        { discount: highDiscount, growth: officialG, terminal: officialT },
+        { discount: highDiscount, growth: highGrowth, terminal: officialT },
+      ]
+  return { mid, low, high }
 }
 
-// One residual model, three discount rates. The convergence target is the
-// discount rate, so it moves with the perturbed rate by design; the headline
-// stays the base rate. A case that has no value (e.g. rate - 2 <= 0) keeps a
-// missing endpoint instead of inventing width.
+const ownerAt = (input, scene) => presentValue(
+  input.tbv, input.years, scene.discount, scene.growth, input.base, scene.terminal, input.yearsOfTerminalGrowth, input.addToFairValue,
+).fairValue
+
+const residualAt = (input, scene) => (Number(scene.discount) > 0
+  ? residualIncomeValue(input.tbv, input.base, scene.discount, scene.growth, scene.terminal, input.years)?.fairValue
+  : null)
+
+function bandFromScenarios (input, valueAt) {
+  const scenes = envelopeScenarios(input)
+  const mid = valueAt(input, scenes.mid)
+  const low = scenes.low.map((scene) => valueAt(input, scene))
+  const high = scenes.high.map((scene) => valueAt(input, scene))
+  const usable = (value) => (Number.isFinite(value) && value > 0 ? value : null)
+  const floor = low.map(usable).filter((value) => value != null)
+  const ceiling = high.map(usable).filter((value) => value != null)
+  return orderBand(
+    floor.length ? Math.min(...floor) : null,
+    mid,
+    ceiling.length ? Math.max(...ceiling) : null,
+  )
+}
+
+/** Low, mid and high from the same model. Mid is the headline point estimate. */
+export function valueBand (input) {
+  if (input.residual) return residualIncomeBand(input)
+  return bandFromScenarios(input, ownerAt)
+}
+
+// One residual model. Discount, growth and terminal follow the same disclosed
+// envelope as the owner model. The headline stays the official mid.
 export function residualIncomeBand (input) {
-  const spread = Number(input.bandSpread ?? 2)
-  const at = (discount) => (Number(discount) > 0
-    ? residualIncomeValue(input.tbv, input.base, discount, input.growthRate, input.terminalGrowthRate, input.years)?.fairValue
-    : null)
-  return orderBand(at(Number(input.discountRate) + spread), at(input.discountRate), at(Number(input.discountRate) - spread))
+  return bandFromScenarios(input, residualAt)
 }
 
 export function orderBand (low, mid, high) {
@@ -337,36 +392,20 @@ export function normalizedEpsBase (stock) {
 }
 
 /**
- * Owner-earnings base (Buffett 1986): reported earnings plus non-cash charges
- * less the capital spending needed to hold competitive position and volume.
+ * Official earnings base: five-year normalised earnings.
  *
- * The committed snapshots carry no depreciation line and no maintenance-capex
- * line, so the split between maintenance and growth capex cannot be observed.
- * That leaves two measured bases that bracket the answer:
- *   - after-capex cash (FCF = operating cash − total capex) charges every dollar
- *     of capex, i.e. it assumes a company never invests for growth;
- *   - normalised earnings of the same business charges none of the growth capex,
- *     i.e. it assumes capex is free.
- * Owner earnings sit between the two, so the midpoint is taken: it is the only
- * choice that does not silently assume a maintenance share. Either extreme is a
- * policy about capital intensity, not a measurement.
- *
- * When one side is missing or not positive the other is used alone, and a
- * loss-making year still falls back to the reported figure instead of dropping
- * the name. A partial three-year cash window is not a median. Financial
- * institutions must pass `{ midpointCash: false }` — FCF is not owner earnings
- * for a bank.
+ * Under the disclosed maintenance proxy M≈D, owner earnings equal normalised
+ * earnings (OE = E + D − M = E). Depreciation, the maintenance proxy and
+ * share-based compensation are listed as components; SBC stays expensed and
+ * is not added back. After-capex cash remains a cross-check only and is no
+ * longer averaged into the published base. The midpoint option is ignored:
+ * mixing earnings with cash would smuggle a 50% maintenance assumption.
  *
  * No growth is assumed here: this is a repeatable base, not a forecast.
  */
-export function normalizedEarningsBase (stock, { midpointCash = true } = {}) {
+export function normalizedEarningsBase (stock, _options = {}) {
   const earnings = normalizedEpsBase(stock)
-  const round4 = (value) => Number(Number(value).toFixed(4))
-  if (!midpointCash) return earnings === null ? null : round4(earnings)
-  const owner = sustainableCashBase(stock)
-  if (owner > 0 && earnings > 0) return round4((owner + earnings) / 2)
-  if (owner > 0) return round4(owner)
-  return earnings === null ? null : round4(earnings)
+  return earnings === null ? null : Number(Number(earnings).toFixed(4))
 }
 
 export function buildDefaults (indicator, stock, freeCashFlow) {
@@ -387,7 +426,7 @@ export function buildDefaults (indicator, stock, freeCashFlow) {
       years: DCF_DEFAULTS.years,
       growthRate: official.adopted,
       freecashflowGrowthRate: cash.adopted,
-      terminalGrowthRate: official.zeroTerminal ? 0 : DCF_DEFAULTS.terminalGrowthRate,
+      terminalGrowthRate: DCF_DEFAULTS.terminalGrowthRate,
       yearsOfTerminalGrowth: DCF_DEFAULTS.yearsOfTerminalGrowth,
       discountRate,
     },

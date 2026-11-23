@@ -12,6 +12,8 @@ export const REASON = Object.freeze({
   INDUSTRY_MODEL_PENDING: 'INDUSTRY_MODEL_PENDING',
   // After the official base is chosen, cash still differs from it by 50%+.
   CASH_UNRECONCILED: 'CASH_UNRECONCILED',
+  // Negative or conflicting history, and the latest reported EPS is not positive.
+  UNSTABLE_BASE_REGIME: 'UNSTABLE_BASE_REGIME',
 })
 
 export const WARNING = Object.freeze({
@@ -44,6 +46,10 @@ export const WARNING = Object.freeze({
   NORMALIZED_EPS: 'NORMALIZED_EPS',
   // Life-insurer GAAP tangible book can be distorted by AOCI and deferred acquisition costs.
   LIFE_BOOK_QUALITY: 'LIFE_BOOK_QUALITY',
+  // Depreciation is missing, so maintenance capex cannot be listed. The published base is still normalised earnings.
+  OWNER_BASE_GAP: 'OWNER_BASE_GAP',
+  // Windows disagree or history is negative. The point estimate keeps the default terminal; the range includes a 0% terminal.
+  REGIME_UNCERTAIN: 'REGIME_UNCERTAIN',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

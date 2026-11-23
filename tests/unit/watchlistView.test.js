@@ -5,8 +5,8 @@ import fixture from '../../src/data/bundled/stock_icbc.json'
 describe('watchlist default view', () => {
   it('reproduces the public policy value for a real payload', () => {
     const view = defaultView(fixture, 6) // 6 + 6 is the page's 12% seed in the specs
-    expect(view.fairValue).toBe(13.17)
-    expect(view.mos).toBeCloseTo(32.8, 1)
+    expect(view.fairValue).toBe(13.49)
+    expect(view.mos).toBeCloseTo(34.4, 1)
   })
 
   it('keeps a value when the price is missing and only drops the margin', () => {

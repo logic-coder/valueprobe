@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { enduringBookValue, orderBand, residualIncomeBand, residualIncomeValue, valueBand } from '../../src/lib/dcf'
+import { enduringBookValue, envelopeScenarios, orderBand, residualIncomeBand, residualIncomeValue, presentValue, valueBand } from '../../src/lib/dcf'
 import { POLICY_VERSION, policyValue } from '../../src/lib/policy'
 import { toStock } from '../../src/lib/stockRecord'
 
@@ -74,3 +74,41 @@ describe('policy publishes the residual band without moving the headline', () =>
     }
   })
 })
+
+describe('scenario envelope around a centered mid', () => {
+  const base = {
+    tbv: 10, base: 5, discountRate: 12, growthRate: 10, terminalGrowthRate: 4,
+    years: 10, yearsOfTerminalGrowth: 10, addToFairValue: false, bandSpread: 2, growthCap: 15,
+  }
+
+  it('keeps mid equal to the official point estimate, not the arithmetic middle of an asymmetric envelope', () => {
+    const input = { ...base, window: '10y', growth5: -4, regimeUncertain: true }
+    const mid = presentValue(input.tbv, input.years, 12, 10, 5, 4, 10, false).fairValue
+    const band = valueBand(input)
+    expect(band.mid).toBe(mid)
+    expect(band.low).toBeLessThan(band.mid)
+    expect(band.high).toBeGreaterThan(band.mid)
+    const arithmetic = (band.low + band.high) / 2
+    expect(band.mid).not.toBeCloseTo(arithmetic, 2)
+  })
+
+  it('includes a 0% terminal on the low side when the regime is uncertain, and covers a lower five-year window', () => {
+    const input = { ...base, window: '10y', growth5: -4, regimeUncertain: true }
+    const scenes = envelopeScenarios(input)
+    expect(scenes.low.some((scene) => scene.terminal === 0 && scene.growth === 0)).toBe(true)
+    const decline = presentValue(10, 10, 14, 0, 5, 0, 10, false).fairValue
+    expect(valueBand(input).low).toBe(decline)
+  })
+
+  it('widens a five-year-only history to a 0–15% growth span instead of cutting the point estimate', () => {
+    const input = { ...base, growthRate: 13.45, window: '5y', growth5: 13.45, regimeUncertain: false }
+    const mid = presentValue(10, 10, 12, 13.45, 5, 4, 10, false).fairValue
+    const band = valueBand(input)
+    expect(band.mid).toBe(mid)
+    const high = presentValue(10, 10, Math.max(10, 4 + 2), 15, 5, 4, 10, false).fairValue
+    expect(band.high).toBe(high)
+    const narrow = valueBand({ ...input, window: '10y', growthRate: 13.45, growth5: 13.45 })
+    expect(band.high).toBeGreaterThan(narrow.high)
+  })
+})
+

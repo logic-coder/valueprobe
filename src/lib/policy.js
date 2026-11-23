@@ -5,8 +5,8 @@
 //
 // Editing POLICY_V1 or the policy functions changes every published number. Bump POLICY_VERSION and
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
-import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, SHORT_HISTORY_GROWTH_CAP } from './assumptions'
-import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
+import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, REGIME_GAP_PP } from './assumptions'
+import { cashflowCurrency, reportingCurrency, reportingCurrencySource, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
 import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
@@ -26,19 +26,18 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'model-consistent-one-sided',
+    band: 'discount-and-growth-scenario-envelope',
     cashCrossCheck: 'three-year-median',
-    earningsBase: 'normalized-eps-and-cash-midpoint',
+    earningsBase: 'normalized-eps-maintenance-equals-da',
     publicationGate: 'cash-unreconciled-veto',
-    officialGrowth: 'dual-window-min-zeroed-terminal',
+    officialGrowth: 'centered-single-window-regime-band',
     insuranceEvidence: 'underwriting-insurers',
-    requiredReturn: 'floor-10-or-local-10y-ceil-plus-6',
+    requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
   },
   trialOnlyIndustries: ['reit', 'refining'],
-  // Repeatable earning power: five-year normalised EPS, and for non-financial
-  // companies the midpoint with a complete three-year positive FCF median.
-  // Discounted cash-flow still uses that base; raw FCF is also a cross-check.
+  // Repeatable earning power: five-year normalised EPS. With M≈D, owner
+  // earnings equal that figure. After-capex cash is a cross-check only.
   basis: 'repeatable-earnings',
   model: { nonFinancial: 'owner', financialInstitution: 'residual' },
   horizon: {
@@ -49,12 +48,14 @@ export const POLICY_V1 = deepFreeze({
   growth: {
     windowYears: 10,
     cap: MAX_UNDERWRITTEN_GROWTH,
-    shortCap: SHORT_HISTORY_GROWTH_CAP,
+    shortHistory: 'wider-band',
     cleanYears: MIN_CLEAN_YEARS,
-    // A negative historical window is published at a 0% start and a 0% terminal
-    // input, and carries NEGATIVE_HISTORY_ZEROED. Missing windows with a
-    // positive repeatable base start at 0% and still fade to the default terminal.
-    negative: 'zero-start-and-terminal',
+    regimeGapPp: REGIME_GAP_PP,
+    // Negative history or a window conflict starts at 0% when the long window
+    // is negative, fades to the default terminal, and carries REGIME_UNCERTAIN.
+    // Missing windows with a positive repeatable base start at 0% and still
+    // fade to the default terminal.
+    negative: 'zero-start-default-terminal',
     missingWindow: 'zero-start',
   },
   discount: {
@@ -62,10 +63,9 @@ export const POLICY_V1 = deepFreeze({
     spread: EQUITY_PREMIUM,
     rounding: 'ceil',
     floor: REQUIRED_RETURN_FLOOR,
-    // The rate follows the quote currency of the listing. The committed snapshot
-    // stores per-share figures in that currency (HK files are converted to HKD),
-    // so the rate and the cash flow it discounts stay in one currency.
-    currency: 'quote',
+    // The rate follows the enterprise reporting currency, under one market-wide
+    // formula. Published per-share values stay in the listing/quote currency.
+    currency: 'reporting',
     hkdProxy: 'USD',
     // A missing local yield keeps the value and uses the disclosed 10% fallback;
     // the entry carries a RATE_FALLBACK warning and the rate row says so.
@@ -85,13 +85,13 @@ export const POLICY_V1 = deepFreeze({
     fundamentalsDays: 120,
     ratesDays: 10,
   },
-  band: { discountSpread: 2 },
+  band: { discountSpread: 2, growthEnvelope: 'scenario' },
   terminalShareDisclosed: true,
 })
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '5e8fd34a1babce0b68626643b8859e2301a7ef9b787c6a88c0b07074625cb210'
+export const POLICY_V1_HASH = 'db7c6fe0f2e55c6e123b388f475f259c9b80987a60b2e4a1e73bbf424ff056c4'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -182,13 +182,20 @@ const emptyInputs = () => ({
   epsLatest: null,
   epsNormalized: null,
   cashMedian: null,
+  daPerShare: null,
+  maintenanceCapexProxy: null,
+  sbcPerShare: null,
+  ownerBaseGap: false,
   baseKind: null,
   growth: null,
   growthWindow: null,
   growthCap: null,
   growth10: null,
   growth5: null,
+  regimeUncertain: false,
   discountRate: null,
+  reportingCurrency: null,
+  reportingCurrencySource: null,
   terminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
   years: POLICY_V1.horizon.years,
   yearsOfTerminalGrowth: POLICY_V1.horizon.yearsOfTerminalGrowth,
@@ -225,6 +232,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   }
 
   const currency = cashflowCurrency(stock)
+  const reportCurrency = reportingCurrency(stock)
   const asOf = stock._as_of || stock.as_of || null
   const earningsDate = stock.eps_as_of || null
   const earningsPeriod = stock.eps_period || null
@@ -232,6 +240,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   const price = priceOf(stock.price)
   const priceDate = price === null ? null : (stock.quote_as_of || null)
   inputs.currency = currency
+  inputs.reportingCurrency = reportCurrency
+  inputs.reportingCurrencySource = reportingCurrencySource(stock)
 
   // ---- discount rate ------------------------------------------------------
   let rateRow = null
@@ -239,7 +249,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     const resolved = num(rate)
     if (resolved !== null) rateRow = { value: resolved, asOf: null, source: 'caller', proxy: null }
   } else if (rates) {
-    const resolved = rateForCurrency(rates, currency)
+    const resolved = rateForCurrency(rates, reportCurrency)
     if (resolved && resolved.value != null) rateRow = resolved
   }
   if (!rateRow) {
@@ -281,11 +291,18 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   const eps = num(stock.earnings_base) ?? latestEps
   const epsNormalized = num(stock.eps_normalized)
   const cashMedian = num(stock.cash_base)
+  const daPerShare = num(stock.da_per_share)
+  const maintenanceCapexProxy = num(stock.maintenance_capex_proxy)
+  const sbcPerShare = num(stock.sbc_per_share)
   inputs.basis = POLICY_V1.basis
   inputs.eps = eps
   inputs.epsLatest = latestEps
   inputs.epsNormalized = epsNormalized
   inputs.cashMedian = cashMedian
+  inputs.daPerShare = daPerShare
+  inputs.maintenanceCapexProxy = maintenanceCapexProxy
+  inputs.sbcPerShare = sbcPerShare
+  inputs.ownerBaseGap = stock.owner_base_gap === true || daPerShare == null
   inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashMedian, stock.financial_institution === true)
   if (eps === null) reasons.push(REASON.NO_EPS)
   else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
@@ -299,15 +316,17 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     hasPositiveBase: eps > 0 && latestEps != null,
   })
   const growth = official.adopted
-  const terminalGrowthRate = official.zeroTerminal ? 0 : POLICY_V1.horizon.terminalGrowthRate
+  const terminalGrowthRate = POLICY_V1.horizon.terminalGrowthRate
   inputs.growth = growth
   inputs.growthWindow = official.window
   inputs.growthCap = official.cap
   inputs.growth10 = official.historical10
   inputs.growth5 = official.historical5
+  inputs.regimeUncertain = official.regimeUncertain === true
   inputs.terminalGrowthRate = terminalGrowthRate
   if (growth === null) reasons.push(REASON.NO_GROWTH)
   warnings.push(...official.warnings)
+  if (official.regimeUncertain && eps > 0 && !(latestEps > 0)) reasons.push(REASON.UNSTABLE_BASE_REGIME)
 
   // ---- book value (residual-income model only) ----------------------------
   const tangibleBook = num(stock.tangible_book)
@@ -321,6 +340,9 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   if (POLICY_V1.trialOnlyIndustries.includes(inputs.industry)) {
     reasons.push(REASON.INDUSTRY_MODEL_PENDING)
     warnings.push(WARNING.MODEL_CAVEAT)
+  }
+  if (model !== POLICY_V1.model.financialInstitution && inputs.ownerBaseGap) {
+    warnings.push(WARNING.OWNER_BASE_GAP)
   }
 
   const base = {
@@ -394,6 +416,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     discountRate,
     growthRate: growth,
     terminalGrowthRate,
+    growth5: official.historical5,
+    growthCap: official.cap,
+    window: official.window,
+    regimeUncertain: official.regimeUncertain === true,
     years: horizon.years,
     yearsOfTerminalGrowth: horizon.yearsOfTerminalGrowth,
     addToFairValue: false,

@@ -67,7 +67,7 @@ it('scores only complete cash paths and discounts each fiscal year without a ter
 })
 
 it('requoting both model types only changes margins', () => {
-  for (const ticker of ['HKSE:00700', 'SHSE:601398']) {
+  for (const ticker of ['NASDAQ:AAPL', 'SHSE:601398']) {
     const entry = release.entries[ticker]
     const initial = marginStress(entry, entry.price)
     const repriced = marginStress(entry, entry.price * 2)

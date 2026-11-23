@@ -6,8 +6,12 @@
 import { WARNING } from './reasons'
 
 export const MAX_UNDERWRITTEN_GROWTH = 15
-// Tight cap used only when the official window is the five-year history.
+// Kept for frozen artifacts and historical tests. Official short history no
+// longer applies this tighter cap; it widens the value range instead.
 export const SHORT_HISTORY_GROWTH_CAP = 10
+// Ten-year and five-year windows conflict when they have opposite signs, or
+// when they differ by at least this many percentage points.
+export const REGIME_GAP_PP = 8
 
 // A year-to-year drop below this share of the prior positive value is a split
 // candidate (a split cuts per-share figures to 1/2, 1/4, 1/5, 1/10 or 1/20).
@@ -46,14 +50,25 @@ const clipWindow = (raw, cap) => {
   return { raw, adopted: Math.max(capped, 0), hitCap: raw > cap, negative: raw < 0 }
 }
 
+/** True when the ten-year and five-year windows disagree enough to mark a regime. */
+export function windowsConflict (ten, five, gapPp = REGIME_GAP_PP) {
+  if (ten == null || five == null || !Number.isFinite(ten) || !Number.isFinite(five)) return false
+  if ((ten < 0 && five > 0) || (ten > 0 && five < 0)) return true
+  return Math.abs(ten - five) >= gapPp
+}
+
 /**
- * Official starting growth and whether the terminal rate should be zeroed.
- * Shared by policyValue() and buildDefaults(), so the calculator seed equals
- * the published value. A ten-year window is preferred but is not a threshold:
- * a five-year window can still be used, and a positive repeatable base with
- * no window starts at 0% (terminal stays the policy default). Negative
- * history is floored to 0% and also zeros the terminal input; the five-year
- * rate is recorded for comparison and never lifts a negative ten-year window.
+ * Official starting growth. Shared by policyValue() and buildDefaults(), so the
+ * calculator seed equals the published value. A single clean long window is the
+ * centered prior: the ten-year window when it exists, otherwise the five-year
+ * window, always capped at 15%. The five-year rate is a comparison only and is
+ * never min'd with the ten-year rate. A five-year-only history keeps the same
+ * 15% cap, carries SHORT_HISTORY, and widens the value range rather than
+ * applying a tighter 10% cap. Negative history floors the starting rate to 0%
+ * and keeps the default terminal; a conflict between windows also marks
+ * REGIME_UNCERTAIN. A positive repeatable base with no window starts at 0%
+ * (terminal stays the policy default). zeroTerminal remains on the return
+ * object for compatibility and is always false under this policy.
  *
  * @param {{ growth10?: unknown, growth5?: unknown, hasPositiveBase?: boolean }} input
  * @returns {{
@@ -64,6 +79,8 @@ const clipWindow = (raw, cap) => {
  *   cap: number|null,
  *   reason: 'historical'|'capped'|'zeroed'|'no-window'|'missing',
  *   zeroTerminal: boolean,
+ *   regimeUncertain: boolean,
+ *   windowConflict: boolean,
  *   warnings: string[],
  * }}
  */
@@ -71,6 +88,7 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
   const ten = parseRate(growth10)
   const five = parseRate(growth5)
   const warnings = []
+  const conflict = windowsConflict(ten, five)
   const base = {
     historical10: ten,
     historical5: five,
@@ -79,52 +97,56 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
     cap: null,
     reason: 'missing',
     zeroTerminal: false,
+    regimeUncertain: false,
+    windowConflict: conflict,
     warnings,
   }
   const finish = (row) => ({ ...base, ...row, warnings })
+  const markRegime = (uncertain) => {
+    if (uncertain) warnings.push(WARNING.REGIME_UNCERTAIN)
+    return uncertain
+  }
 
   if (ten != null) {
     const adoptedTen = clipWindow(ten, MAX_UNDERWRITTEN_GROWTH)
-    const adoptedFive = five != null ? clipWindow(five, MAX_UNDERWRITTEN_GROWTH) : null
-    const adopted = adoptedFive ? Math.min(adoptedTen.adopted, adoptedFive.adopted) : adoptedTen.adopted
-    const negative = adoptedTen.negative || adoptedFive?.negative === true
-    if (negative) {
-      warnings.push(WARNING.NEGATIVE_HISTORY_ZEROED)
+    const regime = markRegime(adoptedTen.negative || conflict)
+    if (adoptedTen.negative) {
       return finish({
         adopted: 0,
         window: '10y',
         cap: MAX_UNDERWRITTEN_GROWTH,
         reason: 'zeroed',
-        zeroTerminal: true,
+        regimeUncertain: regime,
       })
     }
-    if (adopted === MAX_UNDERWRITTEN_GROWTH) warnings.push(WARNING.CAPPED_GROWTH)
+    if (adoptedTen.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
     return finish({
-      adopted,
+      adopted: adoptedTen.adopted,
       window: '10y',
       cap: MAX_UNDERWRITTEN_GROWTH,
-      reason: adopted === MAX_UNDERWRITTEN_GROWTH ? 'capped' : 'historical',
+      reason: adoptedTen.hitCap ? 'capped' : 'historical',
+      regimeUncertain: regime,
     })
   }
 
   if (five != null) {
-    const adoptedFive = clipWindow(five, SHORT_HISTORY_GROWTH_CAP)
+    const adoptedFive = clipWindow(five, MAX_UNDERWRITTEN_GROWTH)
     warnings.push(WARNING.SHORT_HISTORY)
     if (adoptedFive.negative) {
-      warnings.push(WARNING.NEGATIVE_HISTORY_ZEROED)
+      markRegime(true)
       return finish({
         adopted: 0,
         window: '5y',
-        cap: SHORT_HISTORY_GROWTH_CAP,
+        cap: MAX_UNDERWRITTEN_GROWTH,
         reason: 'zeroed',
-        zeroTerminal: true,
+        regimeUncertain: true,
       })
     }
     if (adoptedFive.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
     return finish({
       adopted: adoptedFive.adopted,
       window: '5y',
-      cap: SHORT_HISTORY_GROWTH_CAP,
+      cap: MAX_UNDERWRITTEN_GROWTH,
       reason: adoptedFive.hitCap ? 'capped' : 'historical',
     })
   }

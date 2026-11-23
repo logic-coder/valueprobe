@@ -190,7 +190,7 @@
   "growth_adopted_note": "历史年化增速 {historical}%{window}。预测从 {adopted}% 开始，逐年过渡到第二阶段增速。",
   "growth_capped_note": "历史年化增速 {historical}%{window}。起始增速上限为 {cap}%，当前采用 {adopted}%，逐年过渡到第二阶段增速。",
   "growth_window": "（{from}–{to} 年）",
-  "growth_zeroed_note": "历史年化增速 {historical}%{window}。公开口径把起始增速和终值增速都按 0% 估算，不再按负增长外推。当前起始增速为 {adopted}%。",
+  "growth_zeroed_note": "历史年化增速 {historical}%{window}。发布口径把起始增速按 0% 估算，终值仍用默认增速淡出，并提示体制不确定；区间包含终值为 0 的衰退情景。当前起始增速为 {adopted}%。",
   "growth_no_window_note": "没有可用的十年或五年盈利增速。公开口径的起始增速按 0%，再逐步过渡到终值增速。当前起始增速为 {adopted}%。",
   "growth_missing_note": "历史增速不可用，可输入盈利增速假设。",
   "growth_refused_note": "可比的盈利记录不足，可输入盈利增速假设。",

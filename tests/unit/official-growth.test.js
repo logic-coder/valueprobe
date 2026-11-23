@@ -1,50 +1,71 @@
 import { describe, expect, it } from 'vitest'
-import { officialGrowth, MAX_UNDERWRITTEN_GROWTH, SHORT_HISTORY_GROWTH_CAP } from '../../src/lib/assumptions'
+import { officialGrowth, MAX_UNDERWRITTEN_GROWTH, windowsConflict } from '../../src/lib/assumptions'
 import { buildDefaults, residualIncomeValue, presentValue } from '../../src/lib/dcf'
 import { policyValue } from '../../src/lib/policy'
 import { WARNING } from '../../src/lib/reasons'
 
 describe('officialGrowth window rules', () => {
-  it('uses the five-year window as a 15% confirmation cap, not the short-history 10% cap', () => {
+  it('uses the ten-year window as the centered prior and does not take the min with five-year growth', () => {
     const info = officialGrowth({ growth10: 15, growth5: 14, hasPositiveBase: true })
-    expect(info.adopted).toBe(14)
+    expect(info.adopted).toBe(15)
     expect(info.window).toBe('10y')
     expect(info.cap).toBe(MAX_UNDERWRITTEN_GROWTH)
     expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.warnings).not.toContain(WARNING.SHORT_HISTORY)
     expect(info.zeroTerminal).toBe(false)
+    expect(info.regimeUncertain).toBe(false)
   })
 
-  it('does not cut a confirming five-year rate of 14 to 10', () => {
-    expect(officialGrowth({ growth10: 15, growth5: 14 }).adopted).not.toBe(SHORT_HISTORY_GROWTH_CAP)
+  it('caps the ten-year prior at 15% even when the five-year rate is lower', () => {
+    const info = officialGrowth({ growth10: 16.4, growth5: 10.92, hasPositiveBase: true })
+    expect(info.adopted).toBe(15)
+    expect(info.window).toBe('10y')
+    expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
+    expect(info.regimeUncertain).toBe(false)
   })
 
-  it('caps only the five-year official window at 10% and flags short history', () => {
+  it('keeps a five-year-only window under the 15% cap and flags short history without a 10% cap', () => {
     const info = officialGrowth({ growth5: 13.45, hasPositiveBase: true })
-    expect(info.adopted).toBe(10)
+    expect(info.adopted).toBe(13.45)
     expect(info.window).toBe('5y')
-    expect(info.cap).toBe(SHORT_HISTORY_GROWTH_CAP)
-    expect(info.warnings).toEqual([WARNING.SHORT_HISTORY, WARNING.CAPPED_GROWTH])
+    expect(info.cap).toBe(MAX_UNDERWRITTEN_GROWTH)
+    expect(info.warnings).toEqual([WARNING.SHORT_HISTORY])
     expect(info.zeroTerminal).toBe(false)
   })
 
-  it('zeros a negative ten-year window even when the five-year rate is positive', () => {
+  it('starts at 0% and keeps the default terminal when the ten-year window is negative', () => {
     const info = officialGrowth({ growth10: -5, growth5: 12, hasPositiveBase: true })
     expect(info.adopted).toBe(0)
     expect(info.historical5).toBe(12)
     expect(info.window).toBe('10y')
     expect(info.reason).toBe('zeroed')
-    expect(info.zeroTerminal).toBe(true)
-    expect(info.warnings).toEqual([WARNING.NEGATIVE_HISTORY_ZEROED])
+    expect(info.zeroTerminal).toBe(false)
+    expect(info.regimeUncertain).toBe(true)
+    expect(info.warnings).toEqual([WARNING.REGIME_UNCERTAIN])
+    expect(info.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     expect(info.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
   })
 
-  it('zeros a five-year-only negative history and flags short history', () => {
+  it('starts at 0% for a five-year-only negative history, flags short history, and does not zero the terminal', () => {
     const info = officialGrowth({ growth5: -9.78, hasPositiveBase: true })
     expect(info.adopted).toBe(0)
-    expect(info.zeroTerminal).toBe(true)
+    expect(info.zeroTerminal).toBe(false)
+    expect(info.regimeUncertain).toBe(true)
     expect(info.warnings).toContain(WARNING.SHORT_HISTORY)
-    expect(info.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(info.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(info.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+  })
+
+  it('marks an Intel-style ten-year positive and five-year negative conflict without zeroing growth', () => {
+    const info = officialGrowth({ growth10: 10.73, growth5: -1.5, hasPositiveBase: true })
+    expect(windowsConflict(10.73, -1.5)).toBe(true)
+    expect(info.adopted).toBe(10.73)
+    expect(info.window).toBe('10y')
+    expect(info.reason).toBe('historical')
+    expect(info.zeroTerminal).toBe(false)
+    expect(info.regimeUncertain).toBe(true)
+    expect(info.windowConflict).toBe(true)
+    expect(info.warnings).toEqual([WARNING.REGIME_UNCERTAIN])
   })
 
   it('starts at 0% and keeps the default terminal when there is no window but a positive base', () => {
@@ -65,7 +86,7 @@ describe('officialGrowth window rules', () => {
 })
 
 describe('policyValue and buildDefaults share officialGrowth', () => {
-  it('passes a 0% terminal into the kernel for negative history and does not change the kernel', () => {
+  it('uses a 0% start and the default 4% terminal for negative history', () => {
     const stock = {
       exchange_: 'NYSE', symbol: 'GPC', currency: '$', ttm_eps: 5, earnings_base: 5,
       earning_growth_10y: -22.37, earning_growth_5y: -47.59, price: '$10', _as_of: '2026-11-18',
@@ -73,15 +94,17 @@ describe('policyValue and buildDefaults share officialGrowth', () => {
     const value = policyValue(stock, { rate: 5.07 })
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBe(0)
-    expect(value.inputs.terminalGrowthRate).toBe(0)
+    expect(value.inputs.terminalGrowthRate).toBe(4)
     expect(value.inputs.growth10).toBe(-22.37)
     expect(value.inputs.growth5).toBe(-47.59)
-    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
+    expect(value.band.mid).toBe(value.value)
     const seed = buildDefaults(5.07, stock, 0)
     expect(seed.dcfForm.growthRate).toBe(0)
-    expect(seed.dcfForm.terminalGrowthRate).toBe(0)
-    expect(presentValue(null, 10, 12, 0, 5, 0, 10, false).fairValue).toBeCloseTo(value.value, 2)
+    expect(seed.dcfForm.terminalGrowthRate).toBe(4)
+    expect(presentValue(null, 10, 12, 0, 5, 4, 10, false).fairValue).toBeCloseTo(value.value, 2)
   })
 
   it('seeds a 0% start and a 4% terminal when the only fact is a positive base', () => {

@@ -5,7 +5,7 @@ import {
   POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyEps, policyGrowth, policyModel, policyValue, quoteDateStatus,
 } from '../../src/lib/policy'
 import { buildDefaults, presentValue, residualIncomeValue } from '../../src/lib/dcf'
-import { rateForCurrency } from '../../src/lib/riskFree'
+import { rateForCurrency, reportingCurrency } from '../../src/lib/riskFree'
 import { toStock } from '../../src/lib/stockRecord'
 import { REASON, WARNING, isKnownReason, isKnownWarning } from '../../src/lib/reasons'
 import { defaultView } from '../../src/lib/watchlistView'
@@ -20,7 +20,7 @@ const rateRows = {
 }
 const snapshots = catalog.map((row) => ({ symbol: row.symbol, raw: readJson('public/data/' + row.symbol.replace(':', '-') + '.json') }))
 const stockOf = (raw) => toStock(raw)
-const yieldOf = (stock) => rateForCurrency(rateRows, stock.currency)?.value ?? null
+const yieldOf = (stock) => rateForCurrency(rateRows, reportingCurrency(stock) || stock.currency)?.value ?? null
 
 describe('public policy is frozen', () => {
   it('pins the hash so an unversioned edit cannot ship', () => {
@@ -30,13 +30,14 @@ describe('public policy is frozen', () => {
 
   it('keeps the contested constants explicit', () => {
     expect(POLICY_V1.discount.rounding).toBe('ceil')
-    expect(POLICY_V1.discount.currency).toBe('quote')
+    expect(POLICY_V1.discount.currency).toBe('reporting')
     expect(POLICY_V1.discount.missing).toBe('fallback')
     expect(POLICY_V1.discount.fallback).toBe(10)
     expect(POLICY_V1.discount.floor).toBe(10)
     expect(POLICY_V1.growth.cap).toBe(15)
-    expect(POLICY_V1.growth.shortCap).toBe(10)
-    expect(POLICY_V1.growth.negative).toBe('zero-start-and-terminal')
+    expect(POLICY_V1.growth.shortHistory).toBe('wider-band')
+    expect(POLICY_V1.growth.negative).toBe('zero-start-default-terminal')
+    expect(POLICY_V1.band.growthEnvelope).toBe('scenario')
     expect(POLICY_V1.growth.missingWindow).toBe('zero-start')
     expect(POLICY_V1.horizon).toEqual({ years: 10, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10 })
     expect(POLICY_V1.discount.rule).toBe('max(floor, local-10y-ceil+6)')
@@ -113,13 +114,14 @@ describe('policyValue semantics', () => {
     expect(value.warnings).toContain(WARNING.RATE_FALLBACK)
   })
 
-  it('publishes a negative history at a 0% start and a 0% terminal, and does not reuse the old warning', () => {
-    const stock = stockOf(snapshots.find((row) => row.symbol === 'HKSE:00001').raw)
+  it('publishes a negative history at a 0% start and the default terminal, and does not reuse the old warning', () => {
+    const stock = stockOf(snapshots.find((row) => row.symbol === 'NYSE:GPC').raw)
     const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBe(0)
-    expect(value.inputs.terminalGrowthRate).toBe(0)
-    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(value.inputs.terminalGrowthRate).toBe(4)
+    expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
   })
 
@@ -128,8 +130,9 @@ describe('policyValue semantics', () => {
     const teslaValue = policyValue(tesla, { rates: rateRows, generatedAt: artifact.generatedAt })
     expect(teslaValue.status).toBe('ok')
     expect(teslaValue.inputs.growth).toBe(0)
-    expect(teslaValue.inputs.terminalGrowthRate).toBe(0)
-    expect(teslaValue.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(teslaValue.inputs.terminalGrowthRate).toBe(4)
+    expect(teslaValue.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(teslaValue.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     const loss = stockOf(snapshots.find((row) => row.symbol === 'NASDAQ:INTC').raw)
     const value = policyValue(loss, { rates: rateRows, generatedAt: artifact.generatedAt })
     expect(value.reasons).toContain(REASON.NON_POSITIVE_EPS)
@@ -230,24 +233,25 @@ describe('cash is a cross-check after the official base is chosen', () => {
     expect(value.warnings).not.toContain(WARNING.CASH_DIVERGENCE)
   })
 
-  it('keeps a Tencent-class name when the midpoint shrinks the gap below 50%', () => {
+  it('refuses a Tencent-class name when adopting normalised earnings leaves a 50%+ cash gap', () => {
     const rows = [
       { eps_without_nri: 20, free_cash_flow_per_share: 11 },
       { eps_without_nri: 22, free_cash_flow_per_share: 12 },
       { eps_without_nri: 24, free_cash_flow_per_share: 13 },
     ]
     const value = policyValue(stockOf(raw(rows, 24)), { rates: rateRows, generatedAt: '2026-11-18' })
-    expect(value.status).toBe('ok')
-    expect(value.value).toBeGreaterThan(0)
-    expect(Math.abs(value.cash.gapPct)).toBeLessThan(50)
-    expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
+    expect(value.inputs.eps).toBe(24)
+    expect(Math.abs(value.cash.gapPct)).toBeGreaterThanOrEqual(50)
+    expect(value.reasons).toContain(REASON.CASH_UNRECONCILED)
   })
 
   it('warns, and still publishes, when the remaining gap is 25% to 49%', () => {
     const rows = [
-      { eps_without_nri: 10, free_cash_flow_per_share: 4 },
-      { eps_without_nri: 10, free_cash_flow_per_share: 5 },
       { eps_without_nri: 10, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 10, free_cash_flow_per_share: 7 },
+      { eps_without_nri: 10, free_cash_flow_per_share: 8 },
     ]
     const value = policyValue(stockOf(raw(rows, 10)), { rates: rateRows, generatedAt: '2026-11-18' })
     expect(value.status).toBe('ok')
@@ -295,14 +299,14 @@ describe('the committed artifact is what the policy produces', () => {
     const entry = (symbol) => artifact.entries[symbol]
     expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.76 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
-    expect(entry('NASDAQ:AAPL').value).toBe(108.17)
+    expect(entry('NASDAQ:AAPL').value).toBe(122.7)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 125.1, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
-    expect(entry('HKSE:00700').value).toBe(311.3)
+    expect(entry('HKSE:00700')).toMatchObject({ status: 'refused', value: null, reasons: expect.arrayContaining(['CASH_UNRECONCILED']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
-    expect(entry('NYSE:GPC').value).toBe(47.36)
-    expect(entry('NYSE:GPC').warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(entry('NYSE:GPC').value).toBe(71.61)
+    expect(entry('NYSE:GPC').warnings).toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NYSE:GPC')).toMatchObject({
       inputs: expect.objectContaining({
         epsLatest: expect.any(Number),
@@ -311,8 +315,8 @@ describe('the committed artifact is what the policy produces', () => {
         baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|repeatable)$/),
       }),
     })
-    expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('midpoint')
-    expect(entry('NYSE:GPC').inputs.baseKind).toBe('midpoint')
+    expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('normalized')
+    expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').value).toBe(10.76)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
@@ -363,7 +367,7 @@ describe('calculator seed and policy inputs cannot drift', () => {
   it('keeps the watchlist overview on the same function', () => {
     const fixture = readJson('src/data/bundled/stock_icbc.json')
     const view = defaultView(fixture, 6)
-    expect(view.fairValue).toBe(13.17)
-    expect(view.mos).toBeCloseTo(32.8, 1)
+    expect(view.fairValue).toBe(13.49)
+    expect(view.mos).toBeCloseTo(34.4, 1)
   })
 })

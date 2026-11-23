@@ -89,15 +89,33 @@ export function applyCleanGrowth (stock, annual) {
  * @param {object} raw parsed public/data/<MARKET>-<CODE>.json
  * @returns {object|null}
  */
+function latestPerShare (annual, field) {
+  if (!Array.isArray(annual)) return null
+  for (let i = annual.length - 1; i >= 0; i--) {
+    const raw = annual[i]?.[field]
+    if (raw === null || raw === undefined || raw === '') continue
+    const parsed = Number(raw)
+    if (Number.isFinite(parsed)) return Number(parsed.toFixed(4))
+  }
+  return null
+}
+
 export function toStock (raw) {
   if (!raw || typeof raw !== 'object') return null
   const stock = { ...raw }
   applyCleanGrowth(stock, raw.financials?.annual)
   const classification = classify(stock, raw.financials?.annual)
-  // Banks never take the FCF midpoint: free cash flow is not owner earnings there.
+  const annual = raw.financials?.annual
+  const da = latestPerShare(annual, 'depreciation_amortization_per_share')
+  const sbc = latestPerShare(annual, 'share_based_comp_per_share')
+  // Official base is normalised earnings (M≈D, so owner earnings equal E).
   stock.eps_normalized = normalizedEpsBase(raw)
-  stock.earnings_base = normalizedEarningsBase(raw, { midpointCash: classification.financial !== true })
+  stock.earnings_base = normalizedEarningsBase(raw)
   stock.cash_base = sustainableCashBase(raw)
+  stock.da_per_share = da
+  stock.maintenance_capex_proxy = da
+  stock.sbc_per_share = sbc
+  if (da == null) stock.owner_base_gap = true
   delete stock.history
   delete stock.financials
   if (classification.financial) stock.financial_institution = true

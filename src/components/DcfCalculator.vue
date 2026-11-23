@@ -47,9 +47,13 @@
               {{ t('valuation_base_components', {
                 latest: formatBaseComponent(policyEntry.inputs.epsLatest),
                 normalized: formatBaseComponent(policyEntry.inputs.epsNormalized),
+                da: formatBaseComponent(policyEntry.inputs.daPerShare),
+                maintenance: formatBaseComponent(policyEntry.inputs.maintenanceCapexProxy),
+                sbc: formatBaseComponent(policyEntry.inputs.sbcPerShare),
                 cash: formatBaseComponent(policyEntry.inputs.cashMedian),
                 adopted: formatBaseComponent(policyEntry.inputs.eps),
                 kind: policyEntry.inputs.baseKind ? t('valuation_base_kind_' + policyEntry.inputs.baseKind) : '',
+                gap: policyEntry.inputs.ownerBaseGap ? t('valuation_base_gap') : '',
               }) }}
             </p>
             <p>{{ t('valuation_band_note', { spread: policyEntry.inputs.bandSpread ?? 2 }) }}</p>
@@ -395,7 +399,7 @@ import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valua
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
 import { codeOf } from '../store/display'
-import { rateForCurrency } from '../lib/riskFree'
+import { rateForCurrency, reportingCurrency } from '../lib/riskFree'
 import { quoteDateStatus } from '../lib/policy'
 import APopover from './APopover.vue'
 import EditableValue from './EditableValue.vue'
@@ -435,7 +439,7 @@ const stock = computed(() => stockStore.stock || {
 const currencyCode = computed(() => codeOf(stock.value.currency) || stock.value.currency || '')
 
 const financials = computed(() => dcfStore.financials.data)
-const selectedRate = computed(() => rateForCurrency(dcfStore.rates.byCurrency, stock.value.currency))
+const selectedRate = computed(() => rateForCurrency(dcfStore.rates.byCurrency, reportingCurrency(stock.value) || stock.value.currency))
 const indicator = computed(() => selectedRate.value.value)
 const rateNote = computed(() => {
   const info = selectedRate.value

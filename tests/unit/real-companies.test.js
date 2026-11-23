@@ -44,7 +44,7 @@ describe('SHSE:601398 - residual income on a real bank', () => {
 })
 
 describe('US listings keep a published value', () => {
-  for (const symbol of ['NASDAQ:AAPL', 'NASDAQ:NVDA', 'NYSE:TSM']) {
+  for (const symbol of ['NASDAQ:AAPL', 'NASDAQ:MSFT', 'NYSE:TSM']) {
     it(symbol + ' publishes a finite value in USD', () => {
       const value = valueOf(symbol)
       expect(value.status).toBe('ok')
@@ -57,6 +57,16 @@ describe('US listings keep a published value', () => {
   }
 })
 
+
+describe('NASDAQ:NVDA is refused when cash still differs from normalised earnings by 50%+', () => {
+  it('does not invent a published value after the midpoint is withdrawn', () => {
+    const value = valueOf('NASDAQ:NVDA')
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
+    expect(value.reasons).toContain(REASON.CASH_UNRECONCILED)
+    expect(value.reasons).toEqual(published('NASDAQ:NVDA').reasons)
+  })
+})
 
 describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
   it('publishes Progressive on the residual model and does not invent a cash veto', () => {
@@ -103,18 +113,21 @@ describe('HKSE listings value in HKD with the disclosed USD proxy', () => {
   }
 })
 
-describe('a negative growth history is published with a zeroed path, never refused', () => {
-  it('keeps a valued company whose official growth is zeroed rather than extrapolated', () => {
+describe('a negative growth history is published with a default terminal and a regime warning', () => {
+  it('keeps a valued company whose official path starts at 0% and fades to the default terminal', () => {
     const candidates = Object.keys(artifact.entries).filter((symbol) =>
-      artifact.entries[symbol].status === 'ok' && artifact.entries[symbol].warnings.includes(WARNING.NEGATIVE_HISTORY_ZEROED))
+      artifact.entries[symbol].status === 'ok'
+      && artifact.entries[symbol].warnings.includes(WARNING.REGIME_UNCERTAIN)
+      && artifact.entries[symbol].inputs.growth === 0)
     expect(candidates.length).toBeGreaterThan(0)
     const symbol = candidates[0]
     const value = valueOf(symbol)
     expect(value.status).toBe('ok')
     expect(value.value).toBeGreaterThan(0)
     expect(value.inputs.growth).toBe(0)
-    expect(value.inputs.terminalGrowthRate).toBe(0)
-    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(value.inputs.terminalGrowthRate).toBe(4)
+    expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
     expect(value.value).toBe(published(symbol).value)
   })

@@ -190,7 +190,7 @@
   "growth_adopted_note": "Historical annualised growth was {historical}%{window}. Forecast growth starts at {adopted}% and moves toward the second-stage rate.",
   "growth_capped_note": "Historical annualised growth was {historical}%{window}. Initial growth is capped at {cap}%. The forecast starts at {adopted}% and moves toward the second-stage rate.",
   "growth_window": " ({from}–{to})",
-  "growth_zeroed_note": "Historical annualised growth was {historical}%{window}. Published assumptions use 0% for both the starting rate and the terminal rate, instead of extrapolating the decline. The forecast starts at {adopted}%.",
+  "growth_zeroed_note": "Historical annualised growth was {historical}%{window}. Published assumptions start at 0% and fade to the default terminal, with the regime flagged as uncertain; the range includes a 0% terminal decline. The forecast starts at {adopted}%.",
   "growth_no_window_note": "No ten-year or five-year earnings-growth window is available. Published assumptions start at 0% and then move toward the terminal rate. The forecast starts at {adopted}%.",
   "growth_missing_note": "Historical growth is unavailable. You can enter an earnings growth assumption.",
   "growth_refused_note": "Comparable earnings history is insufficient. You can enter an earnings growth assumption.",

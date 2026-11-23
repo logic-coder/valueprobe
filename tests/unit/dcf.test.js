@@ -264,7 +264,7 @@ describe('normalized earnings base', () => {
     expect(normalizedEpsBase(stock)).toBe(8.5)
   })
 
-  it('takes the midpoint of cash and normalised earnings when both sides are positive', () => {
+  it('uses normalised earnings as the official base and does not average in cash', () => {
     const stock = annual([
       { eps_without_nri: 6.23, free_cash_flow_per_share: 6.8794 },
       { eps_without_nri: 8.31, free_cash_flow_per_share: 7.921 },
@@ -272,7 +272,8 @@ describe('normalized earnings base', () => {
       { eps_without_nri: 6.47, free_cash_flow_per_share: 4.8966 },
       { eps_without_nri: 0.47, free_cash_flow_per_share: 3.0228 },
     ])
-    expect(normalizedEarningsBase(stock)).toBeCloseTo((4.8966 + 6.47) / 2, 4)
+    expect(normalizedEarningsBase(stock)).toBe(6.47)
+    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(6.47)
   })
 
   it('does not average two cash years into a fake median and falls back to earnings', () => {
@@ -285,14 +286,14 @@ describe('normalized earnings base', () => {
     expect(normalizedEarningsBase(stock)).toBe(8)
   })
 
-  it('never midpoints cash for a financial institution', () => {
+  it('uses normalised earnings for a financial institution as well, without averaging cash', () => {
     const stock = annual([
       { eps_without_nri: 1.0, free_cash_flow_per_share: 5 },
       { eps_without_nri: 1.1, free_cash_flow_per_share: 6 },
       { eps_without_nri: 1.2, free_cash_flow_per_share: 7 },
     ])
     expect(normalizedEarningsBase(stock, { midpointCash: false })).toBe(1.2)
-    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBeCloseTo((6 + 1.2) / 2, 4)
+    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(1.2)
   })
 
   it('skips a missing year in the five-year window instead of treating it as zero', () => {
