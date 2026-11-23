@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { financialsFromFacts, fundamentalsFromFacts, growthWindow, profileFromFacts, quoteSplitFactor, scalePerShare } from '../../src/data/providers/edgar-xbrl'
+import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, quoteSplitFactor, scalePerShare } from '../../src/data/providers/edgar-xbrl'
 import interimEps from '../fixtures/edgar-interim-eps.json'
 
 const year = (fy, val, extra = {}) => ({
@@ -695,5 +695,17 @@ describe('EPS units and missing companyfacts concepts', () => {
     }))
     expect(table.annual.every((row) => row.eps_without_nri == null)).toBe(true)
     expect(table.annual.some((row) => row.free_cash_flow_per_share != null)).toBe(true)
+  })
+})
+
+describe('known split factors', () => {
+  it('recognises standard ratios and rejects a 6-for-1 not in the table', () => {
+    expect(knownSplitFactor(2)).toBe(2)
+    expect(knownSplitFactor(2.1)).toBe(2)
+    expect(knownSplitFactor(4)).toBe(4)
+    expect(knownSplitFactor(10)).toBe(10)
+    // 3.5 is still inside the 18% window of both 3 and 4; 6-for-1 is not.
+    expect(knownSplitFactor(6)).toBeNull()
+    expect(knownSplitFactor(1.4)).toBeNull()
   })
 })

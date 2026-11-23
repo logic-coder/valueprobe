@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { CircuitBreaker, CircuitState } from '../../src/data/circuit'
+import { classify, DataError, ErrorCode, RetryClass } from '../../src/data/errors'
 
 const make = () => {
   let clock = 0
@@ -55,5 +56,19 @@ describe('circuit breaker', () => {
     const { breaker } = make()
     breaker.recordFailure('x')
     expect(breaker.snapshot().x).toEqual({ state: CircuitState.CLOSED, failures: 1 })
+  })
+})
+
+describe('live-source failure penalties', () => {
+  it('penalises timeouts, 429s, 5xx responses and network errors', () => {
+    expect(classify({ code: 'ECONNABORTED' }, 'eastmoney').retryClass).toBe(RetryClass.FAILOVER_WITH_PENALTY)
+    expect(classify({ response: { status: 429 } }, 'eastmoney')).toMatchObject({ code: ErrorCode.RATE_LIMITED, retryClass: RetryClass.FAILOVER_WITH_PENALTY })
+    expect(classify({ response: { status: 503 } }, 'eastmoney')).toMatchObject({ code: ErrorCode.HTTP, retryClass: RetryClass.FAILOVER_WITH_PENALTY })
+    expect(classify({ code: 'ERR_NETWORK' }, 'eastmoney').retryClass).toBe(RetryClass.FAILOVER_WITH_PENALTY)
+  })
+
+  it('does not penalise a 404 or an unsupported market', () => {
+    expect(classify({ response: { status: 404 } }, 'eastmoney').retryClass).toBe(RetryClass.NEXT_PROVIDER)
+    expect(new DataError(ErrorCode.NOT_SUPPORTED, 'eastmoney', 'market').retryClass).toBe(RetryClass.NEXT_PROVIDER)
   })
 })

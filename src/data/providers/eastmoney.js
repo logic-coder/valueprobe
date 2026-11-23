@@ -106,6 +106,20 @@ async function loadStatements (symbol) {
 
 export const secidFor = (market, code) => (SECID[market] ? SECID[market] + '.' + code : null)
 
+
+/**
+ * Quote time from East Money field f124, the same rule as scripts/snapshot.mjs.
+ * Missing or implausible f124 must not be replaced with Date.now().
+ * @returns {{ asOf: string, timestamp: number } | null}
+ */
+export function quoteTimeFromF124 (quote, market, now = Date.now()) {
+  const seconds = Number(quote?.f124)
+  if (!(seconds > 0) || seconds >= now / 1000 + 60) return null
+  const zone = US.has(market) ? 'America/New_York' : 'Asia/Shanghai'
+  const asOf = new Intl.DateTimeFormat('sv-SE', { timeZone: zone }).format(new Date(seconds * 1000))
+  return { asOf, timestamp: seconds * 1000 }
+}
+
 export const eastmoney = {
   id: 'eastmoney',
   label: '东方财富',
@@ -130,11 +144,12 @@ export const eastmoney = {
     if (!quote || !quote.f58) throw notSupported('eastmoney', 'quote for ' + symbol)
     const scale = scaleFor(quote, market)
     const us = /NYSE|NASDAQ|AMEX/.test(market)
+    const when = quoteTimeFromF124(quote, market)
     return {
       price: Number(quote.f43) / scale,
       currency: market === 'HKSE' ? 'HK$' : us ? '$' : '¥',
       name: quote.f58,
-      timestamp: Date.now(),
+      ...(when || {}),
       provider: 'eastmoney',
       raw: quote,
     }

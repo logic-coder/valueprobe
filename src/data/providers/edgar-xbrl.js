@@ -18,7 +18,16 @@ const TICKER_TTL = 7 * 24 * 3600e3
 
 const YEAR_LIMIT = 10
 const FORMS = new Set(['10-K', '20-F', '40-F'])
-const SPLITS = [2, 3, 4, 5, 10, 20, 25, 50]
+// Known integer split factors. A 3.5-for-1 or other non-standard ratio is
+// left unadjusted rather than guessed; add a factor here only with a filing.
+export const KNOWN_SPLIT_FACTORS = [2, 3, 4, 5, 10, 20, 25, 50]
+// Share-count jump vs a known factor may be 18% off and still count as that split.
+export const SHARE_SPLIT_TOLERANCE = 0.18
+// EPS restatements use a tighter 8% window so a real earnings swing is not a split.
+export const RESTATEMENT_SPLIT_TOLERANCE = 0.08
+// If revenue also jumped by more than 55% of the candidate factor, treat it as
+// growth (or a real downturn) rather than a unit break. Protects NVDA FY2023.
+export const REVENUE_SPLIT_GUARD = 0.55
 const EPS_CONCEPTS = ['EarningsPerShareDiluted', 'EarningsPerShareBasicAndDiluted', 'EarningsPerShareBasic']
 const REVENUE_CONCEPTS = ['RevenueFromContractWithCustomerExcludingAssessedTax', 'Revenues', 'SalesRevenueNet', 'RevenueFromContractWithCustomerIncludingAssessedTax']
 const OIL_AND_GAS_CAPEX = 'PaymentsToAcquireOilAndGasPropertyAndEquipment'
@@ -231,7 +240,7 @@ function nearestSplitWithin (ratio, tolerance) {
   if (!(ratio > 1.6)) return null
   let best = null
   let error = tolerance
-  for (const factor of SPLITS) {
+  for (const factor of KNOWN_SPLIT_FACTORS) {
     const gap = Math.abs(ratio - factor) / factor
     if (gap <= error) {
       error = gap
@@ -261,7 +270,7 @@ function splitAdjustedShares (shares, revenue) {
     const prevRevenue = revenue.get(prev)
     const revenueNow = revenue.get(year)
     const revenueRatio = prevRevenue > 0 && revenueNow > 0 ? revenueNow / prevRevenue : 1
-    if (revenueRatio > factor * 0.55) continue
+    if (revenueRatio > factor * REVENUE_SPLIT_GUARD) continue
     splits.push({ year, factor, filed: shares.find((point) => point.fy === year)?.filed || '' })
     for (const older of years) {
       if (older < year) extra.set(older, extra.get(older) * factor)
@@ -273,7 +282,12 @@ function splitAdjustedShares (shares, revenue) {
 }
 
 function nearestSplit (ratio) {
-  return nearestSplitWithin(ratio, 0.18)
+  return nearestSplitWithin(ratio, SHARE_SPLIT_TOLERANCE)
+}
+
+/** @param {number} ratio */
+export function knownSplitFactor (ratio, tolerance = SHARE_SPLIT_TOLERANCE) {
+  return nearestSplitWithin(ratio, tolerance)
 }
 
 /**
@@ -313,7 +327,7 @@ function restatementSplits (facts) {
           if (!basis || after.filed <= basis.filed) continue
           const factor = (
             basis.val > 0 && after.val > 0
-              ? nearestSplitWithin(basis.val / after.val, 0.08)
+              ? nearestSplitWithin(basis.val / after.val, RESTATEMENT_SPLIT_TOLERANCE)
               : null
           )
           const year = after.filingYear
@@ -377,7 +391,7 @@ function neighborsConsistent (prev, next) {
 
 function ratioNearSplit (ratio) {
   if (!(ratio > 0)) return null
-  return nearestSplitWithin(ratio, 0.18) || nearestSplitWithin(1 / ratio, 0.18)
+  return nearestSplitWithin(ratio, SHARE_SPLIT_TOLERANCE) || nearestSplitWithin(1 / ratio, SHARE_SPLIT_TOLERANCE)
 }
 
 /** Revenue or operating income moved the same way: this is a real year, not a bad tag. */

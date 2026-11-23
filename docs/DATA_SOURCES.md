@@ -22,8 +22,8 @@
 | 等级 | 触发 | 行为 |
 | --- | --- | --- |
 | `never` | 校验失败、代码非法 | 直接中止，不换源 |
-| `failover_with_penalty` | 超时 | 换源并记熔断失败 |
-| `next_provider` | 429、5xx、网络错、无数据、不支持 | 换源，不记罚 |
+| `failover_with_penalty` | 超时、429、5xx、网络错 | 换源并记熔断失败 |
+| `next_provider` | 无数据、不支持 | 换源，不记罚 |
 | `circuit_open` | 熔断已打开 | 跳过 |
 
 ## 来源与能力

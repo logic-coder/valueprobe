@@ -25,17 +25,17 @@ export const ErrorCode = {
 }
 
 // Terminal: another source cannot fix a bad symbol or a bad payload.
-// Only a timeout penalises the breaker -- a 429 or a 5xx is the provider doing
-// its job badly, not the source dying.
+// Timeouts, 429s, 5xx responses and network errors penalise the breaker.
+// A 404 or an unsupported market is not a dying host and does not.
 const RETRY_BY_CODE = {
   [ErrorCode.VALIDATION]: RetryClass.NEVER,
   [ErrorCode.RESOLUTION]: RetryClass.NEVER,
   [ErrorCode.TIMEOUT]: RetryClass.FAILOVER_WITH_PENALTY,
-  [ErrorCode.RATE_LIMITED]: RetryClass.NEXT_PROVIDER,
+  [ErrorCode.RATE_LIMITED]: RetryClass.FAILOVER_WITH_PENALTY,
   [ErrorCode.NOT_SUPPORTED]: RetryClass.NEXT_PROVIDER,
   [ErrorCode.NO_DATA]: RetryClass.NEXT_PROVIDER,
-  [ErrorCode.NETWORK]: RetryClass.NEXT_PROVIDER,
-  [ErrorCode.HTTP]: RetryClass.NEXT_PROVIDER,
+  [ErrorCode.NETWORK]: RetryClass.FAILOVER_WITH_PENALTY,
+  [ErrorCode.HTTP]: RetryClass.FAILOVER_WITH_PENALTY,
   [ErrorCode.RATE_LIMIT_LOCAL]: RetryClass.CIRCUIT_OPEN,
 }
 
