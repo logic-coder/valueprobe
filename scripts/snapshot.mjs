@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
+import { LISTING_GROUPS } from '../src/data/listingGroups.js'
 import { ARTIFACT_PATH, DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
 import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote } from './lib/snapshot-transport.mjs'
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
@@ -28,6 +29,15 @@ const UA = 'valueprobe-snapshot/1.0 (open-source research; contact: logic159@163
 const SECID = { SHSE: '1', SZSE: '0', HKSE: '128', NASDAQ: '105', NYSE: '106', AMEX: '107' }
 const SCALE = { SHSE: 100, SZSE: 100, HKSE: 1000, NASDAQ: 1000, NYSE: 1000, AMEX: 1000 }
 const US = new Set(['NYSE', 'NASDAQ', 'AMEX'])
+const H_SHARE_OF = new Map(LISTING_GROUPS.map((group) => [group.h, group.a]))
+
+/** ISO reporting currency when it can be assigned without the unreliable HK flag. */
+function reportingCurrencyFor (market, code) {
+  if (market === 'SHSE' || market === 'SZSE') return 'CNY'
+  if (US.has(market)) return 'USD'
+  if (market === 'HKSE' && H_SHARE_OF.has('HKSE:' + code)) return 'CNY'
+  return null
+}
 const HEADERS = { 'User-Agent': UA, Accept: 'application/json', Referer: 'https://emweb.securities.eastmoney.com/' }
 
 const args = process.argv.slice(2)
@@ -285,6 +295,7 @@ async function refresh (existing, baseline) {
       predictability: fields.predictability ?? null,
       financials: pack?.financials || { annual: [], ttm: [], quarter: [] },
       ...note,
+      ...(reportingCurrencyFor(market, code) ? { reporting_currency: reportingCurrencyFor(market, code) } : {}),
     })
     return { ...record, history: historyFrom(record.financials) }
   }

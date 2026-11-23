@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import fs from 'node:fs'
-import { defaultDiscountRate, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR, parseEastMoneyYields, rateForCurrency, yieldForStock } from '../../src/lib/riskFree'
+import { defaultDiscountRate, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR, parseEastMoneyYields, rateForCurrency, yieldForStock, reportingCurrency, reportingCurrencySource } from '../../src/lib/riskFree'
 
 const rates = {
   USD: { value: 5.1, asOf: '2026-11-17', source: 'live' },
@@ -96,3 +96,22 @@ describe('parseEastMoneyYields', () => {
     expect(parsed.USD.value).toBe(-0.2)
   })
 })
+
+describe('reportingCurrency', () => {
+  it('uses an explicit ISO reporting_currency and ignores the unreliable Hong Kong report_currency flag', () => {
+    expect(reportingCurrency({ reporting_currency: 'CNY', currency: 'HK$', report_currency: 'HKD', exchange_: 'HKSE', symbol: '00700' })).toBe('CNY')
+    expect(reportingCurrencySource({ reporting_currency: 'CNY', currency: 'HK$', exchange_: 'HKSE', symbol: '00700' })).toBe('snapshot')
+    expect(reportingCurrency({ report_currency: 'HKD', currency: 'HK$', fundamentals_currency: 'CNY', exchange_: 'HKSE', symbol: '00005' })).toBe('HKD')
+    expect(reportingCurrencySource({ report_currency: 'HKD', currency: 'HK$', exchange_: 'HKSE', symbol: '00005' })).toBe('quote-fallback')
+  })
+
+  it('defaults A-share and US markets, and keys a curated H-share to the A-share currency', () => {
+    expect(reportingCurrency({ exchange_: 'SHSE', symbol: '601398', currency: '¥' })).toBe('CNY')
+    expect(reportingCurrencySource({ exchange_: 'SHSE', symbol: '601398', currency: '¥' })).toBe('market')
+    expect(reportingCurrency({ exchange_: 'NASDAQ', symbol: 'AAPL', currency: '$' })).toBe('USD')
+    expect(reportingCurrency({ exchange_: 'HKSE', symbol: '01398', currency: 'HK$', report_currency: 'HKD', fundamentals_currency: 'CNY' })).toBe('CNY')
+    expect(reportingCurrencySource({ exchange_: 'HKSE', symbol: '01398', currency: 'HK$' })).toBe('dual-listing')
+    expect(reportingCurrency({ exchange_: 'HKSE', symbol: '00002', currency: 'HK$' })).toBe('HKD')
+  })
+})
+

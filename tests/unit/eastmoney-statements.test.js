@@ -207,3 +207,42 @@ describe('growth windows and cash-flow basis', () => {
     expect(converted.financials.annual.at(-1).dividends_per_share).toBeNull()
   })
 })
+
+describe('cash-flow supplement depreciation and SBC lines', () => {
+  it('records per-share depreciation and SBC from a matching A-share supplement year', () => {
+    const annual = [
+      row('2025-12-31', '年报', { EPSKCJB: 1, EPSXS: 1, EPSJB: 1, BPS: 10, PARENTNETPROFIT: 100, PER_TOI: 2, PER_EBIT: 1, MGJYXJJE: 3 }),
+    ]
+    const parsed = fromAshareReports([], annual, [
+      row('2025-12-31', '年报', { ZCJZZJ: 30, WXZCTX: 10, GQFZF: 8 }),
+    ])
+    const last = parsed.financials.annual.at(-1)
+    expect(last.depreciation_amortization_per_share).toBeCloseTo(0.4, 4)
+    expect(last.share_based_comp_per_share).toBeCloseTo(0.08, 4)
+  })
+
+  it('leaves the lines empty when no supplement is provided, and does not invent a figure', () => {
+    const parsed = fromAshareReports([], [
+      row('2025-12-31', '年报', { EPSKCJB: 1, EPSXS: 1, EPSJB: 1, BPS: 10, PARENTNETPROFIT: 100, PER_TOI: 2 }),
+    ])
+    const last = parsed.financials.annual.at(-1)
+    expect(last.depreciation_amortization_per_share).toBeNull()
+    expect(last.share_based_comp_per_share).toBeNull()
+  })
+
+  it('converts Hong Kong supplement per-share lines with the rest of the pack', () => {
+    const parsed = fromHkReports([
+      row('2025-12-31', '年报', {
+        BASIC_EPS: 10, DILUTED_EPS: 10, EPS_TTM: 10, BPS: 40, HOLDER_PROFIT: 100,
+        NETCASH_OPERATE: 30, NETCASH_INVEST: -10, PER_OI: 20,
+      }),
+    ], [
+      row('2025-12-31', '年报', { DEPRE_AND_AMORT: 20, SHARE_BASED_PAYMENT: 5 }),
+    ])
+    expect(parsed.financials.annual[0].depreciation_amortization_per_share).toBeCloseTo(2, 4)
+    const converted = convertReportingCurrency(parsed, 1.1)
+    expect(converted.financials.annual[0].depreciation_amortization_per_share).toBeCloseTo(2.2, 4)
+    expect(converted.financials.annual[0].share_based_comp_per_share).toBeCloseTo(0.55, 4)
+  })
+})
+

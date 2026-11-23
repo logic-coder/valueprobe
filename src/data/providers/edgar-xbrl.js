@@ -48,6 +48,28 @@ const IFRS_SHARE_CONCEPTS = [
   'AdjustedWeightedAverageShares',
   'WeightedAverageShares',
 ]
+// Depreciation and share-based compensation are disclosure lines for the
+// official owner-earnings identity (M≈D, so OE=E). Missing concepts stay
+// empty; they are never invented from EBITDA or net income.
+const DA_CONCEPTS = [
+  'DepreciationDepletionAndAmortization',
+  'DepreciationAmortizationAndAccretionNet',
+  'DepreciationAndAmortization',
+  'Depreciation',
+]
+const IFRS_DA_CONCEPTS = [
+  'DepreciationAndAmortisationExpense',
+  'DepreciationDepletionAndAmortisationExpense',
+  'DepreciationExpense',
+]
+const SBC_CONCEPTS = [
+  'ShareBasedCompensation',
+  'AllocatedShareBasedCompensationExpense',
+]
+const IFRS_SBC_CONCEPTS = [
+  'ShareBasedPaymentExpense',
+  'ShareBasedPaymentArrangementsExpense',
+]
 
 async function tickerMap () {
   try {
@@ -523,6 +545,8 @@ function assemble (facts) {
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
   const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], 'USD', 'ifrs-full')
   const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, 'USD')
+  const da = annualPrefer(facts, DA_CONCEPTS, IFRS_DA_CONCEPTS, 'USD')
+  const sbc = annualPrefer(facts, SBC_CONCEPTS, IFRS_SBC_CONCEPTS, 'USD')
   const separatesOilAndGas = annualConcept(facts, OIL_AND_GAS_CAPEX, 'USD').length > 0
   const capexConcepts = separatesOilAndGas ? CAPEX_CONCEPTS.filter((concept) => concept !== OTHER_CAPEX) : CAPEX_CONCEPTS
   const capex = annualPrefer(facts, capexConcepts, IFRS_CAPEX_CONCEPTS, 'USD')
@@ -570,6 +594,8 @@ function assemble (facts) {
       operating_income_per_share: perShare(operating, fy),
       ebitda_per_share: null,
       free_cash_flow_per_share: perShare(fcf, fy),
+      depreciation_amortization_per_share: perShare(da, fy),
+      share_based_comp_per_share: perShare(sbc, fy),
       dividends_per_share: null,
       book_value_per_share: tangible,
     }

@@ -91,6 +91,45 @@ function shares (profit, eps) {
   return Number.isFinite(count) && count > 0 ? count : null
 }
 
+// Cash-flow supplement lines from East Money statement tables (现金流量表补充资料).
+// The main-indicator feed does not carry these; they stay null unless a supplement
+// is passed in. Missing components are omitted, never invented.
+export const ASHRE_DA_FIELDS = Object.freeze([
+  'ZCJZZJ', 'WXZCTX', 'CQDTFYTX', 'DEPRE_AND_AMORT', 'FIXED_ASSET_DEPR',
+])
+export const ASHRE_SBC_FIELDS = Object.freeze(['GQFZF', 'SHARE_BASED_PAYMENT', 'YFGZ_GQF'])
+export const HK_DA_FIELDS = Object.freeze([
+  'DEPRE_AND_AMORT', 'DEPRECIATION', 'AMORTIZATION', 'FIXED_ASSET_DEPR', 'ZCJZZJ',
+])
+export const HK_SBC_FIELDS = Object.freeze(['SHARE_BASED_PAYMENT', 'GQFZF', 'SHAREBASED_COMP'])
+
+function sumFields (row, fields) {
+  let total = 0
+  let found = false
+  for (const key of fields) {
+    const value = num(row?.[key])
+    if (value == null) continue
+    total += value
+    found = true
+  }
+  return found ? total : null
+}
+
+function supplementByYear (rows) {
+  const byYear = new Map()
+  for (const row of rows || []) {
+    const year = reportYear(row)
+    if (year) byYear.set(year, row)
+  }
+  return byYear
+}
+
+function perShareFromSupplement (row, supplement, fields, shareCount) {
+  const total = sumFields(supplement, fields)
+  if (total == null || !(shareCount > 0)) return null
+  return round4(total / shareCount)
+}
+
 function dateLabel (row) {
   return String(row.REPORT_DATE || '').slice(0, 7)
 }
@@ -103,9 +142,10 @@ function annualRows (rows) {
  * @param {object[]} recent mixed reports, newest anywhere in the list
  * @param {object[]} annualReports annual indicator rows
  */
-export function fromAshareReports (recent, annualReports) {
+export function fromAshareReports (recent, annualReports, supplements = []) {
   const annual = annualRows(annualReports)
   const mixed = newest([...(recent || []), ...(annualReports || [])])
+  const supplement = supplementByYear(supplements)
   const epsOf = (row) => num(row?.EPSKCJB ?? row?.EPSXS ?? row?.EPSJB)
   const dilutedOf = (row) => num(row?.EPSXS ?? row?.EPSJB)
   // Banks often publish a firm free-cash-flow figure that rounds to nothing
@@ -128,16 +168,22 @@ export function fromAshareReports (recent, annualReports) {
   const ttmDiluted = trailingTwelve(mixed, dilutedOf)
   const ttmFcf = trailingTwelve(mixed, fcfOf) ?? fcfOf(annual.at(-1))
   const latestBook = num(mixed[0]?.BPS)
-  const table = annual.map((row) => ({
-    date: dateLabel(row),
-    eps_without_nri: round4(epsOf(row)),
-    revenue_per_share: round4(num(row.PER_TOI)),
-    operating_income_per_share: round4(num(row.PER_EBIT)),
-    ebitda_per_share: null,
-    free_cash_flow_per_share: round4(fcfOf(row)),
-    dividends_per_share: null,
-    book_value_per_share: round4(num(row.BPS)),
-  }))
+  const table = annual.map((row) => {
+    const count = shares(row.PARENTNETPROFIT, row.EPSJB || row.EPSXS)
+    const extra = supplement.get(reportYear(row))
+    return {
+      date: dateLabel(row),
+      eps_without_nri: round4(epsOf(row)),
+      revenue_per_share: round4(num(row.PER_TOI)),
+      operating_income_per_share: round4(num(row.PER_EBIT)),
+      ebitda_per_share: null,
+      free_cash_flow_per_share: round4(fcfOf(row)),
+      depreciation_amortization_per_share: perShareFromSupplement(row, extra, ASHRE_DA_FIELDS, count),
+      share_based_comp_per_share: perShareFromSupplement(row, extra, ASHRE_SBC_FIELDS, count),
+      dividends_per_share: null,
+      book_value_per_share: round4(num(row.BPS)),
+    }
+  })
   const epsPoints = series(annual, epsOf)
   const cashPoints = series(annual, fcfOf)
   const bookPoints = series(annual, (row) => num(row.BPS))
@@ -175,9 +221,10 @@ const isHkFinancial = (row) => {
 }
 
 /** Hong Kong main-indicator rows. EPS_TTM is already trailing; cash flow is reconstructed per year. */
-export function fromHkReports (rows) {
+export function fromHkReports (rows, supplements = []) {
   const list = newest(rows || [])
   const annual = annualRows(list)
+  const supplement = supplementByYear(supplements)
   const latest = list[0]
   const trailingEps = num(latest?.EPS_TTM)
   const earningsRow = trailingEps == null ? annual.at(-1) : latest
@@ -196,19 +243,25 @@ export function fromHkReports (rows) {
     return num(row.PER_NETCASH_OPERATE)
   }
   const usedFlow = !financial && annual.some((row) => shares(row.HOLDER_PROFIT, row.BASIC_EPS) && num(row.NETCASH_OPERATE) != null)
-  const table = annual.map((row) => ({
-    date: dateLabel(row),
-    eps_without_nri: round4(epsOf(row)),
-    revenue_per_share: round4(num(row.PER_OI)),
-    operating_income_per_share: round4(shares(row.HOLDER_PROFIT, row.BASIC_EPS) && num(row.OPERATE_PROFIT) != null
-      ? num(row.OPERATE_PROFIT) / shares(row.HOLDER_PROFIT, row.BASIC_EPS)
-      : null),
-    ebitda_per_share: null,
-    free_cash_flow_per_share: round4(fcfOf(row)),
-    // DPS_HKD on this feed is a current figure repeated on every row, not a history.
-    dividends_per_share: null,
-    book_value_per_share: round4(num(row.BPS)),
-  }))
+  const table = annual.map((row) => {
+    const count = shares(row.HOLDER_PROFIT, row.BASIC_EPS)
+    const extra = supplement.get(reportYear(row))
+    return {
+      date: dateLabel(row),
+      eps_without_nri: round4(epsOf(row)),
+      revenue_per_share: round4(num(row.PER_OI)),
+      operating_income_per_share: round4(count && num(row.OPERATE_PROFIT) != null
+        ? num(row.OPERATE_PROFIT) / count
+        : null),
+      ebitda_per_share: null,
+      free_cash_flow_per_share: round4(fcfOf(row)),
+      depreciation_amortization_per_share: perShareFromSupplement(row, extra, HK_DA_FIELDS, count),
+      share_based_comp_per_share: perShareFromSupplement(row, extra, HK_SBC_FIELDS, count),
+      // DPS_HKD on this feed is a current figure repeated on every row, not a history.
+      dividends_per_share: null,
+      book_value_per_share: round4(num(row.BPS)),
+    }
+  })
   const parsed = pack({
     ttmEps: trailingEps ?? epsOf(earningsRow),
     ttmDiluted: trailingEps,
@@ -284,7 +337,15 @@ function pack (input) {
 }
 
 const SCALE_FIELDS = ['ttm_eps', 'ttm_eps_nri', 'free_cash_flow_per_share', 'tangible_book']
-const SCALE_ROWS = ['eps_without_nri', 'revenue_per_share', 'operating_income_per_share', 'free_cash_flow_per_share', 'book_value_per_share']
+const SCALE_ROWS = [
+  'eps_without_nri',
+  'revenue_per_share',
+  'operating_income_per_share',
+  'free_cash_flow_per_share',
+  'depreciation_amortization_per_share',
+  'share_based_comp_per_share',
+  'book_value_per_share',
+]
 
 /**
  * Hong Kong indicator rows are in yuan. The quote is in HKD. Growth rates are ratios.

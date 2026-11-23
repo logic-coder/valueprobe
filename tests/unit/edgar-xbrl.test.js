@@ -709,3 +709,31 @@ describe('known split factors', () => {
     expect(knownSplitFactor(1.4)).toBeNull()
   })
 })
+
+describe('EDGAR depreciation and share-based compensation lines', () => {
+  it('writes depreciation and SBC per share from companyfacts and does not invent a missing line', () => {
+    const table = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2024, 1), year(2025, 1.1)]],
+      NetCashProvidedByUsedInOperatingActivities: ['USD', [year(2024, 20), year(2025, 22)]],
+      PaymentsToAcquirePropertyPlantAndEquipment: ['USD', [year(2024, 4), year(2025, 5)]],
+      DepreciationDepletionAndAmortization: ['USD', [year(2024, 8), year(2025, 10)]],
+      ShareBasedCompensation: ['USD', [year(2024, 2), year(2025, 2.5)]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [year(2024, 4), year(2025, 5)]],
+      StockholdersEquity: ['USD', [year(2024, 40), year(2025, 50)]],
+    }))
+    const last = table.annual.at(-1)
+    expect(last.depreciation_amortization_per_share).toBeCloseTo(2, 4)
+    expect(last.share_based_comp_per_share).toBeCloseTo(0.5, 4)
+  })
+
+  it('leaves both lines empty when the concepts are absent rather than inferring them from earnings', () => {
+    const table = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2024, 1), year(2025, 1.1)]],
+      StockholdersEquity: ['USD', [year(2024, 40), year(2025, 50)]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [year(2024, 4), year(2025, 5)]],
+    }))
+    expect(table.annual[0].depreciation_amortization_per_share).toBeNull()
+    expect(table.annual[0].share_based_comp_per_share).toBeNull()
+  })
+})
+
