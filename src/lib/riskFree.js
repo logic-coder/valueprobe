@@ -3,12 +3,9 @@
 // the fallback; the 10% floor still applies. Only a missing or non-finite
 // yield falls back. Official policy keys the rate to the enterprise reporting
 // currency; quote-currency cash flows stay in the listing currency.
-import { LISTING_GROUPS } from '../data/listingGroups'
-
 const CODE_BY_SYMBOL = { '¥': 'CNY', '￥': 'CNY', '$': 'USD', 'HK$': 'HKD', '€': 'EUR', '£': 'GBP' }
 const A_SHARE_MARKETS = new Set(['SHSE', 'SZSE'])
 const US_MARKETS = new Set(['NYSE', 'NASDAQ', 'AMEX', 'NYSEARCA', 'BATS'])
-const H_SHARE_OF = new Map(LISTING_GROUPS.map((group) => [group.h, group.a]))
 const codeOf = (currency) => CODE_BY_SYMBOL[currency] || (/^[A-Z]{3}$/.test(currency || '') ? currency : null)
 
 export const EQUITY_PREMIUM = 6
@@ -30,18 +27,13 @@ export function cashflowCurrency (stock) {
   return codeOf(stock?.currency) || null
 }
 
-function listingSymbol (stock) {
-  if (!stock?.exchange_ || !stock.symbol) return null
-  return stock.exchange_ + ':' + stock.symbol
-}
-
 /**
  * Enterprise reporting currency used for the official required return.
- * An explicit ISO `reporting_currency` wins. The East Money `report_currency`
- * flag on Hong Kong snapshots is not used: that feed labels yuan figures as HKD.
- * A-share markets default to CNY, US markets to USD, and an H-share with a
- * curated A-share twin uses CNY. Other Hong Kong names fall back to the quote
- * currency until a dated source fills the field.
+ * The same market-wide rule applies to every name: an explicit ISO
+ * `reporting_currency` on the snapshot wins; A-share markets default to CNY
+ * and US markets to USD; otherwise the quote currency is used. The East Money
+ * Hong Kong `report_currency` flag is ignored, because that feed labels yuan
+ * figures as HKD. There is no per-ticker or A/H-pair override.
  */
 export function reportingCurrency (stock) {
   const explicit = codeOf(stock?.reporting_currency)
@@ -49,8 +41,6 @@ export function reportingCurrency (stock) {
   const market = stock?.exchange_
   if (A_SHARE_MARKETS.has(market)) return 'CNY'
   if (US_MARKETS.has(market)) return 'USD'
-  const symbol = listingSymbol(stock)
-  if (symbol && H_SHARE_OF.has(symbol)) return 'CNY'
   return cashflowCurrency(stock)
 }
 
@@ -59,8 +49,6 @@ export function reportingCurrencySource (stock) {
   if (codeOf(stock?.reporting_currency)) return 'snapshot'
   const market = stock?.exchange_
   if (A_SHARE_MARKETS.has(market) || US_MARKETS.has(market)) return 'market'
-  const symbol = listingSymbol(stock)
-  if (symbol && H_SHARE_OF.has(symbol)) return 'dual-listing'
   return 'quote-fallback'
 }
 
