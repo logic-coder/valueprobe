@@ -39,7 +39,11 @@ const symbolOf = (stock) => (stock.exchange_ && stock.symbol ? stock.exchange_ +
 export function classify (stock, annual = stock?.financials?.annual) {
   if (!stock || typeof stock !== 'object') return { financial: false, basis: 'none' }
   const evidence = industryEvidence(symbolOf(stock))
-  if (evidence) return { financial: evidence.financial, basis: 'industry', industry: evidence.industry }
+  if (evidence) {
+    const row = { financial: evidence.financial, basis: 'industry', industry: evidence.industry }
+    if (evidence.life) row.life = true
+    return row
+  }
   if (MAINLAND.has(stock.exchange_) && stock.cashflow_basis === 'ocf') return { financial: true, basis: 'ocf' }
   if (FINANCIAL_NAME.test(String(stock.company || ''))) return { financial: true, basis: 'name' }
   if (filesLikeABank(annual)) return { financial: true, basis: 'columns' }

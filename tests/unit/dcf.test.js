@@ -217,8 +217,15 @@ describe('buildDefaults', () => {
     expect(dcfForm.freecashflowGrowthRate).toBe(15)
   })
 
-  it('leaves growth empty when history is missing', () => {
+  it('seeds a 0% start when earnings exist but history is missing', () => {
     const { dcfForm } = buildDefaults(4, { ttm_eps: 1, price: '1' }, 1)
+    expect(dcfForm.growthRate).toBe(0)
+    expect(dcfForm.terminalGrowthRate).toBe(4)
+    expect(dcfForm.freecashflowGrowthRate).toBeNull()
+  })
+
+  it('leaves growth empty when both earnings and history are missing', () => {
+    const { dcfForm } = buildDefaults(4, { price: '1' }, 1)
     expect(dcfForm.growthRate).toBeNull()
     expect(dcfForm.freecashflowGrowthRate).toBeNull()
   })

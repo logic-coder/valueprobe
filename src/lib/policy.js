@@ -5,7 +5,7 @@
 //
 // Editing POLICY_V1 or the policy functions changes every published number. Bump POLICY_VERSION and
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
-import { adoptGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS } from './assumptions'
+import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, SHORT_HISTORY_GROWTH_CAP } from './assumptions'
 import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE } from './riskFree'
 import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
@@ -30,7 +30,8 @@ export const POLICY_V1 = deepFreeze({
     cashCrossCheck: 'three-year-median',
     earningsBase: 'normalized-eps-and-cash-midpoint',
     publicationGate: 'cash-unreconciled-veto',
-    officialGrowth: 'recomputed-window',
+    officialGrowth: 'dual-window-min-zeroed-terminal',
+    insuranceEvidence: 'underwriting-insurers',
   },
   trialOnlyIndustries: ['reit', 'refining'],
   // Repeatable earning power: five-year normalised EPS, and for non-financial
@@ -46,10 +47,13 @@ export const POLICY_V1 = deepFreeze({
   growth: {
     windowYears: 10,
     cap: MAX_UNDERWRITTEN_GROWTH,
+    shortCap: SHORT_HISTORY_GROWTH_CAP,
     cleanYears: MIN_CLEAN_YEARS,
-    // A negative historical CAGR faded linearly to +4% is a parameter choice,
-    // not an estimate. It is published, but always carries a warning.
-    negative: 'warn',
+    // A negative historical window is published at a 0% start and a 0% terminal
+    // input, and carries NEGATIVE_HISTORY_ZEROED. Missing windows with a
+    // positive repeatable base start at 0% and still fade to the default terminal.
+    negative: 'zero-start-and-terminal',
+    missingWindow: 'zero-start',
   },
   discount: {
     rule: 'local-10y-ceil+6',
@@ -84,7 +88,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c'
+export const POLICY_V1_HASH = '1b75d8b85e09932499a7b7faacc2683e0f569657136b8049d28626f0d1adbaeb'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -120,7 +124,7 @@ export function quoteDateStatus (price, priceDate, referenceDate = new Date().to
 /** Same EPS preference as buildDefaults, so a seeded calculator equals the artifact. */
 export const policyEps = (stock) => preferredEps(stock)
 
-/** Reported 10y earnings growth with the underwritten cap; null when missing. */
+/** Single-window cap. Official published growth is officialGrowth(). */
 export function policyGrowth (value) {
   return adoptGrowth(value)
 }
@@ -159,6 +163,10 @@ const emptyInputs = () => ({
   eps: null,
   epsLatest: null,
   growth: null,
+  growthWindow: null,
+  growthCap: null,
+  growth10: null,
+  growth5: null,
   discountRate: null,
   terminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
   years: POLICY_V1.horizon.years,
@@ -247,14 +255,6 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   }
   if (price === null) warnings.push(WARNING.PRICE_MISSING)
 
-  // ---- growth -------------------------------------------------------------
-  const growthInfo = policyGrowth(stock.earning_growth_10y)
-  const growth = growthInfo.adopted
-  inputs.growth = growth
-  if (growth === null) reasons.push(REASON.NO_GROWTH)
-  else if (growth < 0 && POLICY_V1.growth.negative === 'warn') warnings.push(WARNING.NEGATIVE_HISTORY_GROWTH)
-  if (growthInfo.reason === 'capped') warnings.push(WARNING.CAPPED_GROWTH)
-
   // ---- earnings base ------------------------------------------------------
   const latestEps = num(policyEps(stock))
   const eps = num(stock.earnings_base) ?? latestEps
@@ -265,6 +265,24 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)
 
+  // ---- growth -------------------------------------------------------------
+  // A cash-only base without a reported EPS (Visa) is not enough to assume 0%.
+  const official = officialGrowth({
+    growth10: stock.earning_growth_10y,
+    growth5: stock.earning_growth_5y,
+    hasPositiveBase: eps > 0 && latestEps != null,
+  })
+  const growth = official.adopted
+  const terminalGrowthRate = official.zeroTerminal ? 0 : POLICY_V1.horizon.terminalGrowthRate
+  inputs.growth = growth
+  inputs.growthWindow = official.window
+  inputs.growthCap = official.cap
+  inputs.growth10 = official.historical10
+  inputs.growth5 = official.historical5
+  inputs.terminalGrowthRate = terminalGrowthRate
+  if (growth === null) reasons.push(REASON.NO_GROWTH)
+  warnings.push(...official.warnings)
+
   // ---- book value (residual-income model only) ----------------------------
   const tangibleBook = num(stock.tangible_book)
   const model = policyModel(stock)
@@ -272,6 +290,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.classification = stock.classification_basis || 'none'
   inputs.industry = stock.industry || null
   inputs.tangibleBook = tangibleBook
+  if (stock.life_insurer) warnings.push(WARNING.LIFE_BOOK_QUALITY)
   if (model === POLICY_V1.model.financialInstitution && !(tangibleBook > 0)) reasons.push(REASON.NO_BOOK)
   if (POLICY_V1.trialOnlyIndustries.includes(inputs.industry)) {
     reasons.push(REASON.INDUSTRY_MODEL_PENDING)
@@ -288,10 +307,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   const horizon = POLICY_V1.horizon
   const valueFor = (which) => {
     if (which === POLICY_V1.model.financialInstitution) {
-      const result = residualIncomeValue(tangibleBook, eps, discountRate, growth, horizon.terminalGrowthRate, horizon.years)
+      const result = residualIncomeValue(tangibleBook, eps, discountRate, growth, terminalGrowthRate, horizon.years)
       return { value: result && Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null, terminalShare: null, effectiveTerminalGrowth: null }
     }
-    const result = presentValue(tangibleBook, horizon.years, discountRate, growth, eps, horizon.terminalGrowthRate, horizon.yearsOfTerminalGrowth, false)
+    const result = presentValue(tangibleBook, horizon.years, discountRate, growth, eps, terminalGrowthRate, horizon.yearsOfTerminalGrowth, false)
     const ownerValue = Number.isFinite(result.fairValue) && result.fairValue > 0 ? result.fairValue : null
     return {
       value: ownerValue,
@@ -305,7 +324,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   let value = chosen.value
   // Near or above the discount rate the capitalized growth is cut, so the value
   // sits on the shared capped caliber rather than switching horizons.
-  if (value !== null && chosen.effectiveTerminalGrowth != null && horizon.terminalGrowthRate - chosen.effectiveTerminalGrowth > 0.005) {
+  if (value !== null && chosen.effectiveTerminalGrowth != null && terminalGrowthRate - chosen.effectiveTerminalGrowth > 0.005) {
     warnings.push(WARNING.TERMINAL_CAPPED)
   }
   let terminalShare = chosen.terminalShare
@@ -315,7 +334,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
       const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
       const cashValue = cashBase === null
         ? null
-        : presentValue(tangibleBook, horizon.years, discountRate, growth, cashBase, horizon.terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
+        : presentValue(tangibleBook, horizon.years, discountRate, growth, cashBase, terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
       if (cashValue !== null && Number.isFinite(cashValue) && cashValue > 0) {
         const gap = cashValue / value - 1
         cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100) }
@@ -348,7 +367,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     base: eps,
     discountRate,
     growthRate: growth,
-    terminalGrowthRate: horizon.terminalGrowthRate,
+    terminalGrowthRate,
     years: horizon.years,
     yearsOfTerminalGrowth: horizon.yearsOfTerminalGrowth,
     addToFairValue: false,

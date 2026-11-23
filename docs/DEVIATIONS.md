@@ -559,3 +559,16 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 测试：基数中点与拒绝门禁、`NORMALIZED_EPS`、汇丰式低谷前移、罗珀式尖峰、Visa 不编造 EPS、政策哈希、`quote` 不保存无日期价格；e2e 断言改为工行 11.66 与口径 v3。
 - 不改：`calGr2fv`、折现规则、终值增速、5% 增速楼板、12 倍零增长参考行（仍是隐含 8.33% 的对照，不与官方折现率挂钩）。
 - 回滚：把 `POLICY_VERSION` 指回 v2 并恢复对应哈希与 `pages-smoke` 路径，或 revert 本发布提交；不要用研究分支的 v3 字节覆盖。
+
+### D57 官方增速双窗取 min、负历史终值 0、承保保险补行（main，未升版本号）
+
+2026-11-23。在尚未推送的官方 v3 上修订增速与保险分类，折现规则不改。政策哈希由 `020fbf8f…` 改为 `1b75d8b8…`。`officialGrowth()` 由 `policyValue()` 与 `buildDefaults()` 共用，试算默认值等于发布值。旧码 `NEGATIVE_HISTORY_GROWTH` 保留 v2 含义，新发布改用 `NEGATIVE_HISTORY_ZEROED`。
+
+- 行为：有十年窗时先按 15% 封顶并抬零，五年只作确认上限（同样先按 15% 封顶抬零再取 min），例如十年 15、五年 14 取 14 而不是 10。只有五年窗时上限 10%，标 `SHORT_HISTORY`。无窗但有报告盈利且基数为正：起点 0%，终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。十年或五年为负（含十年为负、五年为正）时起点和终值都传入 0%，五年正增速只写入对照。重算失败不再回退快照缓存。维萨因缺未加维度的摊薄每股收益，仍以 `NO_GROWTH` 拒绝，不把现金回退基数当成 0% 起点的许可。
+- 保险：只给承保公司补行业证据行（PGR、TRV、MET、AFL、HIG、AIG、ALL、CINF、ACGL），每行引用最新 10-K / SIC。不把达信、怡安、韦莱塔卫等经纪并进剩余收益。洛斯 10-K 写明是控股公司（CNA、Boardwalk、Loews Hotels），尽管 SIC 为 6331，仍留在盈利折现模型。寿险 MET、AFL 及表内已有的 PRU 加 `LIFE_BOOK_QUALITY`。Allstate 改走剩余收益后，不再因 `CASH_UNRECONCILED` 拒绝。
+- 不改：`calGr2fv`、折现规则、中点基数定义、终值淡出公式、12 倍零增长对照行、现金 50% 否决、v1/v2 工件。对用户文案仍是「ValueProbe 公允价」加免责，不放松禁用词。
+- 位置：`src/lib/{assumptions,policy,dcf,reasons,stockRecord,financialInstitution}.js`、`src/config/industry.js`、`src/components/DcfCalculator.vue`、`src/i18n/*`、`public/data/intrinsic/v3.json`、`docs/RELEASE_V3.md`。
+- 测试：双窗五年按 15% 而不是 10% 封顶、负十年×正五年取 0 且终值为 0、`buildDefaults` 与发布值一致、经纪与洛斯不改路由、寿险警示；`npm run verify`。
+- 覆盖与方向：相对上一版本地 v3，有值 403→461，拒绝 97→39。李宁官方增速 15%→10.92%。佳品零件不再外推 −22.37%，改为 0%/0%，发布值 24.68→47.36（上升）。小米、特斯拉、京东由拒绝改为发布；维萨、美团仍拒绝；汇丰、罗珀仍有值。前进保险改走剩余收益，357.60→70.90，须单列。新出现的现金否决来自此前因 `NO_GROWTH` 未走到现金门禁的名字；Allstate 从现金否决名单中移除。负历史已有发布值的方向并非一律上升：取消「从负增速淡出到 4%」使部分名字下降，取消崩溃式外推使另一部分上升，差异表按方向列出。
+- 回滚：恢复上一版政策哈希、`officialGrowth` 规则与 v3 工件；不要用研究分支的长债原值或默认终值 0% 覆盖。
+

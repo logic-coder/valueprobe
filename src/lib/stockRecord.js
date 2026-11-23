@@ -69,13 +69,13 @@ export function applyCleanGrowth (stock, annual) {
       // A post-split suffix may be 4–6 years: too short to label as ten years,
       // but clean.rate is the suffix CAGR official growth should use.
       stock[growth10] = recomputed10 ?? clean.rate
-    } else if (recomputed10 != null) {
-      // Recompute when the annuals can support the window (HSBC trough walk).
-      // If they cannot, keep the stored snapshot rate as a cache.
+    } else {
+      // Use the recomputed window, or leave it empty. Do not fall back to a
+      // stale snapshot cache when the annuals cannot support the window.
       stock[growth10] = recomputed10
     }
-    if (recomputed5 != null) stock[growth5] = recomputed5
-    if (recomputed1 != null) stock[growth1] = recomputed1
+    stock[growth5] = recomputed5
+    stock[growth1] = recomputed1
   }
   if (Object.keys(window).length) stock.growth_window = window
   return stock
@@ -102,6 +102,7 @@ export function toStock (raw) {
   if (classification.financial) stock.financial_institution = true
   stock.classification_basis = classification.basis
   if (classification.industry) stock.industry = classification.industry
+  if (classification.life) stock.life_insurer = true
   const gaps = dataGaps(raw.financials?.annual)
   if (gaps.length) stock.data_gaps = gaps
   stock._as_of = raw.as_of || stock._as_of || null

@@ -1,6 +1,6 @@
 // `calGr2fv` is the frozen two-stage finite annuity. `presentValue`, what the page
 // shows, adds a continuing value after the second stage.
-import { adoptGrowth } from './assumptions'
+import { adoptGrowth, officialGrowth } from './assumptions'
 import { defaultDiscountRate } from './riskFree'
 
 export const round2 = (value) => Math.round(100 * value) / 100
@@ -372,17 +372,22 @@ export function normalizedEarningsBase (stock, { midpointCash = true } = {}) {
 export function buildDefaults (indicator, stock, freeCashFlow) {
   stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)
-  const eps = Number.isFinite(stock.earnings_base) ? stock.earnings_base : preferredEps(stock)
-  const earnings = adoptGrowth(stock.earning_growth_10y)
+  const latestEps = preferredEps(stock)
+  const eps = Number.isFinite(stock.earnings_base) ? stock.earnings_base : latestEps
+  const official = officialGrowth({
+    growth10: stock.earning_growth_10y,
+    growth5: stock.earning_growth_5y,
+    hasPositiveBase: eps > 0 && latestEps != null,
+  })
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {
     dcfForm: {
       eps,
       freecashflow: freeCashFlow ?? null,
       years: DCF_DEFAULTS.years,
-      growthRate: earnings.adopted,
+      growthRate: official.adopted,
       freecashflowGrowthRate: cash.adopted,
-      terminalGrowthRate: DCF_DEFAULTS.terminalGrowthRate,
+      terminalGrowthRate: official.zeroTerminal ? 0 : DCF_DEFAULTS.terminalGrowthRate,
       yearsOfTerminalGrowth: DCF_DEFAULTS.yearsOfTerminalGrowth,
       discountRate,
     },

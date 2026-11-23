@@ -58,12 +58,12 @@ describe('US listings keep a published value', () => {
 })
 
 
-describe('NYSE:PGR - a missing earnings year is not a zero', () => {
-  it('publishes Progressive instead of refusing a cash gap created by a coerced zero', () => {
+describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
+  it('publishes Progressive on the residual model and does not invent a cash veto', () => {
     const value = valueOf('NYSE:PGR')
     expect(value.status).toBe('ok')
+    expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
-    expect(value.warnings).toContain(WARNING.CASH_DIVERGENCE)
     expect(value.value).toBeGreaterThan(0)
     expect(value.value).toBe(published('NYSE:PGR').value)
     expect(published('NYSE:PGR').status).toBe('ok')
@@ -103,17 +103,19 @@ describe('HKSE listings value in HKD with the disclosed USD proxy', () => {
   }
 })
 
-describe('a negative growth history is published with a warning, never refused', () => {
-  it('keeps a valued company whose adopted growth is negative', () => {
+describe('a negative growth history is published with a zeroed path, never refused', () => {
+  it('keeps a valued company whose official growth is zeroed rather than extrapolated', () => {
     const candidates = Object.keys(artifact.entries).filter((symbol) =>
-      artifact.entries[symbol].status === 'ok' && artifact.entries[symbol].warnings.includes(WARNING.NEGATIVE_HISTORY_GROWTH))
+      artifact.entries[symbol].status === 'ok' && artifact.entries[symbol].warnings.includes(WARNING.NEGATIVE_HISTORY_ZEROED))
     expect(candidates.length).toBeGreaterThan(0)
     const symbol = candidates[0]
     const value = valueOf(symbol)
     expect(value.status).toBe('ok')
     expect(value.value).toBeGreaterThan(0)
-    expect(value.inputs.growth).toBeLessThan(0)
-    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
+    expect(value.inputs.growth).toBe(0)
+    expect(value.inputs.terminalGrowthRate).toBe(0)
+    expect(value.warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(value.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_GROWTH)
     expect(value.value).toBe(published(symbol).value)
   })
 })

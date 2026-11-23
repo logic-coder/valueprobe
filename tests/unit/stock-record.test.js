@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { toStock } from '../../src/lib/stockRecord'
+import { officialGrowth } from '../../src/lib/assumptions'
 import { policyGrowth, policyValue } from '../../src/lib/policy'
 import { REASON } from '../../src/lib/reasons'
 
@@ -38,5 +39,12 @@ describe('official growth is recomputed from annual series', () => {
     expect(lining.earning_growth_10y).not.toBe(7.6)
     expect(policyGrowth(beer.earning_growth_10y).adopted).toBe(15)
     expect(policyGrowth(lining.earning_growth_10y).adopted).toBe(15)
+    const official = officialGrowth({ growth10: lining.earning_growth_10y, growth5: lining.earning_growth_5y, hasPositiveBase: true })
+    expect(official.adopted).toBe(lining.earning_growth_5y)
+    expect(official.adopted).toBeLessThan(15)
+    expect(official.adopted).toBeCloseTo(10.92, 2)
+    const value = policyValue(lining, { rate: 5.07 })
+    expect(value.inputs.growth).toBe(official.adopted)
+    expect(value.inputs.growth).not.toBe(15)
   })
 })

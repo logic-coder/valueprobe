@@ -1,9 +1,13 @@
 // Default growth assumptions for the calculator, the watchlist and compare.
-// A missing or refused history stays empty. A real history is used as reported,
-// including negative rates, but the explicit window never underwrites more than
-// MAX_UNDERWRITTEN_GROWTH. Nothing here is written back into the annuity formula.
+// Official starting growth is officialGrowth(), shared with the published value.
+// adoptGrowth() remains the single-window cap used for cash-flow trial inputs
+// and for displaying a raw window; it still keeps a negative rate as reported.
+// Nothing here is written back into the annuity formula.
+import { WARNING } from './reasons'
 
 export const MAX_UNDERWRITTEN_GROWTH = 15
+// Tight cap used only when the official window is the five-year history.
+export const SHORT_HISTORY_GROWTH_CAP = 10
 
 // A year-to-year drop below this share of the prior positive value is a split
 // candidate (a split cuts per-share figures to 1/2, 1/4, 1/5, 1/10 or 1/20).
@@ -29,6 +33,107 @@ export function adoptGrowth (value) {
     return { historical: parsed, adopted: MAX_UNDERWRITTEN_GROWTH, reason: 'capped' }
   }
   return { historical: parsed, adopted: parsed, reason: 'historical' }
+}
+
+const parseRate = (value) => {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+const clipWindow = (raw, cap) => {
+  const capped = Math.min(raw, cap)
+  return { raw, adopted: Math.max(capped, 0), hitCap: raw > cap, negative: raw < 0 }
+}
+
+/**
+ * Official starting growth and whether the terminal rate should be zeroed.
+ * Shared by policyValue() and buildDefaults(), so the calculator seed equals
+ * the published value. A ten-year window is preferred but is not a threshold:
+ * a five-year window can still be used, and a positive repeatable base with
+ * no window starts at 0% (terminal stays the policy default). Negative
+ * history is floored to 0% and also zeros the terminal input; the five-year
+ * rate is recorded for comparison and never lifts a negative ten-year window.
+ *
+ * @param {{ growth10?: unknown, growth5?: unknown, hasPositiveBase?: boolean }} input
+ * @returns {{
+ *   historical10: number|null,
+ *   historical5: number|null,
+ *   adopted: number|null,
+ *   window: '10y'|'5y'|'none'|null,
+ *   cap: number|null,
+ *   reason: 'historical'|'capped'|'zeroed'|'no-window'|'missing',
+ *   zeroTerminal: boolean,
+ *   warnings: string[],
+ * }}
+ */
+export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } = {}) {
+  const ten = parseRate(growth10)
+  const five = parseRate(growth5)
+  const warnings = []
+  const base = {
+    historical10: ten,
+    historical5: five,
+    adopted: null,
+    window: null,
+    cap: null,
+    reason: 'missing',
+    zeroTerminal: false,
+    warnings,
+  }
+  const finish = (row) => ({ ...base, ...row, warnings })
+
+  if (ten != null) {
+    const adoptedTen = clipWindow(ten, MAX_UNDERWRITTEN_GROWTH)
+    const adoptedFive = five != null ? clipWindow(five, MAX_UNDERWRITTEN_GROWTH) : null
+    const adopted = adoptedFive ? Math.min(adoptedTen.adopted, adoptedFive.adopted) : adoptedTen.adopted
+    const negative = adoptedTen.negative || adoptedFive?.negative === true
+    if (negative) {
+      warnings.push(WARNING.NEGATIVE_HISTORY_ZEROED)
+      return finish({
+        adopted: 0,
+        window: '10y',
+        cap: MAX_UNDERWRITTEN_GROWTH,
+        reason: 'zeroed',
+        zeroTerminal: true,
+      })
+    }
+    if (adopted === MAX_UNDERWRITTEN_GROWTH) warnings.push(WARNING.CAPPED_GROWTH)
+    return finish({
+      adopted,
+      window: '10y',
+      cap: MAX_UNDERWRITTEN_GROWTH,
+      reason: adopted === MAX_UNDERWRITTEN_GROWTH ? 'capped' : 'historical',
+    })
+  }
+
+  if (five != null) {
+    const adoptedFive = clipWindow(five, SHORT_HISTORY_GROWTH_CAP)
+    warnings.push(WARNING.SHORT_HISTORY)
+    if (adoptedFive.negative) {
+      warnings.push(WARNING.NEGATIVE_HISTORY_ZEROED)
+      return finish({
+        adopted: 0,
+        window: '5y',
+        cap: SHORT_HISTORY_GROWTH_CAP,
+        reason: 'zeroed',
+        zeroTerminal: true,
+      })
+    }
+    if (adoptedFive.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
+    return finish({
+      adopted: adoptedFive.adopted,
+      window: '5y',
+      cap: SHORT_HISTORY_GROWTH_CAP,
+      reason: adoptedFive.hitCap ? 'capped' : 'historical',
+    })
+  }
+
+  if (hasPositiveBase) {
+    warnings.push(WARNING.SHORT_HISTORY, WARNING.NO_WINDOW_ZERO_START)
+    return finish({ adopted: 0, window: 'none', cap: null, reason: 'no-window' })
+  }
+  return finish({ reason: 'missing' })
 }
 
 /**

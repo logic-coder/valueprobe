@@ -64,11 +64,11 @@ describe('snapshot provider', () => {
     expect(stock.growth_window).toBeUndefined()
   })
 
-  it('keeps the stored rate when the series has no level shift, and leaves bank cash flow alone', async () => {
+  it('does not keep a stored ten-year rate when the annuals cannot support the window, and leaves bank cash flow alone', async () => {
     const annual = [1, 1.1, 1.2, 1.3, 1.4].map((value, index) => ({ date: (2021 + index) + '-12', eps_without_nri: value, free_cash_flow_per_share: [9, 9, 1, 1, 1][index] }))
     get.mockResolvedValue({ data: { price: 9, earning_growth_10y: 3, cashflow_growth_10y: -4.8, cashflow_basis: 'ocf', financials: { annual } } })
     const stock = await snapshot.fetchStock('SHSE:601398')
-    expect(stock.earning_growth_10y).toBe(3)
+    expect(stock.earning_growth_10y).toBeNull()
     expect(stock.cashflow_growth_10y).toBe(-4.8)
     expect(stock.growth_window).toBeUndefined()
   })

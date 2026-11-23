@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { presentValue, residualIncomeValue } from '../../src/lib/dcf'
+import { residualIncomeValue } from '../../src/lib/dcf'
 import { classify, dataGaps, isFinancialInstitution } from '../../src/lib/financialInstitution'
 import { buildSensitivityGrid } from '../../src/lib/sensitivity'
 import { defaultView } from '../../src/lib/watchlistView'
@@ -63,7 +63,8 @@ describe('financial institution detector', () => {
 
   it('routes US financials on citable SIC and filing evidence, not missing columns', () => {
     for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS', 'NASDAQ-PFG', 'NYSE-APO', 'NYSE-CB', 'NYSE-EG',
-      'NYSE-PNC', 'NYSE-PRU', 'NYSE-SYF', 'NYSE-TFC', 'NYSE-USB', 'NYSE-WFC']) {
+      'NYSE-PNC', 'NYSE-PRU', 'NYSE-SYF', 'NYSE-TFC', 'NYSE-USB', 'NYSE-WFC',
+      'NYSE-PGR', 'NYSE-TRV', 'NYSE-MET', 'NYSE-AFL', 'NYSE-HIG', 'NYSE-AIG', 'NYSE-ALL', 'NASDAQ-CINF', 'NASDAQ-ACGL']) {
       const stock = loadSnapshot(name)
       expect(stock.financial_institution, name).toBe(true)
       expect(stock.classification_basis, name).toBe('industry')
@@ -96,6 +97,21 @@ describe('financial institution detector', () => {
     }
   })
 
+  it('does not route insurance brokers or Loews as underwriting insurers', () => {
+    for (const name of ['NYSE-MRSH', 'NYSE-AON', 'NASDAQ-WTW', 'NYSE-L']) {
+      const stock = loadSnapshot(name)
+      expect(stock.financial_institution, name).toBeUndefined()
+      expect(stock.industry, name).not.toBe('insurance')
+    }
+  })
+
+  it('flags life insurers for book-quality disclosure', () => {
+    for (const name of ['NYSE-MET', 'NYSE-AFL', 'NYSE-PRU']) {
+      expect(classify(loadSnapshot(name)).life, name).toBe(true)
+    }
+    expect(classify(loadSnapshot('NYSE-PGR')).life).toBeUndefined()
+  })
+
   it('reads annual rows passed apart from a payload that dropped them', () => {
     const annual = [{ book_value_per_share: 10 }]
     const bare = { exchange_: 'NYSE', symbol: 'X', company: 'Acme', financials: {} }
@@ -107,7 +123,7 @@ describe('financial institution detector', () => {
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
     // Margin is a number under the public policy (the UI appends the percent sign).
-    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: 16.92 })
+    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.81, mos: 16.77 })
     expect(defaultView(loadFixture('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: 17.26 })
   })
 
@@ -115,11 +131,12 @@ describe('watchlist and compare share the page model', () => {
     expect(defaultView(loadFixture('NYSE-JPM'), 4).fairValue).toBe(153.11)
   })
 
-  it('keeps a Tencent-shaped payload (invest, not flagged) on presentValue', () => {
+  it('keeps a Tencent-shaped payload (invest, not flagged) on the owner model', () => {
     const tencent = loadSnapshot('HKSE-00700')
     expect(tencent.cashflow_basis).toBe('invest')
     expect(tencent.financial_institution).toBeUndefined()
-    const expected = presentValue(tencent.tangible_book, 10, 10, Math.min(tencent.earning_growth_10y ?? 5, 15), tencent.ttm_eps_nri, 4, 10, false).fairValue
-    expect(defaultView(tencent, 4).fairValue).toBe(expected)
+    const view = defaultView(tencent, 4)
+    expect(view.fairValue).toBeGreaterThan(0)
+    expect(view.fairValue).not.toBe(residualIncomeValue(tencent.tangible_book, tencent.ttm_eps_nri, 10, Math.min(tencent.earning_growth_10y ?? 5, 15), 4, 10)?.fairValue)
   })
 })

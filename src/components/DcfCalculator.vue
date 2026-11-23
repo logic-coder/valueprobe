@@ -376,7 +376,7 @@ import { useDcfStore } from '../store/dcf'
 import { usePolicyStore } from '../store/policy'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
-import { adoptGrowth } from '../lib/assumptions'
+import { adoptGrowth, officialGrowth } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
 import { REASON } from '../lib/reasons'
 import { marginStress as calculateMarginStress } from '../lib/marginStress'
@@ -437,12 +437,31 @@ const rateNote = computed(() => {
 const growthNote = computed(() => {
   const key = dcfBasedOn.value === 'eps' ? 'eps' : 'fcf'
   if (stock.value?.growth_refused?.[key] === 'short') return t('growth_refused_note')
-  const historicalField = dcfBasedOn.value === 'eps' ? 'earning_growth_10y' : 'cashflow_growth_10y'
-  const info = adoptGrowth(stock.value?.[historicalField])
-  const adopted = dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate
-  if (info.reason === 'missing') return t('growth_missing_note')
   const span = stock.value?.growth_window?.[dcfBasedOn.value === 'eps' ? 'eps' : 'fcf']
   const window = span ? t('growth_window', span) : ''
+  if (dcfBasedOn.value === 'eps') {
+    const latest = Number(stock.value?.ttm_eps_nri ?? stock.value?.ttm_eps)
+    const base = Number.isFinite(stock.value?.earnings_base) ? stock.value.earnings_base : latest
+    const official = officialGrowth({
+      growth10: stock.value?.earning_growth_10y,
+      growth5: stock.value?.earning_growth_5y,
+      hasPositiveBase: base > 0 && Number.isFinite(latest),
+    })
+    const adopted = form.growthRate
+    if (official.reason === 'missing') return t('growth_missing_note')
+    if (official.reason === 'zeroed') {
+      const historical = official.historical10 ?? official.historical5
+      return t('growth_zeroed_note', { historical, window, adopted })
+    }
+    if (official.reason === 'no-window') return t('growth_no_window_note', { adopted })
+    if (official.reason === 'capped') {
+      return t('growth_capped_note', { historical: official.historical10 ?? official.historical5, window, cap: official.cap, adopted })
+    }
+    return t('growth_adopted_note', { historical: official.historical10 ?? official.historical5, window, adopted })
+  }
+  const info = adoptGrowth(stock.value?.cashflow_growth_10y)
+  const adopted = form.freecashflowGrowthRate
+  if (info.reason === 'missing') return t('growth_missing_note')
   if (info.reason === 'capped') return t('growth_capped_note', { historical: info.historical, window, cap: info.adopted, adopted })
   return t('growth_adopted_note', { historical: info.historical, window, adopted })
 })

@@ -16,7 +16,14 @@ export const REASON = Object.freeze({
 
 export const WARNING = Object.freeze({
   CAPPED_GROWTH: 'CAPPED_GROWTH',
+  // v2 meaning, kept for frozen artifacts: a negative rate was still extrapolated.
   NEGATIVE_HISTORY_GROWTH: 'NEGATIVE_HISTORY_GROWTH',
+  // Official v3: a negative window was floored to 0% and the terminal input was zeroed.
+  NEGATIVE_HISTORY_ZEROED: 'NEGATIVE_HISTORY_ZEROED',
+  // Official growth used only the five-year window, or assumed a 0% start with no window.
+  SHORT_HISTORY: 'SHORT_HISTORY',
+  // No 10y or 5y window, but a positive repeatable base: start at 0%, fade to the default terminal.
+  NO_WINDOW_ZERO_START: 'NO_WINDOW_ZERO_START',
   GROWTH_ABOVE_RETENTION: 'GROWTH_ABOVE_RETENTION',
   RATE_FALLBACK: 'RATE_FALLBACK',
   DISCOUNT_CLAMPED: 'DISCOUNT_CLAMPED',
@@ -35,6 +42,8 @@ export const WARNING = Object.freeze({
   TERMINAL_CAPPED: 'TERMINAL_CAPPED',
   // The published base is normalised away from the latest reported EPS.
   NORMALIZED_EPS: 'NORMALIZED_EPS',
+  // Life-insurer GAAP tangible book can be distorted by AOCI and deferred acquisition costs.
+  LIFE_BOOK_QUALITY: 'LIFE_BOOK_QUALITY',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */
