@@ -33,6 +33,7 @@ export const POLICY_V1 = deepFreeze({
     officialGrowth: 'dual-window-min-zeroed-terminal',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-local-10y-ceil-plus-6',
+    baseDisclosure: 'component-list',
   },
   trialOnlyIndustries: ['reit', 'refining'],
   // Repeatable earning power: five-year normalised EPS, and for non-financial
@@ -90,7 +91,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '7bdd4538858b4c71a584cd5e2acaa3d481c6df1b5e997e23e64d7c486ece646d'
+export const POLICY_V1_HASH = '5e8fd34a1babce0b68626643b8859e2301a7ef9b787c6a88c0b07074625cb210'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -121,6 +122,20 @@ export function quoteDateStatus (price, priceDate, referenceDate = new Date().to
   const age = daysBetween(referenceDate, priceDate)
   if (age == null || age < 0) return 'unknown'
   return age > POLICY_V1.price.marginWarningDays ? 'historical' : 'dated'
+}
+
+
+const close4 = (left, right) => left != null && right != null && Math.abs(left - right) < 0.00015
+
+/** Which ingredient official `eps` came from. Disclosure only; does not change the base. */
+function describeBaseKind (eps, latest, normalized, cash, financial) {
+  if (eps == null) return null
+  if (financial) return 'normalized'
+  if (cash > 0 && normalized > 0 && close4(eps, (cash + normalized) / 2)) return 'midpoint'
+  if (cash > 0 && close4(eps, cash) && !(normalized > 0)) return 'cash'
+  if (normalized != null && close4(eps, normalized)) return 'normalized'
+  if (latest != null && close4(eps, latest)) return 'latest'
+  return 'repeatable'
 }
 
 /** Same EPS preference as buildDefaults, so a seeded calculator equals the artifact. */
@@ -165,6 +180,9 @@ const emptyInputs = () => ({
   basis: POLICY_V1.basis,
   eps: null,
   epsLatest: null,
+  epsNormalized: null,
+  cashMedian: null,
+  baseKind: null,
   growth: null,
   growthWindow: null,
   growthCap: null,
@@ -261,9 +279,14 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   // ---- earnings base ------------------------------------------------------
   const latestEps = num(policyEps(stock))
   const eps = num(stock.earnings_base) ?? latestEps
+  const epsNormalized = num(stock.eps_normalized)
+  const cashMedian = num(stock.cash_base)
   inputs.basis = POLICY_V1.basis
   inputs.eps = eps
   inputs.epsLatest = latestEps
+  inputs.epsNormalized = epsNormalized
+  inputs.cashMedian = cashMedian
+  inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashMedian, stock.financial_institution === true)
   if (eps === null) reasons.push(REASON.NO_EPS)
   else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)

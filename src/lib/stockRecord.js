@@ -2,7 +2,7 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth, windowGrowth } from './assumptions'
-import { normalizedEarningsBase, sustainableCashBase } from './dcf'
+import { normalizedEarningsBase, normalizedEpsBase, sustainableCashBase } from './dcf'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -95,6 +95,7 @@ export function toStock (raw) {
   applyCleanGrowth(stock, raw.financials?.annual)
   const classification = classify(stock, raw.financials?.annual)
   // Banks never take the FCF midpoint: free cash flow is not owner earnings there.
+  stock.eps_normalized = normalizedEpsBase(raw)
   stock.earnings_base = normalizedEarningsBase(raw, { midpointCash: classification.financial !== true })
   stock.cash_base = sustainableCashBase(raw)
   delete stock.history

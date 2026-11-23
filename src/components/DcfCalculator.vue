@@ -43,6 +43,16 @@
                 rate: percent(policyEntry.inputs.discountRate),
               }) }}
             </p>
+            <p>
+              {{ t('valuation_base_components', {
+                latest: formatBaseComponent(policyEntry.inputs.epsLatest),
+                normalized: formatBaseComponent(policyEntry.inputs.epsNormalized),
+                cash: formatBaseComponent(policyEntry.inputs.cashMedian),
+                adopted: formatBaseComponent(policyEntry.inputs.eps),
+                kind: policyEntry.inputs.baseKind ? t('valuation_base_kind_' + policyEntry.inputs.baseKind) : '',
+              }) }}
+            </p>
+            <p>{{ t('valuation_band_note', { spread: policyEntry.inputs.bandSpread ?? 2 }) }}</p>
             <p v-if="policyEntry.terminalShare != null">
               {{ t('valuation_later_share', { share: percent(policyEntry.terminalShare * 100) }) }}
             </p>
@@ -434,6 +444,9 @@ const rateNote = computed(() => {
   if (info.source === 'bundled' || info.source === 'snapshot') return 'rate_bundled_note'
   return null
 })
+const formatBaseComponent = (value) => value == null || value === '' || !Number.isFinite(Number(value))
+  ? t('valuation_base_none')
+  : moneyIn(stock.value.currency, value)
 const growthNote = computed(() => {
   const key = dcfBasedOn.value === 'eps' ? 'eps' : 'fcf'
   if (stock.value?.growth_refused?.[key] === 'short') return t('growth_refused_note')

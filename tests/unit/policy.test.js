@@ -303,6 +303,18 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
     expect(entry('NYSE:GPC').value).toBe(47.36)
     expect(entry('NYSE:GPC').warnings).toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
+    expect(entry('NYSE:GPC')).toMatchObject({
+      inputs: expect.objectContaining({
+        epsLatest: expect.any(Number),
+        epsNormalized: expect.any(Number),
+        cashMedian: expect.any(Number),
+        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|repeatable)$/),
+      }),
+    })
+    expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('midpoint')
+    expect(entry('NYSE:GPC').inputs.baseKind).toBe('midpoint')
+    expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
+    expect(entry('SHSE:601398').value).toBe(10.76)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
     expect(entry('HKSE:00002').status).toBe('ok')
     expect(entry('HKSE:00066').status).toBe('ok')
