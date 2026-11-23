@@ -13,13 +13,13 @@
 | 工件 | 生成日 | SHA-256 / 政策哈希 |
 | --- | --- | --- |
 | `public/data/intrinsic/v2.json`（冻结） | 2026-11-22 | `74d3dafa9781521f78c646f59a88826357971bdb951d2adb0901a0dd30565198` |
-| `public/data/intrinsic/v3.json` | 2026-11-23 | 文件 `fd8aec2465b500be882bbe5245b284ae88198432e49a1b06f7472d0a80e1b1b7`；`policyHash` `020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c` |
+| `public/data/intrinsic/v3.json` | 2026-11-23 | 文件 `d2a3e00d7250e1fefe3db4f091adccf7ad699f869fafac3820248245e6dd8db2`；`policyHash` `020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c` |
 
-仍覆盖声明的 500 条。v2 为 407 条有值、93 条无公开值；v3 为 402 条有值、98 条无公开值。利率与报价未刷新：`rates.asOf` 仍为 2026-11-19，CNY 1.5892%、USD/HKD 5.07%。
+仍覆盖声明的 500 条。v2 为 407 条有值、93 条无公开值；v3 为 403 条有值、97 条无公开值。利率与报价未刷新：`rates.asOf` 仍为 2026-11-19，CNY 1.5892%、USD/HKD 5.07%。政策版本仍为 v3，政策哈希未变。
 
-拒绝原因：`NO_GROWTH` 79、`CASH_UNRECONCILED` 16、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。警告：`NORMALIZED_EPS` 202、`QUOTE_DATE_UNKNOWN` 150、`STALE_DATA` 111、`CAPPED_GROWTH` 112、`NEGATIVE_HISTORY_GROWTH` 59、`CASH_DIVERGENCE`（25–49%）42、`GROWTH_ABOVE_RETENTION` 30。O、WELL、PSX 仍仅试算。 A/H 对照中，交行、中行、太保的输入差已降到 aligned 阈值以内，已知不一致从 5 组减为 2 组（比亚迪、平安）。
+拒绝原因：`NO_GROWTH` 79、`CASH_UNRECONCILED` 15、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。警告：`NORMALIZED_EPS` 205、`QUOTE_DATE_UNKNOWN` 150、`STALE_DATA` 111、`CAPPED_GROWTH` 114、`NEGATIVE_HISTORY_GROWTH` 58、`CASH_DIVERGENCE`（25–49%）43、`GROWTH_ABOVE_RETENTION` 33。O、WELL、PSX 仍仅试算。 A/H 对照中，交行、中行、太保的输入差已降到 aligned 阈值以内，已知不一致从 5 组减为 2 组（比亚迪、平安）。
 
-新有值 11 条，主要包括汇丰（低谷年向前移后得到十年增速）、罗珀（不再把单年盈利尖峰当成拆股）以及若干因五年正常化而从最新一年亏损中恢复的名字。新拒绝 16 条，全部是选定新基数后现金仍相差 50% 及以上（`CASH_UNRECONCILED`，含艾伯维）。拆股后的干净后缀若不足 7 年但不少于 4 年，官方增速使用该后缀的复合增长率，而不是把十年标签作废。
+新有值 11 条，主要包括汇丰（低谷年向前移后得到十年增速）、罗珀（不再把单年盈利尖峰当成拆股）以及若干因五年正常化而从最新一年亏损中恢复的名字。新拒绝 15 条，全部是选定新基数后现金仍相差 50% 及以上（`CASH_UNRECONCILED`，含艾伯维）。拆股后的干净后缀若不足 7 年但不少于 4 年，官方增速使用该后缀的复合增长率，而不是把十年标签作废。
 
 从新克隆的仓库根目录离线运行：
 
@@ -53,6 +53,11 @@ npm run verify:data -- --check-lineage
 | NASDAQ:ROP | 拒绝 `NO_GROWTH` | 226.84 | 2022 年尖峰不再被当成拆股，增速 9.2% |
 | NYSE:ABBV | 21.59 | 拒绝 `CASH_UNRECONCILED` | 中点后现金仍偏离 62%，不再发布过小数字 |
 | NASDAQ:BIIB | 19.18 | 94.37 | 正常化与中点给出可辩护基数 |
+| HKSE:00291 | 9.27 | 24.50 | 十年窗口起点只向前移：2016–2025，原始增速约 18.84%，采用上限 15% |
+| HKSE:02331 | 拒绝 `NO_GROWTH` | 33.63 | 同上，不再从 2006 年回退；原始增速约 16.40%，采用上限 15% |
+| NYSE:PGR | 397.33 | 357.60 | 五年中位数跳过缺失的 2022 年；现金差距约 41%，发布并标 `CASH_DIVERGENCE` |
+
+首次落地时，华润啤酒、李宁的十年增速误用了目标年之前的更早起点，前进保险把缺失的每股收益收成 0 后被错误拒绝。实现已改为：低谷或亏损只向前移；`null` 或空字符串不进入五年中位数，显式 0 仍算真实观察值。上表这三只已按修复后的工件更正。政策版本未升，折现率与终值增速未改。
 
 数字以工件为准，不构成投资建议。
 

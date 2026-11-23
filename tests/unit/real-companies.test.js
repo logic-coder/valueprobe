@@ -57,6 +57,18 @@ describe('US listings keep a published value', () => {
   }
 })
 
+
+describe('NYSE:PGR - a missing earnings year is not a zero', () => {
+  it('publishes Progressive instead of refusing a cash gap created by a coerced zero', () => {
+    const value = valueOf('NYSE:PGR')
+    expect(value.status).toBe('ok')
+    expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
+    expect(value.warnings).toContain(WARNING.CASH_DIVERGENCE)
+    expect(value.value).toBeGreaterThan(0)
+    expect(value.value).toBe(published('NYSE:PGR').value)
+    expect(published('NYSE:PGR').status).toBe('ok')
+  })
+})
 describe('refusals name the missing fact instead of inventing one', () => {
   it('NASDAQ:INTC is refused for non-positive EPS and no historical growth', () => {
     const value = valueOf('NASDAQ:INTC')

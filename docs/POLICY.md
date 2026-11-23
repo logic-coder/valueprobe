@@ -167,10 +167,10 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 - `generatedAt` 2026-11-23；`rates.asOf` 2026-11-19。
 - 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。折现率仍是当地十年期向上取整加 6 个百分点（人民币 8%，美元与港币 12%）。
-- 声明、快照与估值条目各 500 条，有值 402 条，拒绝 98 条（相对冻结的 v2：407 有值 / 93 拒绝）。
-- 拒绝原因出现次数，`NO_GROWTH` 79、`CASH_UNRECONCILED` 16、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 202 条，`CASH_DIVERGENCE`（25–49%）42 条。模型为 `owner` 460 条、`residual` 40 条。
-- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条，`NEGATIVE_HISTORY_GROWTH` 59 条。`QUOTE_DATE_UNKNOWN` 仍为 150 条，见 [RELEASE_V3.md](RELEASE_V3.md) 的报价日期遗留说明。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
+- 声明、快照与估值条目各 500 条，有值 403 条，拒绝 97 条（相对冻结的 v2：407 有值 / 93 拒绝）。
+- 拒绝原因出现次数，`NO_GROWTH` 79、`CASH_UNRECONCILED` 15、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 205 条，`CASH_DIVERGENCE`（25–49%）43 条。模型为 `owner` 460 条、`residual` 40 条。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条，`NEGATIVE_HISTORY_GROWTH` 58 条。`QUOTE_DATE_UNKNOWN` 仍为 150 条，见 [RELEASE_V3.md](RELEASE_V3.md) 的报价日期遗留说明。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 币种覆盖为 CNY 50 条、USD 399 条、HKD 51 条。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

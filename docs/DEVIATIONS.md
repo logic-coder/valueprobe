@@ -550,7 +550,7 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 增速：A/H 与美股共用 `windowGrowth`（低谷年向前移，十年至少 7 年、五年至少 4 年）。官方增速在 `toStock()` 时从年度序列重算，不依赖过期的存储 g10。汇丰因此得到约 13.16% 的八年增速并发布 86.63 港元。`cleanGrowth` 不再把「单年尖峰后回到峰前水平、每股营收仍上升」当成拆股；罗珀因此恢复 9.2% 并发布 226.84 美元。真拆股用例（GOOGL、AAPL、NVDA）保持不变。
 - 报价：刷新路径不再写入或更新没有真实交易日的价格；已提交的 150 只无 `quote_as_of` 快照不编造日期，本批仍标 `QUOTE_DATE_UNKNOWN`，留到以后带日期的刷新。
 - Visa：公司 facts（CIK 0001403161）没有未带维度的 `EarningsPerShareDiluted`。10-K 实例里该概念存在，但都挂在股份类别轴上，companyfacts 不收录。解析器不从净利润/股本编造每股收益；NYSE:V 仍拒绝。因为三年现金存在，官方基数回退为现金 11.4947 美元，拒绝原因是 `NO_GROWTH`（年度每股收益序列为空，无法计算增速）。
-- 覆盖：500 条中 402 条有值、98 条拒绝（v2 为 407/93）。新有值 11 条（含汇丰、罗珀及若干因正常化恢复的亏损年），新拒绝 16 条，全部为 `CASH_UNRECONCILED`。拆股后干净后缀不足 7 年但不少于 4 年时，官方增速使用该后缀的复合增长率。政策哈希 `020fbf8f…`，工件生成日 2026-11-23。细节与代表值见 [RELEASE_V3.md](RELEASE_V3.md)。
+- 覆盖：500 条中 403 条有值、97 条拒绝（v2 为 407/93）。新有值 11 条（含汇丰、罗珀及若干因正常化恢复的亏损年），新拒绝 15 条，全部为 `CASH_UNRECONCILED`。拆股后干净后缀不足 7 年但不少于 4 年时，官方增速使用该后缀的复合增长率。政策哈希 `020fbf8f…`，工件生成日 2026-11-23。细节与代表值见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 位置：`src/lib/{policy,dcf,assumptions,stockRecord,reasons}.js`、`src/data/providers/{eastmoney-statements,edgar-xbrl}.js`、`scripts/{snapshot,verify-data,pages-smoke,policy-values}.mjs`、`src/i18n/legal-messages.js`、`public/data/intrinsic/v3.json`、`docs/RELEASE_V3.md`。
 - 测试：基数中点与拒绝门禁、`NORMALIZED_EPS`、汇丰式低谷前移、罗珀式尖峰、Visa 不编造 EPS、政策哈希、`quote` 不保存无日期价格；e2e 断言改为工行 11.66 与口径 v3。
 - 不改：`calGr2fv`、折现规则、终值增速、5% 增速楼板、12 倍零增长参考行（仍是隐含 8.33% 的对照，不与官方折现率挂钩）。

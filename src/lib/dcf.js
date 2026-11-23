@@ -321,7 +321,15 @@ const medianOf = (values) => {
  */
 export function normalizedEpsBase (stock) {
   const annual = stock?.financials?.annual
-  const eps = Array.isArray(annual) ? annual.slice(-5).map((row) => Number(row?.eps_without_nri)).filter(Number.isFinite) : []
+  const eps = []
+  if (Array.isArray(annual)) {
+    for (const row of annual.slice(-5)) {
+      const raw = row?.eps_without_nri
+      if (raw === null || raw === undefined || raw === '') continue
+      const parsed = Number(raw)
+      if (Number.isFinite(parsed)) eps.push(parsed)
+    }
+  }
   const latest = eps.at(-1)
   const median = medianOf(eps)
   if (!(latest > 0) || !(median > 0)) return preferredEps(stock)

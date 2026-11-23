@@ -128,4 +128,22 @@ describe('windowGrowth trough walk-forward', () => {
     const series = [0.05, 1, 1.1, 1.2, 1.3, 1.4].map((val, index) => ({ fy: 2020 + index, val }))
     expect(windowGrowth(series, 10)).toBeNull()
   })
+
+  it('does not walk back to a year before the target when earlier history exists', () => {
+    // CR Beer-like: 2010-2025, 2015 is a loss. Start must be 2016, not 2010.
+    const values = [2.3637, 1.1928, 1.5652, 0.731, -0.065, -1.8361, 0.2589, 0.4237, 0.3531, 0.4708, 0.7651, 1.6596, 1.5772, 1.8714, 1.7184, 1.2241]
+    const series = values.map((val, index) => ({ fy: 2010 + index, val }))
+    const rate = windowGrowth(series, 10)
+    expect(rate).toBeCloseTo((Math.pow(1.2241 / 0.2589, 1 / 9) - 1) * 100, 2)
+    expect(rate).not.toBeCloseTo((Math.pow(1.2241 / 2.3637, 1 / 15) - 1) * 100, 2)
+  })
+
+  it('does not use a year before the target when the target year itself is a trough', () => {
+    // Li Ning-like: 2006-2025, 2015 is a trough versus the median. Start must be 2016, not 2006.
+    const values = [0.3325, 0.5307, 0.8079, 1.0547, 1.2287, 0.4303, -2.0319, -0.3167, -0.5881, 0.0078, 0.3407, 0.2456, 0.3436, 0.7077, 0.7959, 1.8593, 1.8166, 1.4437, 1.3714, 1.3362]
+    const series = values.map((val, index) => ({ fy: 2006 + index, val }))
+    const rate = windowGrowth(series, 10)
+    expect(rate).toBeCloseTo((Math.pow(1.3362 / 0.3407, 1 / 9) - 1) * 100, 2)
+    expect(rate).not.toBeCloseTo((Math.pow(1.3362 / 0.3325, 1 / 19) - 1) * 100, 2)
+  })
 })

@@ -58,9 +58,12 @@ export function windowGrowth (series, yearsWanted) {
     start = clean.find((point) => point.fy === last.fy - 1) || null
   } else {
     const target = last.fy - yearsWanted
-    start = clean.reduce((chosen, point) => (point.fy <= target ? point : chosen), clean[0])
+    // Last year at or before the target, or the earliest year if history is shorter.
+    start = clean.reduce((chosen, point) => (point.fy <= target ? point : chosen), null) || clean[0]
     if (!start || !(start.val > 0) || isTrough(start)) {
-      start = clean.find((point) => point.val > 0 && last.fy - point.fy >= minimum && !isTrough(point)) || null
+      // Walk forward only. Earlier years must not back-fill a loss or trough.
+      const afterFy = start ? start.fy : target
+      start = clean.find((point) => point.fy > afterFy && point.val > 0 && last.fy - point.fy >= minimum && !isTrough(point)) || null
     }
   }
   if (!start || !(start.val > 0) || last.fy - start.fy < minimum) return null

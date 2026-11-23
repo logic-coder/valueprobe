@@ -287,4 +287,28 @@ describe('normalized earnings base', () => {
     expect(normalizedEarningsBase(stock, { midpointCash: false })).toBe(1.2)
     expect(normalizedEarningsBase(stock, { midpointCash: true })).toBeCloseTo((6 + 1.2) / 2, 4)
   })
+
+  it('skips a missing year in the five-year window instead of treating it as zero', () => {
+    const rows = [
+      { eps_without_nri: 5.66 }, { eps_without_nri: null }, { eps_without_nri: 6.58 },
+      { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
+    ]
+    // Median of the four reported years is 10.49; 19.23 is more than 40% from it.
+    expect(normalizedEpsBase(annual(rows))).toBeCloseTo((6.58 + 14.4) / 2, 10)
+    rows[1] = { eps_without_nri: '' }
+    expect(normalizedEpsBase(annual(rows))).toBeCloseTo((6.58 + 14.4) / 2, 10)
+  })
+
+  it('still treats an explicit zero as a real observation in the five-year median', () => {
+    const stock = annual([
+      { eps_without_nri: 5.66 }, { eps_without_nri: 0 }, { eps_without_nri: 6.58 },
+      { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
+    ])
+    expect(normalizedEpsBase(stock)).toBe(6.58)
+    const asString = annual([
+      { eps_without_nri: 5.66 }, { eps_without_nri: '0' }, { eps_without_nri: 6.58 },
+      { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
+    ])
+    expect(normalizedEpsBase(asString)).toBe(6.58)
+  })
 })
