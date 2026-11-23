@@ -58,6 +58,15 @@ New UI gets a test; if a change must move a locator, update the spec in the same
 - Copy that travels with a published value (reason/warning codes, as-of lines, disclaimers) lives in `src/i18n/legal-messages.js`; `zh-hans` and `en-us` must carry the same keys (enforced by `tests/unit/copy-policy.test.js`).
 - The parameters, codes and schema are documented in `docs/POLICY.md`; visible behaviour changes belong in `docs/DEVIATIONS.md`.
 
+## Policy evaluation
+
+`scripts/research/forecast-validation.mjs` is a maintainer check, not a user-facing feature. It scores the frozen 2006 cash panel so official growth and discount rules can be re-run later. The 2026-11-22 n=4 result (no terminal value) is a labeled historical research run, not official v3, and is not a license to change official growth or discount. Official reruns that expand the sample must use official v3 policy (adopted 10-year window, official gates, official r and terminal growth) and must include terminal value. Output lives under `scripts/research/`, not `public/`. See `docs/FORECAST_VALIDATION.md`.
+
+```bash
+npm run research:forecast
+npm run research:forecast -- --check
+```
+
 ## Data sources
 
 `docs/DATA_SOURCES.md` explains the provider interface, priority/coverage, breaker and validation rules.

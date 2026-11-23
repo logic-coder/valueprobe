@@ -11,7 +11,7 @@
 
 ## 索引
 
-方法页提供[逐公司历史研究数据](../public/research)，包括估值回放、逐年现金和股东权益记录。研究结论、原始档案与 `eval/` 审计留在本地，不随仓库发布。
+方法页提供[逐公司历史研究数据](../public/research)，包括估值回放、逐年现金和股东权益记录。研究结论、原始档案与 `eval/` 审计留在本地，不随仓库发布。维护者用的预测检验工具及其输出在 `scripts/research/` 和 [FORECAST_VALIDATION.md](FORECAST_VALIDATION.md)，不作为站点数据发布。
 
 | 文档 | 内容 | 主要读者 |
 | --- | --- | --- |
@@ -22,6 +22,7 @@
 | [DESIGN.md](DESIGN.md) | 界面与交互的设计原则、实现约束、已知取舍 | 改 UI/视觉的人 |
 | [DEVIATIONS.md](DEVIATIONS.md) | 每条用户可见的行为差异与理由（编号不复用） | 评审可见变更的人 |
 | [RELEASE_V2.md](RELEASE_V2.md) | v2 相对冻结 v1 的发布决定、全量差异、审计证据与回滚 | 发布与复核 v2 的人 |
+| [FORECAST_VALIDATION.md](FORECAST_VALIDATION.md) | 维护者用的预测检验工具：怎么跑、历史研究跑数与官方口径跑数如何区分；n=4、不含终值的结果不能当作改官方口径的依据 | 复核或改官方口径的人 |
 
 ## 术语表
 

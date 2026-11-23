@@ -1,0 +1,61 @@
+{
+  "kind": "historical-research-run",
+  "recorded": "2026-11-22",
+  "policy": "research-branch-blended-growth",
+  "asOf": "2006-03-15",
+  "note": "Historical research run recorded 2026-11-22 under the research-branch growth blend (5y 50%, 10y 30%, 1y 20%), a hardcoded 11% discount, and no terminal value. Frozen entry-date cash panel; discounted ten-year cumulative cash. This is not an official v3 result and must not be treated as a license to change official growth or discount.",
+  "growthBlend": {
+    "oneYear": 0.2,
+    "fiveYear": 0.5,
+    "tenYear": 0.3
+  },
+  "dampeningReference": 0.5,
+  "discountRate": 11,
+  "terminalIncluded": false,
+  "sample": 4,
+  "paired": 4,
+  "medians": {
+    "flat": 14.8314,
+    "historical": 37.5194,
+    "dampened": 26.015,
+    "blended": 29.995
+  },
+  "dampenedBeatsFlat": 1,
+  "dampenedBeatsHistorical": 3,
+  "blendedBeatsFlat": 1,
+  "blendedBeatsHistorical": 3,
+  "rows": [
+    {
+      "ticker": "GE",
+      "flat": 11.8939,
+      "historical": 23.8552,
+      "dampened": 12.682,
+      "blended": 3.6121,
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "UPS",
+      "flat": 17.7688,
+      "historical": 68.9492,
+      "dampened": 8.7587,
+      "blended": 36.1021,
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "INTC",
+      "flat": 3.5062,
+      "historical": 45.3172,
+      "dampened": 39.3479,
+      "blended": 23.8878,
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "IBM",
+      "flat": 52.2562,
+      "historical": 29.7215,
+      "dampened": 86.606,
+      "blended": 73.7822,
+      "excludedAfterSplit": false
+    }
+  ]
+}

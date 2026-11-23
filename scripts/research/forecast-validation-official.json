@@ -1,0 +1,95 @@
+{
+  "kind": "official-policy-run",
+  "policyVersion": "v3",
+  "policyHash": "020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c",
+  "growthRule": "adopted-10y-window-capped",
+  "discountRule": "local-10y-ceil+6",
+  "asOf": "2006-03-15",
+  "note": "Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is the adopted 10-year window (capped at 15%). Flat, historical, blended and dampened columns are experiments only; official v3 does not publish a 5/10/1 blend. Discount is the official local-10y-ceil+6 rate. Terminal value is omitted because this panel has no observed continuation cash; later official reruns that expand the sample must include official terminal growth. n is small. This is not a license to change official growth or discount, and it is not an official published value.",
+  "discountRate": 11,
+  "terminalIncluded": false,
+  "terminalGrowthRate": 4,
+  "growthCap": 15,
+  "windowYears": 10,
+  "growthBlendExperiment": {
+    "oneYear": 0.2,
+    "fiveYear": 0.5,
+    "tenYear": 0.3
+  },
+  "dampeningReference": 0.5,
+  "sample": 5,
+  "paired": 5,
+  "medians": {
+    "official": 49.7467,
+    "flat": 17.7688,
+    "historical": 37.5194,
+    "dampened": 39.3494,
+    "blended": 31.7534
+  },
+  "officialBeatsFlat": 1,
+  "officialBeatsHistorical": 3,
+  "blendedBeatsFlat": 2,
+  "blendedBeatsHistorical": 3,
+  "rows": [
+    {
+      "ticker": "GE",
+      "official": 21.9087,
+      "flat": 11.8939,
+      "historical": 23.8552,
+      "dampened": 12.6844,
+      "blended": 3.617,
+      "officialGrowth": 9.12,
+      "officialWindow": 9.12,
+      "officialReason": "historical",
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "UPS",
+      "official": 49.7467,
+      "flat": 17.7688,
+      "historical": 68.9492,
+      "dampened": 8.7645,
+      "blended": 36.1137,
+      "officialGrowth": 14.2,
+      "officialWindow": 14.2,
+      "officialReason": "historical",
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "BA",
+      "official": 60.6127,
+      "flat": 70.3981,
+      "historical": null,
+      "dampened": 60.7555,
+      "blended": 31.7534,
+      "officialGrowth": 6.28,
+      "officialWindow": 6.28,
+      "officialReason": "historical",
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "INTC",
+      "official": 3.8043,
+      "flat": 3.5062,
+      "historical": 45.3172,
+      "dampened": 39.3494,
+      "blended": 23.8909,
+      "officialGrowth": 10.73,
+      "officialWindow": 10.73,
+      "officialReason": "historical",
+      "excludedAfterSplit": false
+    },
+    {
+      "ticker": "IBM",
+      "official": 54.9102,
+      "flat": 52.2562,
+      "historical": 29.7215,
+      "dampened": 86.6024,
+      "blended": 73.7745,
+      "officialGrowth": 10.68,
+      "officialWindow": 10.68,
+      "officialReason": "historical",
+      "excludedAfterSplit": false
+    }
+  ]
+}
