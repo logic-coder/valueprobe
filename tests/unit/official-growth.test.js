@@ -68,6 +68,24 @@ describe('officialGrowth window rules', () => {
     expect(info.warnings).toEqual([WARNING.REGIME_UNCERTAIN])
   })
 
+  it('does not mark a same-sign gap of at least 8 points as a regime, including a Fiserv-style pair', () => {
+    expect(windowsConflict(13.18, 35.27)).toBe(false)
+    const info = officialGrowth({ growth10: 13.18, growth5: 35.27, hasPositiveBase: true })
+    expect(info.adopted).toBe(13.18)
+    expect(info.window).toBe('10y')
+    expect(info.regimeUncertain).toBe(false)
+    expect(info.windowConflict).toBe(false)
+    expect(info.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
+  })
+
+  it('still marks both-negative windows as a regime even when the signs agree', () => {
+    const info = officialGrowth({ growth10: -22.37, growth5: -47.59, hasPositiveBase: true })
+    expect(windowsConflict(-22.37, -47.59)).toBe(false)
+    expect(info.adopted).toBe(0)
+    expect(info.regimeUncertain).toBe(true)
+    expect(info.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+  })
+
   it('starts at 0% and keeps the default terminal when there is no window but a positive base', () => {
     const info = officialGrowth({ hasPositiveBase: true })
     expect(info.adopted).toBe(0)

@@ -6,11 +6,12 @@
  * release gate on official values or published official artifacts.
  *
  * Modes:
- *   official (default) — officialGrowth() (dual-window min, 10% short cap,
- *     negative history zeroed at a 0% start and 0% terminal) and the official
- *     required return, including official terminal growth on both the forecast
- *     and the realised cash path. Experimental columns remain comparisons only
- *     and still omit a terminal. The 2006 historical file stays a no-terminal
+ *   official (default) — officialGrowth() (a single clean long window, 15%
+ *     cap, no min with the five-year window; negative history starts at 0%
+ *     and fades to the default terminal) and the official required return,
+ *     including official terminal growth on both the forecast and the
+ *     realised cash path. Experimental columns remain comparisons only and
+ *     still omit a terminal. The 2006 historical file stays a no-terminal
  *     contrast and is not a license to change official policy.
  *   historical — reproduces the 2026-11-22 research-branch run (naive CAGRs,
  *     5/10/1 blend, hardcoded 11% discount, no terminal). That file is a
@@ -244,7 +245,7 @@ export function buildOfficialReport (study) {
     kind: 'official-policy-run',
     policyVersion: POLICY_VERSION,
     policyHash: POLICY_V1_HASH,
-    growthRule: 'centered-single-window-regime-band',
+    growthRule: POLICY_V1.revision.officialGrowth,
     discountRule: POLICY_V1.discount.rule,
     asOf: study.asOf,
     note: 'Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): a single clean long window (ten-year preferred) capped at 15%, no min with the five-year window, and no mechanical 0% terminal. Negative history starts at 0% and fades to the default 4% terminal. Official, flat, historical, blended and dampened columns all include that same official terminal so the scores are aligned. Official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun includes official terminal growth on every named column; the sample was not expanded beyond the frozen five-name 2006 panel. n is small. Beating flat is not a publication gate. This is not an official published value.',

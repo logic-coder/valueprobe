@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { POLICY_V1_HASH, POLICY_VERSION } from '../../src/lib/policy.js'
+import { POLICY_V1, POLICY_V1_HASH, POLICY_VERSION } from '../../src/lib/policy.js'
 import { windowGrowth, officialGrowth } from '../../src/lib/assumptions.js'
 import {
   HISTORICAL_OUT, OFFICIAL_OUT, HISTORICAL_DISCOUNT_RATE,
@@ -43,7 +43,7 @@ describe('forecast-validation harness', () => {
     expect(report.kind).toBe('official-policy-run')
     expect(report.policyVersion).toBe(POLICY_VERSION)
     expect(report.policyHash).toBe(POLICY_V1_HASH)
-    expect(report.growthRule).toBe('centered-single-window-regime-band')
+    expect(report.growthRule).toBe(POLICY_V1.revision.officialGrowth)
     expect(report.discountRule).toBe('max(floor, local-10y-ceil+6)')
     expect(report.discountRate).toBe(officialDiscountRate(study))
     expect(report.discountRate).toBe(11)

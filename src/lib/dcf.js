@@ -221,11 +221,15 @@ export function residualIncomeValue (tbv, eps, discountRate, growthRate, termina
 /**
  * Disclosed growth and discount scenarios around a centered point estimate.
  * Mid is always the official assumptions. Low and high are the more adverse
- * and more favourable already-disclosed cases: discount ±2 points, a lower or
- * higher starting rate, and a 0% terminal when the regime is uncertain.
- * Short five-year history widens the growth span to 0–15%. A missing window
- * does not invent a 15% high. The official mid is never replaced by the
- * arithmetic middle of an asymmetric envelope.
+ * and more favourable already-disclosed cases: discount ±2 points, and a
+ * lower or higher disclosed starting rate. A 0% growth low is used only when
+ * the official start is already 0%, history is negative, or the regime is
+ * uncertain (opposite signs or a negative window). A 0% terminal is included
+ * on the low side only when the regime is uncertain. A positive five-year
+ * official window may widen the high end toward the 15% cap; a zeroed
+ * short history does not invent 15%. A missing window does not invent a
+ * 15% high. The official mid is never replaced by the arithmetic middle of
+ * an asymmetric envelope.
  */
 export function envelopeScenarios (input) {
   const spread = Number(input.bandSpread ?? 2)
@@ -241,15 +245,17 @@ export function envelopeScenarios (input) {
   const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
   let highGrowth = officialG
   if (fiveAdopted != null && fiveAdopted > officialG) highGrowth = fiveAdopted
-  if (short) highGrowth = cap
+  if (short && officialG > 0) highGrowth = cap
 
   const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }
   const low = [
     { discount: lowDiscount, growth: officialG, terminal: officialT },
-    { discount: lowDiscount, growth: 0, terminal: officialT },
   ]
   if (fiveAdopted != null && fiveAdopted < officialG) {
     low.push({ discount: lowDiscount, growth: fiveAdopted, terminal: officialT })
+  }
+  if (regime && officialG !== 0) {
+    low.push({ discount: lowDiscount, growth: 0, terminal: officialT })
   }
   if (regime) {
     low.push({ discount: lowDiscount, growth: officialG, terminal: 0 })

@@ -9,8 +9,9 @@ export const MAX_UNDERWRITTEN_GROWTH = 15
 // Kept for frozen artifacts and historical tests. Official short history no
 // longer applies this tighter cap; it widens the value range instead.
 export const SHORT_HISTORY_GROWTH_CAP = 10
-// Ten-year and five-year windows conflict when they have opposite signs, or
-// when they differ by at least this many percentage points.
+// Named widening reference: a same-sign gap of this size still puts the other
+// window in the value range, but no longer marks REGIME_UNCERTAIN. Opposite
+// signs, or a negative window, are what mark a regime.
 export const REGIME_GAP_PP = 8
 
 // A year-to-year drop below this share of the prior positive value is a split
@@ -50,11 +51,10 @@ const clipWindow = (raw, cap) => {
   return { raw, adopted: Math.max(capped, 0), hitCap: raw > cap, negative: raw < 0 }
 }
 
-/** True when the ten-year and five-year windows disagree enough to mark a regime. */
-export function windowsConflict (ten, five, gapPp = REGIME_GAP_PP) {
+/** True when the ten-year and five-year windows have opposite signs. */
+export function windowsConflict (ten, five) {
   if (ten == null || five == null || !Number.isFinite(ten) || !Number.isFinite(five)) return false
-  if ((ten < 0 && five > 0) || (ten > 0 && five < 0)) return true
-  return Math.abs(ten - five) >= gapPp
+  return (ten < 0 && five > 0) || (ten > 0 && five < 0)
 }
 
 /**
@@ -65,8 +65,9 @@ export function windowsConflict (ten, five, gapPp = REGIME_GAP_PP) {
  * never min'd with the ten-year rate. A five-year-only history keeps the same
  * 15% cap, carries SHORT_HISTORY, and widens the value range rather than
  * applying a tighter 10% cap. Negative history floors the starting rate to 0%
- * and keeps the default terminal; a conflict between windows also marks
- * REGIME_UNCERTAIN. A positive repeatable base with no window starts at 0%
+ * and keeps the default terminal, and marks REGIME_UNCERTAIN. Opposite-sign
+ * windows also mark REGIME_UNCERTAIN and still widen the range; a same-sign
+ * gap does not. A positive repeatable base with no window starts at 0%
  * (terminal stays the policy default). zeroTerminal remains on the return
  * object for compatibility and is always false under this policy.
  *
@@ -89,6 +90,7 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
   const five = parseRate(growth5)
   const warnings = []
   const conflict = windowsConflict(ten, five)
+  const negativeWindow = (ten != null && ten < 0) || (five != null && five < 0)
   const base = {
     historical10: ten,
     historical5: five,
@@ -109,7 +111,7 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
 
   if (ten != null) {
     const adoptedTen = clipWindow(ten, MAX_UNDERWRITTEN_GROWTH)
-    const regime = markRegime(adoptedTen.negative || conflict)
+    const regime = markRegime(negativeWindow || conflict)
     if (adoptedTen.negative) {
       return finish({
         adopted: 0,

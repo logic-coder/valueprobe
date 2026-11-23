@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "policyVersion": "v3",
-  "policyHash": "db7c6fe0f2e55c6e123b388f475f259c9b80987a60b2e4a1e73bbf424ff056c4",
+  "policyHash": "dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d",
   "generatedAt": "2026-11-23",
   "rates": {
     "asOf": "2026-11-19",
@@ -28,15 +28,15 @@
     "missing": []
   },
   "coverage": {
-    "valued": 391,
-    "refused": 109,
+    "valued": 392,
+    "refused": 108,
     "reasons": {
       "NO_EPS": 1,
       "NON_POSITIVE_EPS": 17,
       "NO_GROWTH": 18,
       "INDUSTRY_MODEL_PENDING": 3,
       "CASH_UNRECONCILED": 82,
-      "UNSTABLE_BASE_REGIME": 6
+      "UNSTABLE_BASE_REGIME": 5
     },
     "warnings": {
       "CAPPED_GROWTH": 123,
@@ -51,7 +51,7 @@
       "NORMALIZED_EPS": 194,
       "LIFE_BOOK_QUALITY": 3,
       "OWNER_BASE_GAP": 451,
-      "REGIME_UNCERTAIN": 196
+      "REGIME_UNCERTAIN": 111
     },
     "models": {
       "owner": 451,
@@ -564,8 +564,7 @@
       "marginOfSafety": -54.1,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
-        "REGIME_UNCERTAIN"
+        "QUOTE_DATE_UNKNOWN"
       ],
       "inputs": {
         "model": "residual",
@@ -584,7 +583,7 @@
         "growthCap": 15,
         "growth10": 13.16,
         "growth5": 46.74,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -684,7 +683,7 @@
       "status": "ok",
       "value": 27.98,
       "band": {
-        "low": 14.85,
+        "low": 22.17,
         "mid": 27.98,
         "high": 37.71
       },
@@ -754,7 +753,7 @@
       "status": "ok",
       "value": 19.55,
       "band": {
-        "low": 11.94,
+        "low": 15.71,
         "mid": 19.55,
         "high": 43.73
       },
@@ -768,8 +767,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -788,7 +786,7 @@
         "growthCap": 15,
         "growth10": 1.37,
         "growth5": 14.07,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -950,7 +948,7 @@
       "status": "ok",
       "value": 24.5,
       "band": {
-        "low": 8.74,
+        "low": 15.91,
         "mid": 24.5,
         "high": 33.24
       },
@@ -965,8 +963,7 @@
         "GROWTH_ABOVE_RETENTION",
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -985,7 +982,7 @@
         "growthCap": 15,
         "growth10": 18.84,
         "growth5": 9.85,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -1016,7 +1013,7 @@
       "status": "ok",
       "value": 184.19,
       "band": {
-        "low": 88.97,
+        "low": 133.4,
         "mid": 184.19,
         "high": 249.1
       },
@@ -1168,8 +1165,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -1188,7 +1184,7 @@
         "growthCap": 15,
         "growth10": 21.05,
         "growth5": 7.89,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -1219,7 +1215,7 @@
       "status": "ok",
       "value": 60.55,
       "band": {
-        "low": 21.61,
+        "low": 47.67,
         "mid": 60.55,
         "high": 82.14
       },
@@ -1238,8 +1234,7 @@
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -1258,7 +1253,7 @@
         "growthCap": 15,
         "growth10": 19.03,
         "growth5": 35.63,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -1350,7 +1345,7 @@
       "status": "ok",
       "value": 88.04,
       "band": {
-        "low": 66.08,
+        "low": 70.69,
         "mid": 88.04,
         "high": 126.56
       },
@@ -1938,7 +1933,7 @@
       "status": "ok",
       "value": 62.75,
       "band": {
-        "low": 30.1,
+        "low": 49.94,
         "mid": 62.75,
         "high": 114.42
       },
@@ -1950,8 +1945,7 @@
       "reasons": [],
       "warnings": [
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -1970,7 +1964,7 @@
         "growthCap": 15,
         "growth10": 7.42,
         "growth5": 19.49,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "HKD",
         "reportingCurrencySource": "quote-fallback",
@@ -2062,7 +2056,7 @@
       "status": "ok",
       "value": 36.14,
       "band": {
-        "low": 33.05,
+        "low": 33.21,
         "mid": 36.14,
         "high": 39.26
       },
@@ -2315,7 +2309,7 @@
       "status": "ok",
       "value": 16.86,
       "band": {
-        "low": 7.97,
+        "low": 13.31,
         "mid": 16.86,
         "high": 24.29
       },
@@ -2513,7 +2507,7 @@
       "status": "ok",
       "value": 113.09,
       "band": {
-        "low": 50.35,
+        "low": 89.04,
         "mid": 113.09,
         "high": 153.41
       },
@@ -3280,7 +3274,7 @@
       "status": "ok",
       "value": 17.67,
       "band": {
-        "low": 7.87,
+        "low": 13.91,
         "mid": 17.67,
         "high": 23.97
       },
@@ -3350,7 +3344,7 @@
       "band": {
         "low": 54.22,
         "mid": 84.01,
-        "high": 206.12
+        "high": 111.21
       },
       "terminalShare": 0.4607,
       "cash": null,
@@ -3666,7 +3660,7 @@
       "status": "ok",
       "value": 246.88,
       "band": {
-        "low": 109.92,
+        "low": 194.38,
         "mid": 246.88,
         "high": 334.91
       },
@@ -3735,7 +3729,7 @@
       "status": "ok",
       "value": 122.7,
       "band": {
-        "low": 54.63,
+        "low": 79.72,
         "mid": 122.7,
         "high": 166.45
       },
@@ -3803,7 +3797,7 @@
       "status": "ok",
       "value": 80.49,
       "band": {
-        "low": 71.21,
+        "low": 74.14,
         "mid": 80.49,
         "high": 87.69
       },
@@ -3864,7 +3858,7 @@
       "status": "ok",
       "value": 236.59,
       "band": {
-        "low": 84.43,
+        "low": 149.02,
         "mid": 236.59,
         "high": 320.95
       },
@@ -3884,8 +3878,7 @@
         "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -3904,7 +3897,7 @@
         "growthCap": 15,
         "growth10": 24.52,
         "growth5": 9.05,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -3950,8 +3943,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -3970,7 +3962,7 @@
         "growthCap": 15,
         "growth10": 19.04,
         "growth5": 6.81,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -4001,7 +3993,7 @@
       "status": "ok",
       "value": 194.37,
       "band": {
-        "low": 97.5,
+        "low": 153.68,
         "mid": 194.37,
         "high": 268.72
       },
@@ -4068,7 +4060,7 @@
       "band": {
         "low": 37.36,
         "mid": 57.88,
-        "high": 142.01
+        "high": 76.62
       },
       "terminalShare": 0.4606,
       "cash": {
@@ -4135,7 +4127,7 @@
       "status": "ok",
       "value": 133.31,
       "band": {
-        "low": 47.57,
+        "low": 82.39,
         "mid": 133.31,
         "high": 180.84
       },
@@ -4154,8 +4146,7 @@
         "GROWTH_ABOVE_RETENTION",
         "STALE_DATA",
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -4174,7 +4165,7 @@
         "growthCap": 15,
         "growth10": 20.54,
         "growth5": 8.55,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -4269,7 +4260,7 @@
       "status": "ok",
       "value": 173.34,
       "band": {
-        "low": 77.18,
+        "low": 136.48,
         "mid": 173.34,
         "high": 235.15
       },
@@ -4336,7 +4327,7 @@
       "status": "ok",
       "value": 20.02,
       "band": {
-        "low": 7.14,
+        "low": 10.88,
         "mid": 20.02,
         "high": 27.15
       },
@@ -4357,8 +4348,7 @@
         "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -4377,7 +4367,7 @@
         "growthCap": 15,
         "growth10": 35.26,
         "growth5": 5.17,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -4408,7 +4398,7 @@
       "status": "ok",
       "value": 182.93,
       "band": {
-        "low": 126.82,
+        "low": 142.08,
         "mid": 182.93,
         "high": 243.79
       },
@@ -4475,7 +4465,7 @@
       "status": "ok",
       "value": 64.85,
       "band": {
-        "low": 28.88,
+        "low": 51.06,
         "mid": 64.85,
         "high": 87.98
       },
@@ -4626,8 +4616,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -4646,7 +4635,7 @@
         "growthCap": 15,
         "growth10": 36.23,
         "growth5": 49.77,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -4677,7 +4666,7 @@
       "status": "ok",
       "value": 30.22,
       "band": {
-        "low": 13.46,
+        "low": 23.8,
         "mid": 30.22,
         "high": 41
       },
@@ -4827,8 +4816,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -4847,7 +4835,7 @@
         "growthCap": 15,
         "growth10": 16.27,
         "growth5": 55.7,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -4945,7 +4933,7 @@
       "status": "ok",
       "value": 268.82,
       "band": {
-        "low": 119.69,
+        "low": 211.66,
         "mid": 268.82,
         "high": 364.67
       },
@@ -5012,7 +5000,7 @@
       "status": "ok",
       "value": 81.27,
       "band": {
-        "low": 29,
+        "low": 39.64,
         "mid": 81.27,
         "high": 110.24
       },
@@ -5028,8 +5016,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -5048,7 +5035,7 @@
         "growthCap": 15,
         "growth10": 21.57,
         "growth5": 2.36,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -5079,7 +5066,7 @@
       "status": "ok",
       "value": 153.35,
       "band": {
-        "low": 72.01,
+        "low": 98.6,
         "mid": 153.35,
         "high": 207.61
       },
@@ -5209,7 +5196,7 @@
       "status": "ok",
       "value": 61.18,
       "band": {
-        "low": 43.05,
+        "low": 48.99,
         "mid": 61.18,
         "high": 88.59
       },
@@ -5274,7 +5261,7 @@
       "status": "ok",
       "value": 724.8,
       "band": {
-        "low": 258.64,
+        "low": 570.67,
         "mid": 724.8,
         "high": 983.23
       },
@@ -5292,8 +5279,7 @@
         "CAPPED_GROWTH",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -5312,7 +5298,7 @@
         "growthCap": 15,
         "growth10": 31.88,
         "growth5": 18.65,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -5343,7 +5329,7 @@
       "status": "ok",
       "value": 114.77,
       "band": {
-        "low": 104.31,
+        "low": 105.35,
         "mid": 114.77,
         "high": 125.41
       },
@@ -5404,7 +5390,7 @@
       "status": "ok",
       "value": 187.89,
       "band": {
-        "low": 99.46,
+        "low": 148.84,
         "mid": 187.89,
         "high": 287.79
       },
@@ -5469,7 +5455,7 @@
       "status": "ok",
       "value": 89.07,
       "band": {
-        "low": 39.66,
+        "low": 70.13,
         "mid": 89.07,
         "high": 120.83
       },
@@ -5534,7 +5520,7 @@
       "status": "ok",
       "value": 409.5,
       "band": {
-        "low": 185.02,
+        "low": 303.67,
         "mid": 409.5,
         "high": 555.22
       },
@@ -5600,7 +5586,7 @@
       "status": "ok",
       "value": 31.03,
       "band": {
-        "low": 13.81,
+        "low": 20.13,
         "mid": 31.03,
         "high": 42.09
       },
@@ -5666,7 +5652,7 @@
       "status": "ok",
       "value": 47.69,
       "band": {
-        "low": 29.68,
+        "low": 37.25,
         "mid": 47.69,
         "high": 63.85
       },
@@ -5733,7 +5719,7 @@
       "status": "ok",
       "value": 26.37,
       "band": {
-        "low": 13.72,
+        "low": 16.72,
         "mid": 26.37,
         "high": 35.56
       },
@@ -5798,7 +5784,7 @@
       "status": "ok",
       "value": 65.93,
       "band": {
-        "low": 40.64,
+        "low": 52.52,
         "mid": 65.93,
         "high": 110.44
       },
@@ -5994,7 +5980,7 @@
       "status": "ok",
       "value": 86.49,
       "band": {
-        "low": 55.43,
+        "low": 59.76,
         "mid": 86.49,
         "high": 115.66
       },
@@ -6055,7 +6041,7 @@
       "status": "ok",
       "value": 20.98,
       "band": {
-        "low": 11.59,
+        "low": 16.65,
         "mid": 20.98,
         "high": 35.3
       },
@@ -6189,7 +6175,7 @@
       "status": "ok",
       "value": 170.14,
       "band": {
-        "low": 75.75,
+        "low": 133.96,
         "mid": 170.14,
         "high": 230.8
       },
@@ -6253,7 +6239,7 @@
       "status": "ok",
       "value": 48.85,
       "band": {
-        "low": 32.62,
+        "low": 39.04,
         "mid": 48.85,
         "high": 69.28
       },
@@ -6511,7 +6497,7 @@
       "status": "ok",
       "value": 187.49,
       "band": {
-        "low": 89.43,
+        "low": 149.17,
         "mid": 187.49,
         "high": 339.96
       },
@@ -6526,8 +6512,7 @@
       "marginOfSafety": -71.23,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -6546,7 +6531,7 @@
         "growthCap": 15,
         "growth10": 7.56,
         "growth5": 18.58,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -6574,21 +6559,26 @@
     "NASDAQ:FISV": {
       "symbol": "NASDAQ:FISV",
       "name": "FISERV INC",
-      "status": "refused",
-      "value": null,
-      "band": null,
-      "terminalShare": null,
-      "cash": null,
+      "status": "ok",
+      "value": 118.29,
+      "band": {
+        "low": 93.36,
+        "mid": 118.29,
+        "high": 172.15
+      },
+      "terminalShare": 0.5096,
+      "cash": {
+        "value": 146.1,
+        "base": 7.8306,
+        "gapPct": 23.51
+      },
       "price": 60.48,
       "priceDate": "2026-11-18",
-      "marginOfSafety": null,
-      "reasons": [
-        "UNSTABLE_BASE_REGIME"
-      ],
+      "marginOfSafety": 48.87,
+      "reasons": [],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -6607,7 +6597,7 @@
         "growthCap": 15,
         "growth10": 13.18,
         "growth5": 35.27,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -6638,7 +6628,7 @@
       "status": "ok",
       "value": 154.93,
       "band": {
-        "low": 68.98,
+        "low": 121.98,
         "mid": 154.93,
         "high": 210.17
       },
@@ -6770,7 +6760,7 @@
       "band": {
         "low": 32.5,
         "mid": 50.36,
-        "high": 123.55
+        "high": 66.66
       },
       "terminalShare": 0.4607,
       "cash": null,
@@ -7030,7 +7020,7 @@
       "status": "ok",
       "value": 116.1,
       "band": {
-        "low": 51.69,
+        "low": 91.41,
         "mid": 116.1,
         "high": 157.49
       },
@@ -7099,7 +7089,7 @@
       "status": "ok",
       "value": 21.11,
       "band": {
-        "low": 12.39,
+        "low": 16.79,
         "mid": 21.11,
         "high": 37.74
       },
@@ -7164,7 +7154,7 @@
       "status": "ok",
       "value": 122.5,
       "band": {
-        "low": 43.71,
+        "low": 96.45,
         "mid": 122.5,
         "high": 166.18
       },
@@ -7181,8 +7171,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -7201,7 +7190,7 @@
         "growthCap": 15,
         "growth10": 21.9,
         "growth5": 43.09,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -7295,7 +7284,7 @@
       "status": "ok",
       "value": 12.59,
       "band": {
-        "low": 9.8,
+        "low": 10.13,
         "mid": 12.59,
         "high": 16.7
       },
@@ -7356,7 +7345,7 @@
       "status": "ok",
       "value": 261.82,
       "band": {
-        "low": 116.57,
+        "low": 200.69,
         "mid": 261.82,
         "high": 355.17
       },
@@ -7423,7 +7412,7 @@
       "status": "ok",
       "value": 53.04,
       "band": {
-        "low": 18.93,
+        "low": 35.54,
         "mid": 53.04,
         "high": 71.96
       },
@@ -7437,8 +7426,7 @@
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -7457,7 +7445,7 @@
         "growthCap": 15,
         "growth10": 31.64,
         "growth5": 10.69,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -7616,7 +7604,7 @@
       "status": "ok",
       "value": 100.68,
       "band": {
-        "low": 44.83,
+        "low": 79.27,
         "mid": 100.68,
         "high": 136.58
       },
@@ -7687,7 +7675,7 @@
       "status": "ok",
       "value": 84.16,
       "band": {
-        "low": 54.54,
+        "low": 66.75,
         "mid": 84.16,
         "high": 112.49
       },
@@ -7748,7 +7736,7 @@
       "status": "ok",
       "value": 30.63,
       "band": {
-        "low": 13.64,
+        "low": 20.35,
         "mid": 30.63,
         "high": 41.54
       },
@@ -7883,7 +7871,7 @@
       "status": "ok",
       "value": 261.81,
       "band": {
-        "low": 104.36,
+        "low": 206.93,
         "mid": 261.81,
         "high": 396.71
       },
@@ -7899,8 +7887,7 @@
       "reasons": [],
       "warnings": [
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -7919,7 +7906,7 @@
         "growthCap": 15,
         "growth10": 12.14,
         "growth5": 25.41,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -8010,7 +7997,7 @@
       "status": "ok",
       "value": 43.98,
       "band": {
-        "low": 27.98,
+        "low": 33.83,
         "mid": 43.98,
         "high": 58.82
       },
@@ -8072,7 +8059,7 @@
       "status": "ok",
       "value": 265.42,
       "band": {
-        "low": 118.18,
+        "low": 208.98,
         "mid": 265.42,
         "high": 360.06
       },
@@ -8138,7 +8125,7 @@
       "status": "ok",
       "value": 189.41,
       "band": {
-        "low": 67.93,
+        "low": 149.16,
         "mid": 189.41,
         "high": 258.23
       },
@@ -8153,8 +8140,7 @@
       "marginOfSafety": -124.86,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -8173,7 +8159,7 @@
         "growthCap": 15,
         "growth10": 14.87,
         "growth5": 29.9,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -8340,7 +8326,7 @@
       "status": "ok",
       "value": 297.65,
       "band": {
-        "low": 132.52,
+        "low": 234.35,
         "mid": 297.65,
         "high": 403.77
       },
@@ -8409,7 +8395,7 @@
       "status": "ok",
       "value": 181.15,
       "band": {
-        "low": 80.66,
+        "low": 142.63,
         "mid": 181.15,
         "high": 245.74
       },
@@ -8607,7 +8593,7 @@
       "status": "ok",
       "value": 236.19,
       "band": {
-        "low": 105.16,
+        "low": 185.97,
         "mid": 236.19,
         "high": 320.41
       },
@@ -8693,8 +8679,7 @@
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -8713,7 +8698,7 @@
         "growthCap": 15,
         "growth10": 36.87,
         "growth5": 70.62,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -8744,7 +8729,7 @@
       "status": "ok",
       "value": 51.1,
       "band": {
-        "low": 27.54,
+        "low": 40.5,
         "mid": 51.1,
         "high": 70.54
       },
@@ -8809,7 +8794,7 @@
       "status": "ok",
       "value": 123.37,
       "band": {
-        "low": 60.79,
+        "low": 98.28,
         "mid": 123.37,
         "high": 229.15
       },
@@ -8824,8 +8809,7 @@
       "marginOfSafety": -161.28,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -8844,7 +8828,7 @@
         "growthCap": 15,
         "growth10": 6.74,
         "growth5": 14.79,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -8875,7 +8859,7 @@
       "status": "ok",
       "value": 24.02,
       "band": {
-        "low": 10.69,
+        "low": 18.91,
         "mid": 24.02,
         "high": 32.58
       },
@@ -8945,7 +8929,7 @@
       "status": "ok",
       "value": 127.1,
       "band": {
-        "low": 56.59,
+        "low": 98.16,
         "mid": 127.1,
         "high": 172.42
       },
@@ -9011,7 +8995,7 @@
       "status": "ok",
       "value": 133.92,
       "band": {
-        "low": 77.89,
+        "low": 106.46,
         "mid": 133.92,
         "high": 192.97
       },
@@ -9090,8 +9074,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -9110,7 +9093,7 @@
         "growthCap": 15,
         "growth10": 61.85,
         "growth5": 95.18,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -9141,7 +9124,7 @@
       "status": "ok",
       "value": 98.22,
       "band": {
-        "low": 70.85,
+        "low": 78.74,
         "mid": 98.22,
         "high": 137.91
       },
@@ -9274,7 +9257,7 @@
       "status": "ok",
       "value": 77.05,
       "band": {
-        "low": 43.58,
+        "low": 61.19,
         "mid": 77.05,
         "high": 108.76
       },
@@ -9403,7 +9386,7 @@
       "status": "ok",
       "value": 76.79,
       "band": {
-        "low": 53.47,
+        "low": 60.56,
         "mid": 76.79,
         "high": 102.32
       },
@@ -9666,7 +9649,7 @@
       "status": "ok",
       "value": 76.86,
       "band": {
-        "low": 27.43,
+        "low": 48.05,
         "mid": 76.86,
         "high": 104.27
       },
@@ -9686,8 +9669,7 @@
         "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -9706,7 +9688,7 @@
         "growthCap": 15,
         "growth10": 18.77,
         "growth5": 8.85,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -9737,7 +9719,7 @@
       "status": "ok",
       "value": 179.55,
       "band": {
-        "low": 64.07,
+        "low": 117.4,
         "mid": 179.55,
         "high": 243.57
       },
@@ -9755,8 +9737,7 @@
         "CAPPED_GROWTH",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -9775,7 +9756,7 @@
         "growthCap": 15,
         "growth10": 25.54,
         "growth5": 10.04,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -9806,7 +9787,7 @@
       "status": "ok",
       "value": 830.28,
       "band": {
-        "low": 296.29,
+        "low": 471.62,
         "mid": 830.28,
         "high": 1126.33
       },
@@ -9822,8 +9803,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -9842,7 +9822,7 @@
         "growthCap": 15,
         "growth10": 20.58,
         "growth5": 6.33,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -9873,7 +9853,7 @@
       "status": "ok",
       "value": 226.84,
       "band": {
-        "low": 126.55,
+        "low": 180.05,
         "mid": 226.84,
         "high": 310.09
       },
@@ -9935,7 +9915,7 @@
       "status": "ok",
       "value": 108.45,
       "band": {
-        "low": 58.91,
+        "low": 79.9,
         "mid": 108.45,
         "high": 146
       },
@@ -10015,8 +9995,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -10035,7 +10014,7 @@
         "growthCap": 15,
         "growth10": 36.14,
         "growth5": 46.29,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -10196,7 +10175,7 @@
       "status": "ok",
       "value": 160.93,
       "band": {
-        "low": 71.65,
+        "low": 119.78,
         "mid": 160.93,
         "high": 218.31
       },
@@ -10263,7 +10242,7 @@
       "status": "ok",
       "value": 255.29,
       "band": {
-        "low": 104.57,
+        "low": 201.98,
         "mid": 255.29,
         "high": 397.53
       },
@@ -10274,8 +10253,7 @@
       "marginOfSafety": 12.77,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -10294,7 +10272,7 @@
         "growthCap": 15,
         "growth10": 11.44,
         "growth5": 25.27,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -10325,7 +10303,7 @@
       "status": "ok",
       "value": 135.51,
       "band": {
-        "low": 60.34,
+        "low": 106.7,
         "mid": 135.51,
         "high": 183.83
       },
@@ -10475,8 +10453,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -10495,7 +10472,7 @@
         "growthCap": 15,
         "growth10": 21.46,
         "growth5": 29.68,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -10656,7 +10633,7 @@
       "band": {
         "low": 14.57,
         "mid": 22.58,
-        "high": 55.39
+        "high": 29.89
       },
       "terminalShare": 0.4606,
       "cash": {
@@ -10851,7 +10828,7 @@
       "status": "ok",
       "value": 136.25,
       "band": {
-        "low": 90.9,
+        "low": 108.88,
         "mid": 136.25,
         "high": 181.88
       },
@@ -10912,7 +10889,7 @@
       "status": "ok",
       "value": 513.22,
       "band": {
-        "low": 228.51,
+        "low": 326.08,
         "mid": 513.22,
         "high": 696.22
       },
@@ -10978,7 +10955,7 @@
       "status": "ok",
       "value": 95.86,
       "band": {
-        "low": 57.75,
+        "low": 76.3,
         "mid": 95.86,
         "high": 135.28
       },
@@ -11043,7 +11020,7 @@
       "status": "ok",
       "value": 248.12,
       "band": {
-        "low": 136.53,
+        "low": 187.67,
         "mid": 248.12,
         "high": 333.87
       },
@@ -11230,7 +11207,7 @@
       "status": "ok",
       "value": 199.16,
       "band": {
-        "low": 88.68,
+        "low": 156.81,
         "mid": 199.16,
         "high": 270.18
       },
@@ -11297,7 +11274,7 @@
       "status": "ok",
       "value": 46.21,
       "band": {
-        "low": 30.48,
+        "low": 35.79,
         "mid": 46.21,
         "high": 61.72
       },
@@ -11421,7 +11398,7 @@
       "status": "ok",
       "value": 88.19,
       "band": {
-        "low": 40.73,
+        "low": 69.52,
         "mid": 88.19,
         "high": 122.71
       },
@@ -11552,7 +11529,7 @@
       "status": "ok",
       "value": 74.46,
       "band": {
-        "low": 26.57,
+        "low": 45.53,
         "mid": 74.46,
         "high": 101.01
       },
@@ -11569,8 +11546,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -11589,7 +11565,7 @@
         "growthCap": 15,
         "growth10": 16.51,
         "growth5": 8.27,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -11620,7 +11596,7 @@
       "status": "ok",
       "value": 229.55,
       "band": {
-        "low": 120.85,
+        "low": 165.29,
         "mid": 229.55,
         "high": 309.42
       },
@@ -11752,7 +11728,7 @@
       "status": "ok",
       "value": 81.46,
       "band": {
-        "low": 47.68,
+        "low": 64.77,
         "mid": 81.46,
         "high": 113.35
       },
@@ -11825,8 +11801,7 @@
       "marginOfSafety": -124.86,
       "reasons": [],
       "warnings": [
-        "LIFE_BOOK_QUALITY",
-        "REGIME_UNCERTAIN"
+        "LIFE_BOOK_QUALITY"
       ],
       "inputs": {
         "model": "residual",
@@ -11845,7 +11820,7 @@
         "growthCap": 15,
         "growth10": 8.73,
         "growth5": 0.45,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -11938,7 +11913,7 @@
       "status": "ok",
       "value": 248.97,
       "band": {
-        "low": 120.93,
+        "low": 198.22,
         "mid": 248.97,
         "high": 459.71
       },
@@ -11953,8 +11928,7 @@
       "marginOfSafety": -28.11,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -11973,7 +11947,7 @@
         "growthCap": 15,
         "growth10": 7.1,
         "growth5": 19.39,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -12004,7 +11978,7 @@
       "status": "ok",
       "value": 98.89,
       "band": {
-        "low": 51.16,
+        "low": 65.56,
         "mid": 98.89,
         "high": 133.39
       },
@@ -12140,8 +12114,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "NORMALIZED_EPS",
-        "REGIME_UNCERTAIN"
+        "NORMALIZED_EPS"
       ],
       "inputs": {
         "model": "residual",
@@ -12160,7 +12133,7 @@
         "growthCap": 15,
         "growth10": 26.25,
         "growth5": 17.07,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -12191,7 +12164,7 @@
       "status": "ok",
       "value": 141.15,
       "band": {
-        "low": 66.31,
+        "low": 111.34,
         "mid": 141.15,
         "high": 202.02
       },
@@ -12256,7 +12229,7 @@
       "status": "ok",
       "value": 116.98,
       "band": {
-        "low": 57.04,
+        "low": 87.37,
         "mid": 116.98,
         "high": 158.15
       },
@@ -12385,7 +12358,7 @@
       "status": "ok",
       "value": 95.46,
       "band": {
-        "low": 48.13,
+        "low": 63.8,
         "mid": 95.46,
         "high": 128.89
       },
@@ -12451,7 +12424,7 @@
       "status": "ok",
       "value": 330.08,
       "band": {
-        "low": 151.69,
+        "low": 260.17,
         "mid": 330.08,
         "high": 462.15
       },
@@ -12705,7 +12678,7 @@
       "status": "ok",
       "value": 137.61,
       "band": {
-        "low": 75.66,
+        "low": 109.16,
         "mid": 137.61,
         "high": 193.42
       },
@@ -12766,7 +12739,7 @@
       "status": "ok",
       "value": 148.51,
       "band": {
-        "low": 62.79,
+        "low": 117.63,
         "mid": 148.51,
         "high": 238.68
       },
@@ -12781,8 +12754,7 @@
       "marginOfSafety": -26.48,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -12801,7 +12773,7 @@
         "growthCap": 15,
         "growth10": 10.63,
         "growth5": 37.48,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -12832,7 +12804,7 @@
       "status": "ok",
       "value": 90.18,
       "band": {
-        "low": 50.71,
+        "low": 68.39,
         "mid": 90.18,
         "high": 121.25
       },
@@ -12893,7 +12865,7 @@
       "status": "ok",
       "value": 307.85,
       "band": {
-        "low": 137.07,
+        "low": 242.39,
         "mid": 307.85,
         "high": 417.62
       },
@@ -12960,7 +12932,7 @@
       "status": "ok",
       "value": 3028.92,
       "band": {
-        "low": 1359.55,
+        "low": 1985.32,
         "mid": 3028.92,
         "high": 4107.68
       },
@@ -13150,7 +13122,7 @@
       "status": "ok",
       "value": 66.05,
       "band": {
-        "low": 29.41,
+        "low": 49,
         "mid": 66.05,
         "high": 89.61
       },
@@ -13281,7 +13253,7 @@
       "band": {
         "low": 75.07,
         "mid": 116.32,
-        "high": 285.38
+        "high": 153.98
       },
       "terminalShare": 0.4606,
       "cash": null,
@@ -13600,7 +13572,7 @@
       "status": "ok",
       "value": 62.84,
       "band": {
-        "low": 28.16,
+        "low": 46.8,
         "mid": 62.84,
         "high": 85.22
       },
@@ -13730,7 +13702,7 @@
       "status": "ok",
       "value": 65.36,
       "band": {
-        "low": 27.64,
+        "low": 51.77,
         "mid": 65.36,
         "high": 105.08
       },
@@ -13746,8 +13718,7 @@
       "reasons": [],
       "warnings": [
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -13766,7 +13737,7 @@
         "growthCap": 15,
         "growth10": 10.62,
         "growth5": 20.87,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -13797,7 +13768,7 @@
       "status": "ok",
       "value": 92.55,
       "band": {
-        "low": 62.3,
+        "low": 73.99,
         "mid": 92.55,
         "high": 143.97
       },
@@ -13873,8 +13844,7 @@
       ],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -13893,7 +13863,7 @@
         "growthCap": 15,
         "growth10": 6.71,
         "growth5": 28.3,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -13985,7 +13955,7 @@
       "status": "ok",
       "value": 298.72,
       "band": {
-        "low": 134.36,
+        "low": 237.15,
         "mid": 298.72,
         "high": 510.76
       },
@@ -14002,8 +13972,7 @@
       "warnings": [
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -14022,7 +13991,7 @@
         "growthCap": 15,
         "growth10": 9.05,
         "growth5": 28.07,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -14053,7 +14022,7 @@
       "status": "ok",
       "value": 179.19,
       "band": {
-        "low": 160.47,
+        "low": 165.44,
         "mid": 179.19,
         "high": 197.15
       },
@@ -14063,9 +14032,7 @@
       "priceDate": "2026-11-18",
       "marginOfSafety": -107.05,
       "reasons": [],
-      "warnings": [
-        "REGIME_UNCERTAIN"
-      ],
+      "warnings": [],
       "inputs": {
         "model": "residual",
         "basis": "repeatable-earnings",
@@ -14083,7 +14050,7 @@
         "growthCap": 15,
         "growth10": 12.54,
         "growth5": 26.94,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -14114,7 +14081,7 @@
       "status": "ok",
       "value": 62.43,
       "band": {
-        "low": 34.31,
+        "low": 49.52,
         "mid": 62.43,
         "high": 91.34
       },
@@ -14308,7 +14275,7 @@
       "status": "ok",
       "value": 158.14,
       "band": {
-        "low": 64.07,
+        "low": 125.06,
         "mid": 158.14,
         "high": 243.57
       },
@@ -14324,8 +14291,7 @@
       "reasons": [],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -14344,7 +14310,7 @@
         "growthCap": 15,
         "growth10": 11.72,
         "growth5": 43.58,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -14375,7 +14341,7 @@
       "status": "ok",
       "value": 58.26,
       "band": {
-        "low": 34.4,
+        "low": 46.34,
         "mid": 58.26,
         "high": 91.8
       },
@@ -14694,7 +14660,7 @@
       "status": "ok",
       "value": 346.9,
       "band": {
-        "low": 182.7,
+        "low": 274.76,
         "mid": 346.9,
         "high": 479.51
       },
@@ -14759,7 +14725,7 @@
       "status": "ok",
       "value": 50.97,
       "band": {
-        "low": 31.46,
+        "low": 39.6,
         "mid": 50.97,
         "high": 68.27
       },
@@ -15012,7 +14978,7 @@
       "status": "ok",
       "value": 86.25,
       "band": {
-        "low": 43.05,
+        "low": 67.27,
         "mid": 86.25,
         "high": 116.5
       },
@@ -15073,7 +15039,7 @@
       "status": "ok",
       "value": 77.76,
       "band": {
-        "low": 56.68,
+        "low": 59.13,
         "mid": 77.76,
         "high": 103.4
       },
@@ -15263,7 +15229,7 @@
       "status": "ok",
       "value": 104.09,
       "band": {
-        "low": 49.11,
+        "low": 82.12,
         "mid": 104.09,
         "high": 149.62
       },
@@ -15346,8 +15312,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -15366,7 +15331,7 @@
         "growthCap": 15,
         "growth10": 36.96,
         "growth5": 12.23,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -15595,7 +15560,7 @@
       "status": "ok",
       "value": 68.33,
       "band": {
-        "low": 47.5,
+        "low": 54.69,
         "mid": 68.33,
         "high": 91.05
       },
@@ -15660,7 +15625,7 @@
       "status": "ok",
       "value": 370.31,
       "band": {
-        "low": 164.88,
+        "low": 291.56,
         "mid": 370.31,
         "high": 502.34
       },
@@ -15727,7 +15692,7 @@
       "status": "ok",
       "value": 109.89,
       "band": {
-        "low": 48.93,
+        "low": 86.52,
         "mid": 109.89,
         "high": 149.07
       },
@@ -15996,7 +15961,7 @@
       "status": "ok",
       "value": 64.79,
       "band": {
-        "low": 45.01,
+        "low": 46.16,
         "mid": 64.79,
         "high": 86.34
       },
@@ -16128,7 +16093,7 @@
       "status": "ok",
       "value": 49.53,
       "band": {
-        "low": 25.57,
+        "low": 39.52,
         "mid": 49.53,
         "high": 97.21
       },
@@ -16140,8 +16105,7 @@
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -16160,7 +16124,7 @@
         "growthCap": 15,
         "growth10": 5.56,
         "growth5": 29.06,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -16257,7 +16221,7 @@
       "status": "ok",
       "value": 133.1,
       "band": {
-        "low": 70.76,
+        "low": 105.46,
         "mid": 133.1,
         "high": 184
       },
@@ -16378,7 +16342,7 @@
       "status": "ok",
       "value": 183.63,
       "band": {
-        "low": 92.51,
+        "low": 145.21,
         "mid": 183.63,
         "high": 281.85
       },
@@ -16502,7 +16466,7 @@
       "status": "ok",
       "value": 96.84,
       "band": {
-        "low": 45.07,
+        "low": 76.97,
         "mid": 96.84,
         "high": 171.34
       },
@@ -16514,8 +16478,7 @@
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -16534,7 +16497,7 @@
         "growthCap": 15,
         "growth10": 8.18,
         "growth5": 29.69,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -16631,7 +16594,7 @@
       "status": "ok",
       "value": 68.7,
       "band": {
-        "low": 34.21,
+        "low": 54.75,
         "mid": 68.7,
         "high": 130.07
       },
@@ -16648,8 +16611,7 @@
       "warnings": [
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -16668,7 +16630,7 @@
         "growthCap": 15,
         "growth10": 6.47,
         "growth5": 16.81,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -16699,7 +16661,7 @@
       "status": "ok",
       "value": 72.01,
       "band": {
-        "low": 50.26,
+        "low": 57.65,
         "mid": 72.01,
         "high": 132.78
       },
@@ -16760,7 +16722,7 @@
       "status": "ok",
       "value": 66.74,
       "band": {
-        "low": 47.41,
+        "low": 53.47,
         "mid": 66.74,
         "high": 94.7
       },
@@ -16825,7 +16787,7 @@
       "status": "ok",
       "value": 345.78,
       "band": {
-        "low": 316.32,
+        "low": 320.5,
         "mid": 345.78,
         "high": 374.47
       },
@@ -16835,9 +16797,7 @@
       "priceDate": "2026-11-18",
       "marginOfSafety": -21.48,
       "reasons": [],
-      "warnings": [
-        "REGIME_UNCERTAIN"
-      ],
+      "warnings": [],
       "inputs": {
         "model": "residual",
         "basis": "repeatable-earnings",
@@ -16855,7 +16815,7 @@
         "growthCap": 15,
         "growth10": 5.33,
         "growth5": 24.22,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -16886,7 +16846,7 @@
       "status": "ok",
       "value": 56.74,
       "band": {
-        "low": 22.21,
+        "low": 44.82,
         "mid": 56.74,
         "high": 84.45
       },
@@ -16899,8 +16859,7 @@
       "warnings": [
         "GROWTH_ABOVE_RETENTION",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -16919,7 +16878,7 @@
         "growthCap": 15,
         "growth10": 12.6,
         "growth5": 42.29,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -17015,7 +16974,7 @@
       "status": "ok",
       "value": 446.52,
       "band": {
-        "low": 224.68,
+        "low": 293.93,
         "mid": 446.52,
         "high": 602.95
       },
@@ -17095,8 +17054,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -17115,7 +17073,7 @@
         "growthCap": 15,
         "growth10": 28.41,
         "growth5": 63.67,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -17213,7 +17171,7 @@
       "status": "ok",
       "value": 146.55,
       "band": {
-        "low": 81.28,
+        "low": 92.54,
         "mid": 146.55,
         "high": 197.14
       },
@@ -17345,7 +17303,7 @@
       "status": "ok",
       "value": 61.5,
       "band": {
-        "low": 40.64,
+        "low": 49.13,
         "mid": 61.5,
         "high": 82.85
       },
@@ -17407,7 +17365,7 @@
       "status": "ok",
       "value": 145.14,
       "band": {
-        "low": 92.69,
+        "low": 106.76,
         "mid": 145.14,
         "high": 194.11
       },
@@ -17470,7 +17428,7 @@
       "status": "ok",
       "value": 176.76,
       "band": {
-        "low": 74.64,
+        "low": 140.01,
         "mid": 176.76,
         "high": 283.75
       },
@@ -17485,8 +17443,7 @@
       "marginOfSafety": -91.41,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -17505,7 +17462,7 @@
         "growthCap": 15,
         "growth10": 10.66,
         "growth5": 24.53,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -17536,7 +17493,7 @@
       "status": "ok",
       "value": 28.56,
       "band": {
-        "low": 16.31,
+        "low": 21.41,
         "mid": 28.56,
         "high": 38.38
       },
@@ -17602,7 +17559,7 @@
       "status": "ok",
       "value": 101.28,
       "band": {
-        "low": 53.03,
+        "low": 71.79,
         "mid": 101.28,
         "high": 136.55
       },
@@ -17667,7 +17624,7 @@
       "status": "ok",
       "value": 62.57,
       "band": {
-        "low": 40.91,
+        "low": 48.38,
         "mid": 62.57,
         "high": 83.6
       },
@@ -18127,8 +18084,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -18147,7 +18103,7 @@
         "growthCap": 15,
         "growth10": 36.81,
         "growth5": 47.83,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -18178,7 +18134,7 @@
       "status": "ok",
       "value": 227.74,
       "band": {
-        "low": 137.69,
+        "low": 180.41,
         "mid": 227.74,
         "high": 305.28
       },
@@ -18370,7 +18326,7 @@
       "status": "ok",
       "value": 266.1,
       "band": {
-        "low": 125.39,
+        "low": 209.93,
         "mid": 266.1,
         "high": 382.05
       },
@@ -18696,7 +18652,7 @@
       "status": "ok",
       "value": 162.77,
       "band": {
-        "low": 76.56,
+        "low": 115.22,
         "mid": 162.77,
         "high": 220.36
       },
@@ -18824,7 +18780,7 @@
       "status": "ok",
       "value": 708.58,
       "band": {
-        "low": 315.49,
+        "low": 557.91,
         "mid": 708.58,
         "high": 961.23
       },
@@ -18890,7 +18846,7 @@
       "status": "ok",
       "value": 567.07,
       "band": {
-        "low": 252.48,
+        "low": 446.48,
         "mid": 567.07,
         "high": 769.26
       },
@@ -18956,7 +18912,7 @@
       "status": "ok",
       "value": 227.23,
       "band": {
-        "low": 126.82,
+        "low": 145.57,
         "mid": 227.23,
         "high": 305.59
       },
@@ -19034,8 +18990,7 @@
       "marginOfSafety": -117.97,
       "reasons": [],
       "warnings": [
-        "NORMALIZED_EPS",
-        "REGIME_UNCERTAIN"
+        "NORMALIZED_EPS"
       ],
       "inputs": {
         "model": "residual",
@@ -19054,7 +19009,7 @@
         "growthCap": 15,
         "growth10": 12.9,
         "growth5": 22.85,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -19153,7 +19108,7 @@
       "status": "ok",
       "value": 38.95,
       "band": {
-        "low": 23.62,
+        "low": 29.52,
         "mid": 38.95,
         "high": 52.21
       },
@@ -19218,7 +19173,7 @@
       "status": "ok",
       "value": 313.9,
       "band": {
-        "low": 147.41,
+        "low": 247.61,
         "mid": 313.9,
         "high": 449.12
       },
@@ -19350,7 +19305,7 @@
       "status": "ok",
       "value": 36.63,
       "band": {
-        "low": 16.31,
+        "low": 28.84,
         "mid": 36.63,
         "high": 49.69
       },
@@ -19483,7 +19438,7 @@
       "status": "ok",
       "value": 96.2,
       "band": {
-        "low": 51.42,
+        "low": 72.28,
         "mid": 96.2,
         "high": 129.59
       },
@@ -19549,7 +19504,7 @@
       "status": "ok",
       "value": 93.33,
       "band": {
-        "low": 57.13,
+        "low": 70.2,
         "mid": 93.33,
         "high": 125.05
       },
@@ -19676,7 +19631,7 @@
       "status": "ok",
       "value": 19.22,
       "band": {
-        "low": 8.56,
+        "low": 15.13,
         "mid": 19.22,
         "high": 26.07
       },
@@ -19800,7 +19755,7 @@
       "status": "ok",
       "value": 101.8,
       "band": {
-        "low": 56,
+        "low": 81.44,
         "mid": 101.8,
         "high": 212.88
       },
@@ -19816,8 +19771,7 @@
       "reasons": [],
       "warnings": [
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -19836,7 +19790,7 @@
         "growthCap": 15,
         "growth10": 3.97,
         "growth5": 40.54,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -19995,7 +19949,7 @@
       "status": "ok",
       "value": 153.71,
       "band": {
-        "low": 93.49,
+        "low": 122.4,
         "mid": 153.71,
         "high": 229.17
       },
@@ -20075,8 +20029,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -20095,7 +20048,7 @@
         "growthCap": 15,
         "growth10": 27.2,
         "growth5": 16.31,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -20126,7 +20079,7 @@
       "status": "ok",
       "value": 47.65,
       "band": {
-        "low": 23.97,
+        "low": 37.67,
         "mid": 47.65,
         "high": 73.04
       },
@@ -20188,7 +20141,7 @@
       "status": "ok",
       "value": 156.33,
       "band": {
-        "low": 55.79,
+        "low": 109.46,
         "mid": 156.33,
         "high": 212.07
       },
@@ -20207,8 +20160,7 @@
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -20227,7 +20179,7 @@
         "growthCap": 15,
         "growth10": 24.84,
         "growth5": 11.86,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -20258,7 +20210,7 @@
       "status": "ok",
       "value": 140.64,
       "band": {
-        "low": 125.59,
+        "low": 129.63,
         "mid": 140.64,
         "high": 153.93
       },
@@ -20320,7 +20272,7 @@
       "status": "ok",
       "value": 22.61,
       "band": {
-        "low": 13.55,
+        "low": 15.6,
         "mid": 22.61,
         "high": 30.32
       },
@@ -20385,7 +20337,7 @@
       "status": "ok",
       "value": 83.54,
       "band": {
-        "low": 43.76,
+        "low": 59.96,
         "mid": 83.54,
         "high": 112.63
       },
@@ -20512,7 +20464,7 @@
       "status": "ok",
       "value": 27.42,
       "band": {
-        "low": 12.21,
+        "low": 21.59,
         "mid": 27.42,
         "high": 37.2
       },
@@ -20726,8 +20678,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -20746,7 +20697,7 @@
         "growthCap": 15,
         "growth10": 17.07,
         "growth5": 7.36,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -20975,7 +20926,7 @@
       "status": "ok",
       "value": 456.18,
       "band": {
-        "low": 203.11,
+        "low": 359.17,
         "mid": 456.18,
         "high": 618.83
       },
@@ -21042,7 +20993,7 @@
       "status": "ok",
       "value": 138.11,
       "band": {
-        "low": 61.49,
+        "low": 108.74,
         "mid": 138.11,
         "high": 187.36
       },
@@ -21178,7 +21129,7 @@
       "status": "ok",
       "value": 233.75,
       "band": {
-        "low": 105.61,
+        "low": 148.33,
         "mid": 233.75,
         "high": 316.92
       },
@@ -21306,7 +21257,7 @@
       "status": "ok",
       "value": 27.3,
       "band": {
-        "low": 20.94,
+        "low": 21.94,
         "mid": 27.3,
         "high": 36.22
       },
@@ -21496,7 +21447,7 @@
       "status": "ok",
       "value": 330.67,
       "band": {
-        "low": 147.23,
+        "low": 260.36,
         "mid": 330.67,
         "high": 448.58
       },
@@ -21564,7 +21515,7 @@
       "status": "ok",
       "value": 47.29,
       "band": {
-        "low": 27,
+        "low": 37.89,
         "mid": 47.29,
         "high": 89.28
       },
@@ -21576,8 +21527,7 @@
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -21596,7 +21546,7 @@
         "growthCap": 15,
         "growth10": 3.04,
         "growth5": 11.53,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -21693,7 +21643,7 @@
       "status": "ok",
       "value": 190.45,
       "band": {
-        "low": 106.5,
+        "low": 151.17,
         "mid": 190.45,
         "high": 307.05
       },
@@ -21774,8 +21724,7 @@
       ],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -21794,7 +21743,7 @@
         "growthCap": 15,
         "growth10": 5.99,
         "growth5": 51.79,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -21825,7 +21774,7 @@
       "status": "ok",
       "value": 253.08,
       "band": {
-        "low": 121.83,
+        "low": 164.37,
         "mid": 253.08,
         "high": 342.33
       },
@@ -21890,7 +21839,7 @@
       "status": "ok",
       "value": 46.36,
       "band": {
-        "low": 33.24,
+        "low": 37.16,
         "mid": 46.36,
         "high": 73.22
       },
@@ -22018,7 +21967,7 @@
       "status": "ok",
       "value": 40.07,
       "band": {
-        "low": 26.11,
+        "low": 27.21,
         "mid": 40.07,
         "high": 53.54
       },
@@ -22084,7 +22033,7 @@
       "status": "ok",
       "value": 337.93,
       "band": {
-        "low": 167.28,
+        "low": 247.34,
         "mid": 337.93,
         "high": 456.6
       },
@@ -22285,7 +22234,7 @@
       "status": "ok",
       "value": 145.72,
       "band": {
-        "low": 64.88,
+        "low": 114.73,
         "mid": 145.72,
         "high": 197.68
       },
@@ -22354,7 +22303,7 @@
       "status": "ok",
       "value": 142.76,
       "band": {
-        "low": 75.13,
+        "low": 113.07,
         "mid": 142.76,
         "high": 228.9
       },
@@ -22419,7 +22368,7 @@
       "status": "ok",
       "value": 71.96,
       "band": {
-        "low": 64.01,
+        "low": 65.37,
         "mid": 71.96,
         "high": 78.44
       },
@@ -22481,7 +22430,7 @@
       "status": "ok",
       "value": 314.06,
       "band": {
-        "low": 139.83,
+        "low": 247.28,
         "mid": 314.06,
         "high": 426.04
       },
@@ -22547,7 +22496,7 @@
       "status": "ok",
       "value": 255.21,
       "band": {
-        "low": 113.63,
+        "low": 200.94,
         "mid": 255.21,
         "high": 346.21
       },
@@ -22672,7 +22621,7 @@
       "status": "ok",
       "value": 771.6,
       "band": {
-        "low": 374.76,
+        "low": 571.49,
         "mid": 771.6,
         "high": 1043.32
       },
@@ -22737,7 +22686,7 @@
       "status": "ok",
       "value": 51.65,
       "band": {
-        "low": 23.57,
+        "low": 41.03,
         "mid": 51.65,
         "high": 89.61
       },
@@ -22749,8 +22698,7 @@
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -22769,7 +22717,7 @@
         "growthCap": 15,
         "growth10": 8.68,
         "growth5": 17.4,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -22866,7 +22814,7 @@
       "status": "ok",
       "value": 29.1,
       "band": {
-        "low": 17.38,
+        "low": 23.15,
         "mid": 29.1,
         "high": 45.67
       },
@@ -22995,7 +22943,7 @@
       "status": "ok",
       "value": 499.44,
       "band": {
-        "low": 259.17,
+        "low": 363.86,
         "mid": 499.44,
         "high": 673.61
       },
@@ -23061,7 +23009,7 @@
       "status": "ok",
       "value": 77.65,
       "band": {
-        "low": 35.74,
+        "low": 61.21,
         "mid": 77.65,
         "high": 108.89
       },
@@ -23124,7 +23072,7 @@
       "status": "ok",
       "value": 206.33,
       "band": {
-        "low": 113.63,
+        "low": 163.69,
         "mid": 206.33,
         "high": 285.43
       },
@@ -23190,7 +23138,7 @@
       "status": "ok",
       "value": 335.06,
       "band": {
-        "low": 128.57,
+        "low": 264.48,
         "mid": 335.06,
         "high": 488.76
       },
@@ -23201,8 +23149,7 @@
       "marginOfSafety": 25.26,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -23221,7 +23168,7 @@
         "growthCap": 15,
         "growth10": 13.12,
         "growth5": 26.08,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -23252,7 +23199,7 @@
       "status": "ok",
       "value": 8738.2,
       "band": {
-        "low": 3890.6,
+        "low": 6545.08,
         "mid": 8738.2,
         "high": 11853.86
       },
@@ -23443,7 +23390,7 @@
       "status": "ok",
       "value": 64.12,
       "band": {
-        "low": 33.06,
+        "low": 40.21,
         "mid": 64.12,
         "high": 86.5
       },
@@ -23507,7 +23454,7 @@
       "status": "ok",
       "value": 48.13,
       "band": {
-        "low": 31.19,
+        "low": 38.42,
         "mid": 48.13,
         "high": 80.81
       },
@@ -23700,7 +23647,7 @@
       "status": "ok",
       "value": 70.3,
       "band": {
-        "low": 37.61,
+        "low": 41.17,
         "mid": 70.3,
         "high": 94.7
       },
@@ -23830,7 +23777,7 @@
       "status": "ok",
       "value": 79.11,
       "band": {
-        "low": 59,
+        "low": 63.5,
         "mid": 79.11,
         "high": 113.7
       },
@@ -23897,7 +23844,7 @@
       "status": "ok",
       "value": 70.98,
       "band": {
-        "low": 62.09,
+        "low": 65.38,
         "mid": 70.98,
         "high": 77.27
       },
@@ -23909,8 +23856,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "NORMALIZED_EPS",
-        "REGIME_UNCERTAIN"
+        "NORMALIZED_EPS"
       ],
       "inputs": {
         "model": "residual",
@@ -23929,7 +23875,7 @@
         "growthCap": 15,
         "growth10": 30.43,
         "growth5": 14.76,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -23960,7 +23906,7 @@
       "status": "ok",
       "value": 570.07,
       "band": {
-        "low": 253.82,
+        "low": 448.85,
         "mid": 570.07,
         "high": 773.33
       },
@@ -24026,7 +23972,7 @@
       "status": "ok",
       "value": 222.58,
       "band": {
-        "low": 99.1,
+        "low": 175.25,
         "mid": 222.58,
         "high": 301.95
       },
@@ -24092,7 +24038,7 @@
       "status": "ok",
       "value": 124.64,
       "band": {
-        "low": 76.47,
+        "low": 99.28,
         "mid": 124.64,
         "high": 207.63
       },
@@ -24157,7 +24103,7 @@
       "status": "ok",
       "value": 48.41,
       "band": {
-        "low": 31.73,
+        "low": 38.66,
         "mid": 48.41,
         "high": 86.08
       },
@@ -24219,7 +24165,7 @@
       "status": "ok",
       "value": 100.24,
       "band": {
-        "low": 64.7,
+        "low": 80,
         "mid": 100.24,
         "high": 142.92
       },
@@ -24345,7 +24291,7 @@
       "status": "ok",
       "value": 50.91,
       "band": {
-        "low": 28.29,
+        "low": 40.74,
         "mid": 50.91,
         "high": 99.65
       },
@@ -24360,8 +24306,7 @@
       "marginOfSafety": -34.3,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -24380,7 +24325,7 @@
         "growthCap": 15,
         "growth10": 3.72,
         "growth5": 13.1,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -24411,7 +24356,7 @@
       "status": "ok",
       "value": 62.49,
       "band": {
-        "low": 45.01,
+        "low": 46.3,
         "mid": 62.49,
         "high": 83.15
       },
@@ -24472,7 +24417,7 @@
       "status": "ok",
       "value": 108.79,
       "band": {
-        "low": 61.85,
+        "low": 86.41,
         "mid": 108.79,
         "high": 149.65
       },
@@ -24664,7 +24609,7 @@
       "status": "ok",
       "value": 113.26,
       "band": {
-        "low": 80.3,
+        "low": 90.73,
         "mid": 113.26,
         "high": 180.17
       },
@@ -24737,8 +24682,7 @@
         "CAPPED_GROWTH",
         "MODEL_CAVEAT",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -24757,7 +24701,7 @@
         "growthCap": 15,
         "growth10": 15.63,
         "growth5": 38.06,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -24788,7 +24732,7 @@
       "status": "ok",
       "value": 136.11,
       "band": {
-        "low": 60.6,
+        "low": 107.17,
         "mid": 136.11,
         "high": 184.64
       },
@@ -24923,7 +24867,7 @@
       "status": "ok",
       "value": 109.65,
       "band": {
-        "low": 56.24,
+        "low": 86.76,
         "mid": 109.65,
         "high": 147.95
       },
@@ -24990,7 +24934,7 @@
       "status": "ok",
       "value": 40.06,
       "band": {
-        "low": 20.5,
+        "low": 31.7,
         "mid": 40.06,
         "high": 62.45
       },
@@ -25051,7 +24995,7 @@
       "status": "ok",
       "value": 185.15,
       "band": {
-        "low": 73.57,
+        "low": 146.33,
         "mid": 185.15,
         "high": 279.68
       },
@@ -25063,8 +25007,7 @@
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -25083,7 +25026,7 @@
         "growthCap": 15,
         "growth10": 12.22,
         "growth5": 21.56,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -25114,7 +25057,7 @@
       "status": "ok",
       "value": 194.36,
       "band": {
-        "low": 69.36,
+        "low": 153.03,
         "mid": 194.36,
         "high": 263.66
       },
@@ -25127,8 +25070,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -25147,7 +25089,7 @@
         "growthCap": 15,
         "growth10": 29,
         "growth5": 16.98,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -25193,8 +25135,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -25213,7 +25154,7 @@
         "growthCap": 15,
         "growth10": 17.73,
         "growth5": 26.34,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -25244,7 +25185,7 @@
       "status": "ok",
       "value": 125.42,
       "band": {
-        "low": 73.79,
+        "low": 78.54,
         "mid": 125.42,
         "high": 168.32
       },
@@ -25311,7 +25252,7 @@
       "status": "ok",
       "value": 17.15,
       "band": {
-        "low": 9.71,
+        "low": 13.62,
         "mid": 17.15,
         "high": 29.6
       },
@@ -25376,7 +25317,7 @@
       "status": "ok",
       "value": 137.11,
       "band": {
-        "low": 61.05,
+        "low": 107.96,
         "mid": 137.11,
         "high": 186
       },
@@ -25642,7 +25583,7 @@
       "status": "ok",
       "value": 176.15,
       "band": {
-        "low": 91.44,
+        "low": 119.08,
         "mid": 176.15,
         "high": 237.57
       },
@@ -25772,7 +25713,7 @@
       "status": "ok",
       "value": 33.51,
       "band": {
-        "low": 16.79,
+        "low": 26.71,
         "mid": 33.51,
         "high": 63.81
       },
@@ -25788,8 +25729,7 @@
       "reasons": [],
       "warnings": [
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -25808,7 +25748,7 @@
         "growthCap": 15,
         "growth10": 6.32,
         "growth5": 15.51,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -25839,7 +25779,7 @@
       "status": "ok",
       "value": 288.17,
       "band": {
-        "low": 171.02,
+        "low": 229.26,
         "mid": 288.17,
         "high": 441.82
       },
@@ -25900,7 +25840,7 @@
       "status": "ok",
       "value": 52.8,
       "band": {
-        "low": 34.94,
+        "low": 42.18,
         "mid": 52.8,
         "high": 73.8
       },
@@ -25962,7 +25902,7 @@
       "status": "ok",
       "value": 117.7,
       "band": {
-        "low": 49.86,
+        "low": 93.23,
         "mid": 117.7,
         "high": 189.53
       },
@@ -25979,8 +25919,7 @@
       "warnings": [
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -25999,7 +25938,7 @@
         "growthCap": 15,
         "growth10": 10.58,
         "growth5": 31.6,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -26109,8 +26048,7 @@
         "CAPPED_GROWTH",
         "STALE_DATA",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -26129,7 +26067,7 @@
         "growthCap": 15,
         "growth10": 22.46,
         "growth5": 11.36,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -26160,7 +26098,7 @@
       "status": "ok",
       "value": 139.55,
       "band": {
-        "low": 83.77,
+        "low": 111.07,
         "mid": 139.55,
         "high": 194.33
       },
@@ -26354,7 +26292,7 @@
       "status": "ok",
       "value": 59.09,
       "band": {
-        "low": 50.65,
+        "low": 54.61,
         "mid": 59.09,
         "high": 64.36
       },
@@ -26364,9 +26302,7 @@
       "priceDate": "2026-11-18",
       "marginOfSafety": -18.73,
       "reasons": [],
-      "warnings": [
-        "REGIME_UNCERTAIN"
-      ],
+      "warnings": [],
       "inputs": {
         "model": "residual",
         "basis": "repeatable-earnings",
@@ -26384,7 +26320,7 @@
         "growthCap": 15,
         "growth10": 14.66,
         "growth5": 32.53,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -26415,7 +26351,7 @@
       "status": "ok",
       "value": 125.94,
       "band": {
-        "low": 74.86,
+        "low": 100.2,
         "mid": 125.94,
         "high": 226.91
       },
@@ -26480,7 +26416,7 @@
       "status": "ok",
       "value": 52.52,
       "band": {
-        "low": 26.14,
+        "low": 41.85,
         "mid": 52.52,
         "high": 99.38
       },
@@ -26495,8 +26431,7 @@
       "marginOfSafety": -48.36,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -26515,7 +26450,7 @@
         "growthCap": 15,
         "growth10": 6.48,
         "growth5": 29.11,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -26546,7 +26481,7 @@
       "status": "ok",
       "value": 25.82,
       "band": {
-        "low": 17.56,
+        "low": 19.51,
         "mid": 25.82,
         "high": 34.43
       },
@@ -26612,7 +26547,7 @@
       "status": "ok",
       "value": 710.79,
       "band": {
-        "low": 316.47,
+        "low": 559.64,
         "mid": 710.79,
         "high": 964.22
       },
@@ -26679,7 +26614,7 @@
       "status": "ok",
       "value": 375.45,
       "band": {
-        "low": 134.86,
+        "low": 295.68,
         "mid": 375.45,
         "high": 512.66
       },
@@ -26694,8 +26629,7 @@
       "marginOfSafety": -67.22,
       "reasons": [],
       "warnings": [
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -26714,7 +26648,7 @@
         "growthCap": 15,
         "growth10": 14.83,
         "growth5": 50.08,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -26745,7 +26679,7 @@
       "status": "ok",
       "value": 123.04,
       "band": {
-        "low": 66.57,
+        "low": 97.55,
         "mid": 123.04,
         "high": 167.5
       },
@@ -26937,7 +26871,7 @@
       "status": "ok",
       "value": 87.44,
       "band": {
-        "low": 43.4,
+        "low": 69.11,
         "mid": 87.44,
         "high": 132.24
       },
@@ -27066,7 +27000,7 @@
       "status": "ok",
       "value": 353.46,
       "band": {
-        "low": 126.71,
+        "low": 171.75,
         "mid": 353.46,
         "high": 479.4
       },
@@ -27083,8 +27017,7 @@
       "warnings": [
         "STALE_DATA",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -27103,7 +27036,7 @@
         "growthCap": 15,
         "growth10": 14.88,
         "growth5": 2.14,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -27134,7 +27067,7 @@
       "status": "ok",
       "value": 69.68,
       "band": {
-        "low": 31.19,
+        "low": 54.87,
         "mid": 69.68,
         "high": 95.04
       },
@@ -27280,8 +27213,7 @@
       "marginOfSafety": -218.59,
       "reasons": [],
       "warnings": [
-        "NORMALIZED_EPS",
-        "REGIME_UNCERTAIN"
+        "NORMALIZED_EPS"
       ],
       "inputs": {
         "model": "residual",
@@ -27300,7 +27232,7 @@
         "growthCap": 15,
         "growth10": 11.52,
         "growth5": 21.13,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -27331,7 +27263,7 @@
       "status": "ok",
       "value": 125.1,
       "band": {
-        "low": 55.7,
+        "low": 98.5,
         "mid": 125.1,
         "high": 169.71
       },
@@ -27460,7 +27392,7 @@
       "status": "ok",
       "value": 142.76,
       "band": {
-        "low": 62.64,
+        "low": 113.23,
         "mid": 142.76,
         "high": 238.14
       },
@@ -27477,8 +27409,7 @@
       "warnings": [
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -27497,7 +27428,7 @@
         "growthCap": 15,
         "growth10": 9.68,
         "growth5": 29.82,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -27528,7 +27459,7 @@
       "status": "ok",
       "value": 65.82,
       "band": {
-        "low": 45.54,
+        "low": 46.81,
         "mid": 65.82,
         "high": 87.73
       },
@@ -27792,7 +27723,7 @@
       "status": "ok",
       "value": 197.71,
       "band": {
-        "low": 106.77,
+        "low": 149.28,
         "mid": 197.71,
         "high": 266.24
       },
@@ -27857,7 +27788,7 @@
       "status": "ok",
       "value": 92.61,
       "band": {
-        "low": 46.86,
+        "low": 73.85,
         "mid": 92.61,
         "high": 178.13
       },
@@ -27873,8 +27804,7 @@
       "reasons": [],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -27893,7 +27823,7 @@
         "growthCap": 15,
         "growth10": 6.07,
         "growth5": 33.62,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -27924,7 +27854,7 @@
       "status": "ok",
       "value": 772.84,
       "band": {
-        "low": 344.1,
+        "low": 608.5,
         "mid": 772.84,
         "high": 1048.4
       },
@@ -27986,7 +27916,7 @@
       "status": "ok",
       "value": 34.28,
       "band": {
-        "low": 31.85,
+        "low": 31.92,
         "mid": 34.28,
         "high": 37.46
       },
@@ -28107,7 +28037,7 @@
       "status": "ok",
       "value": 64.45,
       "band": {
-        "low": 23,
+        "low": 50.75,
         "mid": 64.45,
         "high": 87.43
       },
@@ -28121,8 +28051,7 @@
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -28141,7 +28070,7 @@
         "growthCap": 15,
         "growth10": 29.53,
         "growth5": 18.18,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -28172,7 +28101,7 @@
       "status": "ok",
       "value": 41.34,
       "band": {
-        "low": 23.26,
+        "low": 32.01,
         "mid": 41.34,
         "high": 55.57
       },
@@ -28301,7 +28230,7 @@
       "status": "ok",
       "value": 44.77,
       "band": {
-        "low": 33.51,
+        "low": 35.94,
         "mid": 44.77,
         "high": 102.1
       },
@@ -28367,7 +28296,7 @@
       "status": "ok",
       "value": 140.76,
       "band": {
-        "low": 72.28,
+        "low": 111.39,
         "mid": 140.76,
         "high": 203.75
       },
@@ -28433,7 +28362,7 @@
       "status": "ok",
       "value": 44.18,
       "band": {
-        "low": 26.2,
+        "low": 30.24,
         "mid": 44.18,
         "high": 59.27
       },
@@ -28627,7 +28556,7 @@
       "status": "ok",
       "value": 2.6,
       "band": {
-        "low": 1.16,
+        "low": 2.05,
         "mid": 2.6,
         "high": 3.53
       },
@@ -28767,8 +28696,7 @@
       ],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -28787,7 +28715,7 @@
         "growthCap": 15,
         "growth10": 8.27,
         "growth5": 25.77,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -28818,7 +28746,7 @@
       "status": "ok",
       "value": 151,
       "band": {
-        "low": 95.89,
+        "low": 117.08,
         "mid": 151,
         "high": 202
       },
@@ -28884,7 +28812,7 @@
       "status": "ok",
       "value": 66.49,
       "band": {
-        "low": 42.87,
+        "low": 51.74,
         "mid": 66.49,
         "high": 88.89
       },
@@ -29067,7 +28995,7 @@
       "status": "ok",
       "value": 114.22,
       "band": {
-        "low": 59.71,
+        "low": 90.44,
         "mid": 114.22,
         "high": 172.98
       },
@@ -29195,7 +29123,7 @@
       "status": "ok",
       "value": 135.91,
       "band": {
-        "low": 60.51,
+        "low": 83.02,
         "mid": 135.91,
         "high": 184.37
       },
@@ -29324,7 +29252,7 @@
       "status": "ok",
       "value": 49.11,
       "band": {
-        "low": 19.93,
+        "low": 38.84,
         "mid": 49.11,
         "high": 75.76
       },
@@ -29341,8 +29269,7 @@
       "warnings": [
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -29361,7 +29288,7 @@
         "growthCap": 15,
         "growth10": 11.68,
         "growth5": 22.87,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -29392,7 +29319,7 @@
       "status": "ok",
       "value": 6.61,
       "band": {
-        "low": 2.94,
+        "low": 5.2,
         "mid": 6.61,
         "high": 8.96
       },
@@ -29457,7 +29384,7 @@
       "status": "ok",
       "value": 70.49,
       "band": {
-        "low": 39.64,
+        "low": 56.45,
         "mid": 70.49,
         "high": 142.2
       },
@@ -29473,8 +29400,7 @@
       "reasons": [],
       "warnings": [
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -29493,7 +29419,7 @@
         "growthCap": 15,
         "growth10": 3.42,
         "growth5": 13.55,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 12,
         "reportingCurrency": "USD",
         "reportingCurrencySource": "market",
@@ -29587,7 +29513,7 @@
       "status": "ok",
       "value": 120.5,
       "band": {
-        "low": 53.65,
+        "low": 84.72,
         "mid": 120.5,
         "high": 163.46
       },
@@ -29904,7 +29830,7 @@
       "status": "ok",
       "value": 51.29,
       "band": {
-        "low": 47.13,
+        "low": 47.17,
         "mid": 51.29,
         "high": 55.95
       },
@@ -29982,8 +29908,7 @@
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -30002,7 +29927,7 @@
         "growthCap": 15,
         "growth10": 24,
         "growth5": 6.93,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -30033,7 +29958,7 @@
       "status": "ok",
       "value": 12.58,
       "band": {
-        "low": 7.3,
+        "low": 8.56,
         "mid": 12.58,
         "high": 18.95
       },
@@ -30221,7 +30146,7 @@
       "status": "ok",
       "value": 1772.42,
       "band": {
-        "low": 726.47,
+        "low": 1164.87,
         "mid": 1772.42,
         "high": 2708.36
       },
@@ -30355,7 +30280,7 @@
       "status": "ok",
       "value": 37.24,
       "band": {
-        "low": 19.37,
+        "low": 27.7,
         "mid": 37.24,
         "high": 59.22
       },
@@ -30547,7 +30472,7 @@
       "status": "ok",
       "value": 37.27,
       "band": {
-        "low": 27.06,
+        "low": 28.11,
         "mid": 37.27,
         "high": 66.28
       },
@@ -30867,7 +30792,7 @@
       "status": "ok",
       "value": 67.66,
       "band": {
-        "low": 62.06,
+        "low": 62.07,
         "mid": 67.66,
         "high": 73.42
       },
@@ -31307,7 +31232,7 @@
       "status": "ok",
       "value": 6.15,
       "band": {
-        "low": 3.76,
+        "low": 4.6,
         "mid": 6.15,
         "high": 9.44
       },
@@ -31440,7 +31365,7 @@
       "status": "ok",
       "value": 23.35,
       "band": {
-        "low": 7.17,
+        "low": 17.21,
         "mid": 23.35,
         "high": 35.69
       },
@@ -31458,8 +31383,7 @@
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -31478,7 +31402,7 @@
         "growthCap": 15,
         "growth10": 27.91,
         "growth5": 53.78,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -31509,7 +31433,7 @@
       "status": "ok",
       "value": 22.27,
       "band": {
-        "low": 6.83,
+        "low": 16.41,
         "mid": 22.27,
         "high": 34.03
       },
@@ -31528,8 +31452,7 @@
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -31548,7 +31471,7 @@
         "growthCap": 15,
         "growth10": 41.33,
         "growth5": 50.18,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -31701,7 +31624,7 @@
       "status": "ok",
       "value": 125.72,
       "band": {
-        "low": 38.58,
+        "low": 92.68,
         "mid": 125.72,
         "high": 192.15
       },
@@ -31716,8 +31639,7 @@
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -31736,7 +31658,7 @@
         "growthCap": 15,
         "growth10": 25.76,
         "growth5": 40.36,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -31767,7 +31689,7 @@
       "status": "ok",
       "value": 74.4,
       "band": {
-        "low": 30.33,
+        "low": 54.85,
         "mid": 74.4,
         "high": 113.71
       },
@@ -31958,7 +31880,7 @@
       "status": "ok",
       "value": 124.29,
       "band": {
-        "low": 60.21,
+        "low": 85.92,
         "mid": 124.29,
         "high": 188.67
       },
@@ -32025,7 +31947,7 @@
       "status": "ok",
       "value": 198.49,
       "band": {
-        "low": 80.9,
+        "low": 131.91,
         "mid": 198.49,
         "high": 303.37
       },
@@ -32089,7 +32011,7 @@
       "status": "ok",
       "value": 87.35,
       "band": {
-        "low": 54.9,
+        "low": 65.47,
         "mid": 87.35,
         "high": 152.7
       },
@@ -32413,7 +32335,7 @@
       "status": "ok",
       "value": 27.05,
       "band": {
-        "low": 16.51,
+        "low": 17.57,
         "mid": 27.05,
         "high": 40.66
       },
@@ -32479,7 +32401,7 @@
       "status": "ok",
       "value": 52.95,
       "band": {
-        "low": 21.58,
+        "low": 39.03,
         "mid": 52.95,
         "high": 80.93
       },
@@ -32548,7 +32470,7 @@
       "status": "ok",
       "value": 87.71,
       "band": {
-        "low": 26.92,
+        "low": 64.65,
         "mid": 87.71,
         "high": 134.05
       },
@@ -32562,8 +32484,7 @@
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -32582,7 +32503,7 @@
         "growthCap": 15,
         "growth10": 15.64,
         "growth5": 26.43,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -32613,7 +32534,7 @@
       "status": "ok",
       "value": 20.03,
       "band": {
-        "low": 6.15,
+        "low": 10.09,
         "mid": 20.03,
         "high": 30.62
       },
@@ -32627,8 +32548,7 @@
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -32647,7 +32567,7 @@
         "growthCap": 15,
         "growth10": 22.68,
         "growth5": 5.27,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -32678,7 +32598,7 @@
       "status": "ok",
       "value": 49.96,
       "band": {
-        "low": 20.36,
+        "low": 31.1,
         "mid": 49.96,
         "high": 76.36
       },
@@ -32742,7 +32662,7 @@
       "status": "ok",
       "value": 391.55,
       "band": {
-        "low": 120.17,
+        "low": 288.64,
         "mid": 391.55,
         "high": 598.44
       },
@@ -32755,8 +32675,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "QUOTE_DATE_UNKNOWN",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -32775,7 +32694,7 @@
         "growthCap": 15,
         "growth10": 36.02,
         "growth5": 49.9,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",
@@ -32806,7 +32725,7 @@
       "status": "ok",
       "value": 172.62,
       "band": {
-        "low": 55.49,
+        "low": 87.82,
         "mid": 172.62,
         "high": 263.36
       },
@@ -32823,8 +32742,7 @@
       "warnings": [
         "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
-        "OWNER_BASE_GAP",
-        "REGIME_UNCERTAIN"
+        "OWNER_BASE_GAP"
       ],
       "inputs": {
         "model": "owner",
@@ -32843,7 +32761,7 @@
         "growthCap": 15,
         "growth10": 13.84,
         "growth5": 4.36,
-        "regimeUncertain": true,
+        "regimeUncertain": false,
         "discountRate": 10,
         "reportingCurrency": "CNY",
         "reportingCurrencySource": "market",

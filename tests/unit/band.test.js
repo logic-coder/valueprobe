@@ -100,15 +100,51 @@ describe('scenario envelope around a centered mid', () => {
     expect(valueBand(input).low).toBe(decline)
   })
 
-  it('widens a five-year-only history to a 0–15% growth span instead of cutting the point estimate', () => {
+  it('uses a disclosed lower five-year window on the low side, not a 0% growth stress, for steady positive history', () => {
+    const input = { ...base, growthRate: 15, window: '10y', growth5: 9.87, regimeUncertain: false }
+    const scenes = envelopeScenarios(input)
+    expect(scenes.low.every((scene) => scene.growth !== 0)).toBe(true)
+    expect(scenes.low.some((scene) => scene.growth === 9.87 && scene.discount === 14 && scene.terminal === 4)).toBe(true)
+    const low = presentValue(10, 10, 14, 9.87, 5, 4, 10, false).fairValue
+    const zeroed = presentValue(10, 10, 14, 0, 5, 4, 10, false).fairValue
+    expect(valueBand(input).low).toBe(low)
+    expect(valueBand(input).low).toBeGreaterThan(zeroed)
+  })
+
+  it('moves only the discount rate on the low side when the five-year window is not lower than official growth', () => {
+    const input = { ...base, growthRate: 15, window: '10y', growth5: 17.4, regimeUncertain: false }
+    const scenes = envelopeScenarios(input)
+    expect(scenes.low).toEqual([{ discount: 14, growth: 15, terminal: 4 }])
+    const low = presentValue(10, 10, 14, 15, 5, 4, 10, false).fairValue
+    expect(valueBand(input).low).toBe(low)
+  })
+
+  it('widens a positive five-year-only history toward the 15% cap instead of cutting the point estimate', () => {
     const input = { ...base, growthRate: 13.45, window: '5y', growth5: 13.45, regimeUncertain: false }
     const mid = presentValue(10, 10, 12, 13.45, 5, 4, 10, false).fairValue
     const band = valueBand(input)
     expect(band.mid).toBe(mid)
     const high = presentValue(10, 10, Math.max(10, 4 + 2), 15, 5, 4, 10, false).fairValue
     expect(band.high).toBe(high)
+    const low = presentValue(10, 10, 14, 13.45, 5, 4, 10, false).fairValue
+    expect(band.low).toBe(low)
     const narrow = valueBand({ ...input, window: '10y', growthRate: 13.45, growth5: 13.45 })
     expect(band.high).toBeGreaterThan(narrow.high)
+  })
+
+  it('does not invent a 15% high when a five-year-only history has already been zeroed', () => {
+    const input = { ...base, growthRate: 0, window: '5y', growth5: -9.78, regimeUncertain: true }
+    const scenes = envelopeScenarios(input)
+    expect(scenes.high.every((scene) => scene.growth === 0)).toBe(true)
+    const high = presentValue(10, 10, Math.max(10, 4 + 2), 0, 5, 4, 10, false).fairValue
+    const invented = presentValue(10, 10, Math.max(10, 4 + 2), 15, 5, 4, 10, false).fairValue
+    expect(valueBand(input).high).toBe(high)
+    expect(valueBand(input).high).toBeLessThan(invented)
+  })
+
+  it('does not invent a 15% high for a ten-year negative history', () => {
+    const input = { ...base, growthRate: 0, window: '10y', growth5: -47.59, regimeUncertain: true }
+    expect(envelopeScenarios(input).high.every((scene) => scene.growth === 0)).toBe(true)
   })
 })
 

@@ -26,11 +26,11 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'discount-and-growth-scenario-envelope',
+    band: 'disclosed-worse-window-envelope',
     cashCrossCheck: 'three-year-median',
     earningsBase: 'normalized-eps-maintenance-equals-da',
     publicationGate: 'cash-unreconciled-veto',
-    officialGrowth: 'centered-single-window-regime-band',
+    officialGrowth: 'centered-single-window-sign-regime',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
@@ -51,10 +51,11 @@ export const POLICY_V1 = deepFreeze({
     shortHistory: 'wider-band',
     cleanYears: MIN_CLEAN_YEARS,
     regimeGapPp: REGIME_GAP_PP,
-    // Negative history or a window conflict starts at 0% when the long window
-    // is negative, fades to the default terminal, and carries REGIME_UNCERTAIN.
-    // Missing windows with a positive repeatable base start at 0% and still
-    // fade to the default terminal.
+    // Negative history starts at 0% when the long window is negative, fades
+    // to the default terminal, and carries REGIME_UNCERTAIN. Opposite-sign
+    // windows also carry REGIME_UNCERTAIN; a same-sign gap only widens the
+    // range. Missing windows with a positive repeatable base start at 0% and
+    // still fade to the default terminal.
     negative: 'zero-start-default-terminal',
     missingWindow: 'zero-start',
   },
@@ -91,7 +92,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'db7c6fe0f2e55c6e123b388f475f259c9b80987a60b2e4a1e73bbf424ff056c4'
+export const POLICY_V1_HASH = 'dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -131,10 +132,10 @@ const close4 = (left, right) => left != null && right != null && Math.abs(left -
 function describeBaseKind (eps, latest, normalized, cash, financial) {
   if (eps == null) return null
   if (financial) return 'normalized'
-  if (cash > 0 && normalized > 0 && close4(eps, (cash + normalized) / 2)) return 'midpoint'
-  if (cash > 0 && close4(eps, cash) && !(normalized > 0)) return 'cash'
   if (normalized != null && close4(eps, normalized)) return 'normalized'
+  if (cash > 0 && close4(eps, cash) && !(normalized > 0)) return 'cash'
   if (latest != null && close4(eps, latest)) return 'latest'
+  if (cash > 0 && normalized > 0 && close4(eps, (cash + normalized) / 2)) return 'midpoint'
   return 'repeatable'
 }
 

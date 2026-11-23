@@ -1,8 +1,8 @@
 {
   "kind": "official-policy-run",
   "policyVersion": "v3",
-  "policyHash": "db7c6fe0f2e55c6e123b388f475f259c9b80987a60b2e4a1e73bbf424ff056c4",
-  "growthRule": "centered-single-window-regime-band",
+  "policyHash": "dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d",
+  "growthRule": "centered-single-window-sign-regime",
   "discountRule": "max(floor, local-10y-ceil+6)",
   "asOf": "2006-03-15",
   "note": "Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): a single clean long window (ten-year preferred) capped at 15%, no min with the five-year window, and no mechanical 0% terminal. Negative history starts at 0% and fades to the default 4% terminal. Official, flat, historical, blended and dampened columns all include that same official terminal so the scores are aligned. Official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun includes official terminal growth on every named column; the sample was not expanded beyond the frozen five-name 2006 panel. n is small. Beating flat is not a publication gate. This is not an official published value.",

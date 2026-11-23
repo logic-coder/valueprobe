@@ -283,6 +283,82 @@ describe('cash is a cross-check after the official base is chosen', () => {
   })
 })
 
+describe('centered envelope and regime rules', () => {
+  const at = (symbol) => {
+    const stock = stockOf(snapshots.find((row) => row.symbol === symbol).raw)
+    return { stock, value: policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt }) }
+  }
+  const owner = (value, discount, growth, terminal = value.inputs.terminalGrowthRate) => presentValue(
+    value.inputs.tangibleBook, value.inputs.years, discount, growth, value.inputs.eps, terminal, value.inputs.yearsOfTerminalGrowth, false,
+  ).fairValue
+
+  it('does not label a normalised earnings base as a midpoint just because cash is close', () => {
+    const stock = {
+      exchange_: 'NYSE', symbol: 'X', currency: '$', ttm_eps: 10, earnings_base: 10, eps_normalized: 10, cash_base: 10,
+      earning_growth_10y: 5, price: '$100', _as_of: '2026-11-18',
+    }
+    expect(policyValue(stock, { rate: 5.07 }).inputs.baseKind).toBe('normalized')
+  })
+
+  it('uses the disclosed five-year window on the low side for Apple-style positive history, not 0% growth', () => {
+    const { value } = at('NASDAQ:AAPL')
+    expect(value.status).toBe('ok')
+    expect(value.inputs.growth).toBe(15)
+    expect(value.inputs.growth5).toBeCloseTo(9.87, 2)
+    expect(value.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
+    const low = owner(value, value.inputs.discountRate + 2, value.inputs.growth5)
+    const zeroed = owner(value, value.inputs.discountRate + 2, 0)
+    expect(value.band.low).toBe(low)
+    expect(value.band.low).toBeGreaterThan(zeroed)
+  })
+
+  it('moves only the discount rate on the low side when Microsoft-style five-year growth is not lower', () => {
+    const { value } = at('NASDAQ:MSFT')
+    expect(value.inputs.growth).toBe(15)
+    expect(value.inputs.growth5).toBeGreaterThan(15)
+    const low = owner(value, value.inputs.discountRate + 2, 15)
+    expect(value.band.low).toBe(low)
+  })
+
+  it('does not invent a 15% high for Tesla-style zeroed five-year history', () => {
+    const { value } = at('NASDAQ:TSLA')
+    expect(value.status).toBe('ok')
+    expect(value.inputs.growth).toBe(0)
+    expect(value.inputs.growthWindow).toBe('5y')
+    expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 0)
+    const invented = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    expect(value.band.high).toBe(high)
+    expect(value.band.high).toBeLessThan(invented)
+  })
+
+  it('still widens a positive five-year-only history toward the 15% cap', () => {
+    const { value } = at('HKSE:01810')
+    expect(value.inputs.growthWindow).toBe('5y')
+    expect(value.inputs.growth).toBeGreaterThan(0)
+    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    expect(value.band.high).toBe(high)
+  })
+
+  it('keeps an opposite-sign window as a regime, including Alibaba', () => {
+    const { value } = at('HKSE:09988')
+    expect(value.status).toBe('ok')
+    expect(value.inputs.growth10).toBeGreaterThan(0)
+    expect(value.inputs.growth5).toBeLessThan(0)
+    expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    const decline = owner(value, value.inputs.discountRate + 2, 0, 0)
+    expect(value.band.low).toBe(decline)
+  })
+
+  it('does not refuse a Fiserv-style same-sign gap as an unstable regime', () => {
+    const { value } = at('NASDAQ:FISV')
+    expect(value.inputs.growth10).toBeCloseTo(13.18, 2)
+    expect(value.inputs.growth5).toBeCloseTo(35.27, 2)
+    expect(value.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
+    expect(value.reasons).not.toContain(REASON.UNSTABLE_BASE_REGIME)
+  })
+})
+
 describe('the committed artifact is what the policy produces', () => {
   it('covers the whole declared universe with the expected shape', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
@@ -319,6 +395,9 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').value).toBe(10.76)
+    expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 118.29 })
+    expect(entry('NASDAQ:FISV').warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
+    expect(entry('NASDAQ:FISV').reasons).not.toContain(REASON.UNSTABLE_BASE_REGIME)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
     expect(entry('HKSE:00002').status).toBe('ok')
     expect(entry('HKSE:00066').status).toBe('ok')
