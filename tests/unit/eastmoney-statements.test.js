@@ -83,6 +83,13 @@ describe('growth windows and cash-flow basis', () => {
     expect(rate).toBe(4.61)
   })
 
+  it('walks past a trough start instead of voiding the ten-year window', () => {
+    const series = [
+      0.5715, 3.6912, 5.0887, 2.4631, 1.459, 4.6522, 5.9016, 9.5026, 10.4904, 9.9267,
+    ].map((val, index) => ({ fy: 2016 + index, val }))
+    expect(windowGrowth(series, 10)).toBeCloseTo((Math.pow(9.9267 / 3.6912, 1 / 8) - 1) * 100, 2)
+  })
+
   it('does not seed free cash flow from operating cash flow', () => {
     const parsed = fromAshareReports([], [
       row('2024-12-31', '年报', { EPSJB: 1, EPSXS: 1, BPS: 8, MGJYXJJE: 20, PER_TOI: 3 }),

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDefaults, calGr2fv, calculateReverse, impliedGrowth, marginOfSafety, presentValue, round2, sustainableCashBase } from '../../src/lib/dcf'
+import { buildDefaults, calGr2fv, calculateReverse, impliedGrowth, marginOfSafety, normalizedEarningsBase, normalizedEpsBase, presentValue, round2, sustainableCashBase } from '../../src/lib/dcf'
 
 // Locked reference numbers for the 601398 payload:
 // eps 1.08, fcf 6.64, tbv 11.24, price 8.85, indicator 5.14, growth 5, terminal 4.
@@ -234,5 +234,57 @@ describe('buildDefaults', () => {
     const { dcfForm } = buildDefaults(4, { ttm_eps: 0, ttm_eps_nri: null, price: '1' }, 0)
     expect(dcfForm.eps).toBe(0)
     expect(dcfForm.freecashflow).toBe(0)
+  })
+})
+
+
+describe('normalized earnings base', () => {
+  const annual = (rows) => ({ financials: { annual: rows }, ttm_eps: rows.at(-1)?.eps_without_nri ?? null })
+
+  it('uses the five-year median when the latest year is more than 40% from it', () => {
+    const stock = annual([
+      { eps_without_nri: 6.23 }, { eps_without_nri: 8.31 }, { eps_without_nri: 9.33 },
+      { eps_without_nri: 6.47 }, { eps_without_nri: 0.47 },
+    ])
+    expect(normalizedEpsBase(stock)).toBe(6.47)
+  })
+
+  it('keeps the latest year when it is within 40% of the median', () => {
+    const stock = annual([
+      { eps_without_nri: 6 }, { eps_without_nri: 7 }, { eps_without_nri: 8 },
+      { eps_without_nri: 9 }, { eps_without_nri: 8.5 },
+    ])
+    expect(normalizedEpsBase(stock)).toBe(8.5)
+  })
+
+  it('takes the midpoint of cash and normalised earnings when both sides are positive', () => {
+    const stock = annual([
+      { eps_without_nri: 6.23, free_cash_flow_per_share: 6.8794 },
+      { eps_without_nri: 8.31, free_cash_flow_per_share: 7.921 },
+      { eps_without_nri: 9.33, free_cash_flow_per_share: 6.5441 },
+      { eps_without_nri: 6.47, free_cash_flow_per_share: 4.8966 },
+      { eps_without_nri: 0.47, free_cash_flow_per_share: 3.0228 },
+    ])
+    expect(normalizedEarningsBase(stock)).toBeCloseTo((4.8966 + 6.47) / 2, 4)
+  })
+
+  it('does not average two cash years into a fake median and falls back to earnings', () => {
+    const stock = annual([
+      { eps_without_nri: 6, free_cash_flow_per_share: 5 },
+      { eps_without_nri: 7, free_cash_flow_per_share: null },
+      { eps_without_nri: 8, free_cash_flow_per_share: 6 },
+    ])
+    expect(sustainableCashBase(stock)).toBeNull()
+    expect(normalizedEarningsBase(stock)).toBe(8)
+  })
+
+  it('never midpoints cash for a financial institution', () => {
+    const stock = annual([
+      { eps_without_nri: 1.0, free_cash_flow_per_share: 5 },
+      { eps_without_nri: 1.1, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 1.2, free_cash_flow_per_share: 7 },
+    ])
+    expect(normalizedEarningsBase(stock, { midpointCash: false })).toBe(1.2)
+    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBeCloseTo((6 + 1.2) / 2, 4)
   })
 })

@@ -121,7 +121,7 @@ export const mysource = {
 
 `npm run intrinsic` 把已提交快照写成两个发布文件（实现 `scripts/lib/policy-artifact.mjs`，字段说明 `POLICY.md`）：
 
-- `public/data/intrinsic/v2.json`：每条记录的发布值、band、终值占比、安全边际、reason/warning、inputs 与 asOf；政策版本与 hash 写在文件头。
+- `public/data/intrinsic/v3.json`：每条记录的发布值、band、终值占比、安全边际、reason/warning、inputs 与 asOf；政策版本与 hash 写在文件头。`v2.json` 与 `v1.json` 冻结保留复现。
 - `public/data/manifest.json`：同一份 universe/coverage 和利率行，外加 `catalog.json`、`rates.json` 和清单内每份快照的 bytes/sha256。
 
 契约：

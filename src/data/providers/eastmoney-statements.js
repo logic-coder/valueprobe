@@ -67,33 +67,8 @@ export function cagr (older, newer) {
   return Number.isFinite(rate) ? Math.round(rate * 100) / 100 : null
 }
 
-/** Growth over a window. A 10-year label needs at least seven years of span. */
-export function windowGrowth (points, yearsWanted) {
-  const clean = points.filter((point) => point && Number.isFinite(point.fy) && Number.isFinite(point.val))
-  if (clean.length < 2) return null
-  const last = clean[clean.length - 1]
-  let start = yearsWanted === 1
-    ? clean[clean.length - 2]
-    : clean.reduce((chosen, point) => (point.fy <= last.fy - yearsWanted ? point : chosen), clean[0])
-  const minimum = yearsWanted === 1 ? 1 : Math.ceil(yearsWanted * 0.7)
-  // A negative anchor makes the whole window fail. Step forward to the first
-  // positive year that still covers the minimum span, instead of borrowing a
-  // shorter window and labeling it as ten years.
-  if (yearsWanted > 1 && !(start?.val > 0)) {
-    start = clean.find((point) => point.fy < last.fy && point.val > 0 && last.fy - point.fy >= minimum) || null
-  }
-  if (!start || last.fy - start.fy < minimum) return null
-  // A start that is a small fraction of the typical year is a trough, not a base.
-  if (yearsWanted > 1 && startIsTrough(clean, start)) return null
-  return cagr(start, last)
-}
-
-function startIsTrough (points, start) {
-  const positives = points.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
-  if (positives.length < 3) return false
-  const median = positives[Math.floor(positives.length / 2)]
-  return start.val < median * 0.2
-}
+import { windowGrowth } from '../../lib/assumptions'
+export { windowGrowth }
 
 function series (rows, read) {
   return newest(rows).reverse().map((row) => ({ fy: reportYear(row), val: read(row) })).filter((point) => point.fy && point.val != null)

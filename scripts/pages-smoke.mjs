@@ -75,9 +75,11 @@ const snapshot = await get(BASE + 'data/SHSE-601398.json')
 const snapshotBody = snapshot.text ? await snapshot.text() : ''
 check('committed snapshot served', snapshot.status === 200, String(snapshot.status))
 check('snapshot carries as_of', /"as_of"/.test(snapshotBody))
-const intrinsic = await getJson(BASE + 'data/intrinsic/v2.json')
+const dataManifestEarly = await getJson(BASE + 'data/manifest.json')
+const policyVersion = dataManifestEarly.body?.policyVersion
+const intrinsic = await getJson(BASE + 'data/intrinsic/' + policyVersion + '.json')
 check('intrinsic artifact served', intrinsic.status === 200, String(intrinsic.status))
-check('intrinsic artifact is public policy v2', intrinsic.body?.policyVersion === 'v2', String(intrinsic.body?.policyVersion))
+check('intrinsic artifact is the public policy', Boolean(policyVersion) && intrinsic.body?.policyVersion === policyVersion, String(intrinsic.body?.policyVersion))
 const publish = await getJson(BASE + 'data/publish.json')
 check('publish state served', publish.status === 200, String(publish.status))
 check('publish state is not blocked', publish.body?.status && publish.body.status !== 'blocked', String(publish.body?.status))

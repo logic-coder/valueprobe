@@ -26,7 +26,7 @@ npm run dev
 | `npm run dev` | Local dev server. |
 | `npm run build` | Static build into `dist/`. |
 | `npm run snapshot` | Refresh `public/data/<MARKET>-<CODE>.json`, `public/data/rates.json` and `public/data/publish.json` from the public sources. Run locally, then commit; a failed required chain leaves the release untouched. |
-| `npm run intrinsic` | Write the published values `public/data/intrinsic/v2.json`, the hash manifest `public/data/manifest.json` and a `rebuilt` publish state from the committed snapshots. |
+| `npm run intrinsic` | Write the published values `public/data/intrinsic/<POLICY_VERSION>.json`, the hash manifest `public/data/manifest.json` and a `rebuilt` publish state from the committed snapshots. |
 | `npm run verify:data` | Data gate: policy hash, artifact reproducibility, publish status and batch digest, covered-symbol list and catalog agreement, manifest hashes, known codes, independent recompute. Freshness is reported as a warning and does not block. |
 | `npm run refresh` | Stage and rebuild snapshots and valuation artifacts, apply the publish gate, then verify the data. |
 | `npm run verify` | `lint → test → test:real → verify:data → smoke:pages`, the same chain as `package.json` `verify`. |
@@ -37,14 +37,14 @@ npm run dev
 
 The method page provides company-level [historical research data](public/research), including annual valuation replays, cash forecasts and shareholder proceeds. The [reproduction scripts](scripts/research) run separately from stock valuations.
 
-- `public/data/intrinsic/v2.json` is the only published value. `public/data/intrinsic/v1.json` is the frozen pre-v2 artifact retained for reproduction; it is no longer read by the app. The stock, watchlist, comparison and method pages read the release. The stock calculator starts with those assumptions and runs a local calculation when assumptions are edited.
+- `public/data/intrinsic/v3.json` is the published value. `public/data/intrinsic/v2.json` and `v1.json` are frozen earlier artifacts retained for reproduction; the app reads the current `POLICY_VERSION`. The stock, watchlist, comparison and method pages read the release. The stock calculator starts with those assumptions and runs a local calculation when assumptions are edited.
 - `public/data/manifest.json` pins the artifact's policy version and hash, the covered-symbol counts, the rate rows, and the sha256 of every snapshot it was built from. An artifact that no longer matches the committed inputs fails `npm run verify:data`.
 - `public/data/publish.json` records what the last refresh did: mode, scope, per-chain outcome, generated date, upstream check time, latest period and the sha256 of the exact release bytes. A blocked refresh is not installed, so the previous artifact and its date stay on disk. A partial refresh is installed and disclosed.
 - `POLICY_VERSION` and `POLICY_V1_HASH` in `src/lib/policy.js` identify the policy that produced the artifact. Any change to `POLICY_V1` must bump the version and the hash in the same commit.
 - The gate fails on a hash mismatch, a non-reproducible artifact, a missing or blocked publish state, a stale batch digest, a missing rate row, a coverage-list/catalog/file disagreement, or an unknown reason/warning code. An old artifact or rate row only prints a warning; the value itself carries `STALE_DATA` / `STALE_PRICE`, so the gate stays independent of the day it runs. Quote or filing failures that kept the previous record are disclosed as `partial` and do not fail the gate.
 - The ten-year yields used by the artifact are `public/data/rates.json`; the bundled file is a local fallback only. A missing local yield keeps the value and carries `RATE_FALLBACK`.
 
-`docs/CALCULATION.md`, `docs/POLICY.md`, `docs/RELEASE_V2.md` and `docs/DEVIATIONS.md` record the parameters and where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
+`docs/CALCULATION.md`, `docs/POLICY.md`, `docs/RELEASE_V3.md` and `docs/DEVIATIONS.md` record the parameters and where the formulas differ from a plain finite annuity. `CONTRIBUTING.md` has the house rules.
 
 ## Deploy
 

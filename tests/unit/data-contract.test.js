@@ -21,7 +21,7 @@ const symbolOf = (name) => name.replace(/\.json$/, '').replace(/^([A-Z]+)-/, '$1
 const snapshotFiles = readdirSync(DATA).filter((name) => SNAPSHOT_FILE.test(name)).sort()
 const snapshotSymbols = snapshotFiles.map(symbolOf)
 
-const artifact = readJson('public/data/intrinsic/v2.json')
+const artifact = readJson('public/data/intrinsic/' + POLICY_VERSION + '.json')
 const manifest = readJson('public/data/manifest.json')
 const catalog = readJson('public/data/catalog.json')
 const rates = readJson('public/data/rates.json')
@@ -29,7 +29,7 @@ const watchlist = readJson('scripts/watchlist.json')
 const entries = Object.entries(artifact.entries)
 
 describe('policy pin', () => {
-  it('is built from the frozen public policy v2', () => {
+  it('is built from the current public policy', () => {
     expect(artifact.schema).toBe(1)
     expect(manifest.schema).toBe(1)
     expect(artifact.policyVersion).toBe(POLICY_VERSION)

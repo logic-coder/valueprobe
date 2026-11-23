@@ -91,7 +91,10 @@ export async function readOptionalJson (path) {
 
 export function useQuote (record, quote) {
   if (!quote || quote.currency !== record.currency) return record
-  if (record.quote_as_of && (!quote.asOf || quote.asOf < record.quote_as_of)) return record
+  // Never write or refresh a price without a real quote date. Do not invent today
+  // or backfill quote_as_of from the fundamentals as_of.
+  if (!quote.asOf) return record
+  if (record.quote_as_of && quote.asOf < record.quote_as_of) return record
   if (record.quote_as_of === quote.asOf && record.price === quote.price &&
     (record.quote_source ?? null) === (quote.source ?? null)) return record
   const next = { ...record, price: quote.price, quote_as_of: quote.asOf }

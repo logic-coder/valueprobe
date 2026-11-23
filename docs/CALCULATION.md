@@ -101,15 +101,15 @@ IRR 收敛与不收敛、缺失汇率。E2E 只验证界面显示 `n/a` 与原�
 
 单测：`tests/unit/data-contract.test.js`（比亚迪与工行的差异桥、原因码、折后值）。
 
-## 公开口径 v1
+## 公开口径 v3
 
 页面上的发布值由 `src/lib/policy.js` 的 `policyValue()` 决定，不再由表单默认值直接发布。口径参数与拒绝/警告语义见 `POLICY.md`，这里只记它对计算的影响：
 
-- 模型：一般公司 `presentValue`（两期折现 + 有上限的永续），金融机构 `residualIncomeValue`（账面收益逐年降到折现率）。基数固定为每股收益；自由现金流仍是股票页的对照，不进入发布值。EPS 先取稀释后、再取基本口径，显式 `0` 与 `'0'` 保留并触发 `NON_POSITIVE_EPS`，空串和非法值才继续向后找。
-- 窗口与默认：`DCF_DEFAULTS` 的两段各 10 年、终值增速 4%；历史增速窗口 10 年、承保上限 15%（`MAX_UNDERWRITTEN_GROWTH`）。没有历史增速时发布值为 `null` + `NO_GROWTH`，不代填；负增长照常出值并加 `NEGATIVE_HISTORY_GROWTH`。
+- 模型：一般公司 `presentValue`（两期折现 + 有上限的永续），金融机构 `residualIncomeValue`（账面收益逐年降到折现率）。基数是可重复盈利：最近五年年度 `eps_without_nri`，最新一年与五年中位数相差超过 40% 时取中位数，否则取最新一年；任一侧非正则回退 `preferredEps`（TTM）。一般公司再与三年齐全且全为正的每股自由现金流中位数取中点（1986 年所有者收益夹逼：现金扣尽全部资本开支，收益不扣增长资本开支，中点不偷偷选定维护性份额）。金融机构只用正常化每股收益，不用现金中点。`inputs.epsLatest` 保留最近报告每股收益，基数与它相差 ≥25% 加 `NORMALIZED_EPS`。显式 `0` 与 `'0'` 仍触发 `NON_POSITIVE_EPS`。
+- 窗口与默认：`DCF_DEFAULTS` 的两段各 10 年、终值增速 4%；历史增速窗口 10 年、承保上限 15%（`MAX_UNDERWRITTEN_GROWTH`）。官方十年增速在 `toStock()` 时从已提交的年度序列用共享的 `windowGrowth()` 重算（低谷年向前移，十年标签至少 7 年跨度），并可先截到 `cleanGrowth` 的干净后缀；存储的快照增速只是缓存。没有可用增速时发布值为 `null` + `NO_GROWTH`，不代填，也不设 5% 楼板；负增长照常出值并加 `NEGATIVE_HISTORY_GROWTH`。
 - 折现率：`ceil(当地十年期国债收益率) + 6`，再夹到 0–50（`policyDiscountRate()`）。有限数（含 0 和负值）都算观测，只有缺失才回退。港币现金流用美元十年期作代理；取不到当地利率时用 8% 兜底并标 `RATE_FALLBACK`。折现率跟随报价/现金流币种，显示货币不改它。
 - 区间：同一模型把折现率上下浮动 2 个百分点（`POLICY_V1.band.discountSpread`）；金融机构的端点也是 `residualIncomeValue`，只移动折现率并固定经营 ROE。头条是 `mid`，终值占比 `terminalShare` 一并披露。
-- 现金口径核对：只对一般公司，取最近三个财年 `free_cash_flow_per_share` 都为正时的中位数，套用同一组窗口、折现率和终值假设算 `presentValue`，展示在旁边供对照。少于三年或任一年非正数为空；与收益口径相差 ≥50% 加 `CASH_DIVERGENCE`。现金值不替代 `value`、区间、终值占比、反推和安全边际。
+- 现金口径核对：只对一般公司，取最近三个财年 `free_cash_flow_per_share` 都为正时的中位数，套用同一组窗口、折现率和终值假设算 `presentValue`，展示在旁边供对照。少于三年或任一年非正数为空；与采用的官方基数相差 25–49% 加 `CASH_DIVERGENCE`（仍发布）；≥50% 以 `CASH_UNRECONCILED` 拒绝发布。现金对照在选定官方基数之后计算，避免只按 TTM 收益拒绝腾讯这一类名字。资本开支较重的成长公司会得到较低的发布值，这是设计，不是误差。
 - 价格：只进入安全边际；缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，都不改内在价值；基本面过期给 `STALE_DATA` 也不拒绝出值。
 - 一致性：`buildDefaults()` 与 `policyValue()` 对同一快照给出同一组输入（EPS、增速、折现率、两段窗口），由 `tests/unit/policy.test.js` 的默认输入对齐用例锁住；页面默认参数与发布值文件因此不会分叉。
 - 自选、对比与方法页读发布值文件；股票页按同一组默认输入在本地计算（seed 对齐测试锁住），不再显示重复的发布值面板。刷新与校验见 `POLICY.md`。

@@ -3,8 +3,9 @@ import { readFileSync } from 'node:fs'
 
 const read = path => JSON.parse(readFileSync(path, 'utf8'))
 const [previous, current] = process.argv.slice(2)
-const before = read(previous || 'public/data/intrinsic/v1.json')
-const after = read(current || 'public/data/intrinsic/v2.json')
+const currentDefault = 'public/data/intrinsic/' + read('public/data/manifest.json').policyVersion + '.json'
+const before = read(previous || 'public/data/intrinsic/v2.json')
+const after = read(current || currentDefault)
 const keys = ['status', 'value', 'band', 'marginOfSafety', 'price', 'priceDate', 'earningsDate', 'reasons', 'warnings']
 const select = row => row ? Object.fromEntries([...keys.map(key => [key, row[key]]),
   ['model', row.inputs.model], ['classification', row.inputs.classification], ['industry', row.inputs.industry ?? null]]) : null

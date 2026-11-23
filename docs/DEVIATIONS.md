@@ -466,9 +466,7 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 测试：`tests/unit/dcf.test.js`（中位数、少于三年/空值/非正数为空）、`tests/unit/policy.test.js`（差距警告、空基数不加警告、发布值不变）；`verify:data` 全过。
 - 限制：现金同样是单点 TTM + 历史增速外推，没有现金桥；REIT 的维护性资本开支和炼化的周期正常化仍未处理。
 
-> **D50–D52 未并入默认。** 这一组（正常化基数、按市场校准的折现率、所有者收益基线）只存在于分支
-> `wip/v3-owner-earnings`，尚未发布。main 的默认政策仍是 v2：`POLICY_VERSION = 'v2'`，发布值取自
-> `public/data/intrinsic/v2.json`。下面三节的数值只描述该分支，不代表线上；D53–D55 已并入 main。
+> **D50–D52 与 `origin/v3/research` 的后续实验未并入默认。** 那一组（价格反解 ERP、长债原值折现、终值增速 0%）只存在于研究分支，不得按原样合并。官方 v3 是下面的 D56：可重复盈利基数与发布门禁，折现率和终值仍沿用 v2。D53–D55 已并入 main。
 
 ### D50 正常化收益基数、折减增速与按市场校准的折现率
 
@@ -539,3 +537,21 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 不改：`LONG_RUN_PE`、`impliedPrice`、可编辑的目标倍数、发布值与内核。
 - 测试：`tests/unit/multiples.test.js` 增加 `NO_GROWTH_RATE` 断言；`tests/e2e/dcf.spec.js` 的数字断言仍打 `long-run-pe`（现在是 `tfoot`），否定语义改打 `long-run-note`。
 - 遗留：v3 把 `earnings_base` 换成所有者收益（三年 FCF 中位数）后，表内 P/E 行的基数是现金流而非报告 EPS，与 P/FCF 行同源。截图里两行同为 29.57× 即由此而来。标签与基数是否要分开，待定。
+
+
+### D56 官方 v3：可重复盈利基数与发布门禁（main）
+
+2026-11-23。v2 的发布门槛只问「最新一年每股收益和存储的十年增速能不能算出一个正数」，警告没有否决权，于是佳品零件用崩溃年份 0.26 美元算出 1.13 美元仍以 `ok` 发布。官方 v3 先改基数、再设门禁，并统一增速窗口、停止把一次盈利尖峰误判为拆股。折现率与终值增速不改：仍是当地十年期向上取整加 6 个百分点，缺失回退 8%，终值增速 4%。
+
+这与 `origin/v3/research` 上同一天被重定义多次、把折现率改成长债原值、终值增速为 0 的未发布实验不是同一口径。那条分支的 `v3.json`（例如茅台 5833 元）不得并入或覆盖本发布。
+
+- 基数：`normalizedEpsBase` 取最近五年年度 `eps_without_nri`；最新一年与五年中位数都为正且偏离超过 40% 时用中位数，否则用最新一年；任一侧非正则回退 TTM。一般公司再与三年齐全且全为正的 FCF 中位数取中点（所有者收益夹逼）。金融机构只用正常化每股收益。基数与最近报告 EPS 相差 ≥25% 加 `NORMALIZED_EPS`，`inputs.epsLatest` 保留原值。`POLICY_V1.basis` 为 `repeatable-earnings`。
+- 门禁：先选定新基数再做现金核对。仍相差 ≥50% 以新拒绝码 `CASH_UNRECONCILED` 拒绝；25–49% 保留 `CASH_DIVERGENCE` 警告并发布。这样腾讯不会因为旧的 TTM 偏离而被误伤（发布值 410.7，仍有 25–49% 警告），佳品零件改为 24.68，艾伯维因中点后仍偏离 62% 被拒绝而不是发布过小的数字。
+- 增速：A/H 与美股共用 `windowGrowth`（低谷年向前移，十年至少 7 年、五年至少 4 年）。官方增速在 `toStock()` 时从年度序列重算，不依赖过期的存储 g10。汇丰因此得到约 13.16% 的八年增速并发布 86.63 港元。`cleanGrowth` 不再把「单年尖峰后回到峰前水平、每股营收仍上升」当成拆股；罗珀因此恢复 9.2% 并发布 226.84 美元。真拆股用例（GOOGL、AAPL、NVDA）保持不变。
+- 报价：刷新路径不再写入或更新没有真实交易日的价格；已提交的 150 只无 `quote_as_of` 快照不编造日期，本批仍标 `QUOTE_DATE_UNKNOWN`，留到以后带日期的刷新。
+- Visa：公司 facts（CIK 0001403161）没有未带维度的 `EarningsPerShareDiluted`。10-K 实例里该概念存在，但都挂在股份类别轴上，companyfacts 不收录。解析器不从净利润/股本编造每股收益；NYSE:V 仍拒绝。因为三年现金存在，官方基数回退为现金 11.4947 美元，拒绝原因是 `NO_GROWTH`（年度每股收益序列为空，无法计算增速）。
+- 覆盖：500 条中 402 条有值、98 条拒绝（v2 为 407/93）。新有值 11 条（含汇丰、罗珀及若干因正常化恢复的亏损年），新拒绝 16 条，全部为 `CASH_UNRECONCILED`。拆股后干净后缀不足 7 年但不少于 4 年时，官方增速使用该后缀的复合增长率。政策哈希 `020fbf8f…`，工件生成日 2026-11-23。细节与代表值见 [RELEASE_V3.md](RELEASE_V3.md)。
+- 位置：`src/lib/{policy,dcf,assumptions,stockRecord,reasons}.js`、`src/data/providers/{eastmoney-statements,edgar-xbrl}.js`、`scripts/{snapshot,verify-data,pages-smoke,policy-values}.mjs`、`src/i18n/legal-messages.js`、`public/data/intrinsic/v3.json`、`docs/RELEASE_V3.md`。
+- 测试：基数中点与拒绝门禁、`NORMALIZED_EPS`、汇丰式低谷前移、罗珀式尖峰、Visa 不编造 EPS、政策哈希、`quote` 不保存无日期价格；e2e 断言改为工行 11.66 与口径 v3。
+- 不改：`calGr2fv`、折现规则、终值增速、5% 增速楼板、12 倍零增长参考行（仍是隐含 8.33% 的对照，不与官方折现率挂钩）。
+- 回滚：把 `POLICY_VERSION` 指回 v2 并恢复对应哈希与 `pages-smoke` 路径，或 revert 本发布提交；不要用研究分支的 v3 字节覆盖。

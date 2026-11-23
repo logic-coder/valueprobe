@@ -9,7 +9,7 @@ const DISCOUNT = '.input-section'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('11.86', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('11.66', { timeout: 20000 })
 })
 
 test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
@@ -73,7 +73,7 @@ test('D7: an unreachable source set says so instead of leaving a skeleton', asyn
 })
 
 test('D6: the display currency converts results and says the inputs stay native', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 11.86')
+  await expect(page.locator(FAIR)).toContainText('¥ 11.66')
   await page.locator('.currency-select').click()
   await page.locator('.q-menu .q-item', { hasText: 'USD' }).click()
   await expect(page.locator(FAIR)).toContainText('≈ $1.66')

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { MAX_UNDERWRITTEN_GROWTH, adoptGrowth, cleanGrowth } from '../../src/lib/assumptions'
+import { MAX_UNDERWRITTEN_GROWTH, adoptGrowth, cleanGrowth, windowGrowth } from '../../src/lib/assumptions'
 
 // GOOGL 2016-2025 as filed: the 2020 20-for-1 split is not restated in the older years.
 const GOOGL_EPS = [27.85, 18, 43.7, 49.16, 2.93, 5.61, 4.56, 5.8, 8.04, 10.81]
@@ -92,5 +92,40 @@ describe('cleanGrowth after a split whose new base grows back through the old li
     expect(clean.shifted).toBe(true)
     expect(clean.start).toBe(8)
     expect(clean.rate).toBeNull()
+  })
+})
+
+
+const ROP_EPS = [6.43, 9.39, 9.05, 16.82, 8.98, 10.82, 42.55, 12.89, 14.35, 14.2]
+const ROP_REVENUE = [36.9876, 44.5074, 49.7241, 44.9829, 38.0549, 45.3878, 50.2978, 57.5214, 65.1778, 73.036]
+
+describe('cleanGrowth and a one-off earnings spike', () => {
+  it('does not treat a single peak year that returns to the pre-peak level as a split', () => {
+    const clean = cleanGrowth(ROP_EPS, ROP_REVENUE)
+    expect(clean.shifted).toBe(false)
+    expect(clean.rate).not.toBeNull()
+    expect(clean.start).toBe(0)
+  })
+
+  it('still treats a real split as a break when the new base does not return to the pre-peak level', () => {
+    expect(cleanGrowth(GOOGL_EPS).shifted).toBe(true)
+    expect(cleanGrowth(AAPL_EPS, AAPL_REVENUE).shifted).toBe(true)
+  })
+})
+
+describe('windowGrowth trough walk-forward', () => {
+  it('walks past a trough at the start of a ten-year window instead of dropping the rate', () => {
+    // HSBC-like: 2016 is a trough versus the median; 2017 still covers eight years.
+    const series = [
+      0.5715, 3.6912, 5.0887, 2.4631, 1.459, 4.6522, 5.9016, 9.5026, 10.4904, 9.9267,
+    ].map((val, index) => ({ fy: 2016 + index, val }))
+    const rate = windowGrowth(series, 10)
+    expect(rate).toBeCloseTo((Math.pow(9.9267 / 3.6912, 1 / 8) - 1) * 100, 2)
+    expect(rate).toBeGreaterThan(10)
+  })
+
+  it('leaves a ten-year label empty when the remaining span is under seven years', () => {
+    const series = [0.05, 1, 1.1, 1.2, 1.3, 1.4].map((val, index) => ({ fy: 2020 + index, val }))
+    expect(windowGrowth(series, 10)).toBeNull()
   })
 })

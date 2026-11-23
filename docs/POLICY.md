@@ -1,6 +1,6 @@
-# 公开口径 v2（public policy v2）
+# 公开口径 v3（public policy v3）
 
-这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v2.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。
+这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v3.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。`public/data/intrinsic/v2.json` 是已冻结的上一版发布值，保留复现。
 
 修改 `POLICY_V1` 会改变每一个发布数字。必须同时升 `POLICY_VERSION`、重算并更新 `POLICY_V1_HASH`，否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
@@ -8,7 +8,7 @@
 
 | 参数 | v1 值 | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `eps`（每股收益；自由现金流和三年现金中位数只作对照，不发布） | `POLICY_V1.basis` |
+| 估值基数 | `repeatable-earnings`：五年正常化每股收益；一般公司再与三年正自由现金流中位数取中点；金融机构只用正常化每股收益 | `POLICY_V1.basis` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
@@ -35,7 +35,7 @@
 实现细节都以代码为准：
 
 - 折现率：`rateForCurrency()`（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6）→ 夹到 0–50；取不到当地利率时 `policyValue()` 用兜底值并加 `RATE_FALLBACK`。
-- 增速：`policyGrowth()` → `adoptGrowth()`（`src/lib/assumptions.js`）：缺失给 `NO_GROWTH`，超过 15% 按 15% 并给 `CAPPED_GROWTH`，负值照常并给 `NEGATIVE_HISTORY_GROWTH`。
+- 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；快照里存储的十年增速只是缓存。然后 `policyGrowth()` → `adoptGrowth()`：缺失给 `NO_GROWTH`，超过 15% 按 15% 并给 `CAPPED_GROWTH`，负值照常并给 `NEGATIVE_HISTORY_GROWTH`。
 - 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` 在同一模型上扰动折现率：一般公司用 `presentValue` 跑较低、当前、较高折现率；残差公司在 `residualIncomeValue` 上跑更高折现率、基准、更低折现率，经营 ROE 假设保持不变。真实无效的一端返回缺项，允许单侧区间。
 - 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
@@ -52,6 +52,8 @@
 | `NO_GROWTH` | 没有可用的历史增速，无法外推。 |
 | `NO_BOOK` | 金融机构需要正的每股有形账面价值。 |
 | `NOT_FINITE` | 计算结果不是有限正数，不出值。 |
+| `INDUSTRY_MODEL_PENDING` | REIT 或炼化的行业口径仍待验证，仅供试算，不出公开值。 |
+| `CASH_UNRECONCILED` | 选定官方基数后，三年现金中位数核对仍相差 50% 及以上，拒绝发布。 |
 
 ## 3. 警告码（WARNING）
 
@@ -71,7 +73,9 @@
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |
 | `MODEL_CAVEAT` | REIT 或炼化企业，模型口径仍属试算。 |
 | `TERMINAL_CAPPED` | 终值输入高于折现率减 2 个百分点，按有效增速封顶。 |
-| `CASH_DIVERGENCE` | 三年现金中位数核对与收益口径相差 50% 以上。 |
+| `CASH_DIVERGENCE` | 三年现金中位数核对与采用的盈利基数相差 25–49%，只披露仍发布。 |
+| `CLASSIFICATION_UNVERIFIED` | 仅因缺列归入某一模型，且另一模型结果差异较大。 |
+| `NORMALIZED_EPS` | 发布基数是可重复盈利，与最近一期报告每股收益相差 25% 或以上。 |
 
 UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/legal-messages.js`，由 `src/main.js` 合并进 i18n。数据校验拒绝未知代码。
 
@@ -79,9 +83,9 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 
 两个文件都只能由 `npm run intrinsic`（即 `scripts/policy-values.mjs`）生成，不要手改。构建函数在 `scripts/lib/policy-artifact.mjs`，写入与校验共用这一个函数，所以同一份输入得到同一份字节。
 
-路径约定：`ARTIFACT_PATH` 由 `POLICY_VERSION` 派生为 `public/data/intrinsic/<version>.json`；`scripts/pages-smoke.mjs`、方法页下载链接与本文仍需同一次更新。`public/data/intrinsic/v1.json` 是已冻结的上一版发布值，保留复现，不再被应用读取。版本变化和前后差异见 `RELEASE_V2.md`。
+路径约定：`ARTIFACT_PATH` 由 `POLICY_VERSION` 派生为 `public/data/intrinsic/<version>.json`；`scripts/pages-smoke.mjs`、方法页下载链接与本文仍需同一次更新。`public/data/intrinsic/v1.json` 是已冻结的上一版发布值，保留复现，不再被应用读取。版本变化和前后差异见 `RELEASE_V3.md`；v2 归档见 `RELEASE_V2.md`。
 
-`public/data/intrinsic/v2.json`（`ARTIFACT_PATH`）：
+`public/data/intrinsic/v3.json`（`ARTIFACT_PATH`）：
 
 | 字段 | 含义 |
 | --- | --- |
@@ -92,7 +96,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
 | `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。 |
-| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。 |
+| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, epsLatest, growth, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。`eps` 是官方基数，`epsLatest` 是最近报告每股收益。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
 
@@ -159,14 +163,14 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 ## 7. 当前发布（示例）
 
-以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v2.json` 为准**：
+以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-21；`rates.asOf` 2026-11-19。
-- 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。
-- 声明、快照与估值条目各 500 条，有值 410 条，拒绝 90 条。
-- 拒绝原因出现次数，`NO_GROWTH` 84、`NON_POSITIVE_EPS` 26、`NO_EPS` 1。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 110 条。模型为 `owner` 460 条、`residual` 40 条。
-- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条，`NEGATIVE_HISTORY_GROWTH` 57 条。前后差异见 [RELEASE_V2.md](RELEASE_V2.md)。
+- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-19。
+- 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。折现率仍是当地十年期向上取整加 6 个百分点（人民币 8%，美元与港币 12%）。
+- 声明、快照与估值条目各 500 条，有值 402 条，拒绝 98 条（相对冻结的 v2：407 有值 / 93 拒绝）。
+- 拒绝原因出现次数，`NO_GROWTH` 79、`CASH_UNRECONCILED` 16、`NON_POSITIVE_EPS` 11、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 202 条，`CASH_DIVERGENCE`（25–49%）42 条。模型为 `owner` 460 条、`residual` 40 条。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条，`NEGATIVE_HISTORY_GROWTH` 59 条。`QUOTE_DATE_UNKNOWN` 仍为 150 条，见 [RELEASE_V3.md](RELEASE_V3.md) 的报价日期遗留说明。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 币种覆盖为 CNY 50 条、USD 399 条、HKD 51 条。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

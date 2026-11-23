@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
-import { DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
+import { ARTIFACT_PATH, DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
 import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote } from './lib/snapshot-transport.mjs'
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
@@ -176,12 +176,12 @@ async function refresh (existing, baseline) {
       if (String(quote.f57).toUpperCase() !== code) throw new Error('quote symbol mismatch')
       const indicative = priceOf(quote, market)
       if (indicative.asOf) return indicative
-      try {
-        const close = await quoteFromKline(market, code, secid)
-        // Market cap only verifies the share units against its accompanying price.
-        if (close.price === indicative.price) return { ...close, marketCap: indicative.marketCap }
-        return close
-      } catch { return indicative }
+      // f124 missing: use the dated kline close. Never write an undated price.
+      const close = await quoteFromKline(market, code, secid)
+      if (!close.asOf) throw new Error('quote date missing')
+      // Market cap only verifies the share units against its accompanying price.
+      if (close.price === indicative.price) return { ...close, marketCap: indicative.marketCap }
+      return close
     } catch (error) {
       // push2 resets the socket (UND_ERR_SOCKET) after a long run. The daily
       // kline host still answers; its close is already in quote units, and
@@ -199,8 +199,9 @@ async function refresh (existing, baseline) {
     const [date, value] = String(data?.klines?.at(-1) || '').split(',')
     const close = Number(value)
     if (!(close > 0)) throw new Error('empty quote')
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('quote date missing')
     const currency = market === 'HKSE' ? 'HK$' : US.has(market) ? '$' : '¥'
-    return { price: currency + close, currency, company: data.name || '', marketCap: NaN, asOf: /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null }
+    return { price: currency + close, currency, company: data.name || '', marketCap: NaN, asOf: date }
   }
 
   async function statementsFor (market, code) {
@@ -431,7 +432,7 @@ async function refresh (existing, baseline) {
     ...verification, blocked: assessment.blocked, partial: assessment.partial, mode, scope, rates,
     generatedAt: day, artifact: built.artifact, manifest: built.manifest, previous: committedPublish(root) ?? prior.publish,
   })
-  await atomicWrite(resolve(OUT, 'intrinsic/v2.json'), JSON.stringify(built.artifact, null, 2) + '\n')
+  await atomicWrite(resolve(OUT, ARTIFACT_PATH.replace(DATA_DIR + '/', '')), JSON.stringify(built.artifact, null, 2) + '\n')
   await atomicWrite(resolve(OUT, 'manifest.json'), JSON.stringify(built.manifest, null, 2) + '\n')
   await atomicWrite(resolve(OUT, PUBLISH_PATH.replace('public/data/', '')), JSON.stringify(publish, null, 2) + '\n')
   await atomicWrite(resolve(tempRoot, 'report.json'), JSON.stringify({

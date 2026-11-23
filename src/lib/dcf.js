@@ -305,10 +305,66 @@ export function sustainableCashBase (stock) {
   return Number([...recent].sort((a, b) => a - b)[1].toFixed(4))
 }
 
+const medianOf = (values) => {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b)
+  if (!sorted.length) return null
+  const middle = sorted.length >> 1
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+}
+
+/**
+ * Reported earnings, five-year normalised away from a single outlier year.
+ * If the latest year and the five-year median are both positive and the latest
+ * year is more than 40% from the median, the median is the repeatable figure.
+ * Otherwise the latest year is used; if either side is not positive, fall back
+ * to preferred EPS (TTM).
+ */
+export function normalizedEpsBase (stock) {
+  const annual = stock?.financials?.annual
+  const eps = Array.isArray(annual) ? annual.slice(-5).map((row) => Number(row?.eps_without_nri)).filter(Number.isFinite) : []
+  const latest = eps.at(-1)
+  const median = medianOf(eps)
+  if (!(latest > 0) || !(median > 0)) return preferredEps(stock)
+  return Math.abs(latest / median - 1) > 0.4 ? median : latest
+}
+
+/**
+ * Owner-earnings base (Buffett 1986): reported earnings plus non-cash charges
+ * less the capital spending needed to hold competitive position and volume.
+ *
+ * The committed snapshots carry no depreciation line and no maintenance-capex
+ * line, so the split between maintenance and growth capex cannot be observed.
+ * That leaves two measured bases that bracket the answer:
+ *   - after-capex cash (FCF = operating cash − total capex) charges every dollar
+ *     of capex, i.e. it assumes a company never invests for growth;
+ *   - normalised earnings of the same business charges none of the growth capex,
+ *     i.e. it assumes capex is free.
+ * Owner earnings sit between the two, so the midpoint is taken: it is the only
+ * choice that does not silently assume a maintenance share. Either extreme is a
+ * policy about capital intensity, not a measurement.
+ *
+ * When one side is missing or not positive the other is used alone, and a
+ * loss-making year still falls back to the reported figure instead of dropping
+ * the name. A partial three-year cash window is not a median. Financial
+ * institutions must pass `{ midpointCash: false }` — FCF is not owner earnings
+ * for a bank.
+ *
+ * No growth is assumed here: this is a repeatable base, not a forecast.
+ */
+export function normalizedEarningsBase (stock, { midpointCash = true } = {}) {
+  const earnings = normalizedEpsBase(stock)
+  const round4 = (value) => Number(Number(value).toFixed(4))
+  if (!midpointCash) return earnings === null ? null : round4(earnings)
+  const owner = sustainableCashBase(stock)
+  if (owner > 0 && earnings > 0) return round4((owner + earnings) / 2)
+  if (owner > 0) return round4(owner)
+  return earnings === null ? null : round4(earnings)
+}
+
 export function buildDefaults (indicator, stock, freeCashFlow) {
   stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)
-  const eps = preferredEps(stock)
+  const eps = Number.isFinite(stock.earnings_base) ? stock.earnings_base : preferredEps(stock)
   const earnings = adoptGrowth(stock.earning_growth_10y)
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {

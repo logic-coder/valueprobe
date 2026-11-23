@@ -4,6 +4,7 @@ import { basename, dirname, resolve } from 'node:path'
 import { atomicWrite, classifyShareBasis, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
 import { installSnapshots, recoverInstall } from '../../scripts/lib/snapshot-install.mjs'
 import { assessPublish, classifyOutcome, refreshVerification } from '../../scripts/lib/publish-gate.mjs'
+import { POLICY_VERSION } from '../../src/lib/policy'
 
 describe('incremental snapshot refresh', () => {
   it('blocks an upstream 404 without claiming a new verification when rates are kept', async () => {
@@ -24,6 +25,8 @@ describe('incremental snapshot refresh', () => {
   it('keeps the financial period and rejects unknown or older quotes when a dated quote is available', () => {
     const prior = { price: '$12', currency: '$', quote_as_of: '2026-11-18', quote_source: 'filed', eps_as_of: '2026-09-30', as_of: '2026-11-19' }
     expect(useQuote(prior, { price: '$13', asOf: null, currency: '$' })).toBe(prior)
+    const undated = { price: '$12', currency: '$' }
+    expect(useQuote(undated, { price: '$13', asOf: null, currency: '$' })).toBe(undated)
     expect(useQuote({ ...prior, currency: '$' }, { price: '$13', asOf: '2026-11-17', currency: '$' }).price).toBe('$12')
     expect(useQuote({ ...prior, currency: '$' }, { price: '$14', asOf: '2026-11-19', currency: '$' })).toEqual({
       price: '$14', quote_as_of: '2026-11-19', eps_as_of: '2026-09-30', as_of: '2026-11-19', currency: '$',
@@ -57,7 +60,7 @@ it('restores the previous snapshot and removes new entries after a failed or int
     await mkdir(run)
     const existing = 'NASDAQ-AAPL.json'
     const added = 'NYSE-IBM.json'
-    const release = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/v2.json', 'manifest.json', 'publish.json']
+    const release = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/' + POLICY_VERSION + '.json', 'manifest.json', 'publish.json']
     for (const name of [existing, ...release]) {
       await atomicWrite(resolve(live, name), '{"value":"old"}')
       await atomicWrite(resolve(staged, name), '{"value":"new"}')
@@ -99,7 +102,7 @@ it('removes fresh release assets when the first upgrade fails', { timeout: 30_00
     const existing = 'NASDAQ-AAPL.json'
     const added = 'NYSE-IBM.json'
     const oldRelease = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'manifest.json']
-    const newRelease = ['intrinsic/v2.json', 'publish.json']
+    const newRelease = ['intrinsic/' + POLICY_VERSION + '.json', 'publish.json']
     for (const name of [existing, ...oldRelease]) await atomicWrite(resolve(live, name), '{"value":"old"}')
     for (const name of [existing, ...oldRelease, ...newRelease]) await atomicWrite(resolve(staged, name), '{"value":"new"}')
     await atomicWrite(resolve(staged, added), '{}')

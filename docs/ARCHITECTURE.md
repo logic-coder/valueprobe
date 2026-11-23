@@ -87,7 +87,7 @@ ESLint 的 `no-restricted-imports` 会拦下最常见的反向依赖（lib→sto
 | `src/data/listingGroups.js` | 9 组 A/H 对照 |
 | `scripts/lib/policy-artifact.mjs` | 用 `policyValue()` 构建发布值文件 + manifest；写入与校验共用同一函数 |
 | `scripts/policy-values.mjs` / `scripts/verify-data.mjs` | `npm run intrinsic` / `npm run verify:data` |
-| `public/data/intrinsic/v2.json` | 唯一发布值文件（v1 冻结保留复现）：entries、coverage（覆盖计数）、rates、crossListing |
+| `public/data/intrinsic/v3.json` | 当前发布值文件（v1、v2 冻结保留复现）：entries、coverage（覆盖计数）、rates、crossListing |
 | `public/data/manifest.json` | universe/coverage/rates + 每个快照的 bytes/sha256 |
 | `src/api/policy.js` / `src/store/policy.js` | 读发布值文件的门面与响应式状态（fetch 一次、`entryOf(symbol)`） |
 | `src/pages/MethodPage.vue` | `#/method` 方法页：参数/代码表由 policy 常量生成，发布事实经 `api/policy` 读发布值文件 |

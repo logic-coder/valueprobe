@@ -5,7 +5,7 @@ import { POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyVa
 import { REASON, WARNING } from '../../src/lib/reasons'
 import { toStock } from '../../src/lib/stockRecord'
 
-// Real-company regression for public policy v2: the committed snapshots the
+// Real-company regression for public policy v3: the committed snapshots the
 // published site reads go through the same cleaning and valuation path as the
 // artifact and must still carry the facts the public method rests on. Assertions
 // target the published result (status, model, disclosed rate row) and the raw
@@ -14,7 +14,7 @@ import { toStock } from '../../src/lib/stockRecord'
 // the artifact golden.
 const root = process.cwd()
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
-const artifact = readJson('public/data/intrinsic/v2.json')
+const artifact = readJson('public/data/intrinsic/' + POLICY_VERSION + '.json')
 // The artifact stores exactly the rows the published values used, including the
 // HKD -> USD proxy, so a recompute cannot silently use a different rate.
 const rates = artifact.rates
@@ -23,7 +23,7 @@ const stockOf = (symbol) => toStock(snapshotOf(symbol))
 const valueOf = (symbol) => policyValue(stockOf(symbol), { rates, generatedAt: artifact.generatedAt })
 const published = (symbol) => artifact.entries[symbol]
 
-describe('public policy v2 regression runs on the committed artifact', () => {
+describe('public policy v3 regression runs on the committed artifact', () => {
   it('is written for the version and hash that produced the artifact', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
     expect(artifact.policyHash).toBe(POLICY_V1_HASH)
@@ -31,12 +31,12 @@ describe('public policy v2 regression runs on the committed artifact', () => {
 })
 
 describe('SHSE:601398 - residual income on a real bank', () => {
-  it('publishes the public v2 value around 11.86 on the residual model', () => {
+  it('publishes the public v3 value around 11.66 on the residual model', () => {
     const value = valueOf('SHSE:601398')
     expect(value.status).toBe('ok')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
-    // Public policy v2 golden for ICBC: update only with a policy version bump.
-    expect(value.value).toBeCloseTo(11.86, 2)
+    // Public policy v3 golden for ICBC: update only with a policy version bump.
+    expect(value.value).toBeCloseTo(11.66, 2)
     expect(value.value).toBe(published('SHSE:601398').value)
     expect(value.inputs.rate.proxy).toBeNull()
     expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.CNY.value))
@@ -67,11 +67,11 @@ describe('refusals name the missing fact instead of inventing one', () => {
     expect(value.reasons).toEqual(published('NASDAQ:INTC').reasons)
   })
 
-  it('NYSE:V is refused when EPS is missing', () => {
+  it('NYSE:V is refused after the EPS parser cannot recover a growth history', () => {
     const value = valueOf('NYSE:V')
     expect(value.status).toBe('refused')
     expect(value.value).toBeNull()
-    expect(value.reasons).toContain(REASON.NO_EPS)
+    expect(value.reasons).toContain(REASON.NO_GROWTH)
     expect(value.reasons).toEqual(published('NYSE:V').reasons)
   })
 })

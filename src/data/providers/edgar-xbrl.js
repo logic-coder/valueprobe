@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { transport } from '../transport'
 import { readStored, writeStored } from '../../lib/storage'
+import { windowGrowth } from '../../lib/assumptions'
 
 // SEC EDGAR XBRL companyfacts. Public domain filings, no key. The Vite proxy
 // injects the descriptive User-Agent EDGAR requires.
@@ -151,12 +152,26 @@ function sameFilingCapitalSpending (facts, operatingCash, totalConcepts) {
   return oilAndGas == null || other == null ? null : oilAndGas + other
 }
 
+// Filers sometimes tag per-share amounts as USD/share (singular). Both units
+// are dollars per share. Companyfacts only includes undimensioned facts: if an
+// issuer (Visa) tags EarningsPerShareDiluted only on a class-of-stock axis,
+// the concept is absent here and must not be invented from net income / shares.
+const EPS_UNITS = ['USD/shares', 'USD/share']
+
+function earningsSeries (facts, concepts, taxonomyName) {
+  for (const unit of EPS_UNITS) {
+    const selected = annualSelection(facts, concepts, unit, taxonomyName)
+    if (selected.series.length >= 2) return selected
+  }
+  return { series: [], points: [] }
+}
+
 /** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
 function earningsPerShare (facts) {
-  const direct = annualSelection(facts, EPS_CONCEPTS, 'USD/shares', 'us-gaap')
+  const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap')
   if (direct.series.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  return annualSelection(facts, ifrsConcepts, 'USD/shares', 'ifrs-full')
+  return earningsSeries(facts, ifrsConcepts, 'ifrs-full')
 }
 
 // Use the current and comparative YTD figures in the same 10-Q. The 10-K
@@ -455,42 +470,8 @@ export function scalePerShare (pack, factor) {
   }
 }
 
-const WINDOW_SPAN = { 10: 7, 5: 4, 1: 1 }
-
-/**
- * Compound annual growth in percent over a 10-, 5- or 1-year window.
- * Same product contract as A/H statements: no invented default; a loss at
- * the end of the window means no growth; a 10-year label needs at least
- * seven years of span, a 5-year label at least four. A 1-year rate needs
- * the immediately preceding fiscal year (a hole is not stretched into a
- * two-year CAGR). A trough at the first year is not used as the base; the
- * start walks forward while the minimum span still holds, instead of
- * dropping the whole window.
- */
-export function growthWindow (series, yearsWanted) {
-  const clean = (series || []).filter((point) => point && Number.isFinite(point.fy) && Number.isFinite(point.val))
-  if (clean.length < 2) return null
-  const last = clean[clean.length - 1]
-  if (!(last.val > 0)) return null
-  const minimum = WINDOW_SPAN[yearsWanted] ?? Math.ceil(yearsWanted * 0.7)
-  const positives = clean.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
-  const typical = positives[Math.floor(positives.length / 2)]
-  const isTrough = (point) => yearsWanted > 1 && positives.length >= 3 && point.val < typical * 0.2
-  let start
-  if (yearsWanted === 1) {
-    start = clean.find((point) => point.fy === last.fy - 1) || null
-  } else {
-    const target = last.fy - yearsWanted
-    start = clean.reduce((chosen, point) => (point.fy <= target ? point : chosen), clean[0])
-    if (!start || !(start.val > 0) || isTrough(start)) {
-      start = clean.find((point) => point.val > 0 && last.fy - point.fy >= minimum && !isTrough(point)) || null
-    }
-  }
-  if (!start || !(start.val > 0) || last.fy - start.fy < minimum) return null
-  const pct = (Math.pow(last.val / start.val, 1 / (last.fy - start.fy)) - 1) * 100
-  if (!Number.isFinite(pct)) return null
-  return Number(Math.max(-100, Math.min(200, pct)).toFixed(2))
-}
+// Same window contract as A/H statements; official values also call this function.
+export const growthWindow = windowGrowth
 
 const predictability = (series) => {
   if (!series.length) return 1

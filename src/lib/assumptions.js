@@ -13,6 +13,8 @@ const LEVEL_SHIFT_RATIO = 0.4
 const COMPANION_FLOOR = 0.75
 export const MIN_CLEAN_YEARS = 4
 const MAX_GROWTH_YEARS = 10
+// A 10-year label needs at least seven years of span; a 5-year label at least four.
+export const WINDOW_SPAN = Object.freeze({ 10: 7, 5: 4, 1: 1 })
 
 /**
  * @param {unknown} value historical growth rate in percent
@@ -27,6 +29,44 @@ export function adoptGrowth (value) {
     return { historical: parsed, adopted: MAX_UNDERWRITTEN_GROWTH, reason: 'capped' }
   }
   return { historical: parsed, adopted: parsed, reason: 'historical' }
+}
+
+/**
+ * Compound annual growth in percent over a 10-, 5- or 1-year window.
+ * Shared by A/H statements, US filings and official-value construction.
+ * No invented default; a loss at the end of the window means no growth.
+ * A 10-year label needs at least seven years of span, a 5-year label at
+ * least four. A 1-year rate needs the immediately preceding fiscal year
+ * (a hole is not stretched into a two-year CAGR). A trough at the first
+ * year is not used as the base; the start walks forward while the minimum
+ * span still holds, instead of dropping the whole window.
+ * @param {Array<{fy:number, val:number}|null|undefined>} series oldest first
+ * @param {number} yearsWanted
+ * @returns {number|null}
+ */
+export function windowGrowth (series, yearsWanted) {
+  const clean = (series || []).filter((point) => point && Number.isFinite(point.fy) && Number.isFinite(point.val))
+  if (clean.length < 2) return null
+  const last = clean[clean.length - 1]
+  if (!(last.val > 0)) return null
+  const minimum = WINDOW_SPAN[yearsWanted] ?? Math.ceil(yearsWanted * 0.7)
+  const positives = clean.map((point) => point.val).filter((value) => value > 0).sort((left, right) => left - right)
+  const typical = positives[Math.floor(positives.length / 2)]
+  const isTrough = (point) => yearsWanted > 1 && positives.length >= 3 && point.val < typical * 0.2
+  let start
+  if (yearsWanted === 1) {
+    start = clean.find((point) => point.fy === last.fy - 1) || null
+  } else {
+    const target = last.fy - yearsWanted
+    start = clean.reduce((chosen, point) => (point.fy <= target ? point : chosen), clean[0])
+    if (!start || !(start.val > 0) || isTrough(start)) {
+      start = clean.find((point) => point.val > 0 && last.fy - point.fy >= minimum && !isTrough(point)) || null
+    }
+  }
+  if (!start || !(start.val > 0) || last.fy - start.fy < minimum) return null
+  const pct = (Math.pow(last.val / start.val, 1 / (last.fy - start.fy)) - 1) * 100
+  if (!Number.isFinite(pct)) return null
+  return Number(Math.max(-100, Math.min(200, pct)).toFixed(2))
 }
 
 /**
@@ -68,6 +108,11 @@ export function cleanGrowth (values, companion = []) {
     const after = recent.slice(i)
     if (!(before.value > 0) || !(after[0].value > 0)) return false
     if (after[0].value >= before.value * LEVEL_SHIFT_RATIO) return false
+    // A single peak year followed by a return to the pre-peak level is an
+    // outlier, not a split. A split cuts every per-share figure and does not
+    // recover to the pre-peak EPS (or restated revenue-per-share companion).
+    const prePeak = recent[i - 2]
+    if (prePeak?.value > 0 && after[0].value >= prePeak.value * COMPANION_FLOOR) return false
     if (before.companion > 0 && after[0].companion > 0) {
       if (after[0].companion < before.companion * COMPANION_FLOOR) return false
       const line = (before.value / before.companion) * LEVEL_SHIFT_RATIO

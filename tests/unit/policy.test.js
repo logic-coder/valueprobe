@@ -11,7 +11,7 @@ import { REASON, WARNING, isKnownReason, isKnownWarning } from '../../src/lib/re
 import { defaultView } from '../../src/lib/watchlistView'
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'))
-const artifact = readJson('public/data/intrinsic/v2.json')
+const artifact = readJson('public/data/intrinsic/' + POLICY_VERSION + '.json')
 const ratesFile = readJson('public/data/rates.json')
 const catalog = readJson('public/data/catalog.json')
 const rateRows = {
@@ -22,10 +22,10 @@ const snapshots = catalog.map((row) => ({ symbol: row.symbol, raw: readJson('pub
 const stockOf = (raw) => toStock(raw)
 const yieldOf = (stock) => rateForCurrency(rateRows, stock.currency)?.value ?? null
 
-describe('public policy v2 is frozen', () => {
+describe('public policy is frozen', () => {
   it('pins the hash so an unversioned edit cannot ship', () => {
     expect(createHash('sha256').update(JSON.stringify(POLICY_V1)).digest('hex')).toBe(POLICY_V1_HASH)
-    expect(POLICY_VERSION).toBe('v2')
+    expect(POLICY_VERSION).toBe('v3')
   })
 
   it('keeps the contested constants explicit', () => {
@@ -36,6 +36,8 @@ describe('public policy v2 is frozen', () => {
     expect(POLICY_V1.growth.cap).toBe(15)
     expect(POLICY_V1.growth.negative).toBe('warn')
     expect(POLICY_V1.horizon).toEqual({ years: 10, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10 })
+    expect(POLICY_V1.discount.rule).toBe('local-10y-ceil+6')
+    expect(POLICY_V1.basis).toBe('repeatable-earnings')
   })
 })
 
@@ -201,24 +203,67 @@ describe('classification evidence is disclosed, never a silent guess', () => {
   })
 })
 
-describe('cash is a cross-check, never the published base', () => {
-  const raw = (annual) => ({
-    exchange_: 'SHSE', symbol: '600000', price: '¥50', ttm_eps: 10,
+describe('cash is a cross-check after the official base is chosen', () => {
+  const raw = (annual, ttm = 10) => ({
+    exchange_: 'SHSE', symbol: '600000', price: '¥50', ttm_eps: ttm,
     tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
-    financials: { annual: annual.map((free_cash_flow_per_share) => ({ free_cash_flow_per_share })) },
+    financials: { annual: annual.map((row) => typeof row === 'number' || row == null
+      ? { free_cash_flow_per_share: row } : row) },
   })
 
-  it('shows the three-year median cash value and warns at 50% divergence', () => {
-    const value = policyValue(stockOf(raw([1, 2, 3])), { rates: rateRows, generatedAt: artifact.generatedAt })
-    expect(value.status).toBe('ok')
+  it('refuses when cash still differs from the official base by 50% or more', () => {
+    const value = policyValue(stockOf(raw([1, 2, 3])), { rates: rateRows, generatedAt: '2026-11-18' })
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
     expect(value.cash).toMatchObject({ base: 2 })
-    expect(value.cash.value).toBeGreaterThan(0)
-    expect(value.cash.gapPct).toBeLessThan(-50)
+    expect(Math.abs(value.cash.gapPct)).toBeGreaterThanOrEqual(50)
+    expect(value.reasons).toContain(REASON.CASH_UNRECONCILED)
+    expect(value.warnings).not.toContain(WARNING.CASH_DIVERGENCE)
+  })
+
+  it('keeps a Tencent-class name when the midpoint shrinks the gap below 50%', () => {
+    const rows = [
+      { eps_without_nri: 20, free_cash_flow_per_share: 11 },
+      { eps_without_nri: 22, free_cash_flow_per_share: 12 },
+      { eps_without_nri: 24, free_cash_flow_per_share: 13 },
+    ]
+    const value = policyValue(stockOf(raw(rows, 24)), { rates: rateRows, generatedAt: '2026-11-18' })
+    expect(value.status).toBe('ok')
+    expect(value.value).toBeGreaterThan(0)
+    expect(Math.abs(value.cash.gapPct)).toBeLessThan(50)
+    expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
+  })
+
+  it('warns, and still publishes, when the remaining gap is 25% to 49%', () => {
+    const rows = [
+      { eps_without_nri: 10, free_cash_flow_per_share: 4 },
+      { eps_without_nri: 10, free_cash_flow_per_share: 5 },
+      { eps_without_nri: 10, free_cash_flow_per_share: 6 },
+    ]
+    const value = policyValue(stockOf(raw(rows, 10)), { rates: rateRows, generatedAt: '2026-11-18' })
+    expect(value.status).toBe('ok')
+    expect(Math.abs(value.cash.gapPct)).toBeGreaterThanOrEqual(25)
+    expect(Math.abs(value.cash.gapPct)).toBeLessThan(50)
     expect(value.warnings).toContain(WARNING.CASH_DIVERGENCE)
+    expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
+  })
+
+  it('marks NORMALIZED_EPS when the official base differs from latest reported EPS by 25%+', () => {
+    const rows = [
+      { eps_without_nri: 6, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 7, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 8, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 9, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 0.5, free_cash_flow_per_share: 6 },
+    ]
+    const value = policyValue(stockOf({ ...raw(rows, 0.5) }), { rates: rateRows, generatedAt: '2026-11-18' })
+    expect(value.inputs.epsLatest).toBe(0.5)
+    expect(value.inputs.eps).toBeGreaterThan(0.5)
+    expect(value.warnings).toContain(WARNING.NORMALIZED_EPS)
   })
 
   it('stays null without three reported positive years', () => {
-    const value = policyValue(stockOf(raw([1, null, 3])), { rates: rateRows, generatedAt: artifact.generatedAt })
+    const value = policyValue(stockOf(raw([1, null, 3])), { rates: rateRows, generatedAt: '2026-11-18' })
     expect(value.status).toBe('ok')
     expect(value.cash).toBeNull()
     expect(value.warnings).not.toContain(WARNING.CASH_DIVERGENCE)
@@ -239,13 +284,16 @@ describe('the committed artifact is what the policy produces', () => {
 
   it('publishes the pinned values and refusals', () => {
     const entry = (symbol) => artifact.entries[symbol]
-    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 11.86 })
+    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 11.66 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
-    expect(entry('NASDAQ:AAPL').value).toBe(179.75)
+    expect(entry('NASDAQ:AAPL').value).toBe(132.03)
     expect(entry('NASDAQ:AAPL').warnings).toContain(WARNING.CAPPED_GROWTH)
-    expect(entry('NYSE:TSM')).toMatchObject({ value: 213.18, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 10.65 } })
-    expect(entry('HKSE:00700').value).toBe(611.45)
+    expect(entry('NYSE:TSM')).toMatchObject({ value: 125.1, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
+    expect(entry('HKSE:00700').value).toBe(410.7)
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
+    expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
+    expect(entry('NYSE:GPC').value).not.toBe(1.13)
+    expect(entry('NYSE:GPC').value).toBe(24.68)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
     expect(entry('HKSE:00002').status).toBe('ok')
     expect(entry('HKSE:00066').status).toBe('ok')

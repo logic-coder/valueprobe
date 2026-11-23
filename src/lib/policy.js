@@ -1,4 +1,4 @@
-// ValueProbe public policy v2: the single place that decides which inputs the
+// ValueProbe public policy v3: the single place that decides which inputs the
 // published intrinsic value uses, and which caveats travel with it. Pure
 // functions only — the browser, the tests and scripts/policy-values.mjs all call
 // this module, so the committed artifact and the screen cannot drift apart.
@@ -10,7 +10,7 @@ import { cashflowCurrency, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RA
 import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
-export const POLICY_VERSION = 'v2'
+export const POLICY_VERSION = 'v3'
 
 const deepFreeze = (value) => {
   if (value && typeof value === 'object') {
@@ -22,12 +22,21 @@ const deepFreeze = (value) => {
 
 export const POLICY_V1 = deepFreeze({
   version: POLICY_VERSION,
-  // Semantics added in v2; listed here so the pinned hash changes with them.
-  revision: { classification: 'industry+ocf+columns', terminalBoundary: 'shared-effective-growth', band: 'model-consistent-one-sided', cashCrossCheck: 'three-year-median' },
+  // Semantics added in v3; listed here so the pinned hash changes with them.
+  revision: {
+    classification: 'industry+ocf+columns',
+    terminalBoundary: 'shared-effective-growth',
+    band: 'model-consistent-one-sided',
+    cashCrossCheck: 'three-year-median',
+    earningsBase: 'normalized-eps-and-cash-midpoint',
+    publicationGate: 'cash-unreconciled-veto',
+    officialGrowth: 'recomputed-window',
+  },
   trialOnlyIndustries: ['reit', 'refining'],
-  // The published number is always a discounted-earnings number. Free cash flow
-  // stays a cross-check on the stock page, never the published value.
-  basis: 'eps',
+  // Repeatable earning power: five-year normalised EPS, and for non-financial
+  // companies the midpoint with a complete three-year positive FCF median.
+  // Discounted cash-flow still uses that base; raw FCF is also a cross-check.
+  basis: 'repeatable-earnings',
   model: { nonFinancial: 'owner', financialInstitution: 'residual' },
   horizon: {
     years: DCF_DEFAULTS.years,
@@ -75,7 +84,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '98f36be9fbcc802e9639fd4616950175e108423913572b96b0d687bb8682d680'
+export const POLICY_V1_HASH = '020fbf8f316875ac08ff08b801d80a3aa552e70e0adec933bea8ec2dd1149f4c'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -146,8 +155,9 @@ export function symbolOf (stock) {
 
 const emptyInputs = () => ({
   model: POLICY_V1.model.nonFinancial,
-  basis: 'eps',
+  basis: POLICY_V1.basis,
   eps: null,
+  epsLatest: null,
   growth: null,
   discountRate: null,
   terminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
@@ -246,10 +256,14 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   if (growthInfo.reason === 'capped') warnings.push(WARNING.CAPPED_GROWTH)
 
   // ---- earnings base ------------------------------------------------------
-  const eps = num(policyEps(stock))
+  const latestEps = num(policyEps(stock))
+  const eps = num(stock.earnings_base) ?? latestEps
+  inputs.basis = POLICY_V1.basis
   inputs.eps = eps
+  inputs.epsLatest = latestEps
   if (eps === null) reasons.push(REASON.NO_EPS)
   else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
+  else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)
 
   // ---- book value (residual-income model only) ----------------------------
   const tangibleBook = num(stock.tangible_book)
@@ -305,7 +319,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
       if (cashValue !== null && Number.isFinite(cashValue) && cashValue > 0) {
         const gap = cashValue / value - 1
         cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100) }
-        if (Math.abs(gap) >= 0.5) warnings.push(WARNING.CASH_DIVERGENCE)
+        if (Math.abs(gap) >= 0.5) reasons.push(REASON.CASH_UNRECONCILED)
+        else if (Math.abs(gap) >= 0.25) warnings.push(WARNING.CASH_DIVERGENCE)
       }
     }
     // Only a column-shaped route is unverified; record it when the other model
@@ -317,6 +332,9 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     if (model !== POLICY_V1.model.financialInstitution && tangibleBook > 0 && eps > 0 && growth / 100 > eps / tangibleBook) {
       warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
     }
+  }
+  if (reasons.includes(REASON.CASH_UNRECONCILED)) {
+    return finish({ ...base, value: null, band: null, terminalShare, cash, marginOfSafety: null }, reasons, warnings)
   }
   if (value === null) {
     reasons.push(REASON.NOT_FINITE)
@@ -353,7 +371,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 export function policySummary () {
   return {
     version: POLICY_VERSION,
-    // Semantics added in v2; listed here so the pinned hash changes with them.
+    // Semantics added in v3; listed here so the pinned hash changes with them.
     revision: { ...POLICY_V1.revision },
     cashCrossCheck: POLICY_V1.revision.cashCrossCheck,
     basis: POLICY_V1.basis,

@@ -10,6 +10,8 @@ export const REASON = Object.freeze({
   NO_BOOK: 'NO_BOOK',
   NOT_FINITE: 'NOT_FINITE',
   INDUSTRY_MODEL_PENDING: 'INDUSTRY_MODEL_PENDING',
+  // After the official base is chosen, cash still differs from it by 50%+.
+  CASH_UNRECONCILED: 'CASH_UNRECONCILED',
 })
 
 export const WARNING = Object.freeze({
@@ -27,10 +29,12 @@ export const WARNING = Object.freeze({
   CLASSIFICATION_UNVERIFIED: 'CLASSIFICATION_UNVERIFIED',
   // Owner model on a REIT/refiner: no FFO/AFFO or mid-cycle normalisation.
   MODEL_CAVEAT: 'MODEL_CAVEAT',
-  // After-capex cash cross-check differs from the published earnings value by 50%+.
+  // After-capex cash cross-check differs from the published value by 25–49%.
   CASH_DIVERGENCE: 'CASH_DIVERGENCE',
   // Terminal growth was cut to (at most) two points under the discount rate.
   TERMINAL_CAPPED: 'TERMINAL_CAPPED',
+  // The published base is normalised away from the latest reported EPS.
+  NORMALIZED_EPS: 'NORMALIZED_EPS',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

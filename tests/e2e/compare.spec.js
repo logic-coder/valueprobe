@@ -46,7 +46,7 @@ test('reaches the page from the header icon', async ({ page }) => {
 
 test('queues a stock from its header and restores the queue', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.86', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('11.66', { timeout: 20000 })
   await page.locator('.compare-button').click()
   await expect(page.locator('.compare-button')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('.compare-link')).toHaveAttribute('href', /SHSE:601398/)

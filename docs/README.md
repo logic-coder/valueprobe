@@ -30,7 +30,7 @@
 | 词 | 含义 | 出现位置 |
 | --- | --- | --- |
 | 覆盖清单（universe） | 产品公开覆盖、随数据提交的股票列表，快照、搜索目录和发布值必须与 `scripts/watchlist.json` 一致 | POLICY、DATA_SOURCES |
-| 发布值文件（artifact） | `public/data/intrinsic/v2.json`：自选 / 对比 / 方法页只读的发布数值；代码路径与字段名保留英文 artifact | POLICY、DATA_SOURCES |
+| 发布值文件（artifact） | `public/data/intrinsic/v3.json`：自选 / 对比 / 方法页只读的发布数值；代码路径与字段名保留英文 artifact；v2 冻结保留复现 | POLICY、DATA_SOURCES、RELEASE_V3 |
 | 校验 / 门禁（gate） | `npm run verify` 与 CI 的自动检查；发布值的专用检查是 `npm run verify:data` | 全部 |
 | 公开口径（policy） | 决定发布值的固定参数与规则，带版本号；代码在 `src/lib/policy.js` | POLICY |
 | 快照（snapshot） | 某天抓取并提交的季度基本面数据（`public/data/<MARKET>-<CODE>.json`） | DATA_SOURCES |

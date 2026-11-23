@@ -673,3 +673,27 @@ describe('IFRS 20-F book value and free cash flow', () => {
     expect(table.annual.at(-1).book_value_per_share).toBeCloseTo(10, 3)
   })
 })
+
+
+describe('EPS units and missing companyfacts concepts', () => {
+  it('keeps diluted EPS tagged as USD/share', () => {
+    const { fields, financials } = fundamentalsFromFacts('NYSE:EX', facts({
+      EarningsPerShareDiluted: ['USD/share', [year(2024, 9.73), year(2025, 10.20), year(2026, 12.32)]],
+    }))
+    expect(fields.ttm_eps).toBe(12.32)
+    expect(financials.annual.map((row) => row.eps_without_nri)).toEqual([9.73, 10.20, 12.32])
+  })
+
+  it('does not invent EPS from net income and shares when the EPS concept is absent', () => {
+    // Visa-like companyfacts: income and cash exist, but dimensioned EPS never arrives.
+    const table = financialsFromFacts(facts({
+      NetIncomeLoss: ['USD', [year(2024, 19.7e9), year(2025, 20e9), year(2026, 23.5e9)]],
+      NetCashProvidedByUsedInOperatingActivities: ['USD', [year(2024, 20e9), year(2025, 21e9), year(2026, 22e9)]],
+      PaymentsToAcquirePropertyPlantAndEquipment: ['USD', [year(2024, 1e9), year(2025, 1e9), year(2026, 1e9)]],
+      StockholdersEquity: ['USD', [year(2024, 40e9), year(2025, 38e9), year(2026, 38e9)]],
+      WeightedAverageNumberOfDilutedSharesOutstanding: ['shares', [year(2024, 2e9), year(2025, 1.95e9), year(2026, 1.9e9)]],
+    }))
+    expect(table.annual.every((row) => row.eps_without_nri == null)).toBe(true)
+    expect(table.annual.some((row) => row.free_cash_flow_per_share != null)).toBe(true)
+  })
+})

@@ -137,6 +137,27 @@ for (const name of snapshotFiles(root)) {
 }
 schemaOk ? ok('snapshot schema', snapshotFiles(root).length + ' files') : null
 
+// Official growth must equal policyGrowth(toStock(snapshot)), not a stale stored g10.
+let growthOk = true
+let missingQuoteDates = 0
+for (const name of snapshotFiles(root)) {
+  const raw = readJson('public/data/' + name)
+  const symbol = raw.exchange_ + ':' + raw.symbol
+  const stock = toStock(raw)
+  const saved = artifact.entries[symbol]
+  const recomputed = policyValue(stock, { rates: readRates(root).rates, generatedAt: artifact.generatedAt })
+  if (!saved) continue
+  if (saved.inputs?.growth !== recomputed.inputs?.growth || saved.status !== recomputed.status) {
+    growthOk = false
+    fail('official growth ' + symbol, 'artifact growth ' + saved.inputs?.growth + ' vs policyGrowth(toStock) ' + recomputed.inputs?.growth)
+  }
+  if (saved.price > 0 && !raw.quote_as_of) missingQuoteDates++
+}
+growthOk ? ok('official growth matches toStock') : null
+if (missingQuoteDates) {
+  warn('quote dates missing', missingQuoteDates + ' committed snapshots have a price and no quote_as_of; leftover until a dated refresh, not a release failure')
+}
+
 // Cross-listing report must cover every curated pair and be honest about mismatches.
 const groups = artifact.crossListing.map((row) => row.id)
 groups.length === 9 ? ok('cross-listing report', groups.length + ' pairs') : fail('cross-listing report', groups.length + ' pairs')
@@ -144,7 +165,7 @@ groups.length === 9 ? ok('cross-listing report', groups.length + ' pairs') : fai
 // diluted EPS, so a few percent is expected. Any NEW mismatch (or a resolved one that
 // this list has not been updated for) fails the gate so a data regression cannot hide
 // behind a familiar list.
-const KNOWN_CROSS_LISTING_MISMATCHES = ['BOCOM', 'BOC', 'BYD', 'CPIC', 'PING_AN']
+const KNOWN_CROSS_LISTING_MISMATCHES = ['BYD', 'PING_AN']
 const mismatched = artifact.crossListing.filter((row) => row.status === 'input-mismatch').map((row) => row.id).sort()
 const expected = [...KNOWN_CROSS_LISTING_MISMATCHES].sort()
 const sameMismatches = mismatched.length === expected.length && mismatched.every((id, index) => id === expected[index])

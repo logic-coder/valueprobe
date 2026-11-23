@@ -1,11 +1,14 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { discountPath, shareholderValue } from '../../scripts/research/owner-earnings.mjs'
 import { discountCash, forecastCash, historicalCashBase } from '../../scripts/research/cash-forecast.mjs'
 import { marginStress } from '../../src/lib/marginStress'
-import release from '../../public/data/intrinsic/v2.json'
+import { POLICY_VERSION } from '../../src/lib/policy'
 import history from '../../public/research/dia-2015.json'
 import cashStudy from '../../public/research/cash-path-2006-2015.json'
 import cashInputs from '../../scripts/research/cash-path-inputs.json'
+
+const release = JSON.parse(readFileSync('public/data/intrinsic/' + POLICY_VERSION + '.json', 'utf8'))
 
 describe('growth funded by retained earnings', () => {
   const inputs = { years: 10, growth: 5, terminalGrowthRate: 3, discountRate: 10 }

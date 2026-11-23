@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { enduringBookValue, orderBand, residualIncomeBand, residualIncomeValue, valueBand } from '../../src/lib/dcf'
-import { policyValue } from '../../src/lib/policy'
+import { POLICY_VERSION, policyValue } from '../../src/lib/policy'
 import { toStock } from '../../src/lib/stockRecord'
 
 const read = (path) => JSON.parse(readFileSync(path, 'utf8'))
-const artifact = read('public/data/intrinsic/v2.json')
+const artifact = read('public/data/intrinsic/' + POLICY_VERSION + '.json')
 const rates = read('public/data/rates.json')
 const cnyRate = { CNY: { value: rates.CNY.value, asOf: rates.CNY.as_of, source: 'snapshot' } }
 const clear = { tbv: 100, base: 10, growthRate: 4, terminalGrowthRate: 4, years: 10 }
