@@ -1,12 +1,12 @@
 # 公开口径 v3（public policy v3）
 
-这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v3.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。`public/data/intrinsic/v2.json` 是已冻结的上一版发布值，保留复现。
+这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v3.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。`public/data/intrinsic/v2.json` 是已冻结的上一版发布值，保留复现。线上 GitHub Pages 仍在交付冻结的 v2；本文件描述的是本仓库尚未推送的官方 v3。
 
 修改 `POLICY_V1` 会改变每一个发布数字。必须同时升 `POLICY_VERSION`、重算并更新 `POLICY_V1_HASH`，否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
 ## 1. 口径参数
 
-| 参数 | v1 值 | 代码常量 |
+| 参数 | 现行值（官方 v3） | 代码常量 |
 | --- | --- | --- |
 | 估值基数 | `repeatable-earnings`：五年正常化每股收益；一般公司再与三年正自由现金流中位数取中点；金融机构只用正常化每股收益 | `POLICY_V1.basis` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |

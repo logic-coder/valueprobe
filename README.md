@@ -1,6 +1,6 @@
 # valueprobe
 
-Open-source, local-first stock valuation. The published number is the **intrinsic value** under **public policy v2**: ordinary companies are discounted from per-share earnings in two stages; banks, insurers and brokers use residual income. It is an estimate, not investment advice, and not a price target.
+Open-source, local-first stock valuation. This tree's unpublished official policy is **public policy v3**: ordinary companies are discounted from per-share earnings in two stages; banks, insurers and brokers use residual income. The live GitHub Pages site still serves frozen **public policy v2** until v3 is pushed and deployed. It is an estimate, not investment advice, and not a price target.
 
 Default values are generated from financial data and shared, versioned rules. Coverage grows when the required data can be refreshed and the relevant valuation rule can be applied automatically.
 
@@ -56,12 +56,13 @@ Run `npm run verify` before pushing. Pages serves the committed snapshots and ne
 
 Start with [`docs/README.md`](docs/README.md): it lists every document and the rule for where docs live.
 
-- `docs/POLICY.md` — public policy v2 parameters, reason/warning codes, artifact and manifest schema, refresh and checks, coverage list and replacements.
+- `docs/POLICY.md` — public policy v3 parameters in this tree (the live site is still v2), reason/warning codes, artifact and manifest schema, refresh and checks, coverage list and replacements.
 - `docs/CALCULATION.md` — models and the calculation boundaries.
 - `docs/DATA_SOURCES.md` — providers, transport modes, rates and the artifact gate.
 - `docs/ARCHITECTURE.md` — layers, data flow and vocabulary.
 - `docs/DESIGN.md` — product/design rules and trade-offs.
 - `docs/DEVIATIONS.md` — every visible behaviour difference, with its reason.
 - `docs/RELEASE_V2.md` — the v2 release decision, full v1→v2 diff, evidence and rollback.
+- `docs/RELEASE_V3.md` — the unpublished official v3 decision, full v2→v3 diff, evidence and rollback.
 
 MIT. Market data stays under its sources' terms (`ATTRIBUTION.md`).

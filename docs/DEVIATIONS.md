@@ -90,8 +90,8 @@
 
 早期版本没有导出，参数与结果只能看屏幕。
 
-- 位置：`lib/report.js`、`DcfCalculator.vue` 的导出按钮。
-- 行为：把屏幕上的假设、内核三项输出、安全边际、反 DCF、敏感度矩阵、同行与来源拼成 Markdown 下载；
+- 位置：早期实现曾在 `lib/report.js`（该路径是历史位置，文件已不在本仓库）与 `DcfCalculator.vue` 的导出按钮。现行个股单屏不再提供这份 Markdown 导出；本条保留为历史记录。
+- 行为：当时把屏幕上的假设、内核三项输出、安全边际、反 DCF、敏感度矩阵、同行与来源拼成 Markdown 下载；
   文件名带代码与时间戳。
 - 不改：内核；报告只是当前显示值的快照。
 
@@ -372,7 +372,7 @@
 - 反推：页面用 `impliedGrowth` 反推同一条衰减路径。`calculateReverse` 和 `calGr2fv` 保留旧有限年金对照，金样本为 0.71%。有限等比级数在比率等于 1 时取极限，两侧连续。
 - 利率取值域：零和负收益率不再一律回退 8%。负值照常取 `ceil(yield) + 6` 后夹到 [0, 50]；负值足够深时 `gc` 可为负，三个阶段仍同号。
 - 位置：`src/lib/dcf.js` 的 `unroundedPresentValue` / `presentValue` / `calculateReverse`、`src/lib/policy.js` 的 `policyDiscountRate` 与发布分支、`src/lib/riskFree.js` 的 `pick`、`DcfCalculator.vue` 的阶段面板与 `stageNote`。
-- 审计：`eval/audit-hi.mjs`。冻结数据 40 只残差样本的正常折现率都高于 4%，续营项逐条保留；残差矩阵以 1% 为中心时 20 格有 5 格折现率为 0 或负，明确为空。
+- 审计：本地 `eval/audit-hi.mjs`（不在本仓库）。冻结数据 40 只残差样本的正常折现率都高于 4%，续营项逐条保留；残差矩阵以 1% 为中心时 20 格有 5 格折现率为 0 或负，明确为空。
 - 测试：`tests/unit/terminal.test.js`、`tests/unit/dcf.test.js`、`tests/unit/policy.test.js`、`tests/unit/kernel-parity.test.js`。
 
 ## D42 · 残差区间用同一模型扰动折现率
@@ -382,7 +382,7 @@
 - 行为：低值、基准、高值都由 `residualIncomeValue` 计算，只在折现率上作 ±2 个百分点扰动，收敛目标随折现率同步移动；基准仍是发布头条。端点没有超过基准时不补宽、返回 `null`，结果条只渲染真实存在的半边并显示「区间缺项」。
 - 缺口：`r − 2 ≤ 0` 时高值无法计算，保留缺项；折现率调节下限为 0，当前发布样本尚未触发。
 - 位置：`src/lib/dcf.js` 的 `valueBand` / `residualIncomeBand` / `orderBand`、`src/lib/policy.js` 的区间发布、`dcf/DcfResultBar.vue`。
-- 审计：`eval/h-band.json`，40 只逐条旧区间与新区间，O / WELL / PSX 为旧口径误分流样本。
+- 审计：本地 `eval/h-band.json`（不在本仓库），40 只逐条旧区间与新区间，O / WELL / PSX 为旧口径误分流样本。
 - 测试：`tests/unit/band.test.js`。
 
 ## D43 · 反推仍用旧内核，只在测试里作历史对照
@@ -400,7 +400,7 @@
 - 行为：`preferredEps()` 依次取 `ttm_eps_nri`、`ttm_eps`，只跳过 `null`、`undefined`、空串和非有限数；0 与 `'0'` 保留。发布与页面共用这一函数。利率只跳过缺失，有限数（含 0 和负值）都进入 `ceil(yield) + 6` 再夹到 0–50；只有缺失才回退 8%。`readRates()` 不再丢掉 `≤ 0` 的行。
 - 残差模型在折现率 0 时没有贴现，全部超额收益保留、账面按 ROE 复利；区间上沿因 `r − 2 ≤ 0` 留空。这是夹取后的边界值，不是可长期维持的 0% 股权成本。
 - 位置：`src/lib/dcf.js` 的 `preferredEps`/`buildDefaults`/`residualIncomeValue`、`src/lib/policy.js`、`src/lib/riskFree.js`、`scripts/lib/policy-artifact.mjs` 的 `readRates`。
-- 审计：`eval/i-boundary.json`（残差矩阵零利率一侧为空）。
+- 审计：本地 `eval/i-boundary.json`（不在本仓库；残差矩阵零利率一侧为空）。
 - 测试：`tests/unit/policy.test.js`（0/`'0'`/空串/非法值、`NON_POSITIVE_EPS`、速率 60 与 −100 两端、0 → 6%、−2.5% → 4%）、`tests/unit/riskFree.test.js`、`tests/unit/data-contract.test.js`、`tests/unit/sensitivity.test.js`。
 - 不改：拒绝非正 EPS 的 `NON_POSITIVE_EPS` 语义；上限 50 与 `DISCOUNT_CLAMPED`。
 
@@ -411,7 +411,7 @@
 - 行为：H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种，再分别给出 EPS、增长、账面值和折现率差及原因码。`valueDiffPct` 改为 `valueHInA / valueA − 1`（负值＝H 更低），方向与其它差值一致。`aligned` 只要求 EPS 差 ≤5%、增长差 ≤2 个百分点、期间相同，折现率差只作为 `RATE_CURRENCY` 原因披露。方法页表格逐组展示，未估值记 `not-valued`。
 - 已知常量：H 股一律走美元十年期代理，A 股走人民币，因此每组折现率差都是 −4 个百分点；`aligned` 不代表估值相同。
 - 位置：`scripts/lib/policy-artifact.mjs` 的 `crossListingOf`、`src/pages/MethodPage.vue`、`src/i18n/legal-messages.js`。
-- 审计：`eval/k-cross.json`。
+- 审计：本地 `eval/k-cross.json`（不在本仓库）。
 - 测试：`tests/unit/data-contract.test.js`、`tests/unit/policy.test.js`。
 - 不改：`listingGroups` 的 9 组标的与汇率来源；不平均、不回写任何一方发布值。
 
@@ -441,7 +441,7 @@
 - 快照年龄：读取已保存快照时不再按今天检查报价年龄，日期由策略披露（`STALE_PRICE`）；快照作为历史事实继续可读。
 - 浏览器上传闸门：使用部署产物运行同版本、搜索、仅试算及 axe 检查。配置错误会使指定的门禁失败。静态冒烟与浏览器共用生产 `dist`。
 - 发布证据：报价按实际暂存结果归类。全失败或仅沿用本地记录时保留原核验时间。CI 校验 Git 历史批次链，新克隆可运行 `npm run audit:policy:diff` 复算。
-- 提交范围：内部研究、档案与 `eval/` 留在本地；工程修复与待批准的 v2 政策发布分成两个提交，发布提交包含版本、工件、manifest 与发布记录。
+- 提交范围：内部研究、档案与本地 `eval/`（不在本仓库）留在本地；工程修复与待批准的 v2 政策发布分成两个提交，发布提交包含版本、工件、manifest 与发布记录。
 - 位置：`scripts/lib/publish-gate.mjs`、`scripts/lib/snapshot-install.mjs`、`src/lib/{dcf,policy,financialInstitution,reasons}.js`、`src/config/industry.js`、`src/data/registry.js`、`scripts/research/*`、`tests/unit/*`、`docs/RELEASE_V2.md`。
 
 v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆盖旧字节。发布边界要求先在同一冻结快照上做全量前后差异，再给新版本号并归档旧版。
@@ -451,7 +451,7 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 差异：存档 v1 与现行 v2 可用 `npm run audit:policy:diff` 全量核对，保留估值的头条一致。
 - 决定记录：`docs/RELEASE_V2.md`（理由、样例、验证、回滚）。研究接续条件保留在本地研究稿，不把 v2 结果回写成历史 v1 结论。
 - 位置：`src/lib/policy.js`（版本、revision、派生路径）、`scripts/lib/policy-artifact.mjs`、`scripts/pages-smoke.mjs`、`public/data/intrinsic/*`、`docs/RELEASE_V2.md`。
-- 测试：v1→v2 差异脚本 `eval/v2-diff.mjs`；全量单测 451、lint、20 项 `verify:data` 通过；生产构建与 Playwright 受本机子进程限制本轮未重跑，仍以 CI 为准。
+- 测试：v1→v2 差异脚本为本地 `eval/v2-diff.mjs`（不在本仓库）；全量单测 451、lint、20 项 `verify:data` 通过；生产构建与 Playwright 受本机子进程限制本轮未重跑，仍以 CI 为准。
 - 回滚：把 `ARTIFACT_PATH` 指回 v1 并恢复 `pages-smoke` 的版本断言，或 revert 发布提交；v1 哈希用于核对，不覆盖归档。
 
 ### D49 现金口径只做公开发布值的对照
@@ -467,6 +467,10 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 限制：现金同样是单点 TTM + 历史增速外推，没有现金桥；REIT 的维护性资本开支和炼化的周期正常化仍未处理。
 
 > **D50–D52 与 `origin/v3/research` 的后续实验未并入默认。** 那一组（价格反解 ERP、长债原值折现、终值增速 0%）只存在于研究分支，不得按原样合并。官方 v3 是下面的 D56：可重复盈利基数与发布门禁，折现率和终值仍沿用 v2。D53–D55 已并入 main。
+
+## 研究实验记录（非官方 v3）
+
+下列 D50–D52 记录的是 2026-11-22 在研究工作区做过的实验，当时的工作版本号也被叫作「v3」，但不是 main 上尚未推送的官方 v3。实验代码与本地审计位于 `origin/v3/research` 以及不随仓库发布的 `eval/`、`research-archive/`；`wip/v3-owner-earnings` 分支也不在本仓库。官方 v3 从 [D56](#d56-官方-v3可重复盈利基数与发布门禁main) 起算，折现哲学与 v2 相同，不采用研究分支的长债原值或默认终值 0%。
 
 ### D50 正常化收益基数、折减增速与按市场校准的折现率
 
@@ -503,7 +507,7 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 位置：`src/lib/dcf.js`、`src/lib/policy.js`、`src/i18n/*`、`public/data/intrinsic/v3.json`（再次重定义）、`docs/RELEASE_V3.md`。
 - 理由：巴菲特把所有者收益定义为报告收益加非现金费用减维持资本开支，并明确 (c) 必须估计。用可核验的三年 FCF 中位数代替"EPS 乘历史现金比"，减少对异常年份的机械放大。
 - 限制：快照无 D&A 与维护资本开支单列，全扣 capex 对扩张期企业偏保守；改善是基数可复核性，不是估值精度。基准仍未发布。
-- 研究档案：[所有者收益原型验证](research-archive/2026-11-22/owner-earnings/RESULTS.md)。
+- 研究档案：本地 `research-archive/2026-11-22/owner-earnings/RESULTS.md`（不在本仓库）。
 
 ### D53 毛估估展示：默认最佳估计 + 三档假设，不做能力圈拒绝
 
@@ -514,7 +518,7 @@ v2 改变模型路由、残差区间和终值边界，不能沿用 v1 标识覆�
 - 理由：段永平"未来现金流折现是思维方式不是公式"，其价值在于展示不同假设下的结果而不是给唯一数字；"能力圈"是投资者的选股纪律，不是估值工具的准入规则。
 - 标签措辞：证据标签的中性化（口径一致 / 口径有分歧 / 基数差异较大）依附于 D51 的分层展示，本次未并入，随 v3 分支。
 - 位置：`src/components/dcf/MarginStress.vue`、`src/components/DcfCalculator.vue`、`src/i18n/{zh-Hans,en-US}.json`。
-- 验证：lint、58 文件单测、verify:data、build、smoke 全过；三档随折价与回报要求逐档下降。具体数值取决于默认口径版本：`wip/v3-owner-earnings` 上按 v3 测得茅台 1183→947→694、工行 11.64→10.84→10.42；main 的 v2 默认下工行从 11.86 起算。
+- 验证：当时 lint、58 文件单测、verify:data、build、smoke 全过；三档随折价与回报要求逐档下降。具体数值取决于默认口径版本：不在本仓库的 `wip/v3-owner-earnings` 工作树上按研究口径测得茅台 1183→947→694、工行 11.64→10.84→10.42；冻结 v2 下工行从 11.86 起算。官方 v3 数字以 [D56](#d56-官方-v3可重复盈利基数与发布门禁main) 和 [RELEASE_V3.md](RELEASE_V3.md) 为准。
 
 ### D54 前端视觉层级与 GitHub Pages 约束下的收敛
 

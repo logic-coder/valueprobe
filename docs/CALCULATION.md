@@ -12,7 +12,8 @@
 | `src/lib/arith.js` | 有界算术：越界返回 `null`，零除返回一 `null` |
 | `src/lib/measure.js` | 价值回报 / TWR / XIRR / 回撤 / 波动率 + 质量状态 |
 | `src/lib/fx.js` | 展示货币汇率（ECB 日频参考价，两镜像 + 缓存 + 过期兜底） |
-| `src/lib/archive.js` | 记录存取与“记录 → 度量输入”的转换 |
+
+度量层直接接受带日期的观察序列（点位、资金流），由调用方组装输入。早期文档里的 `src/lib/archive.js` 已不在本仓库，不再作为记录存取层。
 
 ## 两种口径
 
