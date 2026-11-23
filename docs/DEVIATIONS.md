@@ -14,8 +14,8 @@
 早期版本在折现率为 0、股价为 0 之类的边界下直接把 `-Infinity`、`NaN` 打印在页面上
 （例如“安全边际 -Infinity%”“内在价值 NaN”）。
 
-- 位置：`src/lib/format.js` 的 `money` / `percent`，被 `DcfCalculator.vue`、
-  `FinancialData.vue` 的所有数值单元格使用。
+- 位置：`src/lib/format.js` 的 `money` / `percent`，被 `DcfCalculator.vue` 等使用。
+  早期还用于已删除的 `FinancialData.vue` 数值单元格。
 - 行为：非有限数渲染为 `n/a`；安全边际图标/颜色在 `n/a` 时取中性（灰）。
 - 安全边际仅对有限正报价和有限正估值计算。清空报价、输入 0 或没有有效估值时显示 `n/a`。
 
