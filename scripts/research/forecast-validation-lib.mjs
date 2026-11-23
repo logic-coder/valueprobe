@@ -6,14 +6,12 @@
  * release gate on official values or published official artifacts.
  *
  * Modes:
- *   official (default) — official v3 adopted 10-year window (capped) as the
- *     reference growth rule, and the official discount (ceil of the local
- *     10-year yield + 6 points). Experimental columns (flat cash, uncapped
- *     10-year CAGR, research 5/10/1 blend, dampened blend) are comparisons
- *     only. This frozen panel still excludes terminal value; later official
- *     reruns that expand the sample must include terminal value and official
- *     r / tg, and must not treat the historical n=4 ranking as a license to
- *     change official growth or discount.
+ *   official (default) — officialGrowth() (dual-window min, 10% short cap,
+ *     negative history zeroed at a 0% start and 0% terminal) and the official
+ *     required return, including official terminal growth on both the forecast
+ *     and the realised cash path. Experimental columns remain comparisons only
+ *     and still omit a terminal. The 2006 historical file stays a no-terminal
+ *     contrast and is not a license to change official policy.
  *   historical — reproduces the 2026-11-22 research-branch run (naive CAGRs,
  *     5/10/1 blend, hardcoded 11% discount, no terminal). That file is a
  *     historical research artifact, not an official v3 result.
@@ -25,7 +23,7 @@
  *   npm run research:forecast -- --historical --check
  */
 import { readFileSync, writeFileSync } from 'node:fs'
-import { windowGrowth, adoptGrowth } from '../../src/lib/assumptions.js'
+import { windowGrowth, officialGrowth } from '../../src/lib/assumptions.js'
 import {
   POLICY_VERSION, POLICY_V1, POLICY_V1_HASH,
   policyDiscountRate, policyFallbackDiscountRate,
@@ -122,8 +120,8 @@ function completePanelCompany (company) {
   return { series, flatBase, latestEps, fiveMedian, observed }
 }
 
-function scoreForecast (flows, realisedPv, discountRate) {
-  const predicted = discountFlows(flows, discountRate, null)
+function scoreForecast (flows, realisedPv, discountRate, terminalGrowthRate = null) {
+  const predicted = discountFlows(flows, discountRate, terminalGrowthRate)
   if (!Number.isFinite(predicted) || !Number.isFinite(realisedPv)) return null
   return round4(smape(predicted, realisedPv))
 }
@@ -195,39 +193,49 @@ export function buildHistoricalReport (study) {
 export function buildOfficialReport (study) {
   const discountRate = officialDiscountRate(study)
   const years = POLICY_V1.horizon.years
-  const terminalGrowthRate = POLICY_V1.horizon.terminalGrowthRate
   const rows = []
   for (const company of study.companies) {
     const panel = completePanelCompany(company)
     if (!panel) continue
     const { series, flatBase, latestEps, fiveMedian, observed } = panel
-    const officialWindow = windowGrowth(series, 10)
-    const official = adoptGrowth(officialWindow).adopted
+    const growth10 = windowGrowth(series, 10)
+    const growth5 = windowGrowth(series, 5)
+    const official = officialGrowth({
+      growth10,
+      growth5,
+      hasPositiveBase: latestEps > 0,
+    })
+    const adopted = official.adopted
+    const terminalGrowthRate = official.zeroTerminal ? 0 : POLICY_V1.horizon.terminalGrowthRate
     const g10 = naiveCagr(series, 10)
-    const g5 = windowGrowth(series, 5)
     const g1 = windowGrowth(series, 1)
     // Experimental blend uses official windows, not the published official rate.
-    const blended = blendedRate(g5, officialWindow, g1)
+    const blended = blendedRate(growth5, growth10, g1)
     const damp = blended === null ? null : blended * DAMPENING_REFERENCE
-    if (!Number.isFinite(official)) continue
+    if (!Number.isFinite(adopted)) continue
 
-    const realisedPv = discountFlows(observed.map(cashPerShare), discountRate, null)
+    const cashPath = observed.map(cashPerShare)
+    const realisedWithTerminal = discountFlows(cashPath, discountRate, terminalGrowthRate)
+    const realisedExplicit = discountFlows(cashPath, discountRate, null)
     rows.push({
       ticker: company.ticker,
-      official: scoreForecast(forecastFlows(fiveMedian, official, years), realisedPv, discountRate),
-      flat: scoreForecast(forecastFlows(flatBase, 0, years), realisedPv, discountRate),
+      official: scoreForecast(forecastFlows(fiveMedian, adopted, years), realisedWithTerminal, discountRate, terminalGrowthRate),
+      flat: scoreForecast(forecastFlows(flatBase, 0, years), realisedExplicit, discountRate),
       historical: Number.isFinite(g10)
-        ? scoreForecast(forecastFlows(latestEps, g10, years), realisedPv, discountRate)
+        ? scoreForecast(forecastFlows(latestEps, g10, years), realisedExplicit, discountRate)
         : null,
       dampened: Number.isFinite(damp)
-        ? scoreForecast(forecastFlows(fiveMedian, damp, years), realisedPv, discountRate)
+        ? scoreForecast(forecastFlows(fiveMedian, damp, years), realisedExplicit, discountRate)
         : null,
       blended: Number.isFinite(blended)
-        ? scoreForecast(forecastFlows(fiveMedian, blended, years), realisedPv, discountRate)
+        ? scoreForecast(forecastFlows(fiveMedian, blended, years), realisedExplicit, discountRate)
         : null,
-      officialGrowth: official,
-      officialWindow,
-      officialReason: adoptGrowth(officialWindow).reason,
+      officialGrowth: adopted,
+      officialWindow: official.window,
+      officialReason: official.reason,
+      officialTerminalGrowth: terminalGrowthRate,
+      growth10,
+      growth5,
       excludedAfterSplit: Boolean(company.breakFrom),
     })
   }
@@ -237,14 +245,15 @@ export function buildOfficialReport (study) {
     kind: 'official-policy-run',
     policyVersion: POLICY_VERSION,
     policyHash: POLICY_V1_HASH,
-    growthRule: 'adopted-10y-window-capped',
+    growthRule: 'official-growth-dual-window-zeroed-terminal',
     discountRule: POLICY_V1.discount.rule,
     asOf: study.asOf,
-    note: 'Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is the adopted 10-year window (capped at 15%). Flat, historical, blended and dampened columns are experiments only; official v3 does not publish a 5/10/1 blend. Discount is the official local-10y-ceil+6 rate. Terminal value is omitted because this panel has no observed continuation cash; later official reruns that expand the sample must include official terminal growth. n is small. This is not a license to change official growth or discount, and it is not an official published value.',
+    note: 'Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): a ten-year window capped at 15% and limited by the five-year confirmation window, a five-year-only window capped at 10%, and negative history capitalised at a 0% start and a 0% terminal. Official forecast and realised cash paths both include that official terminal. Flat, historical, blended and dampened columns are experiments only and still omit a terminal; official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun must include official terminal growth; the sample was not expanded. n is small. This is not an official published value.',
     discountRate,
-    terminalIncluded: false,
-    terminalGrowthRate,
+    terminalIncluded: true,
+    defaultTerminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
     growthCap: POLICY_V1.growth.cap,
+    shortCap: POLICY_V1.growth.shortCap,
     windowYears: POLICY_V1.growth.windowYears,
     growthBlendExperiment: { ...RESEARCH_GROWTH_BLEND },
     dampeningReference: DAMPENING_REFERENCE,
