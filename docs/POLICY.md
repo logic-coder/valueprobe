@@ -16,8 +16,8 @@
 | 终值增速 | `DCF_DEFAULTS.terminalGrowthRate` = 4% | `horizon.terminalGrowthRate` |
 | 历史增速窗口 | 单一干净长窗口：有十年窗则采用十年，否则采用五年；不再与五年窗取 min | `growth.windowYears` / `revision.officialGrowth` |
 | 承保增速上限 | `MAX_UNDERWRITTEN_GROWTH` = 15%（十年窗与五年单独窗口相同） | `growth.cap` |
-| 五年作为官方窗口 | 不再设 10% 硬上限；仍标 `SHORT_HISTORY`，并用更宽的增速包络 | `growth.shortHistory` = `wider-band` |
-| 窗口冲突阈值 | 十年与五年相差 ≥8 个百分点或符号相反，标 `REGIME_UNCERTAIN`，区间覆盖五年情景 | `growth.regimeGapPp` |
+| 五年作为官方窗口 | 不再设 10% 硬上限；仍标 `SHORT_HISTORY`。五年窗为正时，区间高端可向 15% 加宽；负历史、起点已归零时不把高端发明为 15% | `growth.shortHistory` = `wider-band` |
+| 窗口冲突 | 符号相反，或任一窗为负，标 `REGIME_UNCERTAIN`，区间可含终值 0。同向差距只把另一窗纳入包络，不标体制不确定。`regimeGapPp`（8 个百分点）仅保留为加宽参考，不再作为体制阈值 | `growth.regimeGapPp` |
 | 拆股清洗后最短年数 | `MIN_CLEAN_YEARS` = 4 | `growth.cleanYears` |
 | 负增长 | `zero-start-default-terminal`：长窗口为负时起点 0%，淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；不再把终值机械置 0，也不再发出 `NEGATIVE_HISTORY_ZEROED` | `growth.negative` |
 | 无窗口、基数为正 | `zero-start`：起点 0%，终值仍 4%，标注 `NO_WINDOW_ZERO_START` | `growth.missingWindow` |
@@ -32,14 +32,14 @@
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
 | 基本面过期 | 盈利所属期间距发布日超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
 | 利率过期 | 超过 10 天在校验提示 | `staleness.ratesDays` |
-| 区间 | 折现率 ±2 个百分点，再加上增速情景包络；头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthEnvelope` |
+| 区间 | 折现率 ±2 个百分点，再叠加已披露窗口的增速情景包络；较低一端只用已披露的更差窗口，不对稳健正增长一律纳入 0%。头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthEnvelope` |
 | 终值占比 | 披露 | `terminalShareDisclosed` |
 
 实现细节都以代码为准：
 
 - 折现率：`yieldForStock()` 按 `reportingCurrency()` 取该企业报告币种的十年期（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6，再套 10% 下限）→ 夹到 0–50。取不到该币种利率时 `policyValue()` 用 10% 兜底并加 `RATE_FALLBACK`。港币报告币种代理美元十年期；人民币报告币种只用人民币利率，不用美债。公式全市场同一条，不为单只股票或某一对 A/H 上市写例外参数。
-- 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：采用单一干净长窗口（优先十年，否则五年），一律按 15% 承保上限封顶，不再取 min(十年, 五年)，五年单独窗口也不再另设 10% 硬上限，只标 `SHORT_HISTORY`。十年与五年相差 ≥8 个百分点或符号相反时，点估计仍用长窗口，但标 `REGIME_UNCERTAIN`，区间须覆盖五年情景。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。采用值触到 15% 上限时标 `CAPPED_GROWTH`。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
-- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点与增速情景包络（含 0%、较短窗口、短历史时可到 15%；无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景）。头条 `mid` 是官方点估计，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
+- 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：采用单一干净长窗口（优先十年，否则五年），一律按 15% 承保上限封顶，不再取 min(十年, 五年)，五年单独窗口也不再另设 10% 硬上限，只标 `SHORT_HISTORY`。十年与五年窗口符号相反，或任一窗为负时，点估计仍用长窗口（负长窗口则起点 0%），但标 `REGIME_UNCERTAIN`，区间须覆盖更差窗口并可含终值 0。同向但差距较大时只把另一窗纳入包络，不标体制不确定。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。采用值触到 15% 上限时标 `CAPPED_GROWTH`。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
+- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点与已披露窗口的增速情景包络（较低一端只用已披露的更差窗口，不对稳健正增长一律纳入 0%；五年窗为正且作为官方窗时高端可到 15%；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景）。头条 `mid` 是官方点估计，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
 - 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
@@ -57,7 +57,7 @@
 | `NOT_FINITE` | 计算结果不是有限正数，不出值。 |
 | `INDUSTRY_MODEL_PENDING` | REIT 或炼化的行业口径仍待验证，仅供试算，不出公开值。 |
 | `CASH_UNRECONCILED` | 选定官方基数后，三年现金中位数核对仍相差 50% 及以上，拒绝发布。 |
-| `UNSTABLE_BASE_REGIME` | 增速体制不确定（`REGIME_UNCERTAIN`），且最近一期每股收益不为正，拒绝发布。最近一期为正（如佳品零件）仍可出值。 |
+| `UNSTABLE_BASE_REGIME` | 增速体制不确定（`REGIME_UNCERTAIN`：历史为负或窗口符号相反），且最近一期每股收益不为正，拒绝发布。同向差距不触发此码（如 Fiserv）。最近一期为正（如佳品零件）仍可出值。 |
 
 ## 3. 警告码（WARNING）
 
@@ -69,7 +69,7 @@
 | `NEGATIVE_HISTORY_GROWTH` | v2 旧义：历史增速为负，仍按负值外推并标注。新发布不再使用此码。 |
 | `NEGATIVE_HISTORY_ZEROED` | 历史工件用语：负历史曾把起点和终值都传入 0%。新发布不再发出此码，改为 `REGIME_UNCERTAIN` 且终值仍为默认 4%。定义保留以便读取 v2 / 旧 v3 工件。 |
 | `SHORT_HISTORY` | 官方增速只用了五年窗，或在没有窗口时按 0% 起点处理。五年单独窗口不再另加 10% 硬上限。 |
-| `REGIME_UNCERTAIN` | 长窗口为负，或十年与五年窗口相差 ≥8 个百分点 / 符号相反。点估计仍按规则给出，区间加宽。 |
+| `REGIME_UNCERTAIN` | 长窗口为负，或十年与五年窗口符号相反。点估计仍按规则给出，区间加宽并可含终值 0。同向差距只加宽区间，不发此码。 |
 | `OWNER_BASE_GAP` | 所有者收益模型下快照缺少可用的折旧摊销，因而无法单独核验 M≈D；基数仍用正常化收益，只披露不拒绝。 |
 | `NO_WINDOW_ZERO_START` | 没有十年或五年窗口，但可重复盈利为正：起点 0%，再淡出到默认终值 4%。不是「永远零增长」。 |
 | `GROWTH_ABOVE_RETENTION` | 增速高于留存收益能支撑的水平。 |
@@ -175,11 +175,11 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-19。政策哈希 `db7c6fe0f2e55c6e123b388f475f259c9b80987a60b2e4a1e73bbf424ff056c4`。`upstreamCheckedAt` 仍为空。
+- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-19。政策哈希 `dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d`。`upstreamCheckedAt` 仍为空。
 - 利率：CNY 1.5892（asOf 2026-11-18）、USD 5.07（asOf 2026-11-18）、HKD 5.07（`usd_proxy` → USD）。要求回报是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。当前已提交快照没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 12%，港股回退报价港币并代理美元，同为 12%。这是数据缺口，不是给某对 A/H 写了不同公式。
-- 声明、快照与估值条目各 500 条，有值 391 条，拒绝 109 条（相对冻结的 v2：407 有值 / 93 拒绝；相对上一版未发布本地 v3，即 `71c1fd6` / D59：461 / 39）。覆盖下降的主因是废除收益与现金中点后，官方基数改回正常化收益，50% 现金否决从 24 条增至 82 条。
-- 拒绝原因出现次数，`CASH_UNRECONCILED` 82、`NO_GROWTH` 18、`NON_POSITIVE_EPS` 17、`UNSTABLE_BASE_REGIME` 6、`INDUSTRY_MODEL_PENDING` 3、`NO_EPS` 1。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 194 条，`CASH_DIVERGENCE`（25–49%）76 条。`OWNER_BASE_GAP` 451 条（全部所有者模型；剩余收益 49 条不标），`REGIME_UNCERTAIN` 196 条，`SHORT_HISTORY` 61 条，`NO_WINDOW_ZERO_START` 39 条，`CAPPED_GROWTH` 123 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED` 或 `NEGATIVE_HISTORY_GROWTH`。模型为 `owner` 451 条、`residual` 49 条。
+- 声明、快照与估值条目各 500 条，有值 392 条，拒绝 108 条（相对冻结的 v2：407 有值 / 93 拒绝；相对 D60–D63 居中估计修订：391 / 109；相对 `71c1fd6` / D59：461 / 39）。覆盖相对 D59 下降的主因仍是废除收益与现金中点后，官方基数改回正常化收益，50% 现金否决从 24 条增至 82 条，本轮未放松该否决。相对上一版多出的 1 条有值，是同向窗口差距不再标体制不确定后，Fiserv（`NASDAQ:FISV`）不再因 `UNSTABLE_BASE_REGIME` 被拒绝。
+- 拒绝原因出现次数，`CASH_UNRECONCILED` 82、`NO_GROWTH` 18、`NON_POSITIVE_EPS` 17、`UNSTABLE_BASE_REGIME` 5、`INDUSTRY_MODEL_PENDING` 3、`NO_EPS` 1。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 111 条。`NORMALIZED_EPS` 194 条，`CASH_DIVERGENCE`（25–49%）76 条。`OWNER_BASE_GAP` 451 条（全部所有者模型；剩余收益 49 条不标），`REGIME_UNCERTAIN` 111 条（上一版 196，同向差距不再计入），`SHORT_HISTORY` 61 条，`NO_WINDOW_ZERO_START` 39 条，`CAPPED_GROWTH` 123 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED` 或 `NEGATIVE_HISTORY_GROWTH`。模型为 `owner` 451 条、`residual` 49 条。
 - REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条。`QUOTE_DATE_UNKNOWN` 仍为 150 条，见 [RELEASE_V3.md](RELEASE_V3.md) 的报价日期遗留说明。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 399 条、HKD 51 条。已提交年报中折旧摊销与股份支付每股字段覆盖为 0；折扣与披露在读时派生，本批未做带日期的全量上游刷新。
 
