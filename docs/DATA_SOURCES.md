@@ -136,5 +136,6 @@ export const mysource = {
 ## 每股数据的币种和日期
 
 - 盈利期间来自财报，快照采集日来自刷新任务。A 股缺少对比期时用最近年度 EPS，香港指标的 TTM 使用该字段所在报告日期，美国年度数据使用 XBRL 的期间截止日。
-- 东方财富港股主指标表（`RPT_HKF10_FN_MAININDICATOR`）把这里解析的财务值标准化成了人民币。`CURRENCY` 可能写 HKD，不能用作这些字段的单位。对照港铁 FY2025 公告，摊薄 EPS 为 HK$2.36，接口相应字段为约 CNY 2.1316。转换后的财务值记录在港币报价口径，来源单位另存为 `fundamentals_currency`。
+- 东方财富港股主指标表（`RPT_HKF10_FN_MAININDICATOR`）把这里解析的财务值标准化成了人民币。`CURRENCY` 可能写 HKD，不能用作这些字段的单位。对照港铁 FY2025 公告，摊薄 EPS 为 HK$2.36，接口相应字段为约 CNY 2.1316。转换后的财务值记录在港币报价口径，来源单位另存为 `fundamentals_currency`。`fundamentals_currency` 因此也不是企业报告币种。东方财富港股快照上的 `report_currency` 标志现网一律写成 HKD，不可作为报告币种使用。官方折现按 `reportingCurrency()` 读取经核验的 ISO `reporting_currency`；没有该字段时，A 股市场默认人民币、美国上市默认美元，否则回退报价币种。不得用 A/H 配对名单或其它逐家例外去推断或改写报告币种。本批已提交快照尚未写入经核验的该字段，港股折现因此仍回退报价港币。
+- 采集路径已能从 EDGAR 概念与东方财富补充字段（如 `ZCJZZJ` / `WXZCTX` / `GQFZF`）解析折旧摊销和股份支付，并在年报中保留可选的 `depreciation_amortization_per_share` / `share_based_comp_per_share`。本批未做带日期的全量上游刷新，已提交年报这两项覆盖仍为 0。
 - `scripts/lib/verified-earnings.mjs` 记录可由公司公告核实、但结构化源尚未收录的年度盈利。台积电 FY2025 采用公司披露的每 ADR 摊薄盈利 USD 10.65。出现更新的结构化报告后，优先采用更新的期间。
