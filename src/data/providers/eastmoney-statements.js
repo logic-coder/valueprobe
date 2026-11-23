@@ -94,25 +94,84 @@ function shares (profit, eps) {
 // Cash-flow supplement lines from East Money statement tables (现金流量表补充资料).
 // The main-indicator feed does not carry these; they stay null unless a supplement
 // is passed in. Missing components are omitted, never invented.
-export const ASHRE_DA_FIELDS = Object.freeze([
-  'ZCJZZJ', 'WXZCTX', 'CQDTFYTX', 'DEPRE_AND_AMORT', 'FIXED_ASSET_DEPR',
-])
-export const ASHRE_SBC_FIELDS = Object.freeze(['GQFZF', 'SHARE_BASED_PAYMENT', 'YFGZ_GQF'])
-export const HK_DA_FIELDS = Object.freeze([
-  'DEPRE_AND_AMORT', 'DEPRECIATION', 'AMORTIZATION', 'FIXED_ASSET_DEPR', 'ZCJZZJ',
-])
-export const HK_SBC_FIELDS = Object.freeze(['SHARE_BASED_PAYMENT', 'GQFZF', 'SHAREBASED_COMP'])
-
-function sumFields (row, fields) {
+//
+// Field labels are taken from the official F10 NewFinanceAnalysis page templates
+// (emweb PC_HSF10), verified against live xjllbAjaxNew / RPT_F10_FINANCE_GCASHFLOW
+// rows. Prefer a disclosed total; only sum components when the total is missing.
+// Never add a total and its parts together.
+//
+// ASSET_IMPAIRMENT is 资产减值准备 (the historical ZCJZZJ code names the same
+// line). It is not depreciation and is never included. Other impairment lines
+// (credit, loan, investment) are also excluded. DEFER_INCOME_AMORTIZE is
+// 递延收益摊销, not asset depreciation.
+function preferTotal (row, totals, parts) {
+  for (const key of totals) {
+    const value = num(row?.[key])
+    if (value != null) return value
+  }
   let total = 0
   let found = false
-  for (const key of fields) {
+  for (const key of parts) {
     const value = num(row?.[key])
     if (value == null) continue
     total += value
     found = true
   }
   return found ? total : null
+}
+
+/** Depreciation and amortization from a cash-flow supplement row, or null. */
+export function depreciationFromSupplement (row) {
+  if (!row) return null
+  // Hong Kong long-table rows are pivoted onto this combined official line.
+  const combined = num(row.DEPRE_AND_AMORT)
+  if (combined != null) return combined
+  const depreciation = preferTotal(row, ['FA_IR_DEPR'], ['OILGAS_BIOLOGY_DEPR', 'IR_DEPR', 'FIXED_ASSET_DEPR'])
+  const amortization = preferTotal(row, ['IA_LPE_AMORTIZE'], ['IA_AMORTIZE', 'LPE_AMORTIZE', 'LONGASSET_AMORTIZE'])
+  const rightOfUse = num(row.USERIGHT_ASSET_AMORTIZE)
+  const parts = [depreciation, amortization, rightOfUse].filter((value) => value != null)
+  return parts.length ? parts.reduce((sum, value) => sum + value, 0) : null
+}
+
+/** Share-based compensation from a supplement row. The A-share F10 template has no such line. */
+export function shareBasedCompFromSupplement (row) {
+  if (!row) return null
+  for (const key of ['SHARE_BASED_PAYMENT', 'SHAREBASED_COMP']) {
+    const value = num(row[key])
+    if (value != null) return value
+  }
+  return null
+}
+
+const HK_DA_ITEM = /折旧及摊销|折旧摊销/
+const HK_SBC_ITEM = /股份支付|以股份为基础|以权益结算/
+const HK_DA_CODE = '001009'
+
+/**
+ * Pivot annual Hong Kong cash-flow items (RPT_HKF10_FN_CASHFLOW_PC) into one
+ * supplement row per fiscal year. Only DATE_TYPE_CODE 001 (年报) is kept.
+ * Depreciation uses the official combined "加:折旧及摊销" line (code 001009
+ * on sampled issuers); impairment ("加:减值及拨备") is not included.
+ */
+export function supplementsFromHkCashflowItems (rows) {
+  const byYear = new Map()
+  for (const row of rows || []) {
+    if (String(row.DATE_TYPE_CODE ?? '') !== '001') continue
+    const year = reportYear(row)
+    if (!year) continue
+    const extra = byYear.get(year) || { REPORT_DATE: row.REPORT_DATE, REPORT_TYPE: '年报' }
+    const name = String(row.STD_ITEM_NAME || '')
+    const amount = num(row.AMOUNT)
+    const code = String(row.STD_ITEM_CODE || '')
+    if (amount != null && HK_DA_ITEM.test(name) && !name.includes('减值')) {
+      if (code === HK_DA_CODE || extra.DEPRE_AND_AMORT == null) extra.DEPRE_AND_AMORT = amount
+    }
+    if (amount != null && HK_SBC_ITEM.test(name) && !/发行股份|回购股份/.test(name)) {
+      extra.SHARE_BASED_PAYMENT = extra.SHARE_BASED_PAYMENT == null ? amount : extra.SHARE_BASED_PAYMENT + amount
+    }
+    byYear.set(year, extra)
+  }
+  return [...byYear.values()]
 }
 
 function supplementByYear (rows) {
@@ -124,8 +183,7 @@ function supplementByYear (rows) {
   return byYear
 }
 
-function perShareFromSupplement (row, supplement, fields, shareCount) {
-  const total = sumFields(supplement, fields)
+function perShare (total, shareCount) {
   if (total == null || !(shareCount > 0)) return null
   return round4(total / shareCount)
 }
@@ -178,8 +236,8 @@ export function fromAshareReports (recent, annualReports, supplements = []) {
       operating_income_per_share: round4(num(row.PER_EBIT)),
       ebitda_per_share: null,
       free_cash_flow_per_share: round4(fcfOf(row)),
-      depreciation_amortization_per_share: perShareFromSupplement(row, extra, ASHRE_DA_FIELDS, count),
-      share_based_comp_per_share: perShareFromSupplement(row, extra, ASHRE_SBC_FIELDS, count),
+      depreciation_amortization_per_share: perShare(depreciationFromSupplement(extra), count),
+      share_based_comp_per_share: perShare(shareBasedCompFromSupplement(extra), count),
       dividends_per_share: null,
       book_value_per_share: round4(num(row.BPS)),
     }
@@ -255,8 +313,8 @@ export function fromHkReports (rows, supplements = []) {
         : null),
       ebitda_per_share: null,
       free_cash_flow_per_share: round4(fcfOf(row)),
-      depreciation_amortization_per_share: perShareFromSupplement(row, extra, HK_DA_FIELDS, count),
-      share_based_comp_per_share: perShareFromSupplement(row, extra, HK_SBC_FIELDS, count),
+      depreciation_amortization_per_share: perShare(depreciationFromSupplement(extra), count),
+      share_based_comp_per_share: perShare(shareBasedCompFromSupplement(extra), count),
       // DPS_HKD on this feed is a current figure repeated on every row, not a history.
       dividends_per_share: null,
       book_value_per_share: round4(num(row.BPS)),

@@ -4,7 +4,7 @@ import axios from 'axios'
 import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
 import { transport } from '../transport'
-import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from './eastmoney-statements'
+import { fromAshareReports, fromHkReports, supplementsFromHkCashflowItems, toHkQuoteCurrency } from './eastmoney-statements'
 import { fx } from '../../lib/fx'
 
 // CN 0/1, HK 128, US 105/106/107. The quote host wants a dot (105.MSFT).
@@ -68,28 +68,94 @@ function stockFromQuote (symbol, quote) {
   }
 }
 
+async function datacenterRows (params) {
+  const rows = []
+  for (let page = 1; page <= 10; page++) {
+    const { data } = await reports.get(transport.url(DC, '/securities/api/data/v1/get', { ...params, pageNumber: page }))
+    const chunk = data?.result?.data
+    if (!Array.isArray(chunk) || !chunk.length) break
+    rows.push(...chunk)
+    const pages = Number(data.result.pages) || 1
+    if (page >= pages) break
+  }
+  return rows
+}
+
+async function ashareSupplements (market, code) {
+  try {
+    return await datacenterRows({
+      reportName: 'RPT_F10_FINANCE_GCASHFLOW',
+      columns: 'ALL',
+      filter: '(SECUCODE="' + code + '.' + (market === 'SHSE' ? 'SH' : 'SZ') + '")(REPORT_TYPE="年报")',
+      pageSize: 50,
+      sortTypes: -1,
+      sortColumns: 'REPORT_DATE',
+      source: 'F10',
+      client: 'PC',
+    })
+  } catch {
+    return []
+  }
+}
+
+async function hkSupplements (code) {
+  try {
+    const { data } = await reports.get(transport.url(DC, '/securities/api/data/v1/get', {
+      reportName: 'RPT_CUSTOM_HKSK_APPFN_CASHFLOW_SUMMARY',
+      columns: 'SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,START_DATE,REPORT_DATE,FISCAL_YEAR,CURRENCY,ACCOUNT_STANDARD,REPORT_TYPE',
+      filter: '(SECUCODE="' + code + '.HK")',
+      source: 'F10',
+      client: 'PC',
+      pageNumber: 1,
+      pageSize: 10,
+    }))
+    const years = (data?.result?.data?.[0]?.REPORT_LIST || [])
+      .filter((row) => row.REPORT_TYPE === '年报')
+      .map((row) => String(row.REPORT_DATE || '').slice(0, 10))
+      .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))
+    if (!years.length) return []
+    const rows = await datacenterRows({
+      reportName: 'RPT_HKF10_FN_CASHFLOW_PC',
+      columns: 'SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,ORG_CODE,REPORT_DATE,DATE_TYPE_CODE,FISCAL_YEAR,START_DATE,STD_ITEM_CODE,STD_ITEM_NAME,AMOUNT',
+      filter: '(SECUCODE="' + code + '.HK")(REPORT_DATE in (' + years.map((date) => "'" + date + "'").join(',') + '))',
+      pageSize: 200,
+      sortTypes: '-1,1',
+      sortColumns: 'REPORT_DATE,STD_ITEM_CODE',
+      source: 'F10',
+      client: 'PC',
+    })
+    return supplementsFromHkCashflowItems(rows)
+  } catch {
+    return []
+  }
+}
+
 async function loadStatements (symbol) {
   if (statementCache.has(symbol)) return statementCache.get(symbol)
   const [market, code] = symbol.split(':')
   let pack = null
   if (market === 'SHSE' || market === 'SZSE') {
     const listed = (market === 'SHSE' ? 'SH' : 'SZ') + code
-    const [recent, annual] = await Promise.all([
+    const [recent, annual, supplements] = await Promise.all([
       reports.get(transport.url(F10, '/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew', { type: 0, code: listed })),
       reports.get(transport.url(F10, '/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew', { type: 1, code: listed })),
+      ashareSupplements(market, code),
     ])
-    pack = fromAshareReports(recent.data?.data || [], annual.data?.data || [])
+    pack = fromAshareReports(recent.data?.data || [], annual.data?.data || [], supplements)
   } else if (market === 'HKSE') {
-    const { data } = await reports.get(transport.url(DC, '/securities/api/data/v1/get', {
-      reportName: 'RPT_HKF10_FN_MAININDICATOR',
-      columns: 'ALL',
-      filter: '(SECUCODE="' + code + '.HK")',
-      pageNumber: 1,
-      pageSize: 40,
-      sortTypes: -1,
-      sortColumns: 'REPORT_DATE',
-    }))
-    pack = fromHkReports(data?.result?.data || [])
+    const [{ data }, supplements] = await Promise.all([
+      reports.get(transport.url(DC, '/securities/api/data/v1/get', {
+        reportName: 'RPT_HKF10_FN_MAININDICATOR',
+        columns: 'ALL',
+        filter: '(SECUCODE="' + code + '.HK")',
+        pageNumber: 1,
+        pageSize: 40,
+        sortTypes: -1,
+        sortColumns: 'REPORT_DATE',
+      })),
+      hkSupplements(code),
+    ])
+    pack = fromHkReports(data?.result?.data || [], supplements)
     const reportCurrency = String(pack.reportCurrency || 'CNY').toUpperCase()
     // Eastmoney stamps HKD on this table even when the figures are already in yuan.
     if (!['CNY', 'RMB', 'HKD', ''].includes(reportCurrency)) {

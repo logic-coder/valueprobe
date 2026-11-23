@@ -11,7 +11,7 @@ import { cp, mkdir, readFile, rename, rmdir } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { fromAshareReports, fromHkReports, toHkQuoteCurrency } from '../src/data/providers/eastmoney-statements.js'
+import { fromAshareReports, fromHkReports, supplementsFromHkCashflowItems, toHkQuoteCurrency } from '../src/data/providers/eastmoney-statements.js'
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { ARTIFACT_PATH, DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
@@ -29,12 +29,6 @@ const SECID = { SHSE: '1', SZSE: '0', HKSE: '128', NASDAQ: '105', NYSE: '106', A
 const SCALE = { SHSE: 100, SZSE: 100, HKSE: 1000, NASDAQ: 1000, NYSE: 1000, AMEX: 1000 }
 const US = new Set(['NYSE', 'NASDAQ', 'AMEX'])
 
-/** ISO reporting currency from the market-wide rule, never a per-ticker list. */
-function reportingCurrencyFor (market) {
-  if (market === 'SHSE' || market === 'SZSE') return 'CNY'
-  if (US.has(market)) return 'USD'
-  return null
-}
 const HEADERS = { 'User-Agent': UA, Accept: 'application/json', Referer: 'https://emweb.securities.eastmoney.com/' }
 
 const args = process.argv.slice(2)
@@ -211,24 +205,72 @@ async function refresh (existing, baseline) {
     return { price: currency + close, currency, company: data.name || '', marketCap: NaN, asOf: date }
   }
 
+  async function pagedDatacenter (buildUrl) {
+    const rows = []
+    for (let page = 1; page <= 10; page++) {
+      const body = await statement(buildUrl(page))
+      const chunk = body?.result?.data
+      if (!Array.isArray(chunk) || !chunk.length) break
+      rows.push(...chunk)
+      const pages = Number(body.result.pages) || 1
+      if (page >= pages) break
+    }
+    return rows
+  }
+
+  async function ashareSupplements (market, code) {
+    const secu = encodeURIComponent('(SECUCODE="' + code + '.' + (market === 'SHSE' ? 'SH' : 'SZ') + '")(REPORT_TYPE="年报")')
+    try {
+      return await pagedDatacenter((page) => 'https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_F10_FINANCE_GCASHFLOW&columns=ALL&filter='
+        + secu + '&pageNumber=' + page + '&pageSize=50&sortTypes=-1&sortColumns=REPORT_DATE&source=F10&client=PC')
+    } catch (error) {
+      console.warn('A-share cash-flow supplements skipped for ' + market + ':' + code + ' - ' + error.message)
+      return []
+    }
+  }
+
+  async function hkSupplements (code) {
+    const filter = encodeURIComponent('(SECUCODE="' + code + '.HK")')
+    try {
+      const summary = await statement('https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_CUSTOM_HKSK_APPFN_CASHFLOW_SUMMARY&columns=SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,START_DATE,REPORT_DATE,FISCAL_YEAR,CURRENCY,ACCOUNT_STANDARD,REPORT_TYPE&filter='
+        + filter + '&source=F10&client=PC&pageNumber=1&pageSize=10')
+      const years = (summary?.result?.data?.[0]?.REPORT_LIST || [])
+        .filter((row) => row.REPORT_TYPE === '年报')
+        .map((row) => String(row.REPORT_DATE || '').slice(0, 10))
+        .filter((date) => /^\d{4}-\d{2}-\d{2}$/.test(date))
+      if (!years.length) return []
+      const dated = encodeURIComponent('(SECUCODE="' + code + '.HK")(REPORT_DATE in (' + years.map((date) => "'" + date + "'").join(',') + '))')
+      const rows = await pagedDatacenter((page) => 'https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_HKF10_FN_CASHFLOW_PC&columns=SECUCODE,SECURITY_CODE,SECURITY_NAME_ABBR,ORG_CODE,REPORT_DATE,DATE_TYPE_CODE,FISCAL_YEAR,START_DATE,STD_ITEM_CODE,STD_ITEM_NAME,AMOUNT&filter='
+        + dated + '&pageNumber=' + page + '&pageSize=200&sortTypes=-1,1&sortColumns=REPORT_DATE,STD_ITEM_CODE&source=F10&client=PC')
+      return supplementsFromHkCashflowItems(rows)
+    } catch (error) {
+      console.warn('Hong Kong cash-flow supplements skipped for HKSE:' + code + ' - ' + error.message)
+      return []
+    }
+  }
+
   async function statementsFor (market, code) {
     if (market === 'SHSE' || market === 'SZSE') {
       const listed = (market === 'SHSE' ? 'SH' : 'SZ') + code
       const base = 'https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=' + listed
-      const [recent, annual] = await Promise.all([
+      const [recent, annual, supplements] = await Promise.all([
         statement(base + '&type=0'),
         statement(base + '&type=1'),
+        ashareSupplements(market, code),
       ])
       if (!Array.isArray(recent.data) || !Array.isArray(annual.data)) throw new Error('invalid mainland statements response')
-      return { ...fromAshareReports(recent.data, annual.data), earningsSource: base + '&type=0', upstreamFetched: fetched.has(recent) }
+      return { ...fromAshareReports(recent.data, annual.data, supplements), earningsSource: base + '&type=0', upstreamFetched: fetched.has(recent) }
     }
     if (market === 'HKSE') {
       const filter = encodeURIComponent('(SECUCODE="' + code + '.HK")')
       const url = 'https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_HKF10_FN_MAININDICATOR&columns=ALL&filter='
         + filter + '&pageNumber=1&pageSize=40&sortTypes=-1&sortColumns=REPORT_DATE'
-      const body = await statement(url)
+      const [body, supplements] = await Promise.all([
+        statement(url),
+        hkSupplements(code),
+      ])
       if (!Array.isArray(body?.result?.data)) throw new Error('invalid Hong Kong statements response')
-      return { ...fromHkReports(body.result.data), earningsSource: url, upstreamFetched: fetched.has(body) }
+      return { ...fromHkReports(body.result.data, supplements), earningsSource: url, upstreamFetched: fetched.has(body) }
     }
     return null
   }
@@ -292,7 +334,6 @@ async function refresh (existing, baseline) {
       predictability: fields.predictability ?? null,
       financials: pack?.financials || { annual: [], ttm: [], quarter: [] },
       ...note,
-      ...(reportingCurrencyFor(market) ? { reporting_currency: reportingCurrencyFor(market) } : {}),
     })
     return { ...record, history: historyFrom(record.financials) }
   }

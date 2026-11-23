@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fromAshareReports, fromHkReports, trailingTwelve, windowGrowth, convertReportingCurrency, toHkQuoteCurrency } from '../../src/data/providers/eastmoney-statements'
+import { fromAshareReports, fromHkReports, trailingTwelve, windowGrowth, convertReportingCurrency, toHkQuoteCurrency, depreciationFromSupplement, supplementsFromHkCashflowItems } from '../../src/data/providers/eastmoney-statements'
 
 const row = (date, type, extra) => ({ REPORT_DATE: date, REPORT_TYPE: type, ...extra })
 
@@ -209,16 +209,29 @@ describe('growth windows and cash-flow basis', () => {
 })
 
 describe('cash-flow supplement depreciation and SBC lines', () => {
-  it('records per-share depreciation and SBC from a matching A-share supplement year', () => {
+  it('records per-share depreciation from disclosed totals, not impairment or component double counts', () => {
     const annual = [
       row('2025-12-31', '年报', { EPSKCJB: 1, EPSXS: 1, EPSJB: 1, BPS: 10, PARENTNETPROFIT: 100, PER_TOI: 2, PER_EBIT: 1, MGJYXJJE: 3 }),
     ]
     const parsed = fromAshareReports([], annual, [
-      row('2025-12-31', '年报', { ZCJZZJ: 30, WXZCTX: 10, GQFZF: 8 }),
+      row('2025-12-31', '年报', {
+        FA_IR_DEPR: 40, OILGAS_BIOLOGY_DEPR: 40, IA_AMORTIZE: 10, LPE_AMORTIZE: 2,
+        USERIGHT_ASSET_AMORTIZE: 4, ASSET_IMPAIRMENT: 30, SHARE_BASED_PAYMENT: 8,
+      }),
     ])
     const last = parsed.financials.annual.at(-1)
-    expect(last.depreciation_amortization_per_share).toBeCloseTo(0.4, 4)
+    // 40 + 10 + 2 + 4 = 56, shares = 100; impairment 30 is excluded; OILGAS is not added again
+    expect(last.depreciation_amortization_per_share).toBeCloseTo(0.56, 4)
     expect(last.share_based_comp_per_share).toBeCloseTo(0.08, 4)
+  })
+
+  it('does not treat 资产减值准备 (ASSET_IMPAIRMENT / ZCJZZJ) as depreciation', () => {
+    expect(depreciationFromSupplement({ ZCJZZJ: 30, WXZCTX: 10, ASSET_IMPAIRMENT: 30 })).toBeNull()
+    expect(depreciationFromSupplement({ FA_IR_DEPR: 40, ASSET_IMPAIRMENT: 30, CREDIT_IMPAIRMENT_INCOME: 100 })).toBe(40)
+  })
+
+  it('uses the bank amortization total instead of inventing a sum of empty parts', () => {
+    expect(depreciationFromSupplement({ FA_IR_DEPR: 28254, IA_LPE_AMORTIZE: 6231, CREDIT_IMPAIRMENT_INCOME: 132973 })).toBe(34485)
   })
 
   it('leaves the lines empty when no supplement is provided, and does not invent a figure', () => {
@@ -244,5 +257,14 @@ describe('cash-flow supplement depreciation and SBC lines', () => {
     expect(converted.financials.annual[0].depreciation_amortization_per_share).toBeCloseTo(2.2, 4)
     expect(converted.financials.annual[0].share_based_comp_per_share).toBeCloseTo(0.55, 4)
   })
-})
 
+  it('pivots annual Hong Kong cash-flow items onto the combined depreciation line', () => {
+    const supplements = supplementsFromHkCashflowItems([
+      { REPORT_DATE: '2025-12-31', DATE_TYPE_CODE: '001', STD_ITEM_CODE: '001006', STD_ITEM_NAME: '加:减值及拨备', AMOUNT: 2436 },
+      { REPORT_DATE: '2025-12-31', DATE_TYPE_CODE: '001', STD_ITEM_CODE: '001009', STD_ITEM_NAME: '加:折旧及摊销', AMOUNT: 66028 },
+      { REPORT_DATE: '2025-12-31', DATE_TYPE_CODE: '004', STD_ITEM_CODE: '001009', STD_ITEM_NAME: '加:折旧及摊销', AMOUNT: 999 },
+    ])
+    expect(supplements).toHaveLength(1)
+    expect(depreciationFromSupplement(supplements[0])).toBe(66028)
+  })
+})
