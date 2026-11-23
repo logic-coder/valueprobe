@@ -60,7 +60,7 @@
 
 **禁止事项**：不要用美国存量国债平均票息（历史上的 `5.14`、`3.399` 等），它们不是十年期收益率，也不是任何兜底值。不要拿这些数字更新 `risk_free.json`。缺当地十年期收益率时，折现率回退为 10%（`FALLBACK_DISCOUNT_RATE`），并在界面写明；不得静默改用美债收益率——只有港币现金流明确使用美元十年期作为代理。旧的 `latest_indicator.json` 已删除，不要恢复。
 
-本机运行 `npm run refresh`，重建并校验快照、估值和发布清单。发布闸门判定为 blocked 时暂存不安装，已发布字节不前进。GitHub Pages 只构建已生成的数据。
+本机运行 `npm run refresh`，重建并校验快照、估值和发布清单。`npm run check:freshness` 只根据已提交工件报告过期与 `upstreamCheckedAt`，不拉上游、不改文件，也不是会自动发布的 CI job。发布闸门判定为 blocked 时暂存不安装，已发布字节不前进。GitHub Pages 只构建已生成的数据。
 
 扩容先使用单独暂存目录，正式清单仍为 `scripts/watchlist.json`。候选清单须包含原有覆盖和拟新增的证券。下列命令只采集缺失的新增证券，重复执行会接着跑。
 

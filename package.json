@@ -26,6 +26,7 @@
     "snapshot": "vite-node scripts/snapshot.mjs",
     "intrinsic": "vite-node scripts/policy-values.mjs",
     "verify:data": "vite-node scripts/verify-data.mjs",
+    "check:freshness": "vite-node scripts/check-freshness.mjs",
     "refresh": "npm run snapshot && npm run verify:data",
     "research:history": "vite-node scripts/research/history.mjs",
     "research:holdout": "vite-node scripts/research/holdout.mjs",
