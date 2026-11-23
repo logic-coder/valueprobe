@@ -206,7 +206,7 @@ export function buildOfficialReport (study) {
       hasPositiveBase: latestEps > 0,
     })
     const adopted = official.adopted
-    const terminalGrowthRate = official.zeroTerminal ? 0 : POLICY_V1.horizon.terminalGrowthRate
+    const terminalGrowthRate = POLICY_V1.horizon.terminalGrowthRate
     const g10 = naiveCagr(series, 10)
     const g1 = windowGrowth(series, 1)
     // Experimental blend uses official windows, not the published official rate.
@@ -216,19 +216,18 @@ export function buildOfficialReport (study) {
 
     const cashPath = observed.map(cashPerShare)
     const realisedWithTerminal = discountFlows(cashPath, discountRate, terminalGrowthRate)
-    const realisedExplicit = discountFlows(cashPath, discountRate, null)
     rows.push({
       ticker: company.ticker,
       official: scoreForecast(forecastFlows(fiveMedian, adopted, years), realisedWithTerminal, discountRate, terminalGrowthRate),
-      flat: scoreForecast(forecastFlows(flatBase, 0, years), realisedExplicit, discountRate),
+      flat: scoreForecast(forecastFlows(flatBase, 0, years), realisedWithTerminal, discountRate, terminalGrowthRate),
       historical: Number.isFinite(g10)
-        ? scoreForecast(forecastFlows(latestEps, g10, years), realisedExplicit, discountRate)
+        ? scoreForecast(forecastFlows(latestEps, g10, years), realisedWithTerminal, discountRate, terminalGrowthRate)
         : null,
       dampened: Number.isFinite(damp)
-        ? scoreForecast(forecastFlows(fiveMedian, damp, years), realisedExplicit, discountRate)
+        ? scoreForecast(forecastFlows(fiveMedian, damp, years), realisedWithTerminal, discountRate, terminalGrowthRate)
         : null,
       blended: Number.isFinite(blended)
-        ? scoreForecast(forecastFlows(fiveMedian, blended, years), realisedExplicit, discountRate)
+        ? scoreForecast(forecastFlows(fiveMedian, blended, years), realisedWithTerminal, discountRate, terminalGrowthRate)
         : null,
       officialGrowth: adopted,
       officialWindow: official.window,
@@ -245,15 +244,16 @@ export function buildOfficialReport (study) {
     kind: 'official-policy-run',
     policyVersion: POLICY_VERSION,
     policyHash: POLICY_V1_HASH,
-    growthRule: 'official-growth-dual-window-zeroed-terminal',
+    growthRule: 'centered-single-window-regime-band',
     discountRule: POLICY_V1.discount.rule,
     asOf: study.asOf,
-    note: 'Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): a ten-year window capped at 15% and limited by the five-year confirmation window, a five-year-only window capped at 10%, and negative history capitalised at a 0% start and a 0% terminal. Official forecast and realised cash paths both include that official terminal. Flat, historical, blended and dampened columns are experiments only and still omit a terminal; official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun must include official terminal growth; the sample was not expanded. n is small. This is not an official published value.',
+    note: 'Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): a single clean long window (ten-year preferred) capped at 15%, no min with the five-year window, and no mechanical 0% terminal. Negative history starts at 0% and fades to the default 4% terminal. Official, flat, historical, blended and dampened columns all include that same official terminal so the scores are aligned. Official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun includes official terminal growth on every named column; the sample was not expanded beyond the frozen five-name 2006 panel. n is small. Beating flat is not a publication gate. This is not an official published value.',
     discountRate,
     terminalIncluded: true,
+    terminalAligned: true,
     defaultTerminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
     growthCap: POLICY_V1.growth.cap,
-    shortCap: POLICY_V1.growth.shortCap,
+    shortHistory: POLICY_V1.growth.shortHistory,
     windowYears: POLICY_V1.growth.windowYears,
     growthBlendExperiment: { ...RESEARCH_GROWTH_BLEND },
     dampeningReference: DAMPENING_REFERENCE,

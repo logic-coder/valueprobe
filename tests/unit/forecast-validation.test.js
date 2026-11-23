@@ -43,7 +43,7 @@ describe('forecast-validation harness', () => {
     expect(report.kind).toBe('official-policy-run')
     expect(report.policyVersion).toBe(POLICY_VERSION)
     expect(report.policyHash).toBe(POLICY_V1_HASH)
-    expect(report.growthRule).toBe('official-growth-dual-window-zeroed-terminal')
+    expect(report.growthRule).toBe('centered-single-window-regime-band')
     expect(report.discountRule).toBe('max(floor, local-10y-ceil+6)')
     expect(report.discountRate).toBe(officialDiscountRate(study))
     expect(report.discountRate).toBe(11)
@@ -51,7 +51,7 @@ describe('forecast-validation harness', () => {
     expect(report.defaultTerminalGrowthRate).toBe(4)
     expect(report.asOf).toBe('2006-03-15')
     expect(report.note).toMatch(/not a license to change official growth or discount/)
-    expect(report.note).toMatch(/must include official terminal growth/)
+    expect(report.note).toMatch(/includes official terminal growth/)
     // Official windows walk forward past a starting loss, so BA enters; VZ has no cash path.
     expect(report.rows.map((row) => row.ticker)).toEqual(['GE', 'UPS', 'BA', 'INTC', 'IBM'])
     expect(report.sample).toBe(5)
@@ -66,7 +66,7 @@ describe('forecast-validation harness', () => {
       hasPositiveBase: true,
     })
     expect(ba.officialGrowth).toBe(official.adopted)
-    expect(ba.officialTerminalGrowth).toBe(official.zeroTerminal ? 0 : 4)
+    expect(ba.officialTerminalGrowth).toBe(4)
     expect(ba.historical).toBeNull()
     expect(Number.isFinite(ba.official)).toBe(true)
     // Official is the default reference; blended remains an experiment.
