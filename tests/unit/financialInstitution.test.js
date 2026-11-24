@@ -103,6 +103,9 @@ describe('financial institution detector', () => {
       expect(stock.financial_institution, name).toBeUndefined()
       expect(stock.industry, name).not.toBe('insurance')
     }
+    const loews = loadSnapshot('NYSE-L')
+    expect(loews.classification_basis).toBe('industry')
+    expect(loews.industry).toBe('holding-company')
   })
 
   it('flags life insurers for book-quality disclosure', () => {

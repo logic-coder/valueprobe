@@ -22,6 +22,14 @@ export const INDUSTRY_EVIDENCE = Object.freeze({
     financial: false,
     source: 'https://www.sec.gov/Archives/edgar/data/1534701/000153470126000006/psx-20251231.htm',
   }),
+  // Loews files under SIC 6331 because of CNA, but its FY2025 10-K describes a
+  // holding company that also owns Boardwalk Pipelines and Loews Hotels, so it
+  // stays on the owner model and is not routed by SIC or the quote name alone.
+  'NYSE:L': Object.freeze({
+    industry: 'holding-company',
+    financial: false,
+    source: 'https://www.sec.gov/Archives/edgar/data/60086/000006008626000008/l-20251231.htm',
+  }),
   // US filers that used to be routed by the missing-column shape alone. The
   // SIC code and 10-K cover page state the business; all are financial.
   'NASDAQ:PFG': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/1126328/000110465926017031/pfg-20251231x10k.htm' }), // SIC 6321
@@ -34,10 +42,7 @@ export const INDUSTRY_EVIDENCE = Object.freeze({
   'NYSE:PNC': Object.freeze({ industry: 'bank', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/713676/000071367626000020/pnc-20251231.htm' }), // SIC 6021
   'NYSE:PRU': Object.freeze({ industry: 'insurance', financial: true, life: true, source: 'https://www.sec.gov/Archives/edgar/data/1137774/000113777426000048/pru-20251231.htm' }), // SIC 6311 Life Insurance
   // Underwriting insurers that previously lacked an evidence row. Brokers
-  // (MRSH / AON / WTW, SIC 6411) are not added. Loews (NYSE:L) files under
-  // SIC 6331 because of CNA, but its 10-K describes a holding company that
-  // also owns Boardwalk Pipelines and Loews Hotels, so it stays on the owner
-  // model and is not routed by SIC or name alone.
+  // (MRSH / AON / WTW, SIC 6411) are not added.
   'NYSE:PGR': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/80661/000008066126000086/pgr-20251231.htm' }), // SIC 6331
   'NYSE:TRV': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/86312/000008631226000065/trv-20251231.htm' }), // SIC 6331
   'NYSE:MET': Object.freeze({ industry: 'insurance', financial: true, life: true, source: 'https://www.sec.gov/Archives/edgar/data/1099219/000109921926000013/met-20251231.htm' }), // SIC 6311 Life Insurance

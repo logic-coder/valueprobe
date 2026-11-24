@@ -309,7 +309,8 @@ async function refresh (existing, baseline) {
       as_of: new Date().toISOString().slice(0, 10),
       symbol: code,
       exchange_: market,
-      company: quote.company || fields.company || code,
+      // US filings: SEC entityName / fundamentals beat an East Money quote nickname.
+      company: (US.has(market) && fields.company) ? fields.company : (quote.company || fields.company || code),
       currency: quote.currency,
       price: quote.price,
       quote_as_of: quote.asOf,
