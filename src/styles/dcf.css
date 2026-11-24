@@ -38,6 +38,8 @@
 .dcf__price-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted); margin: -2px 0 0; padding-left: 2px; }
 .dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
 .dcf__strip-context { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+/* Key assumptions live next to the headline, not behind help icons. */
+.dcf__basis-line { margin-top: 6px; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text-muted); font-size: 12px; line-height: 1.5; }
 .dcf__provenance { display: grid; gap: 3px; padding: 8px 4px 0; color: var(--text-muted); font-size: 13px; }
 .dcf__evidence-tier { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 6px 4px 0; font-size: 12px; }
 .dcf__evidence-badge { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 2px 8px; }

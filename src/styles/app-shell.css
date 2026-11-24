@@ -2,6 +2,32 @@
 
 .app-shell { min-height: 100vh; display: flex; flex-direction: column; }
 
+/* Published policy changed under an open shell. Non-modal: the reader keeps
+   their work and reloads only when ready. */
+.policy-mismatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: center;
+}
+.policy-mismatch__reload {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--accent-strong);
+  padding: 3px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.policy-mismatch__reload:hover { background: var(--surface-2); }
+
 /* ---------- a11y ---------- */
 .skip-link {
   position: fixed;

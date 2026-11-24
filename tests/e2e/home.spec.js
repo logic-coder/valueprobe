@@ -31,7 +31,7 @@ test('lists a recently viewed symbol and clears it', async ({ page }) => {
   await page.goto('/#/stock/NYSE:KO/dcf')
   await expect(page).toHaveURL(/#\/stock\/NYSE:KO\/dcf$/)
   await expect(page.locator('.ticker__code')).toContainText('NYSE', { timeout: 20000 })
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('46.78', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('37.66', { timeout: 20000 })
   await page.goto('/#/')
   const recent = page.locator('.home__recent')
   await expect(recent).toContainText('接着看')

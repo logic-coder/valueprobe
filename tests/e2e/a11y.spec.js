@@ -34,7 +34,7 @@ test('the result is announced through a debounced live region', async ({ page })
   const live = page.locator('.sr-only[aria-live="polite"]')
   await expect(live).toHaveAttribute('role', 'status')
   await page.locator('.input-section').first().fill('15')
-  await expect(live).toContainText('¥ 9.10', { timeout: 3000 })
+  await expect(live).toContainText('¥ 8.94', { timeout: 3000 })
   // Typing on: the announcement keeps up with the last value, not every keystroke.
   await page.locator('.input-section').first().fill('10')
   await expect(live).toContainText('¥', { timeout: 3000 })

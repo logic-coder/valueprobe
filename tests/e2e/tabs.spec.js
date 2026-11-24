@@ -20,6 +20,6 @@ test('an old tab link opens the calculator on its defaults', async ({ page }) =>
   await page.goto('/#/stock/SHSE:601398/summary?r=15')
   await expect(page).toHaveURL(/\/dcf\?r=15/)
   // Query strings are no longer a share channel, so they do not seed the form.
-  await expect(page.locator('.input-section').first()).toHaveValue('8', { timeout: 20000 })
+  await expect(page.locator('.input-section').first()).toHaveValue('10', { timeout: 20000 })
   await expect(page.locator(FAIR)).toContainText('10.76')
 })

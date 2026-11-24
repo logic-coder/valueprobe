@@ -27,11 +27,12 @@ it('revalidates removed release metadata once and loads matching details and sum
   expect(requests.mock.calls[0][1]).toEqual({ cache: 'no-cache' })
 })
 
-it('rejects the new release if the running shell has a different policy', async () => {
+it('announces a policy mismatch without reloading underneath the reader', async () => {
   vi.resetModules()
   const reload = vi.fn()
-  vi.stubGlobal('window', { location: { reload } })
-  vi.stubGlobal('sessionStorage', { getItem: vi.fn().mockReturnValueOnce(null).mockReturnValue('1'), setItem: vi.fn() })
+  const dispatchEvent = vi.fn()
+  vi.stubGlobal('window', { location: { reload }, dispatchEvent })
+  vi.stubGlobal('CustomEvent', class CustomEvent { constructor (type, options) { this.type = type; this.detail = options?.detail } })
   const requests = vi.fn(async url => {
     if (url.endsWith('/meta.json')) {
       const body = requests.mock.calls.length === 1 ? metadata(previous) : metadata(current, 'next-policy')
@@ -43,6 +44,10 @@ it('rejects the new release if the running shell has a different policy', async 
   const { getPolicyEntry, getPolicySummary } = await import('../../src/api/policy')
   expect(await getPolicyEntry(symbol)).toBeNull()
   expect(await getPolicySummary()).toBeNull()
-  expect(reload).toHaveBeenCalledTimes(1)
+  // One announcement for the whole pair, never a reload: unsaved trials survive.
+  expect(dispatchEvent).toHaveBeenCalledTimes(1)
+  expect(dispatchEvent.mock.calls[0][0].type).toBe('fv:policy-mismatch')
+  expect(dispatchEvent.mock.calls[0][0].detail).toMatchObject({ expected: POLICY_VERSION, actual: 'next-policy' })
+  expect(reload).not.toHaveBeenCalled()
   expect(requests.mock.calls.some(([url]) => url.includes(current))).toBe(false)
 })

@@ -42,10 +42,13 @@ describe('official growth is recomputed from annual series', () => {
     expect(policyGrowth(beer.earning_growth_10y).adopted).toBe(15)
     expect(policyGrowth(lining.earning_growth_10y).adopted).toBe(15)
     const official = officialGrowth({ growth10: lining.earning_growth_10y, growth5: lining.earning_growth_5y, hasPositiveBase: true })
-    expect(official.adopted).toBe(15)
-    expect(official.window).toBe('10y')
     expect(lining.earning_growth_5y).toBeCloseTo(10.92, 2)
+    // The slower five-year window is underwritten; the capped ten-year rate only
+    // raises the band ceiling, so a recovery-phase ten-year boom is not assumed.
+    expect(official.adopted).toBeCloseTo(10.92, 2)
+    expect(official.window).toBe('5y')
+    expect(official.fasterWindowRate).toBe(15)
     const value = policyValue(lining, { rate: 5.07 })
-    expect(value.inputs.growth).toBe(15)
+    expect(value.inputs.growth).toBeCloseTo(10.92, 2)
   })
 })

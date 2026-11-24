@@ -21,7 +21,7 @@ test('stars a stock, lists it, keeps it across a reload and removes it', async (
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
   await expect(page.locator('.wl__table tbody tr')).toContainText('SHSE:601398')
   await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.76')
-  await expect(page.locator('.wl__table tbody tr')).toContainText('23.86%')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('16.08%')
 
   await page.reload()
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
@@ -83,7 +83,7 @@ test('preserves the published estimate when individual sources fail', async ({ p
   page.apiMock.fail = true
   await page.goto('/#/watchlist')
   await page.reload() // the init script only runs in a fresh document
-  await expect(page.locator('.wl__table tbody tr')).toContainText('179.75')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('115.44')
   await expect(page.locator('.wl__failed')).toHaveCount(0)
 })
 

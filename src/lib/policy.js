@@ -7,7 +7,7 @@
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
 import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, REGIME_GAP_PP } from './assumptions'
 import { cashflowCurrency, reportingCurrency, reportingCurrencySource, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
-import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
+import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, RECENT_BASE_LAG_RATIO, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
 export const POLICY_VERSION = 'v3'
@@ -26,11 +26,11 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'disclosed-worse-window-envelope',
-    cashCrossCheck: 'three-year-median',
-    earningsBase: 'normalized-eps-maintenance-equals-da',
-    publicationGate: 'cash-unreconciled-veto',
-    officialGrowth: 'centered-single-window-sign-regime',
+    band: 'slower-window-mid-faster-window-ceiling',
+    cashCrossCheck: 'midpoint-within-ratio-veto-beyond',
+    earningsBase: 'normalized-eps-or-recent-lag-midpoint',
+    publicationGate: 'cash-ratio-veto-beyond-2x',
+    officialGrowth: 'slower-of-two-windows',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
@@ -80,6 +80,18 @@ export const POLICY_V1 = deepFreeze({
     // safety and the sort order. A stale price is disclosed, not silently used.
     marginWarningDays: 7,
   },
+  cashMidpoint: {
+    // Earnings and cash are two measurements of the same owner earnings. Within
+    // roughly 2.5x they are usable: publish the midpoint and span both in the
+    // band (Tencent ≈ 2.25x stays publishable). Beyond that they no longer
+    // describe one business, so the entry stays refused.
+    maxRatio: 2.5,
+  },
+  recentBase: {
+    // A one-way rise can leave the normalised median years behind. Switch to
+    // the latest full year's earnings/cash midpoint at this lag multiple.
+    lagRatio: RECENT_BASE_LAG_RATIO,
+  },
   staleness: {
     // A stale snapshot keeps its value and carries a STALE_DATA warning; the data
     // gate fails separately so the refresh cannot slip past a release.
@@ -92,7 +104,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d'
+export const POLICY_V1_HASH = '961a1eb4812f7d87f73b3805e7c6673d05095efe3b27de8b257f71bb3bc267de'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -194,6 +206,10 @@ const emptyInputs = () => ({
   growth10: null,
   growth5: null,
   regimeUncertain: false,
+  fasterWindowRate: null,
+  usedSlowerWindow: false,
+  ownerBaseRecent: null,
+  cashMidpoint: false,
   discountRate: null,
   reportingCurrency: null,
   reportingCurrencySource: null,
@@ -305,6 +321,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.sbcPerShare = sbcPerShare
   inputs.ownerBaseGap = stock.owner_base_gap === true || daPerShare == null
   inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashMedian, stock.financial_institution === true)
+  const recent = stock.owner_base_recent
+  inputs.ownerBaseRecent = recent && Number.isFinite(Number(recent.base))
+    ? { base: Number(recent.base), latestEps: Number(recent.latestEps), latestCash: Number(recent.latestCash), ratio: Number(recent.ratio) }
+    : null
   if (eps === null) reasons.push(REASON.NO_EPS)
   else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)
@@ -323,10 +343,13 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.growthCap = official.cap
   inputs.growth10 = official.historical10
   inputs.growth5 = official.historical5
+  inputs.fasterWindowRate = official.fasterWindowRate ?? null
+  inputs.usedSlowerWindow = official.usedSlowerWindow === true
   inputs.regimeUncertain = official.regimeUncertain === true
   inputs.terminalGrowthRate = terminalGrowthRate
   if (growth === null) reasons.push(REASON.NO_GROWTH)
   warnings.push(...official.warnings)
+  if (inputs.ownerBaseRecent) warnings.push(WARNING.RECENT_BASE_LAG)
   if (official.regimeUncertain && eps > 0 && !(latestEps > 0)) reasons.push(REASON.UNSTABLE_BASE_REGIME)
 
   // ---- book value (residual-income model only) ----------------------------
@@ -378,6 +401,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   }
   let terminalShare = chosen.terminalShare
   let cash = null
+  let cashMidpointValue = null
   if (value !== null) {
     if (model !== POLICY_V1.model.financialInstitution) {
       const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
@@ -386,9 +410,21 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
         : presentValue(tangibleBook, horizon.years, discountRate, growth, cashBase, terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
       if (cashValue !== null && Number.isFinite(cashValue) && cashValue > 0) {
         const gap = cashValue / value - 1
-        cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100) }
-        if (Math.abs(gap) >= 0.5) reasons.push(REASON.CASH_UNRECONCILED)
-        else if (Math.abs(gap) >= 0.25) warnings.push(WARNING.CASH_DIVERGENCE)
+        const ratio = Math.max(value, cashValue) / Math.min(value, cashValue)
+        cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100), ratio: round4(ratio) }
+        if (ratio > POLICY_V1.cashMidpoint.maxRatio) {
+          // Beyond roughly 2x the two measurements no longer describe the same
+          // business; a midpoint would be misleading, so keep refusing.
+          reasons.push(REASON.CASH_UNRECONCILED)
+        } else if (Math.abs(gap) >= 0.5) {
+          // Both measurements are positive and within the usable band: publish
+          // their midpoint rather than going silent. The band below spans both.
+          cashMidpointValue = (value + cashValue) / 2
+          inputs.cashMidpoint = true
+          warnings.push(WARNING.CASH_MIDPOINT)
+        } else if (Math.abs(gap) >= 0.25) {
+          warnings.push(WARNING.CASH_DIVERGENCE)
+        }
       }
     }
     // Only a column-shaped route is unverified; record it when the other model
@@ -409,7 +445,12 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     return finish({ ...base, terminalShare }, reasons, warnings)
   }
 
-  const band = valueBand({
+  // A cash midpoint replaces the headline only after both measurements were
+  // checked; the earnings-based value stays as the reference in the band.
+  const earningsValue = value
+  if (cashMidpointValue !== null) value = cashMidpointValue
+
+  const bandInput = {
     residual: model === POLICY_V1.model.financialInstitution,
     bandSpread: POLICY_V1.band.discountSpread,
     tbv: tangibleBook,
@@ -418,13 +459,31 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     growthRate: growth,
     terminalGrowthRate,
     growth5: official.historical5,
+    fasterWindowRate: official.fasterWindowRate ?? null,
     growthCap: official.cap,
     window: official.window,
     regimeUncertain: official.regimeUncertain === true,
     years: horizon.years,
     yearsOfTerminalGrowth: horizon.yearsOfTerminalGrowth,
     addToFairValue: false,
-  })
+  }
+  const band = valueBand(bandInput)
+  let low = band.low
+  let high = band.high
+  // When the headline is the midpoint of two measurements, the disclosed band
+  // must contain both of them; otherwise the range would hide the disagreement
+  // that the headline is averaging away.
+  if (cashMidpointValue !== null && cash?.value > 0) {
+    const floor = Math.min(earningsValue, cash.value)
+    const ceiling = Math.max(earningsValue, cash.value)
+    low = low == null ? floor : Math.min(low, floor)
+    high = high == null ? ceiling : Math.max(high, ceiling)
+  }
+  const publishedBand = {
+    low: low == null ? null : round2(low),
+    mid: value,
+    high: high == null ? null : round2(high),
+  }
 
   // ---- price is a separate fact: it only feeds the margin of safety --------
   const margin = Number(marginOfSafety(price, value))
@@ -432,7 +491,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   return finish({
     ...base,
     value,
-    band: band.low === null && band.high === null ? null : { low: band.low, mid: band.mid, high: band.high },
+    band: publishedBand.low === null && publishedBand.high === null ? null : publishedBand,
     terminalShare,
     cash,
     marginOfSafety: Number.isFinite(margin) ? margin : null,

@@ -55,7 +55,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { getCatalog } from '../api/catalog'
-import { clearRecent, readRecent } from '../lib/recent'
+import { clearRecent, readRecent, restoreRecent } from '../lib/recent'
+import { useUndoNotify } from '../composables/useUndoNotify'
 import { useWatchlistStore } from '../store/watchlist'
 import { useI18n } from 'vue-i18n'
 import { DEFAULT_SYMBOL } from '../config/markets'
@@ -64,6 +65,7 @@ import { percent } from '../lib/format'
 import { usePolicyStore } from '../store/policy'
 
 const { t } = useI18n()
+const { notifyUndo } = useUndoNotify()
 const emit = defineEmits(['find-stock'])
 const recent = ref([])
 const names = ref(new Map())
@@ -84,8 +86,10 @@ const continueItems = computed(() => {
   return [...watched, ...rest].slice(0, 5)
 })
 const clear = () => {
+  const snapshot = recent.value.slice()
   clearRecent()
   recent.value = []
+  notifyUndo(t('recent_cleared'), snapshot, (list) => { recent.value = restoreRecent(list) })
 }
 onMounted(async () => {
   recent.value = readRecent()

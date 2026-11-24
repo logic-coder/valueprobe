@@ -238,6 +238,8 @@ export function envelopeScenarios (input) {
   const officialT = Number(input.terminalGrowthRate)
   const five = input.growth5 == null || input.growth5 === '' ? null : Number(input.growth5)
   const fiveAdopted = five != null && Number.isFinite(five) ? Math.min(Math.max(five, 0), cap) : null
+  const faster = input.fasterWindowRate == null || input.fasterWindowRate === '' ? null : Number(input.fasterWindowRate)
+  const fasterAdopted = faster != null && Number.isFinite(faster) ? Math.min(Math.max(faster, 0), cap) : null
   const short = input.window === '5y'
   const noWindow = input.window === 'none'
   const regime = input.regimeUncertain === true
@@ -245,6 +247,9 @@ export function envelopeScenarios (input) {
   const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
   let highGrowth = officialG
   if (fiveAdopted != null && fiveAdopted > officialG) highGrowth = fiveAdopted
+  // The faster of the two disclosed windows raises the ceiling only. It never
+  // moves the official point estimate, which is already the slower window.
+  if (fasterAdopted != null && fasterAdopted > highGrowth) highGrowth = fasterAdopted
   if (short && officialG > 0) highGrowth = cap
 
   const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }
@@ -412,6 +417,40 @@ export function normalizedEpsBase (stock) {
 export function normalizedEarningsBase (stock, _options = {}) {
   const earnings = normalizedEpsBase(stock)
   return earnings === null ? null : Number(Number(earnings).toFixed(4))
+}
+
+// A one-way rise can pin the normalised median to years-old figures. When the
+// latest full year is at least this multiple of the normalised base, the median
+// is stale rather than merely volatile, and the latest year is the honest
+// starting point. Chosen so NVIDIA (4.9 vs 1.19 ≈ 4.1x) switches while Alphabet
+// (10.81 vs 5.8 ≈ 1.9x) and Apple (8.98 vs 6.13 ≈ 1.5x) keep the normalised base.
+export const RECENT_BASE_LAG_RATIO = 2
+
+/**
+ * Latest-full-year earnings/cash midpoint when the normalised base has clearly
+ * lagged a one-way rise. Requires a positive latest EPS, a positive latest
+ * after-capex cash year, and latestEps / normalised >= RECENT_BASE_LAG_RATIO.
+ * Returns null otherwise, so the caller keeps the normalised repeatable base.
+ * The midpoint keeps SBC expensed (earnings) and waits for cash to confirm the
+ * rise before treating a high EPS as repeatable.
+ * @returns {{ base: number, latestEps: number, latestCash: number, ratio: number }|null}
+ */
+export function recentLagBase (stock, normalised) {
+  const annual = stock?.financials?.annual
+  const normal = Number(normalised)
+  if (!(normal > 0) || !Array.isArray(annual) || !annual.length) return null
+  const last = annual[annual.length - 1]
+  const latestEps = Number(last?.eps_without_nri)
+  const latestCash = Number(last?.free_cash_flow_per_share)
+  if (!(latestEps > 0) || !(latestCash > 0)) return null
+  const ratio = latestEps / normal
+  if (!(ratio >= RECENT_BASE_LAG_RATIO)) return null
+  return {
+    base: Number(((latestEps + latestCash) / 2).toFixed(4)),
+    latestEps,
+    latestCash,
+    ratio: Number(ratio.toFixed(4)),
+  }
 }
 
 export function buildDefaults (indicator, stock, freeCashFlow) {

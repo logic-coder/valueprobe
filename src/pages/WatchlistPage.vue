@@ -83,10 +83,12 @@ import { publishedListRow } from '../lib/watchlistView'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
 import { useMoney } from '../composables/useMoney'
+import { useUndoNotify } from '../composables/useUndoNotify'
 
 const { t } = useI18n()
 const $q = useQuasar()
 const { moneyIn } = useMoney()
+const { notifyUndo } = useUndoNotify()
 const store = useWatchlistStore()
 const policy = usePolicyStore()
 const rows = ref([])
@@ -112,7 +114,9 @@ const retry = async () => {
 }
 
 const remove = (symbol) => {
+  const snapshot = store.symbols.slice()
   store.remove(symbol)
+  notifyUndo(t('watch_removed'), snapshot, (list) => store.restore(list))
 }
 
 const download = (kind) => {

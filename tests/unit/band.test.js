@@ -60,7 +60,9 @@ describe('policy publishes the residual band without moving the headline', () =>
     const inputs = value.inputs
     const at = (rate) => residualIncomeValue(inputs.tangibleBook, inputs.eps, rate, inputs.growth, inputs.terminalGrowthRate, inputs.years).fairValue
     expect(value.band.low).toBe(at(inputs.discountRate + 2))
-    expect(value.band.high).toBe(at(inputs.discountRate - 2))
+    // The slower window sets the point estimate; a faster disclosed window may
+    // lift the high end, so discount-2 is a floor for the ceiling, not equality.
+    expect(value.band.high).toBeGreaterThanOrEqual(at(inputs.discountRate - 2))
   })
 
   it('gives no residual entry a high equal to its value', () => {

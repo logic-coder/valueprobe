@@ -1,6 +1,10 @@
 <template>
-  <div class="app-shell">
+    <div class="app-shell">
     <button class="skip-link" type="button" @click="focusMain">{{ t('skip_to_content') }}</button>
+    <div v-if="policyMismatch" class="policy-mismatch" role="status" data-testid="policy-mismatch">
+      <span>{{ t('policy_mismatch_notice') }}</span>
+      <button type="button" class="policy-mismatch__reload" @click="reloadShell">{{ t('policy_mismatch_reload') }}</button>
+    </div>
     <header class="site-header">
       <div class="page-width-1440 site-header__inner">
         <a class="brand" href="#/" aria-label="valueprobe 首页">
@@ -236,12 +240,22 @@ const switchLocale = (value) => {
   writeStored('fv-locale', value)
 }
 
+// A published-data/policy version mismatch is announced, never force-reloaded:
+// the reader decides when it is safe to discard an in-progress trial.
+const policyMismatch = ref(false)
+const onPolicyMismatch = () => { policyMismatch.value = true }
+const reloadShell = () => window.location.reload()
+
 onMounted(() => {
   window.addEventListener('keydown', onSlash)
+  window.addEventListener('fv:policy-mismatch', onPolicyMismatch)
   const saved = readStored('fv-theme')
   const system = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   applyTheme(saved === 'dark' || saved === 'light' ? saved : system)
 })
 
-onBeforeUnmount(() => window.removeEventListener('keydown', onSlash))
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onSlash)
+  window.removeEventListener('fv:policy-mismatch', onPolicyMismatch)
+})
 </script>

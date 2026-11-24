@@ -36,7 +36,7 @@ test('the header lookup navigates to a typed ticker', async ({ page }) => {
   await expect(page).toHaveURL(/#\/stock\/NASDAQ:AAPL\/dcf$/)
   await expect(page.locator('.stock-head h1')).toHaveText('Apple Inc.', { timeout: 20000 })
   // The old symbol's figures must not survive the swap.
-  await expect(page.locator('.dcf')).toContainText('$ 179.75')
+  await expect(page.locator('.dcf')).toContainText('$ 115.44')
   await expect(page.locator('.dcf')).toContainText('$ 351.91')
   await expect(page.locator('.dcf')).not.toContainText('¥ 1.08')
 })

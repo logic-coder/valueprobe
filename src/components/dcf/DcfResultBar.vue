@@ -7,6 +7,7 @@
       <div class="dcf__strip-context" data-testid="value-context">
         {{ official ? officialContext : unavailable ? '' : trialContext }}
       </div>
+      <div v-if="basisLine" class="dcf__basis-line" data-testid="value-basis-line">{{ basisLine }}</div>
     </div>
     <!-- fair value -->
     <div class="dcf__block dcf__fair">
@@ -97,6 +98,7 @@ const props = defineProps({
   showImplied: { type: Boolean, default: false },
   official: { type: Boolean, default: false },
   officialContext: { type: String, default: '' },
+  basisLine: { type: String, default: '' },
   trialContext: { type: String, default: '' },
   unavailable: { type: Boolean, default: false },
   marginLabel: { type: String, default: 'margin_of_safety' },

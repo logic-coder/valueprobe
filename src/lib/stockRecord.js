@@ -2,7 +2,7 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth, windowGrowth } from './assumptions'
-import { normalizedEarningsBase, normalizedEpsBase, sustainableCashBase } from './dcf'
+import { normalizedEarningsBase, normalizedEpsBase, recentLagBase, sustainableCashBase } from './dcf'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -108,10 +108,23 @@ export function toStock (raw) {
   const annual = raw.financials?.annual
   const da = latestPerShare(annual, 'depreciation_amortization_per_share')
   const sbc = latestPerShare(annual, 'share_based_comp_per_share')
-  // Official base is normalised earnings (M≈D, so owner earnings equal E).
+  // Official base is normalised earnings (M≈D, so owner earnings equal E),
+  // unless the normalised median has clearly lagged a one-way rise: then the
+  // latest full year's earnings/cash midpoint is the honest repeatable base.
+  const normalised = normalizedEarningsBase(raw)
+  const lag = recentLagBase(raw, normalised)
   stock.eps_normalized = normalizedEpsBase(raw)
-  stock.earnings_base = normalizedEarningsBase(raw)
+  stock.earnings_base = lag ? lag.base : normalised
   stock.cash_base = sustainableCashBase(raw)
+  if (lag) {
+    stock.owner_base_recent = {
+      base: lag.base,
+      latestEps: lag.latestEps,
+      latestCash: lag.latestCash,
+      ratio: lag.ratio,
+      normalised,
+    }
+  }
   stock.da_per_share = da
   stock.maintenance_capex_proxy = da
   stock.sbc_per_share = sbc

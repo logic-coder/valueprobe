@@ -132,3 +132,46 @@ describe('single price editor', () => {
     expect(read('src/i18n/en-US.json')).not.toContain('fundamentals_readonly')
   })
 })
+
+describe('reversible and self-explaining interface', () => {
+  it('never force-reloads the shell on a policy mismatch', () => {
+    const api = read('src/api/policy.js')
+    expect(api).not.toContain('window.location.reload')
+    expect(api).toContain('fv:policy-mismatch')
+    const app = read('src/App.vue')
+    expect(app).toContain('fv:policy-mismatch')
+    expect(app).toContain('policy-mismatch')
+  })
+
+  it('offers undo for every local list deletion and confirm before manual mode', () => {
+    const undo = read('src/composables/useUndoNotify.js')
+    expect(undo).toContain('notifyUndo')
+    for (const file of ['src/pages/WatchlistPage.vue', 'src/pages/ComparePage.vue', 'src/pages/HomePage.vue']) {
+      const source = read(file)
+      expect(source, file).toContain('notifyUndo')
+    }
+    const stock = read('src/pages/StockDcfPage.vue')
+    expect(stock).toContain('to_manual_confirm')
+    expect(stock).toContain('$q.dialog')
+  })
+
+  it('states the key assumptions beside the headline and gives empty states a next step', () => {
+    const bar = read('src/components/dcf/DcfResultBar.vue')
+    expect(bar).toContain('basisLine')
+    expect(bar).toContain('value-basis-line')
+    const calc = read('src/components/DcfCalculator.vue')
+    expect(calc).toContain("t('basis_line'")
+    const zh = JSON.parse(read('src/i18n/zh-Hans.json'))
+    expect(zh.basis_line).toContain('{base}')
+    expect(zh.reverse_not_started).toContain('调整假设')
+    expect(zh.reverse_missing_inputs).toContain('页眉')
+  })
+
+  it('renders ISO currency codes with the same symbol the snapshots use', () => {
+    const format = read('src/lib/format.js')
+    expect(format).toContain('SYMBOL_BY_CODE')
+    expect(format).toContain("CNY: '¥'")
+    expect(format).toContain("USD: '$'")
+    expect(format).toContain("HKD: 'HK$'")
+  })
+})

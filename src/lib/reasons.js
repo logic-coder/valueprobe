@@ -50,6 +50,12 @@ export const WARNING = Object.freeze({
   OWNER_BASE_GAP: 'OWNER_BASE_GAP',
   // Windows disagree or history is negative. The point estimate keeps the default terminal; the range includes a 0% terminal.
   REGIME_UNCERTAIN: 'REGIME_UNCERTAIN',
+  // Earnings and cash valuations diverged enough to refuse before; the published
+  // number is now their midpoint and the band spans both measurements.
+  CASH_MIDPOINT: 'CASH_MIDPOINT',
+  // The normalised base lagged a one-way recent rise, so the published base uses
+  // the latest full year's earnings/cash midpoint instead of the stale median.
+  RECENT_BASE_LAG: 'RECENT_BASE_LAG',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

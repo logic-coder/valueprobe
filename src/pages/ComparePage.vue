@@ -92,9 +92,11 @@ import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
 import { usePolicyStore } from '../store/policy'
 import { useMoney } from '../composables/useMoney'
+import { useUndoNotify } from '../composables/useUndoNotify'
 
 const { t } = useI18n()
 const $q = useQuasar()
+const { notifyUndo } = useUndoNotify()
 const route = useRoute()
 const router = useRouter()
 const store = useWatchlistStore()
@@ -148,7 +150,11 @@ const add = () => {
   draft.value = ''
   apply(next)
 }
-const remove = (symbol) => apply(symbols.value.filter((item) => item !== symbol))
+const remove = (symbol) => {
+  const snapshot = symbols.value.slice()
+  apply(snapshot.filter((item) => item !== symbol))
+  notifyUndo(t('compare_removed'), snapshot, (list) => apply(list))
+}
 
 watch(symbols, (list) => {
   // A bare /compare (or a hash edit) picks the queue back up instead of starting empty.

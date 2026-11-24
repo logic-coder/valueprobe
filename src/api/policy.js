@@ -36,18 +36,22 @@ export async function getPolicyArtifact () {
   return compatibleMeta(meta)
 }
 
+// A deployment or rollback can leave the shell and the published data on
+// different policies. Never reload underneath the reader: an unsaved trial would
+// be lost. Announce the mismatch once and let the reader reload when convenient.
+const announcedMismatch = new Set()
 function compatibleMeta (meta) {
   if (!meta || meta.missing) return null
   if (meta.policyVersion === POLICY_VERSION) return meta
-  // A release retry may cross a deployment or rollback. Reload the shell once
-  // for this pair rather than seed a trial with another policy's inputs.
-  try {
-    const key = 'fv-policy-reload:' + POLICY_VERSION + ':' + meta.policyVersion
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, '1')
-      window.location.reload()
+  const pair = POLICY_VERSION + ':' + meta.policyVersion
+  if (!announcedMismatch.has(pair)) {
+    announcedMismatch.add(pair)
+    if (typeof window !== 'undefined' && typeof window.dispatchEvent === 'function') {
+      window.dispatchEvent(new CustomEvent('fv:policy-mismatch', {
+        detail: { expected: POLICY_VERSION, actual: meta.policyVersion },
+      }))
     }
-  } catch { /* Storage or navigation unavailable. Reject the incompatible data. */ }
+  }
   return null
 }
 

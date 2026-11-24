@@ -20,7 +20,7 @@ test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
   await page.locator(DISCOUNT).first().blur()
   await page.getByRole('spinbutton', { name: '第二阶段年增长率' }).fill('0')
   await page.getByRole('spinbutton', { name: '第二阶段年增长率' }).blur()
-  await expect(page.locator(FAIR)).toContainText('¥ 65.77')
+  await expect(page.locator(FAIR)).toContainText('¥ 62.37')
   await expect(page.locator(FAIR)).not.toContainText('Infinity')
   await expect(page.locator('.dcf__mos')).not.toContainText('Infinity')
 })
@@ -54,7 +54,7 @@ test('D5: a fallback source is announced, not silently used', async ({ page }) =
 test('a US quote and EDGAR fundamentals meet on one page', async ({ page }) => {
   await page.goto('/#/stock/NASDAQ:AAPL/dcf')
   await expect(page.locator('.stock-head h1')).toHaveText('Apple Inc.', { timeout: 25000 })
-  await expect(page.locator('.dcf')).toContainText('$ 179.75')
+  await expect(page.locator('.dcf')).toContainText('$ 115.44')
 })
 
 test('D7: an unreachable source set says so instead of leaving a skeleton', async ({ page }) => {
@@ -76,7 +76,7 @@ test('D6: the display currency converts results and says the inputs stay native'
   await expect(page.locator(FAIR)).toContainText('¥ 10.76')
   await page.locator('.currency-select').click()
   await page.locator('.q-menu .q-item', { hasText: 'USD' }).click()
-  await expect(page.locator(FAIR)).toContainText('≈ $1.66')
+  await expect(page.locator(FAIR)).toContainText('≈ $1.51')
   await expect(page.locator('.dcf')).toContainText('输入仍为 ¥原币')
   // The editable rows keep the native currency.
   await expect(page.locator('.dcf')).toContainText('¥ 9.03')
@@ -91,20 +91,20 @@ test('C: the quote editor stays in the native currency while converted values si
   await expect(quote.locator('.edit-value__converted')).toContainText('≈ $')
   const margin = page.getByTestId('dcf-margin-of-safety')
   const marginBefore = await margin.innerText()
-  await expect(page.locator(FAIR)).toContainText('≈ $1.66')
+  await expect(page.locator(FAIR)).toContainText('≈ $1.51')
   await quote.click()
   const input = page.getByRole('spinbutton', { name: /参考报价/ })
   await expect(input).toHaveValue('9.03')
   await input.fill('9')
   await page.keyboard.press('Enter')
-  await expect(page.locator(FAIR)).toContainText('≈ $1.66')
+  await expect(page.locator(FAIR)).toContainText('≈ $1.51')
   await expect(margin).not.toHaveText(marginBefore)
   await expect(quote).toContainText('¥ 9.00')
   await quote.click()
   await input.fill('')
   await page.keyboard.press('Enter')
   await expect(margin).toContainText('n/a')
-  await expect(page.locator(FAIR)).toContainText('≈ $1.66')
+  await expect(page.locator(FAIR)).toContainText('≈ $1.51')
 })
 
 test('quarterly snapshots answer as a fallback and carry their date', async ({ page }) => {

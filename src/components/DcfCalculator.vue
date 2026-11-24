@@ -14,6 +14,7 @@
             :stock="stock"
             :result="headline"
             :live-summary="liveSummary"
+            :basis-line="showPublished ? basisLine : ''"
             :show-implied="!residualIncome"
             :official="showPublished"
             :official-context="officialContext"
@@ -526,6 +527,18 @@ const officialContext = computed(() => {
   const version = artifact?.policyVersion || ''
   const asOf = artifact?.generatedAt || ''
   return t('official_context', { version, asOf })
+})
+// The three assumptions that actually move the headline, stated on the result
+// itself instead of hiding behind help icons. Readers should not need to open a
+// popover to know what the published number is built from.
+const basisLine = computed(() => {
+  const i = policyEntry.value?.inputs
+  if (!i || !Number.isFinite(Number(i.growth))) return ''
+  return t('basis_line', {
+    base: moneyIn(stock.value.currency, i.eps),
+    growth: percent(i.growth),
+    rate: percent(i.discountRate),
+  })
 })
 const trialContext = computed(() => policyEntry.value && !isManual.value
   ? t('official_trial_context', { version: policyStore.metadataOf(props.symbol)?.policyVersion || '' })

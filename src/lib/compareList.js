@@ -18,6 +18,7 @@ const read = () => {
 const write = (list) => writeStored(KEY, JSON.stringify(list)) && list
 
 export const readCompare = read
+export const writeCompare = write
 export const isComparing = (symbol) => read().includes(symbol)
 
 export function addCompare (value) {

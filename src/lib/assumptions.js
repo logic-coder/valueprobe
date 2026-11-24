@@ -59,17 +59,19 @@ export function windowsConflict (ten, five) {
 
 /**
  * Official starting growth. Shared by policyValue() and buildDefaults(), so the
- * calculator seed equals the published value. A single clean long window is the
- * centered prior: the ten-year window when it exists, otherwise the five-year
- * window, always capped at 15%. The five-year rate is a comparison only and is
- * never min'd with the ten-year rate. A five-year-only history keeps the same
- * 15% cap, carries SHORT_HISTORY, and widens the value range rather than
- * applying a tighter 10% cap. Negative history floors the starting rate to 0%
- * and keeps the default terminal, and marks REGIME_UNCERTAIN. Opposite-sign
- * windows also mark REGIME_UNCERTAIN and still widen the range; a same-sign
- * gap does not. A positive repeatable base with no window starts at 0%
- * (terminal stays the policy default). zeroTerminal remains on the return
- * object for compatibility and is always false under this policy.
+ * calculator seed equals the published value. When both disclosed windows are
+ * available the official mid takes the SLOWER of the ten-year and five-year
+ * rates (each capped at 15%, negatives floored to 0%). This keeps a fading ten-
+ * year boom from being underwritten for the next decade, without ever promoting
+ * a five-year peak into the point estimate. The faster window is not discarded:
+ * it is returned as fasterWindowRate and used only to raise the upper end of the
+ * disclosed value band. A single window is used on its own; a five-year-only
+ * history keeps the 15% cap and carries SHORT_HISTORY. Negative history floors
+ * the starting rate to 0% and keeps the default terminal, and marks
+ * REGIME_UNCERTAIN. Opposite-sign windows also mark REGIME_UNCERTAIN and widen
+ * the range; a same-sign gap does not. A positive repeatable base with no window
+ * starts at 0% (terminal stays the policy default). zeroTerminal remains on the
+ * return object for compatibility and is always false under this policy.
  *
  * @param {{ growth10?: unknown, growth5?: unknown, hasPositiveBase?: boolean }} input
  * @returns {{
@@ -82,6 +84,8 @@ export function windowsConflict (ten, five) {
  *   zeroTerminal: boolean,
  *   regimeUncertain: boolean,
  *   windowConflict: boolean,
+ *   fasterWindowRate: number|null,
+ *   usedSlowerWindow: boolean,
  *   warnings: string[],
  * }}
  */
@@ -101,6 +105,8 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
     zeroTerminal: false,
     regimeUncertain: false,
     windowConflict: conflict,
+    fasterWindowRate: null,
+    usedSlowerWindow: false,
     warnings,
   }
   const finish = (row) => ({ ...base, ...row, warnings })
@@ -109,47 +115,30 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
     return uncertain
   }
 
-  if (ten != null) {
-    const adoptedTen = clipWindow(ten, MAX_UNDERWRITTEN_GROWTH)
-    const regime = markRegime(negativeWindow || conflict)
-    if (adoptedTen.negative) {
-      return finish({
-        adopted: 0,
-        window: '10y',
-        cap: MAX_UNDERWRITTEN_GROWTH,
-        reason: 'zeroed',
-        regimeUncertain: regime,
-      })
-    }
-    if (adoptedTen.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
-    return finish({
-      adopted: adoptedTen.adopted,
-      window: '10y',
-      cap: MAX_UNDERWRITTEN_GROWTH,
-      reason: adoptedTen.hitCap ? 'capped' : 'historical',
-      regimeUncertain: regime,
-    })
-  }
+  const tenC = ten != null ? clipWindow(ten, MAX_UNDERWRITTEN_GROWTH) : null
+  const fiveC = five != null ? clipWindow(five, MAX_UNDERWRITTEN_GROWTH) : null
 
-  if (five != null) {
-    const adoptedFive = clipWindow(five, MAX_UNDERWRITTEN_GROWTH)
-    warnings.push(WARNING.SHORT_HISTORY)
-    if (adoptedFive.negative) {
-      markRegime(true)
-      return finish({
-        adopted: 0,
-        window: '5y',
-        cap: MAX_UNDERWRITTEN_GROWTH,
-        reason: 'zeroed',
-        regimeUncertain: true,
-      })
-    }
-    if (adoptedFive.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
+  if (tenC || fiveC) {
+    const regime = markRegime(negativeWindow || conflict)
+    if (tenC?.hitCap || fiveC?.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
+    const candidates = []
+    if (tenC) candidates.push({ row: tenC, window: '10y' })
+    if (fiveC) candidates.push({ row: fiveC, window: '5y' })
+    // The slower adopted window is the point estimate; the faster one only widens the band.
+    candidates.sort((a, b) => a.row.adopted - b.row.adopted || (a.window === '10y' ? -1 : 1))
+    const slow = candidates[0]
+    const fast = candidates.length > 1 ? candidates[candidates.length - 1] : null
+    const usedSlowerWindow = Boolean(fast && slow.row.adopted < fast.row.adopted)
+    const fiveOnly = !tenC && fiveC
+    if (fiveOnly) warnings.push(WARNING.SHORT_HISTORY)
     return finish({
-      adopted: adoptedFive.adopted,
-      window: '5y',
+      adopted: slow.row.adopted,
+      window: slow.window,
       cap: MAX_UNDERWRITTEN_GROWTH,
-      reason: adoptedFive.hitCap ? 'capped' : 'historical',
+      reason: slow.row.negative ? 'zeroed' : (slow.row.hitCap ? 'capped' : 'historical'),
+      regimeUncertain: regime,
+      fasterWindowRate: usedSlowerWindow ? fast.row.adopted : null,
+      usedSlowerWindow,
     })
   }
 

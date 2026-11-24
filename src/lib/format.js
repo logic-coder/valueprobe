@@ -10,7 +10,15 @@ export const parseAmount = (value) => {
   return raw === '' ? null : Number(raw)
 }
 
-export const money = (currency, value) => (isNum(value) ? (currency || '') + ' ' + Number(value).toFixed(2) : 'n/a')
+// Snapshots carry a symbol (¥/$/HK$) while published entries carry an ISO code
+// (CNY/USD/HKD). Normalise here so the same value renders identically wherever
+// it appears — an ISO code and its symbol are one currency, not two displays.
+const SYMBOL_BY_CODE = { CNY: '¥', USD: '$', HKD: 'HK$' }
+export const money = (currency, value) => {
+  if (!isNum(value)) return 'n/a'
+  const prefix = SYMBOL_BY_CODE[currency] || currency || ''
+  return prefix + ' ' + Number(value).toFixed(2)
+}
 
 export const percent = (value) => (isNum(value) ? Number(value).toFixed(2) + '%' : 'n/a')
 

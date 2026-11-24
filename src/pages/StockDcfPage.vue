@@ -36,6 +36,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import { parseSymbol } from '../config/markets'
 import { addRecent } from '../lib/recent'
@@ -50,6 +51,7 @@ import StockNotFoundPage from './StockNotFoundPage.vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const $q = useQuasar()
 const stockStore = useStockStore()
 const dcfStore = useDcfStore()
 const sourceStore = useDataStateStore()
@@ -100,9 +102,19 @@ const reload = async () => {
 }
 
 const toManual = () => {
-  sourceStore.markManual(symbol.value)
-  dcfStore.financials.data = null
-  stockStore.loadStock(symbol.value)
+  // Switching to manual mode drops the loaded financials and reseeds the
+  // calculator. Ask first: a reader midway through a trial must not lose it.
+  $q.dialog({
+    title: t('to_manual'),
+    message: t('to_manual_confirm'),
+    cancel: { label: t('cancel'), flat: true },
+    ok: { label: t('to_manual'), color: 'primary', unelevated: true },
+    persistent: false,
+  }).onOk(() => {
+    sourceStore.markManual(symbol.value)
+    dcfStore.financials.data = null
+    stockStore.loadStock(symbol.value)
+  })
 }
 
 const toLive = async () => {

@@ -126,7 +126,7 @@ describe('financial institution detector', () => {
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
     // Margin is a number under the public policy (the UI appends the percent sign).
-    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.9, mos: 16.92 })
+    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.81, mos: 16.77 })
     expect(defaultView(loadFixture('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: 17.26 })
   })
 

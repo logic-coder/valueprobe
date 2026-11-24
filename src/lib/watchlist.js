@@ -20,6 +20,7 @@ const read = () => {
 const write = (list) => writeStored(KEY, JSON.stringify(list)) && list
 
 export const readWatchlist = read
+export const writeWatchlist = write
 
 export function addWatch(symbol) {
   if (!isSymbol(symbol)) return read()

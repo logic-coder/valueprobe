@@ -28,3 +28,8 @@ export function addRecent(symbol, name = '') {
 export function clearRecent() {
   return write([])
 }
+
+/** Restore a captured recent list after an undone clear. */
+export function restoreRecent(list) {
+  return write(Array.isArray(list) ? list.filter(isEntry).slice(0, MAX) : [])
+}

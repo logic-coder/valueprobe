@@ -40,38 +40,38 @@ test('shows the published value by default and only edits this page', async ({ p
 test('renders the calculator with the live defaults', async ({ page }) => {
   await expect(page.locator(FAIR)).toContainText('¥ 10.76')
   await expect(page.getByTestId('long-run-pe')).toHaveCount(0)
-  await expect(page.locator('.input-section').first()).toHaveValue('8')
+  await expect(page.locator('.input-section').first()).toHaveValue('10')
   await expect(page.locator('text=多数年份没有盈利')).toBeVisible()
   await expect(page.locator('.dcf__warn')).toBeVisible()
 })
 
 test('recalculates when the discount rate changes', async ({ page }) => {
-  await page.locator('.input-section').first().fill('10')
+  await page.locator('.input-section').first().fill('12')
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).not.toContainText('10.76')
   await page.locator('.q-btn:has(i:has-text("add"))').first().click()
   await page.waitForTimeout(300)
-  await expect(page.locator('.input-section').first()).toHaveValue('11')
+  await expect(page.locator('.input-section').first()).toHaveValue('13')
 })
 
 test('marks a manual dial change as custom and always rebases presets', async ({ page }) => {
   const discount = page.getByTestId('field-discount')
   const preset = (name) => page.locator('.dcf__scenario-btns').getByRole('button', { name })
   await preset('牛市').click()
-  await expect(discount).toHaveValue('7')
+  await expect(discount).toHaveValue('9')
   await expect(preset('牛市')).toHaveClass(/is-active/)
   await discount.fill('20')
   await expect(discount).toHaveValue('20')
   await expect(preset('牛市')).not.toHaveClass(/is-active/)
   await expect(page.locator('.dcf__scenario-custom')).toBeVisible()
-  // The bear preset applies to the saved baseline (8), not the edited 20.
+  // The bear preset applies to the saved baseline (10), not the edited 20.
   await preset('熊市').click()
-  await expect(discount).toHaveValue('9')
+  await expect(discount).toHaveValue('11')
   await preset('牛市').click()
   await preset('熊市').click()
-  await expect(discount).toHaveValue('9')
+  await expect(discount).toHaveValue('11')
   await preset('基准').click()
-  await expect(discount).toHaveValue('8')
+  await expect(discount).toHaveValue('10')
   await expect(page.locator('.dcf__scenario-custom')).toHaveCount(0)
 })
 
@@ -85,9 +85,11 @@ test('keeps the current preset when only the quote changes', async ({ page }) =>
 
 test('switches between eps and free cash flow bases', async ({ page }) => {
   await openAdvanced(page)
+  // ICBC is a bank: its operating cash flow is not shareholder cash, so the
+  // free-cash-flow basis correctly has no value and says so.
   await page.locator('.q-radio').nth(1).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('116.66')
+  await expect(page.locator(FAIR)).toContainText('n/a')
   await page.locator('.q-radio').nth(0).click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('10.76')
@@ -96,11 +98,11 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
 test('adds tangible book value to the fair value', async ({ page }) => {
   await openAdvanced(page)
   await page.getByRole('button', { name: '每股折现' }).click()
-  await expect(page.getByTestId('long-run-pe')).toContainText('12.60')
+  await expect(page.getByTestId('long-run-pe')).toContainText('12.00')
   await expect(page.getByTestId('long-run-note')).toContainText('不是内在价值')
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('37.54')
+  await expect(page.locator(FAIR)).toContainText('27.91')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
@@ -296,7 +298,7 @@ test('scenario presets move the assumptions and restore the base', async ({ page
   await page.locator('.dcf__scenario-btns button', { hasText: '基准' }).click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('10.76')
-  await expect(page.locator('.input-section').first()).toHaveValue('8')
+  await expect(page.locator('.input-section').first()).toHaveValue('10')
 })
 
 test('pins a source for the symbol and releases it again', async ({ page }) => {
@@ -328,7 +330,7 @@ test('has no share surface and ignores valuation query parameters', async ({ pag
   // Share links were removed with the share/print surfaces (DEVIATIONS D37), so
   // old query strings no longer seed the form; the page opens on its own defaults.
   await page.goto('/#/stock/SHSE:601398/dcf?r=15&g=7&tbv1=1')
-  await expect(page.locator('.input-section').first()).toHaveValue('8', { timeout: 20000 })
+  await expect(page.locator('.input-section').first()).toHaveValue('10', { timeout: 20000 })
   await expect(page.locator(FAIR)).toContainText('10.76')
   await expect(page.locator('.dcf__share-btn')).toHaveCount(0)
 })

@@ -32,7 +32,7 @@ test('adds a symbol from the input and drops one from its row', async ({ page })
 test('preserves the published value when individual sources fail', async ({ page }) => {
   page.apiMock.fail = true
   await page.goto('/#/compare?s=NASDAQ:AAPL')
-  await expect(page.locator('.cmp__table tbody tr')).toContainText('179.75')
+  await expect(page.locator('.cmp__table tbody tr')).toContainText('115.44')
   await expect(page.locator('.cmp__failed')).toHaveCount(0)
 })
 
