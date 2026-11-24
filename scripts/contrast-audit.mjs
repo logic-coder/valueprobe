@@ -15,9 +15,9 @@ const THEMES = process.argv[2] ? [process.argv[2]] : ['light', 'dark']
 const PORT = CONTRAST_PORT
 const ORIGIN = 'http://127.0.0.1:' + PORT
 const PAGES = [
-  { path: '/#/', wait: '.home__hero', selectors: ['.home__lead', '.home__note', '.home__kicker', '.home__examples'] },
-  { path: '/#/stock/SHSE:601398/dcf', wait: '.text-h6.button-font-weight', selectors: ['.faint', '.muted', '.text-caption', '.panel__title', '.dcf__head-hint', 'thead th', 'tbody td', '.dcf__mos font'] },
-  { path: '/#/about', wait: '.about__title', selectors: ['.about p', '.ds-order__hint', '.ds-order__list li'] },
+  { path: '/#/', wait: '.home__hero', selectors: ['.home__lead', '.home .faint', '.home__examples'] },
+  { path: '/#/stock/SHSE:601398/dcf', wait: '.text-h6.button-font-weight', selectors: ['.faint', '.muted', '.dcf__price-echo', '.panel__title', '.dcf__head-hint', 'thead th', 'tbody td', '.dcf__mos .dcf__label-text'] },
+  { path: '/#/about', wait: '.about__title', selectors: ['.about p', '.about .panel__title'] },
   { path: '/#/compare?s=SHSE:601398,NASDAQ:AAPL', wait: '.cmp__table', selectors: ['.cmp__note', '.cmp__table thead th', '.compare .faint'] },
   { path: '/#/watchlist', wait: '.watchlist .muted', selectors: ['.watchlist .muted'] },
   { path: '/#/stock/BAD', wait: '.notfound__title', selectors: ['.notfound__title', '.notfound p'] },
@@ -67,11 +67,16 @@ const ready = async () => {
 }
 
 let failures = 0
+let samples = 0
+let misses = 0
+let started = false
 let browser
 try {
-  if (!(await ready())) {
+  // A sample that never rendered proves nothing, so count what was actually
+  // measured and fail on an empty run instead of reporting a vacuous pass.
+  started = await ready()
+  if (!started) {
     console.error('[contrast] preview did not start on ' + ORIGIN)
-    process.exitCode = 1
   } else {
     browser = await chromium.launch({ channel: process.env.PW_CHANNEL || 'chromium' })
     for (const theme of THEMES) {
@@ -117,9 +122,12 @@ try {
           return { ok: value >= (large ? AA_LARGE : AA_NORMAL), value, size: sample.size }
         }
 
+        let pageSamples = 0
         for (const selector of target.selectors) {
           let sample = await readSample(selector)
-          if (!sample) continue
+          if (!sample) { misses += 1; continue }
+          pageSamples += 1
+          samples += 1
           let result = score(sample)
           // A page that is still painting (or a toast covering a cell) can score once by
           // accident; one settled re-read keeps the audit honest without hiding real failures.
@@ -131,6 +139,10 @@ try {
           if (!result.ok) failures += 1
           console.log((result.ok ? 'ok   ' : 'FAIL ') + (target.path + ' ' + selector).padEnd(48) + result.value.toFixed(2) + '  ' + result.size + 'px')
         }
+        if (pageSamples === 0) {
+          failures += 1
+          console.log('FAIL ' + target.path.padEnd(48) + ' no sample rendered')
+        }
       }
       await page.close()
     }
@@ -140,6 +152,10 @@ try {
   stopServer()
 }
 
-console.log(failures ? '\n[contrast] ' + failures + ' sample(s) below AA' : '\n[contrast] all samples pass AA')
+if (!started) console.log('\n[contrast] no preview: 0 samples measured')
+else if (failures) console.log('\n[contrast] ' + failures + ' problem(s)')
+else console.log('\n[contrast] ' + samples + ' sample(s) pass AA')
+if (misses) console.log('[contrast] ' + misses + ' selector(s) not rendered — a rename silently blinds this audit')
+// A vacuous run is a failed run: one exit code, decided once, after the loop.
 // process.exit() can truncate piped stdout; let the loop end naturally.
-process.exitCode = failures ? 1 : 0
+process.exitCode = failures || !started || !samples ? 1 : 0
