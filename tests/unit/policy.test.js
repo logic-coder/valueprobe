@@ -375,13 +375,13 @@ describe('the committed artifact is what the policy produces', () => {
     const entry = (symbol) => artifact.entries[symbol]
     expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.76 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
-    expect(entry('NASDAQ:AAPL').value).toBe(122.7)
-    expect(entry('NYSE:TSM')).toMatchObject({ value: 125.1, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
+    expect(entry('NASDAQ:AAPL').value).toBe(141.42)
+    expect(entry('NYSE:TSM')).toMatchObject({ value: 144.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
     expect(entry('HKSE:00700')).toMatchObject({ status: 'refused', value: null, reasons: expect.arrayContaining(['CASH_UNRECONCILED']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
-    expect(entry('NYSE:GPC').value).toBe(71.61)
+    expect(entry('NYSE:GPC').value).toBe(81.55)
     expect(entry('NYSE:GPC').warnings).toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NYSE:GPC')).toMatchObject({
       inputs: expect.objectContaining({
@@ -395,7 +395,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').value).toBe(10.76)
-    expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 118.29 })
+    expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 136.16 })
     expect(entry('NASDAQ:FISV').warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NASDAQ:FISV').reasons).not.toContain(REASON.UNSTABLE_BASE_REGIME)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
@@ -417,7 +417,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeCloseTo(-39.22, 2)
+    expect(byd.valueDiffPct).toBeCloseTo(-30.33, 2)
   })
 })
 

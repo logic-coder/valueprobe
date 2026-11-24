@@ -147,14 +147,16 @@ describe('Hong Kong dividends stay empty rather than repeating one current payou
 
 describe('raw history facts survive the cleaning path', () => {
   it('NASDAQ:NVDA keeps FY2023 EPS at the restated 0.17', () => {
-    const row = snapshotOf('NASDAQ:NVDA').financials.annual.find((item) => item.date === '2023-12')
+    // NVIDIA's fiscal year ends in January, so the FY2023 row is dated 2023-01.
+    const row = snapshotOf('NASDAQ:NVDA').financials.annual.find((item) => item.date === '2023-01')
     expect(row).toBeDefined()
     expect(row.eps_without_nri).toBeCloseTo(0.17, 4)
     expect(row.operating_income_per_share).toBeGreaterThan(0) // a real year, not a tagging hole
   })
 
   it('NASDAQ:AAPL keeps FY2017 EPS at 2.3025', () => {
-    const row = snapshotOf('NASDAQ:AAPL').financials.annual.find((item) => item.date === '2017-12')
+    // Apple's fiscal year ends in September, so the FY2017 row is dated 2017-09.
+    const row = snapshotOf('NASDAQ:AAPL').financials.annual.find((item) => item.date === '2017-09')
     expect(row).toBeDefined()
     expect(row.eps_without_nri).toBeCloseTo(2.3025, 4)
   })

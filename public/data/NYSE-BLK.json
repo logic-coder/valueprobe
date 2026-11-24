@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "BLK",
   "exchange_": "NYSE",
   "company": "BlackRock, Inc.",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 244.0259
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 41.8852,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 29.0146,
+        "depreciation_amortization_per_share": 2.7421,
+        "share_based_comp_per_share": 4.6444,
         "dividends_per_share": null,
         "book_value_per_share": 147.8282
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 41.6372,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 25.3539,
+        "depreciation_amortization_per_share": 2.8333,
+        "share_based_comp_per_share": 4.1803,
         "dividends_per_share": null,
         "book_value_per_share": 37.9413
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 49.9555,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 31.0061,
+        "depreciation_amortization_per_share": 3.4891,
+        "share_based_comp_per_share": 4.9665,
         "dividends_per_share": null,
         "book_value_per_share": 6.411
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 43.7941,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 22.0804,
+        "depreciation_amortization_per_share": 6.9996,
+        "share_based_comp_per_share": 8.1247,
         "dividends_per_share": null,
         "book_value_per_share": -44.3598
       }
@@ -181,6 +191,42 @@
       [
         "2025-12",
         22.0804
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2022-12",
+        2.7421
+      ],
+      [
+        "2023-12",
+        2.8333
+      ],
+      [
+        "2024-12",
+        3.4891
+      ],
+      [
+        "2025-12",
+        6.9996
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2022-12",
+        4.6444
+      ],
+      [
+        "2023-12",
+        4.1803
+      ],
+      [
+        "2024-12",
+        4.9665
+      ],
+      [
+        "2025-12",
+        8.1247
       ]
     ]
   }

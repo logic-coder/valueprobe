@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "APO",
   "exchange_": "NYSE",
   "company": "Apollo Global Management, Inc.",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 5.1454
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.0835,
+        "share_based_comp_per_share": 0.9361,
         "dividends_per_share": null,
         "book_value_per_share": 24.2297
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.1141,
+        "share_based_comp_per_share": 4.9922,
         "dividends_per_share": null,
         "book_value_per_share": 42.5967
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.9048,
+        "share_based_comp_per_share": 0.9236,
         "dividends_per_share": null,
         "book_value_per_share": 17.1783
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 1.3637,
+        "share_based_comp_per_share": 1.7424,
         "dividends_per_share": null,
         "book_value_per_share": 35.4999
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 1.7797,
+        "share_based_comp_per_share": 1.1936,
         "dividends_per_share": null,
         "book_value_per_share": 44.0984
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.4105,
+        "share_based_comp_per_share": 1.329,
         "dividends_per_share": null,
         "book_value_per_share": 61.6433
       }
@@ -189,6 +203,58 @@
       [
         "2025-12",
         53.9857
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2020-12",
+        0.0835
+      ],
+      [
+        "2021-12",
+        0.1141
+      ],
+      [
+        "2022-12",
+        0.9048
+      ],
+      [
+        "2023-12",
+        1.3637
+      ],
+      [
+        "2024-12",
+        1.7797
+      ],
+      [
+        "2025-12",
+        2.4105
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2020-12",
+        0.9361
+      ],
+      [
+        "2021-12",
+        4.9922
+      ],
+      [
+        "2022-12",
+        0.9236
+      ],
+      [
+        "2023-12",
+        1.7424
+      ],
+      [
+        "2024-12",
+        1.1936
+      ],
+      [
+        "2025-12",
+        1.329
       ]
     ]
   }

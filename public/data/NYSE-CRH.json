@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "CRH",
   "exchange_": "NYSE",
   "company": "CRH PUBLIC LTD CO",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 30.6841
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 4.2285,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.0821,
+        "depreciation_amortization_per_share": 1.9713,
+        "share_based_comp_per_share": 0.1398,
         "dividends_per_share": null,
         "book_value_per_share": 14.9911
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 4.9849,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.98,
+        "depreciation_amortization_per_share": 2.0639,
+        "share_based_comp_per_share": 0.1322,
         "dividends_per_share": null,
         "book_value_per_share": 16.2871
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 5.7405,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.3884,
+        "depreciation_amortization_per_share": 2.2394,
+        "share_based_comp_per_share": 0.1687,
         "dividends_per_share": null,
         "book_value_per_share": 15.2071
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 7.1429,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.4967,
+        "depreciation_amortization_per_share": 2.6077,
+        "share_based_comp_per_share": 0.1813,
         "dividends_per_share": null,
         "book_value_per_share": 14.7846
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": 8.0355,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.3013,
+        "depreciation_amortization_per_share": 3.1846,
+        "share_based_comp_per_share": 0.2112,
         "dividends_per_share": null,
         "book_value_per_share": 14.6248
       }
@@ -211,6 +223,50 @@
       [
         "2025-12",
         4.3013
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2021-12",
+        1.9713
+      ],
+      [
+        "2022-12",
+        2.0639
+      ],
+      [
+        "2023-12",
+        2.2394
+      ],
+      [
+        "2024-12",
+        2.6077
+      ],
+      [
+        "2025-12",
+        3.1846
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2021-12",
+        0.1398
+      ],
+      [
+        "2022-12",
+        0.1322
+      ],
+      [
+        "2023-12",
+        0.1687
+      ],
+      [
+        "2024-12",
+        0.1813
+      ],
+      [
+        "2025-12",
+        0.2112
       ]
     ]
   }

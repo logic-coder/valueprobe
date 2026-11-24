@@ -1,12 +1,12 @@
 {
-  "as_of": "2026-11-18",
+  "as_of": "2026-11-23",
   "symbol": "JPM",
   "exchange_": "NYSE",
   "company": "摩根大通",
   "currency": "$",
   "price": "$329.96",
-  "ttm_eps": 20.02,
-  "ttm_eps_nri": 20.02,
+  "ttm_eps": 23.84,
+  "ttm_eps_nri": 23.84,
   "free_cash_flow_per_share": null,
   "tangible_book": 110.8779,
   "earning_growth_10y": 13.93,
@@ -19,7 +19,9 @@
   "rvn_growth_10y": null,
   "ebit_growth_10y": null,
   "cashflow_basis": null,
-  "eps_period": "FY",
+  "eps_period": "TTM",
+  "eps_as_of": "2026-09-30",
+  "eps_source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json",
   "predictability": 5,
   "financials": {
     "annual": [
@@ -30,6 +32,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 1.5009,
+        "share_based_comp_per_share": 0.5315,
         "dividends_per_share": null,
         "book_value_per_share": 56.6886
       },
@@ -40,6 +44,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 1.7275,
+        "share_based_comp_per_share": 0.5787,
         "dividends_per_share": null,
         "book_value_per_share": 58.2045
       },
@@ -50,6 +56,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.2821,
+        "share_based_comp_per_share": 0.6801,
         "dividends_per_share": null,
         "book_value_per_share": 61.2314
       },
@@ -60,6 +68,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.5904,
+        "share_based_comp_per_share": 0.6984,
         "dividends_per_share": null,
         "book_value_per_share": 66.0931
       },
@@ -70,6 +80,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.79,
+        "share_based_comp_per_share": 0.7939,
         "dividends_per_share": null,
         "book_value_per_share": 74.5307
       },
@@ -80,6 +92,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.6208,
+        "share_based_comp_per_share": 0.9678,
         "dividends_per_share": null,
         "book_value_per_share": 80.5564
       },
@@ -90,6 +104,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.3741,
+        "share_based_comp_per_share": 0.9407,
         "dividends_per_share": null,
         "book_value_per_share": 80.7956
       },
@@ -100,6 +116,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.5524,
+        "share_based_comp_per_share": 1.0591,
         "dividends_per_share": null,
         "book_value_per_share": 92.8422
       },
@@ -110,6 +128,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 2.7572,
+        "share_based_comp_per_share": 1.2171,
         "dividends_per_share": null,
         "book_value_per_share": 100.9007
       },
@@ -120,6 +140,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 3.1713,
+        "share_based_comp_per_share": 1.2993,
         "dividends_per_share": null,
         "book_value_per_share": 110.8779
       }
@@ -219,6 +241,90 @@
         65.593
       ]
     ],
+    "depreciation_amortization_per_share": [
+      [
+        "2016-12",
+        1.5009
+      ],
+      [
+        "2017-12",
+        1.7275
+      ],
+      [
+        "2018-12",
+        2.2821
+      ],
+      [
+        "2019-12",
+        2.5904
+      ],
+      [
+        "2020-12",
+        2.79
+      ],
+      [
+        "2021-12",
+        2.6208
+      ],
+      [
+        "2022-12",
+        2.3741
+      ],
+      [
+        "2023-12",
+        2.5524
+      ],
+      [
+        "2024-12",
+        2.7572
+      ],
+      [
+        "2025-12",
+        3.1713
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2016-12",
+        0.5315
+      ],
+      [
+        "2017-12",
+        0.5787
+      ],
+      [
+        "2018-12",
+        0.6801
+      ],
+      [
+        "2019-12",
+        0.6984
+      ],
+      [
+        "2020-12",
+        0.7939
+      ],
+      [
+        "2021-12",
+        0.9678
+      ],
+      [
+        "2022-12",
+        0.9407
+      ],
+      [
+        "2023-12",
+        1.0591
+      ],
+      [
+        "2024-12",
+        1.2171
+      ],
+      [
+        "2025-12",
+        1.2993
+      ]
+    ],
     "book_value_per_share": [
       [
         "2016-12",
@@ -261,7 +367,5 @@
         110.8779
       ]
     ]
-  },
-  "eps_as_of": "2025-12-31",
-  "eps_source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000019617.json"
+  }
 }

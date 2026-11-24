@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "CARR",
   "exchange_": "NYSE",
   "company": "CARRIER GLOBAL Corp",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 18.0698
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 4.1988,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.0688,
+        "depreciation_amortization_per_share": 0.4121,
+        "share_based_comp_per_share": 0.0508,
         "dividends_per_share": null,
         "book_value_per_share": 5.1027
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 2.8758,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.1011,
+        "depreciation_amortization_per_share": 0.3867,
+        "share_based_comp_per_share": 0.06,
         "dividends_per_share": null,
         "book_value_per_share": 4.0037
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 3.5026,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.5678,
+        "depreciation_amortization_per_share": 0.3817,
+        "share_based_comp_per_share": 0.0875,
         "dividends_per_share": null,
         "book_value_per_share": -5.2238
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 2.9709,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.1262,
+        "depreciation_amortization_per_share": 0.3796,
+        "share_based_comp_per_share": 0.1033,
         "dividends_per_share": null,
         "book_value_per_share": -3.1046
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": 4.6261,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6558,
+        "depreciation_amortization_per_share": 0.3809,
+        "share_based_comp_per_share": 0.0894,
         "dividends_per_share": null,
         "book_value_per_share": -1.0358
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": 2.5322,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.5416,
+        "depreciation_amortization_per_share": 0.5756,
+        "share_based_comp_per_share": 0.095,
         "dividends_per_share": null,
         "book_value_per_share": 0.6331
       },
@@ -104,6 +118,8 @@
         "operating_income_per_share": 2.9023,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.0483,
+        "depreciation_amortization_per_share": 1.3513,
+        "share_based_comp_per_share": 0.1075,
         "dividends_per_share": null,
         "book_value_per_share": -7.2809
       },
@@ -114,6 +130,8 @@
         "operating_income_per_share": 2.5186,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.4594,
+        "depreciation_amortization_per_share": 1.4773,
+        "share_based_comp_per_share": 0.0858,
         "dividends_per_share": null,
         "book_value_per_share": -8.9274
       }
@@ -301,6 +319,74 @@
       [
         "2025-12",
         2.4594
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2018-12",
+        0.4121
+      ],
+      [
+        "2019-12",
+        0.3867
+      ],
+      [
+        "2020-12",
+        0.3817
+      ],
+      [
+        "2021-12",
+        0.3796
+      ],
+      [
+        "2022-12",
+        0.3809
+      ],
+      [
+        "2023-12",
+        0.5756
+      ],
+      [
+        "2024-12",
+        1.3513
+      ],
+      [
+        "2025-12",
+        1.4773
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2018-12",
+        0.0508
+      ],
+      [
+        "2019-12",
+        0.06
+      ],
+      [
+        "2020-12",
+        0.0875
+      ],
+      [
+        "2021-12",
+        0.1033
+      ],
+      [
+        "2022-12",
+        0.0894
+      ],
+      [
+        "2023-12",
+        0.095
+      ],
+      [
+        "2024-12",
+        0.1075
+      ],
+      [
+        "2025-12",
+        0.0858
       ]
     ]
   }

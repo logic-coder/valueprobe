@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "GEHC",
   "exchange_": "NASDAQ",
   "company": "GE HealthCare Technologies Inc.",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 32.625
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 6.1564,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.4956,
+        "share_based_comp_per_share": 0.1674,
         "dividends_per_share": null,
         "book_value_per_share": 8.3348
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 5.5551,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.5022,
+        "share_based_comp_per_share": 0.1476,
         "dividends_per_share": null,
         "book_value_per_share": -10.9493
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 5.3166,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.5415,
+        "share_based_comp_per_share": 0.2489,
         "dividends_per_share": null,
         "book_value_per_share": -15.3799
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 5.719,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.5839,
+        "share_based_comp_per_share": 0.2723,
         "dividends_per_share": null,
         "book_value_per_share": -12.5272
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": 6.0328,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.6266,
+        "share_based_comp_per_share": 0.2838,
         "dividends_per_share": null,
         "book_value_per_share": -9.2336
       }
@@ -189,6 +201,50 @@
       [
         "2025-12",
         6.0328
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2021-12",
+        0.4956
+      ],
+      [
+        "2022-12",
+        0.5022
+      ],
+      [
+        "2023-12",
+        0.5415
+      ],
+      [
+        "2024-12",
+        0.5839
+      ],
+      [
+        "2025-12",
+        0.6266
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2021-12",
+        0.1674
+      ],
+      [
+        "2022-12",
+        0.1476
+      ],
+      [
+        "2023-12",
+        0.2489
+      ],
+      [
+        "2024-12",
+        0.2723
+      ],
+      [
+        "2025-12",
+        0.2838
       ]
     ]
   }

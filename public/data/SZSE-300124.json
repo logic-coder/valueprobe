@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-18",
+  "as_of": "2026-11-23",
   "symbol": "300124",
   "exchange_": "SZSE",
   "company": "汇川技术",
@@ -20,6 +20,8 @@
   "ebit_growth_10y": 13.84,
   "cashflow_basis": "fcff",
   "eps_period": "TTM",
+  "eps_as_of": "2026-09-30",
+  "eps_source": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300124&type=0",
   "predictability": 5,
   "financials": {
     "annual": [
@@ -30,6 +32,8 @@
         "operating_income_per_share": 0.704,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.3801,
+        "depreciation_amortization_per_share": 0.065,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 3.2607
       },
@@ -40,6 +44,8 @@
         "operating_income_per_share": 0.7577,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.479,
+        "depreciation_amortization_per_share": 0.0878,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 3.7553
       },
@@ -50,6 +56,8 @@
         "operating_income_per_share": 0.6355,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.5802,
+        "depreciation_amortization_per_share": 0.133,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 4.9767
       },
@@ -60,6 +68,8 @@
         "operating_income_per_share": 1.3695,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -0.0486,
+        "depreciation_amortization_per_share": 0.1157,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 6.1856
       },
@@ -70,6 +80,8 @@
         "operating_income_per_share": 1.4399,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.5109,
+        "depreciation_amortization_per_share": 0.1428,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 6.028
       },
@@ -80,6 +92,8 @@
         "operating_income_per_share": 1.6849,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.6562,
+        "depreciation_amortization_per_share": 0.1877,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 7.4532
       },
@@ -90,6 +104,8 @@
         "operating_income_per_share": 1.863,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.8089,
+        "depreciation_amortization_per_share": 0.2445,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 9.1463
       },
@@ -100,6 +116,8 @@
         "operating_income_per_share": 1.6908,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.8216,
+        "depreciation_amortization_per_share": 0.3173,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 10.3976
       },
@@ -110,13 +128,15 @@
         "operating_income_per_share": 1.9853,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -1.0475,
+        "depreciation_amortization_per_share": 0.4135,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 13.0599
       }
     ],
     "ttm": [
       {
-        "date": "2025-12",
+        "date": "2026-09",
         "eps_without_nri": 1.89,
         "free_cash_flow_per_share": 0.1676,
         "book_value_per_share": 14.1974
@@ -277,6 +297,44 @@
         -1.0475
       ]
     ],
+    "depreciation_amortization_per_share": [
+      [
+        "2017-12",
+        0.065
+      ],
+      [
+        "2018-12",
+        0.0878
+      ],
+      [
+        "2019-12",
+        0.133
+      ],
+      [
+        "2020-12",
+        0.1157
+      ],
+      [
+        "2021-12",
+        0.1428
+      ],
+      [
+        "2022-12",
+        0.1877
+      ],
+      [
+        "2023-12",
+        0.2445
+      ],
+      [
+        "2024-12",
+        0.3173
+      ],
+      [
+        "2025-12",
+        0.4135
+      ]
+    ],
     "book_value_per_share": [
       [
         "2017-12",
@@ -315,7 +373,5 @@
         13.0599
       ]
     ]
-  },
-  "eps_as_of": "2026-09-30",
-  "eps_source": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300124&type=0"
+  }
 }

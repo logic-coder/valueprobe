@@ -191,13 +191,16 @@ describe('cross-listing report', () => {
     expect(icbc.valueHInA).toBeCloseTo(icbc.valueH / icbc.fxToA, 4)
   })
 
-  it('records about a two-point A/H required-return gap at current yields, not a fixed four-point gap', () => {
+  it('records about a one-point A/H required-return gap at current yields, not a fixed policy gap', () => {
+    // USD 10y 4.92 asOf 2026-11-20 -> ceil(4.92)+6 = 11. H listings still lack a
+    // verified reporting_currency and fall back to the HKD quote, which proxies USD.
+    // The 1pp gap is the current yield plus that data gap, not a feature to preserve.
     const valued = artifact.crossListing.filter((row) => row.valueA != null && row.valueH != null)
     expect(valued.length).toBeGreaterThan(0)
     for (const row of valued) {
       expect(row.bridge.discountRate.a, row.id).toBe(10)
-      expect(row.bridge.discountRate.h, row.id).toBe(12)
-      expect(row.bridge.discountRate.diffPp, row.id).toBe(-2)
+      expect(row.bridge.discountRate.h, row.id).toBe(11)
+      expect(row.bridge.discountRate.diffPp, row.id).toBe(-1)
     }
   })
 })

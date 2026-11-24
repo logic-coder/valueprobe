@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "VTRS",
   "exchange_": "NASDAQ",
   "company": "Viatris Inc",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 11.6076
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 1.7533,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.0457,
+        "depreciation_amortization_per_share": 4.085,
+        "share_based_comp_per_share": -0.0064,
         "dividends_per_share": null,
         "book_value_per_share": 4.684
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 1.3853,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.0794,
+        "depreciation_amortization_per_share": 3.9096,
+        "share_based_comp_per_share": 0.11,
         "dividends_per_share": null,
         "book_value_per_share": -18.1156
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": -0.3506,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6447,
+        "depreciation_amortization_per_share": 3.6861,
+        "share_based_comp_per_share": 0.1317,
         "dividends_per_share": null,
         "book_value_per_share": -31.73
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": -0.0281,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.1176,
+        "depreciation_amortization_per_share": 3.7281,
+        "share_based_comp_per_share": 0.092,
         "dividends_per_share": null,
         "book_value_per_share": -14.6883
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": 1.3265,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.1299,
+        "depreciation_amortization_per_share": 2.4869,
+        "share_based_comp_per_share": 0.0956,
         "dividends_per_share": null,
         "book_value_per_share": -9.8247
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": 0.6348,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.0905,
+        "depreciation_amortization_per_share": 2.2707,
+        "share_based_comp_per_share": 0.1497,
         "dividends_per_share": null,
         "book_value_per_share": -7.1098
       },
@@ -104,6 +118,8 @@
         "operating_income_per_share": 0.0084,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.638,
+        "depreciation_amortization_per_share": 2.3972,
+        "share_based_comp_per_share": 0.1211,
         "dividends_per_share": null,
         "book_value_per_share": -6.2712
       },
@@ -114,6 +130,8 @@
         "operating_income_per_share": -2.2066,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.605,
+        "depreciation_amortization_per_share": 2.3186,
+        "share_based_comp_per_share": 0.1472,
         "dividends_per_share": null,
         "book_value_per_share": -5.9205
       }
@@ -301,6 +319,74 @@
       [
         "2025-12",
         1.605
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2018-12",
+        4.085
+      ],
+      [
+        "2019-12",
+        3.9096
+      ],
+      [
+        "2020-12",
+        3.6861
+      ],
+      [
+        "2021-12",
+        3.7281
+      ],
+      [
+        "2022-12",
+        2.4869
+      ],
+      [
+        "2023-12",
+        2.2707
+      ],
+      [
+        "2024-12",
+        2.3972
+      ],
+      [
+        "2025-12",
+        2.3186
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2018-12",
+        -0.0064
+      ],
+      [
+        "2019-12",
+        0.11
+      ],
+      [
+        "2020-12",
+        0.1317
+      ],
+      [
+        "2021-12",
+        0.092
+      ],
+      [
+        "2022-12",
+        0.0956
+      ],
+      [
+        "2023-12",
+        0.1497
+      ],
+      [
+        "2024-12",
+        0.1211
+      ],
+      [
+        "2025-12",
+        0.1472
       ]
     ]
   }

@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-18",
+  "as_of": "2026-11-23",
   "symbol": "TSM",
   "exchange_": "NYSE",
   "company": "台积电",
@@ -20,6 +20,8 @@
   "ebit_growth_10y": null,
   "cashflow_basis": null,
   "eps_period": "FY",
+  "eps_as_of": "2025-12-31",
+  "eps_source": "https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf",
   "predictability": 5,
   "financials": {
     "annual": [
@@ -30,6 +32,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -40,6 +44,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -50,6 +56,8 @@
         "operating_income_per_share": 2.5085,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.657,
+        "depreciation_amortization_per_share": 0.3328,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 9.6255
       },
@@ -60,6 +68,8 @@
         "operating_income_per_share": 2.4165,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6275,
+        "depreciation_amortization_per_share": 0.363,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 10.3525
       },
@@ -70,6 +80,8 @@
         "operating_income_per_share": 2.4025,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.9975,
+        "depreciation_amortization_per_share": 0.3628,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 10.27
       },
@@ -80,6 +92,8 @@
         "operating_income_per_share": 3.892,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.166,
+        "depreciation_amortization_per_share": 0.4457,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 12.4225
       },
@@ -90,6 +104,8 @@
         "operating_income_per_share": 4.518,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.8975,
+        "depreciation_amortization_per_share": 0.5758,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 14.7535
       },
@@ -100,6 +116,8 @@
         "operating_income_per_share": 7.036,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.313,
+        "depreciation_amortization_per_share": 0.5378,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 18.0535
       },
@@ -110,6 +128,8 @@
         "operating_income_per_share": 5.803,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.84,
+        "depreciation_amortization_per_share": 0.6586,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 21.4545
       },
@@ -120,6 +140,8 @@
         "operating_income_per_share": 7.7755,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 5.1175,
+        "depreciation_amortization_per_share": 0.7688,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 24.807
       },
@@ -136,6 +158,7 @@
     ],
     "quarter": []
   },
+  "split_to_quote": 0.2,
   "history": {
     "eps_without_nri": [
       [
@@ -277,6 +300,40 @@
         5.1175
       ]
     ],
+    "depreciation_amortization_per_share": [
+      [
+        "2017-12",
+        0.3328
+      ],
+      [
+        "2018-12",
+        0.363
+      ],
+      [
+        "2019-12",
+        0.3628
+      ],
+      [
+        "2020-12",
+        0.4457
+      ],
+      [
+        "2021-12",
+        0.5758
+      ],
+      [
+        "2022-12",
+        0.5378
+      ],
+      [
+        "2023-12",
+        0.6586
+      ],
+      [
+        "2024-12",
+        0.7688
+      ]
+    ],
     "book_value_per_share": [
       [
         "2017-12",
@@ -311,8 +368,5 @@
         24.807
       ]
     ]
-  },
-  "split_to_quote": 0.2,
-  "eps_as_of": "2025-12-31",
-  "eps_source": "https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf"
+  }
 }

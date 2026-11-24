@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "FDXF",
   "exchange_": "NYSE",
   "company": "FedEx Freight Holding Company, Inc.",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 11.1757
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 11.7253,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 7.2238,
+        "depreciation_amortization_per_share": 3.0434,
+        "share_based_comp_per_share": 0.0803,
         "dividends_per_share": null,
         "book_value_per_share": 10.1802
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 9.391,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 7.3175,
+        "depreciation_amortization_per_share": 3.1504,
+        "share_based_comp_per_share": 0.0669,
         "dividends_per_share": null,
         "book_value_per_share": 11.9795
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 3.6119,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -1.418,
+        "depreciation_amortization_per_share": 3.4246,
+        "share_based_comp_per_share": 0.087,
         "dividends_per_share": null,
         "book_value_per_share": -7.3509
       }
@@ -151,6 +159,34 @@
       [
         "2026-05",
         -1.418
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2024-05",
+        3.0434
+      ],
+      [
+        "2025-05",
+        3.1504
+      ],
+      [
+        "2026-05",
+        3.4246
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2024-05",
+        0.0803
+      ],
+      [
+        "2025-05",
+        0.0669
+      ],
+      [
+        "2026-05",
+        0.087
       ]
     ]
   }

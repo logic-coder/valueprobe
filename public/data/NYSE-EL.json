@@ -1,12 +1,11 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "EL",
   "exchange_": "NYSE",
-  "company": "ESTEE LAUDER COMPANIES INC",
+  "company": "雅诗兰黛",
   "currency": "$",
-  "price": "$104.04",
-  "quote_as_of": "2026-11-18",
-  "quote_source": "https://finance.yahoo.com/quote/",
+  "price": "$99.46",
+  "quote_as_of": "2026-11-20",
   "ttm_eps": 1.01,
   "ttm_eps_nri": 1.01,
   "free_cash_flow_per_share": 3.6075,
@@ -34,6 +33,8 @@
         "operating_income_per_share": 4.5684,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.4477,
+        "depreciation_amortization_per_share": 1.244,
+        "share_based_comp_per_share": 0.5871,
         "dividends_per_share": null,
         "book_value_per_share": 3.1072
       },
@@ -44,6 +45,8 @@
         "operating_income_per_share": 5.4698,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 5.1451,
+        "depreciation_amortization_per_share": 1.4134,
+        "share_based_comp_per_share": 0.6282,
         "dividends_per_share": null,
         "book_value_per_share": 4.0138
       },
@@ -54,6 +57,8 @@
         "operating_income_per_share": 6.2446,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.7867,
+        "depreciation_amortization_per_share": 1.5038,
+        "share_based_comp_per_share": 0.656,
         "dividends_per_share": null,
         "book_value_per_share": 3.6177
       },
@@ -64,6 +69,8 @@
         "operating_income_per_share": 1.6517,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.5162,
+        "depreciation_amortization_per_share": 1.6653,
+        "share_based_comp_per_share": 0.5805,
         "dividends_per_share": null,
         "book_value_per_share": 0.6078
       },
@@ -74,6 +81,8 @@
         "operating_income_per_share": 7.1103,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 8.1315,
+        "depreciation_amortization_per_share": 1.7681,
+        "share_based_comp_per_share": 0.8881,
         "dividends_per_share": null,
         "book_value_per_share": -1.6839
       },
@@ -84,6 +93,8 @@
         "operating_income_per_share": 8.6873,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 5.481,
+        "depreciation_amortization_per_share": 1.9923,
+        "share_based_comp_per_share": 0.9071,
         "dividends_per_share": null,
         "book_value_per_share": -0.9838
       },
@@ -94,6 +105,8 @@
         "operating_income_per_share": 4.1812,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.0172,
+        "depreciation_amortization_per_share": 2.0615,
+        "share_based_comp_per_share": 0.7398,
         "dividends_per_share": null,
         "book_value_per_share": -6.9354
       },
@@ -104,6 +117,8 @@
         "operating_income_per_share": 2.6885,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.9939,
+        "depreciation_amortization_per_share": 2.2866,
+        "share_based_comp_per_share": 0.9008,
         "dividends_per_share": null,
         "book_value_per_share": -5.5765
       },
@@ -114,6 +129,8 @@
         "operating_income_per_share": -2.18,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.8606,
+        "depreciation_amortization_per_share": 2.3021,
+        "share_based_comp_per_share": 0.8442,
         "dividends_per_share": null,
         "book_value_per_share": -5.6345
       },
@@ -124,6 +141,8 @@
         "operating_income_per_share": 2.1382,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.6075,
+        "depreciation_amortization_per_share": 2.182,
+        "share_based_comp_per_share": 0.8498,
         "dividends_per_share": null,
         "book_value_per_share": -5.1535
       }
@@ -305,6 +324,90 @@
       [
         "2026-06",
         3.6075
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2017-06",
+        1.244
+      ],
+      [
+        "2018-06",
+        1.4134
+      ],
+      [
+        "2019-06",
+        1.5038
+      ],
+      [
+        "2020-06",
+        1.6653
+      ],
+      [
+        "2021-06",
+        1.7681
+      ],
+      [
+        "2022-06",
+        1.9923
+      ],
+      [
+        "2023-06",
+        2.0615
+      ],
+      [
+        "2024-06",
+        2.2866
+      ],
+      [
+        "2025-06",
+        2.3021
+      ],
+      [
+        "2026-06",
+        2.182
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2017-06",
+        0.5871
+      ],
+      [
+        "2018-06",
+        0.6282
+      ],
+      [
+        "2019-06",
+        0.656
+      ],
+      [
+        "2020-06",
+        0.5805
+      ],
+      [
+        "2021-06",
+        0.8881
+      ],
+      [
+        "2022-06",
+        0.9071
+      ],
+      [
+        "2023-06",
+        0.7398
+      ],
+      [
+        "2024-06",
+        0.9008
+      ],
+      [
+        "2025-06",
+        0.8442
+      ],
+      [
+        "2026-06",
+        0.8498
       ]
     ],
     "book_value_per_share": [

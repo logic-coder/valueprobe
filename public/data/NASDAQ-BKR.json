@@ -1,18 +1,17 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "BKR",
   "exchange_": "NASDAQ",
-  "company": "Baker Hughes Co",
+  "company": "Baker Hughes Co-A",
   "currency": "$",
-  "price": "$47.3",
-  "quote_as_of": "2026-11-18",
-  "quote_source": "https://finance.yahoo.com/quote/",
+  "price": "$44.81",
+  "quote_as_of": "2026-11-20",
   "ttm_eps": 2.98,
   "ttm_eps_nri": 2.98,
   "free_cash_flow_per_share": 2.5547,
   "tangible_book": 8.9066,
   "earning_growth_10y": null,
-  "earning_growth_5y": 37.04,
+  "earning_growth_5y": null,
   "earning_growth_1y": 56.02,
   "cashflow_growth_10y": 18.64,
   "cashflow_growth_5y": 50.37,
@@ -34,6 +33,8 @@
         "operating_income_per_share": -0.139,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -44,6 +45,8 @@
         "operating_income_per_share": 0.4602,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -0.1631,
+        "depreciation_amortization_per_share": 0.5538,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 5.1869
       },
@@ -54,6 +57,8 @@
         "operating_income_per_share": -0.286,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -1.4742,
+        "depreciation_amortization_per_share": 1.1107,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 12.2095
       },
@@ -64,6 +69,8 @@
         "operating_income_per_share": 0.7059,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.7723,
+        "depreciation_amortization_per_share": 1.4964,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 8.6368
       },
@@ -74,6 +81,8 @@
         "operating_income_per_share": 1.0815,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.8922,
+        "depreciation_amortization_per_share": 1.4279,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 8.4867
       },
@@ -84,6 +93,8 @@
         "operating_income_per_share": -16.0894,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.3323,
+        "depreciation_amortization_per_share": 1.3262,
+        "share_based_comp_per_share": 0.2115,
         "dividends_per_share": null,
         "book_value_per_share": 7.9228
       },
@@ -94,6 +105,8 @@
         "operating_income_per_share": 1.3191,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.5286,
+        "depreciation_amortization_per_share": 1.1127,
+        "share_based_comp_per_share": 0.2064,
         "dividends_per_share": null,
         "book_value_per_share": 6.7024
       },
@@ -104,6 +117,8 @@
         "operating_income_per_share": 1.1933,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.9053,
+        "depreciation_amortization_per_share": 1.0684,
+        "share_based_comp_per_share": 0.2084,
         "dividends_per_share": null,
         "book_value_per_share": 4.4458
       },
@@ -114,6 +129,8 @@
         "operating_income_per_share": 2.3331,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.8508,
+        "depreciation_amortization_per_share": 1.0946,
+        "share_based_comp_per_share": 0.1984,
         "dividends_per_share": null,
         "book_value_per_share": 5.3259
       },
@@ -124,6 +141,8 @@
         "operating_income_per_share": 3.1025,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.0683,
+        "depreciation_amortization_per_share": 1.1439,
+        "share_based_comp_per_share": 0.2034,
         "dividends_per_share": null,
         "book_value_per_share": 7.075
       },
@@ -134,6 +153,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.5547,
+        "depreciation_amortization_per_share": 1.1963,
+        "share_based_comp_per_share": 0.2044,
         "dividends_per_share": null,
         "book_value_per_share": 8.9066
       }
@@ -275,6 +296,48 @@
         2.5547
       ]
     ],
+    "depreciation_amortization_per_share": [
+      [
+        "2016-12",
+        0.5538
+      ],
+      [
+        "2017-12",
+        1.1107
+      ],
+      [
+        "2018-12",
+        1.4964
+      ],
+      [
+        "2019-12",
+        1.4279
+      ],
+      [
+        "2020-12",
+        1.3262
+      ],
+      [
+        "2021-12",
+        1.1127
+      ],
+      [
+        "2022-12",
+        1.0684
+      ],
+      [
+        "2023-12",
+        1.0946
+      ],
+      [
+        "2024-12",
+        1.1439
+      ],
+      [
+        "2025-12",
+        1.1963
+      ]
+    ],
     "book_value_per_share": [
       [
         "2016-12",
@@ -349,6 +412,32 @@
       [
         "2024-12",
         2.98
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2020-12",
+        0.2115
+      ],
+      [
+        "2021-12",
+        0.2064
+      ],
+      [
+        "2022-12",
+        0.2084
+      ],
+      [
+        "2023-12",
+        0.1984
+      ],
+      [
+        "2024-12",
+        0.2034
+      ],
+      [
+        "2025-12",
+        0.2044
       ]
     ]
   }

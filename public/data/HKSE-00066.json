@@ -1,528 +1,493 @@
 {
-  "as_of": "2026-11-19",
+  "as_of": "2026-11-23",
   "symbol": "00066",
   "exchange_": "HKSE",
   "company": "港铁公司",
   "currency": "HK$",
   "price": "HK$32.72",
-  "ttm_eps": 3.7836,
-  "ttm_eps_nri": 3.7836,
-  "free_cash_flow_per_share": -0.803,
-  "tangible_book": 33.5445,
+  "ttm_eps": 3.774,
+  "ttm_eps_nri": 3.774,
+  "free_cash_flow_per_share": -0.801,
+  "tangible_book": 33.459,
   "earning_growth_10y": 1.37,
-  "earning_growth_5y": 2.17,
+  "earning_growth_5y": 14.07,
   "earning_growth_1y": -9.38,
   "cashflow_growth_10y": null,
   "cashflow_growth_5y": null,
   "cashflow_growth_1y": null,
   "book_growth_10y": 2,
   "rvn_growth_10y": 3.04,
-  "ebit_growth_10y": -0.84,
+  "ebit_growth_10y": 2.93,
   "cashflow_basis": "invest",
   "eps_period": "TTM",
+  "eps_as_of": "2026-06-30",
+  "eps_source": null,
   "predictability": 5,
   "financials": {
     "annual": [
       {
         "date": "2006-12",
-        "eps_without_nri": 1.6672,
-        "revenue_per_share": 2.0332,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 1.6629,
+        "revenue_per_share": 2.028,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.5651,
+        "free_cash_flow_per_share": 0.5637,
+        "depreciation_amortization_per_share": 0.0018,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 14.5818
+        "book_value_per_share": 14.5446
       },
       {
         "date": "2007-12",
-        "eps_without_nri": 2.9976,
-        "revenue_per_share": 2.0996,
-        "operating_income_per_share": 3.8101,
+        "eps_without_nri": 2.9899,
+        "revenue_per_share": 2.0942,
+        "operating_income_per_share": 3.8004,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": -0.4974,
+        "free_cash_flow_per_share": -0.4961,
+        "depreciation_amortization_per_share": 0.0015,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 16.1128
+        "book_value_per_share": 16.0717
       },
       {
         "date": "2008-12",
-        "eps_without_nri": 1.5257,
-        "revenue_per_share": 3.2319,
-        "operating_income_per_share": 2.0012,
+        "eps_without_nri": 1.5218,
+        "revenue_per_share": 3.2236,
+        "operating_income_per_share": 1.9961,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 1.1754,
+        "free_cash_flow_per_share": 1.1724,
+        "depreciation_amortization_per_share": 0.0026,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 16.3069
+        "book_value_per_share": 16.2653
       },
       {
         "date": "2009-12",
-        "eps_without_nri": 1.7512,
-        "revenue_per_share": 3.4007,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 1.7468,
+        "revenue_per_share": 3.392,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 1.4729,
+        "free_cash_flow_per_share": 1.4691,
+        "depreciation_amortization_per_share": -0.0004,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 17.7101
+        "book_value_per_share": 17.665
       },
       {
         "date": "2010-12",
-        "eps_without_nri": 2.1031,
-        "revenue_per_share": 5.1209,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.0978,
+        "revenue_per_share": 5.1079,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.3828,
+        "free_cash_flow_per_share": 0.3819,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 18.8472
+        "book_value_per_share": 18.7992
       },
       {
         "date": "2011-12",
-        "eps_without_nri": 2.5666,
-        "revenue_per_share": 5.5125,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.56,
+        "revenue_per_share": 5.4984,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.3248,
+        "free_cash_flow_per_share": 0.324,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 19.751
+        "book_value_per_share": 19.7006
       },
       {
         "date": "2012-12",
-        "eps_without_nri": 2.2045,
-        "revenue_per_share": 5.8871,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.1988,
+        "revenue_per_share": 5.8721,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.9994,
+        "free_cash_flow_per_share": 0.9969,
+        "depreciation_amortization_per_share": -0.0016,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 22.1176
+        "book_value_per_share": 22.0612
       },
       {
         "date": "2013-12",
-        "eps_without_nri": 2.0728,
-        "revenue_per_share": 6.1767,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.0675,
+        "revenue_per_share": 6.161,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 1.002,
+        "free_cash_flow_per_share": 0.9995,
+        "depreciation_amortization_per_share": -0.0027,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 22.6775
+        "book_value_per_share": 22.6196
       },
       {
         "date": "2014-12",
-        "eps_without_nri": 2.4882,
-        "revenue_per_share": 6.3986,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.4819,
+        "revenue_per_share": 6.3823,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 2.5675,
+        "free_cash_flow_per_share": 2.561,
+        "depreciation_amortization_per_share": -0.0039,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 24.3596
+        "book_value_per_share": 24.2975
       },
       {
         "date": "2015-12",
-        "eps_without_nri": 2.1889,
-        "revenue_per_share": 7.0186,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.1833,
+        "revenue_per_share": 7.0007,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": -0.523,
+        "free_cash_flow_per_share": -0.5217,
+        "depreciation_amortization_per_share": -0.0046,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 26.9359
+        "book_value_per_share": 26.8673
       },
       {
         "date": "2016-12",
-        "eps_without_nri": 1.8317,
-        "revenue_per_share": 8.056,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 1.8271,
+        "revenue_per_share": 8.0355,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.0031,
+        "depreciation_amortization_per_share": -0.0042,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 25.277
+        "book_value_per_share": 25.2126
       },
       {
         "date": "2017-12",
-        "eps_without_nri": 2.7743,
-        "revenue_per_share": 9.0784,
-        "operating_income_per_share": 0,
+        "eps_without_nri": 2.7672,
+        "revenue_per_share": 9.0552,
+        "operating_income_per_share": null,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 3.2431,
+        "free_cash_flow_per_share": 3.2348,
+        "depreciation_amortization_per_share": -0.0035,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 26.283
+        "book_value_per_share": 26.216
       },
       {
         "date": "2018-12",
-        "eps_without_nri": 2.7224,
-        "revenue_per_share": 9.0581,
-        "operating_income_per_share": 3.2136,
+        "eps_without_nri": 2.7155,
+        "revenue_per_share": 9.035,
+        "operating_income_per_share": 3.2055,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": -0.1216,
+        "free_cash_flow_per_share": -0.1213,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 29.8927
+        "book_value_per_share": 29.8165
       },
       {
         "date": "2019-12",
-        "eps_without_nri": 2.0452,
-        "revenue_per_share": 9.3311,
-        "operating_income_per_share": 2.5,
+        "eps_without_nri": 2.04,
+        "revenue_per_share": 9.3073,
+        "operating_income_per_share": 2.4936,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 1.4965,
+        "free_cash_flow_per_share": 1.4927,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 31.6038
+        "book_value_per_share": 31.5232
       },
       {
         "date": "2020-12",
-        "eps_without_nri": -0.7726,
-        "revenue_per_share": 6.8174,
-        "operating_income_per_share": -0.5014,
+        "eps_without_nri": -0.7707,
+        "revenue_per_share": 6.8001,
+        "operating_income_per_share": -0.5001,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.0155,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 28.1314
+        "book_value_per_share": 28.0597
       },
       {
         "date": "2021-12",
-        "eps_without_nri": 1.4818,
-        "revenue_per_share": 7.3334,
-        "operating_income_per_share": 1.8642,
+        "eps_without_nri": 1.4781,
+        "revenue_per_share": 7.3147,
+        "operating_income_per_share": 1.8595,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 1.1667,
+        "free_cash_flow_per_share": 1.1637,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 27.7803
+        "book_value_per_share": 27.7094
       },
       {
         "date": "2022-12",
-        "eps_without_nri": 1.6716,
-        "revenue_per_share": 8.1045,
-        "operating_income_per_share": 1.9793,
+        "eps_without_nri": 1.6673,
+        "revenue_per_share": 8.0838,
+        "operating_income_per_share": 1.9743,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.8114,
+        "free_cash_flow_per_share": 0.8093,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 30.279
+        "book_value_per_share": 30.2019
       },
       {
         "date": "2023-12",
-        "eps_without_nri": 1.3332,
-        "revenue_per_share": 9.775,
-        "operating_income_per_share": 1.6475,
+        "eps_without_nri": 1.3298,
+        "revenue_per_share": 9.7501,
+        "operating_income_per_share": 1.6433,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": 0.5996,
+        "free_cash_flow_per_share": 0.5981,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 30.5566
+        "book_value_per_share": 30.4787
       },
       {
         "date": "2024-12",
-        "eps_without_nri": 2.7682,
-        "revenue_per_share": 10.5069,
-        "operating_income_per_share": 3.3729,
+        "eps_without_nri": 2.7611,
+        "revenue_per_share": 10.4801,
+        "operating_income_per_share": 3.3643,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": -0.3118,
+        "free_cash_flow_per_share": -0.311,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 32.4996
+        "book_value_per_share": 32.4168
       },
       {
         "date": "2025-12",
-        "eps_without_nri": 2.5087,
-        "revenue_per_share": 9.4717,
-        "operating_income_per_share": 3.2708,
+        "eps_without_nri": 2.5023,
+        "revenue_per_share": 9.4475,
+        "operating_income_per_share": 3.2625,
         "ebitda_per_share": null,
-        "free_cash_flow_per_share": -0.803,
+        "free_cash_flow_per_share": -0.801,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": 32.8241
+        "book_value_per_share": 32.7404
       }
     ],
     "ttm": [
       {
-        "date": "2025-12",
-        "eps_without_nri": 3.7836,
-        "free_cash_flow_per_share": -0.803,
-        "book_value_per_share": 33.5445,
+        "date": "2026-06",
+        "eps_without_nri": 3.774,
+        "free_cash_flow_per_share": -0.801,
+        "book_value_per_share": 33.459,
         "revenue_per_share": null,
-        "operating_income_per_share": null
+        "operating_income_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null
       }
     ],
     "quarter": []
   },
+  "report_currency": "HKD",
+  "fundamentals_currency": "CNY",
+  "fx_to_quote": 1.1739,
   "history": {
     "eps_without_nri": [
       [
         "2006-12",
-        1.6672
+        1.6629
       ],
       [
         "2007-12",
-        2.9976
+        2.9899
       ],
       [
         "2008-12",
-        1.5257
+        1.5218
       ],
       [
         "2009-12",
-        1.7512
+        1.7468
       ],
       [
         "2010-12",
-        2.1031
+        2.0978
       ],
       [
         "2011-12",
-        2.5666
+        2.56
       ],
       [
         "2012-12",
-        2.2045
+        2.1988
       ],
       [
         "2013-12",
-        2.0728
+        2.0675
       ],
       [
         "2014-12",
-        2.4882
+        2.4819
       ],
       [
         "2015-12",
-        2.1889
+        2.1833
       ],
       [
         "2016-12",
-        1.8317
+        1.8271
       ],
       [
         "2017-12",
-        2.7743
+        2.7672
       ],
       [
         "2018-12",
-        2.7224
+        2.7155
       ],
       [
         "2019-12",
-        2.0452
+        2.04
       ],
       [
         "2020-12",
-        -0.7726
+        -0.7707
       ],
       [
         "2021-12",
-        1.4818
+        1.4781
       ],
       [
         "2022-12",
-        1.6716
+        1.6673
       ],
       [
         "2023-12",
-        1.3332
+        1.3298
       ],
       [
         "2024-12",
-        2.7682
+        2.7611
       ],
       [
         "2025-12",
-        2.5087
+        2.5023
       ]
     ],
     "revenue_per_share": [
       [
         "2006-12",
-        2.0332
+        2.028
       ],
       [
         "2007-12",
-        2.0996
+        2.0942
       ],
       [
         "2008-12",
-        3.2319
+        3.2236
       ],
       [
         "2009-12",
-        3.4007
+        3.392
       ],
       [
         "2010-12",
-        5.1209
+        5.1079
       ],
       [
         "2011-12",
-        5.5125
+        5.4984
       ],
       [
         "2012-12",
-        5.8871
+        5.8721
       ],
       [
         "2013-12",
-        6.1767
+        6.161
       ],
       [
         "2014-12",
-        6.3986
+        6.3823
       ],
       [
         "2015-12",
-        7.0186
+        7.0007
       ],
       [
         "2016-12",
-        8.056
+        8.0355
       ],
       [
         "2017-12",
-        9.0784
+        9.0552
       ],
       [
         "2018-12",
-        9.0581
+        9.035
       ],
       [
         "2019-12",
-        9.3311
+        9.3073
       ],
       [
         "2020-12",
-        6.8174
+        6.8001
       ],
       [
         "2021-12",
-        7.3334
+        7.3147
       ],
       [
         "2022-12",
-        8.1045
+        8.0838
       ],
       [
         "2023-12",
-        9.775
+        9.7501
       ],
       [
         "2024-12",
-        10.5069
+        10.4801
       ],
       [
         "2025-12",
-        9.4717
-      ]
-    ],
-    "operating_income_per_share": [
-      [
-        "2006-12",
-        0
-      ],
-      [
-        "2007-12",
-        3.8101
-      ],
-      [
-        "2008-12",
-        2.0012
-      ],
-      [
-        "2009-12",
-        0
-      ],
-      [
-        "2010-12",
-        0
-      ],
-      [
-        "2011-12",
-        0
-      ],
-      [
-        "2012-12",
-        0
-      ],
-      [
-        "2013-12",
-        0
-      ],
-      [
-        "2014-12",
-        0
-      ],
-      [
-        "2015-12",
-        0
-      ],
-      [
-        "2016-12",
-        0
-      ],
-      [
-        "2017-12",
-        0
-      ],
-      [
-        "2018-12",
-        3.2136
-      ],
-      [
-        "2019-12",
-        2.5
-      ],
-      [
-        "2020-12",
-        -0.5014
-      ],
-      [
-        "2021-12",
-        1.8642
-      ],
-      [
-        "2022-12",
-        1.9793
-      ],
-      [
-        "2023-12",
-        1.6475
-      ],
-      [
-        "2024-12",
-        3.3729
-      ],
-      [
-        "2025-12",
-        3.2708
+        9.4475
       ]
     ],
     "free_cash_flow_per_share": [
       [
         "2006-12",
-        0.5651
+        0.5637
       ],
       [
         "2007-12",
-        -0.4974
+        -0.4961
       ],
       [
         "2008-12",
-        1.1754
+        1.1724
       ],
       [
         "2009-12",
-        1.4729
+        1.4691
       ],
       [
         "2010-12",
-        0.3828
+        0.3819
       ],
       [
         "2011-12",
-        0.3248
+        0.324
       ],
       [
         "2012-12",
-        0.9994
+        0.9969
       ],
       [
         "2013-12",
-        1.002
+        0.9995
       ],
       [
         "2014-12",
-        2.5675
+        2.561
       ],
       [
         "2015-12",
-        -0.523
+        -0.5217
       ],
       [
         "2016-12",
@@ -530,15 +495,15 @@
       ],
       [
         "2017-12",
-        3.2431
+        3.2348
       ],
       [
         "2018-12",
-        -0.1216
+        -0.1213
       ],
       [
         "2019-12",
-        1.4965
+        1.4927
       ],
       [
         "2020-12",
@@ -546,111 +511,190 @@
       ],
       [
         "2021-12",
-        1.1667
+        1.1637
       ],
       [
         "2022-12",
-        0.8114
+        0.8093
       ],
       [
         "2023-12",
-        0.5996
+        0.5981
       ],
       [
         "2024-12",
-        -0.3118
+        -0.311
       ],
       [
         "2025-12",
-        -0.803
+        -0.801
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2006-12",
+        0.0018
+      ],
+      [
+        "2007-12",
+        0.0015
+      ],
+      [
+        "2008-12",
+        0.0026
+      ],
+      [
+        "2009-12",
+        -0.0004
+      ],
+      [
+        "2012-12",
+        -0.0016
+      ],
+      [
+        "2013-12",
+        -0.0027
+      ],
+      [
+        "2014-12",
+        -0.0039
+      ],
+      [
+        "2015-12",
+        -0.0046
+      ],
+      [
+        "2016-12",
+        -0.0042
+      ],
+      [
+        "2017-12",
+        -0.0035
       ]
     ],
     "book_value_per_share": [
       [
         "2006-12",
-        14.5818
+        14.5446
       ],
       [
         "2007-12",
-        16.1128
+        16.0717
       ],
       [
         "2008-12",
-        16.3069
+        16.2653
       ],
       [
         "2009-12",
-        17.7101
+        17.665
       ],
       [
         "2010-12",
-        18.8472
+        18.7992
       ],
       [
         "2011-12",
-        19.751
+        19.7006
       ],
       [
         "2012-12",
-        22.1176
+        22.0612
       ],
       [
         "2013-12",
-        22.6775
+        22.6196
       ],
       [
         "2014-12",
-        24.3596
+        24.2975
       ],
       [
         "2015-12",
-        26.9359
+        26.8673
       ],
       [
         "2016-12",
-        25.277
+        25.2126
       ],
       [
         "2017-12",
-        26.283
+        26.216
       ],
       [
         "2018-12",
-        29.8927
+        29.8165
       ],
       [
         "2019-12",
-        31.6038
+        31.5232
       ],
       [
         "2020-12",
-        28.1314
+        28.0597
       ],
       [
         "2021-12",
-        27.7803
+        27.7094
       ],
       [
         "2022-12",
-        30.279
+        30.2019
       ],
       [
         "2023-12",
-        30.5566
+        30.4787
       ],
       [
         "2024-12",
-        32.4996
+        32.4168
       ],
       [
         "2025-12",
-        32.8241
+        32.7404
+      ]
+    ],
+    "operating_income_per_share": [
+      [
+        "2007-12",
+        3.8004
+      ],
+      [
+        "2008-12",
+        1.9961
+      ],
+      [
+        "2018-12",
+        3.2055
+      ],
+      [
+        "2019-12",
+        2.4936
+      ],
+      [
+        "2020-12",
+        -0.5001
+      ],
+      [
+        "2021-12",
+        1.8595
+      ],
+      [
+        "2022-12",
+        1.9743
+      ],
+      [
+        "2023-12",
+        1.6433
+      ],
+      [
+        "2024-12",
+        3.3643
+      ],
+      [
+        "2025-12",
+        3.2625
       ]
     ]
-  },
-  "report_currency": "HKD",
-  "fx_to_quote": 1.1769,
-  "fundamentals_currency": "CNY",
-  "eps_as_of": "2026-06-30",
-  "eps_source": "https://datacenter.eastmoney.com/securities/api/data/v1/get?reportName=RPT_HKF10_FN_MAININDICATOR&columns=ALL&filter=(SECUCODE%3D%2200066.HK%22)&pageNumber=1&pageSize=40&sortTypes=-1&sortColumns=REPORT_DATE"
+  }
 }

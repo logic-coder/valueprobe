@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "SNDK",
   "exchange_": "NASDAQ",
   "company": "Sandisk Corp",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 91.2015
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": -14.0345,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -6.4276,
+        "depreciation_amortization_per_share": 3.0897,
+        "share_based_comp_per_share": 1.1379,
         "dividends_per_share": null,
         "book_value_per_share": 78.8897
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": -3.2276,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -3.2759,
+        "depreciation_amortization_per_share": 1.5448,
+        "share_based_comp_per_share": 1.0276,
         "dividends_per_share": null,
         "book_value_per_share": 26.7241
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": -9.4966,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -0.8276,
+        "depreciation_amortization_per_share": 1.1241,
+        "share_based_comp_per_share": 1.2552,
         "dividends_per_share": null,
         "book_value_per_share": 29.0828
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 79.929,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 74.1548,
+        "depreciation_amortization_per_share": 0.9613,
+        "share_based_comp_per_share": 1.4968,
         "dividends_per_share": null,
         "book_value_per_share": 69.3032
       }
@@ -181,6 +191,42 @@
       [
         "2026-07",
         74.1548
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2023-06",
+        3.0897
+      ],
+      [
+        "2024-06",
+        1.5448
+      ],
+      [
+        "2025-06",
+        1.1241
+      ],
+      [
+        "2026-07",
+        0.9613
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2023-06",
+        1.1379
+      ],
+      [
+        "2024-06",
+        1.0276
+      ],
+      [
+        "2025-06",
+        1.2552
+      ],
+      [
+        "2026-07",
+        1.4968
       ]
     ]
   }

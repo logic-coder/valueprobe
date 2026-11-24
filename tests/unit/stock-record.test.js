@@ -10,9 +10,11 @@ const read = (symbol) => JSON.parse(readFileSync('public/data/' + symbol.replace
 describe('official growth is recomputed from annual series', () => {
   it('walks HSBC past the 2016 trough and publishes a ten-year rate from the annuals', () => {
     const raw = read('HKSE:00005')
-    expect(raw.earning_growth_10y).toBeNull()
+    // Vendor 10y (13.16) may be present on the raw snapshot; official growth is still
+    // recomputed from the annuals, walking past the 2016 0.57 trough to 2017.
+    expect(raw.earning_growth_10y).toBe(13.16)
     const stock = toStock(raw)
-    expect(stock.earning_growth_10y).toBeCloseTo((Math.pow(9.9267 / 3.6912, 1 / 8) - 1) * 100, 2)
+    expect(stock.earning_growth_10y).toBeCloseTo((Math.pow(9.9014 / 3.6818, 1 / 8) - 1) * 100, 2)
     expect(policyGrowth(stock.earning_growth_10y).adopted).toBe(stock.earning_growth_10y)
     const value = policyValue(stock, { rate: 5.07 })
     expect(value.reasons).not.toContain(REASON.NO_GROWTH)

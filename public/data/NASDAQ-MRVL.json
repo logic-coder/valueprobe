@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "MRVL",
   "exchange_": "NASDAQ",
   "company": "Marvell Technology, Inc.",
@@ -12,7 +12,7 @@
   "free_cash_flow_per_share": 1.6056,
   "tangible_book": 1.715,
   "earning_growth_10y": null,
-  "earning_growth_5y": 4.63,
+  "earning_growth_5y": null,
   "earning_growth_1y": null,
   "cashflow_growth_10y": null,
   "cashflow_growth_5y": 8.61,
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": null,
         "dividends_per_share": null,
         "book_value_per_share": 8.3321
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": -0.3599,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.4117,
+        "depreciation_amortization_per_share": 0.1234,
+        "share_based_comp_per_share": 0.3582,
         "dividends_per_share": null,
         "book_value_per_share": 12.8364
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": -0.3864,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.0624,
+        "depreciation_amortization_per_share": 0.1434,
+        "share_based_comp_per_share": 0.3611,
         "dividends_per_share": null,
         "book_value_per_share": 1.2383
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": -0.4363,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 0.8158,
+        "depreciation_amortization_per_share": 0.1424,
+        "share_based_comp_per_share": 0.5781,
         "dividends_per_share": null,
         "book_value_per_share": -2.4627
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": 0.2795,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.2716,
+        "depreciation_amortization_per_share": 0.1489,
+        "share_based_comp_per_share": 0.6488,
         "dividends_per_share": null,
         "book_value_per_share": -1.2353
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": -0.6591,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.2007,
+        "depreciation_amortization_per_share": 0.1721,
+        "share_based_comp_per_share": 0.708,
         "dividends_per_share": null,
         "book_value_per_share": -0.8819
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": -0.8322,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6136,
+        "depreciation_amortization_per_share": 0.2045,
+        "share_based_comp_per_share": 0.6902,
         "dividends_per_share": null,
         "book_value_per_share": -1.0058
       },
@@ -104,6 +118,8 @@
         "operating_income_per_share": 1.5211,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6056,
+        "depreciation_amortization_per_share": 0.2549,
+        "share_based_comp_per_share": 0.6793,
         "dividends_per_share": null,
         "book_value_per_share": 1.715
       }
@@ -271,6 +287,66 @@
       [
         "2026-01",
         1.6056
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2020-02",
+        0.1234
+      ],
+      [
+        "2021-01",
+        0.1434
+      ],
+      [
+        "2022-01",
+        0.1424
+      ],
+      [
+        "2023-01",
+        0.1489
+      ],
+      [
+        "2024-02",
+        0.1721
+      ],
+      [
+        "2025-02",
+        0.2045
+      ],
+      [
+        "2026-01",
+        0.2549
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2020-02",
+        0.3582
+      ],
+      [
+        "2021-01",
+        0.3611
+      ],
+      [
+        "2022-01",
+        0.5781
+      ],
+      [
+        "2023-01",
+        0.6488
+      ],
+      [
+        "2024-02",
+        0.708
+      ],
+      [
+        "2025-02",
+        0.6902
+      ],
+      [
+        "2026-01",
+        0.6793
       ]
     ]
   }

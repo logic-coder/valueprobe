@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "F",
   "exchange_": "NYSE",
   "company": "FORD MOTOR CO",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": null,
+        "share_based_comp_per_share": 0.0529,
         "dividends_per_share": null,
         "book_value_per_share": 7.4246
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": 1.2279,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.7791,
+        "depreciation_amortization_per_share": 2.3248,
+        "share_based_comp_per_share": 0.0619,
         "dividends_per_share": null,
         "book_value_per_share": 8.885
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": 0.806,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.8211,
+        "depreciation_amortization_per_share": 2.3616,
+        "share_based_comp_per_share": 0.0481,
         "dividends_per_share": null,
         "book_value_per_share": 8.9391
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": 0.1445,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.5194,
+        "depreciation_amortization_per_share": 2.6417,
+        "share_based_comp_per_share": 0.0574,
         "dividends_per_share": null,
         "book_value_per_share": 8.2487
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": -1.1095,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 4.6632,
+        "depreciation_amortization_per_share": 2.2084,
+        "share_based_comp_per_share": 0.0501,
         "dividends_per_share": null,
         "book_value_per_share": 7.6539
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": 1.1333,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.3954,
+        "depreciation_amortization_per_share": 1.8336,
+        "share_based_comp_per_share": 0.0764,
         "dividends_per_share": null,
         "book_value_per_share": 12
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": 1.5635,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -0.0032,
+        "depreciation_amortization_per_share": 1.9118,
+        "share_based_comp_per_share": 0.0837,
         "dividends_per_share": null,
         "book_value_per_share": 10.5825
       },
@@ -104,6 +118,8 @@
         "operating_income_per_share": 1.3652,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6713,
+        "depreciation_amortization_per_share": 1.9235,
+        "share_based_comp_per_share": 0.1151,
         "dividends_per_share": null,
         "book_value_per_share": 10.514
       },
@@ -114,6 +130,8 @@
         "operating_income_per_share": 1.312,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 1.6941,
+        "depreciation_amortization_per_share": 1.9022,
+        "share_based_comp_per_share": 0.1285,
         "dividends_per_share": null,
         "book_value_per_share": 11.0938
       },
@@ -124,6 +142,8 @@
         "operating_income_per_share": -2.3043,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.1332,
+        "depreciation_amortization_per_share": 4.0146,
+        "share_based_comp_per_share": 0.1282,
         "dividends_per_share": null,
         "book_value_per_share": 8.8784
       }
@@ -221,6 +241,48 @@
       [
         "2025-12",
         47.0638
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2016-12",
+        0.0529
+      ],
+      [
+        "2017-12",
+        0.0619
+      ],
+      [
+        "2018-12",
+        0.0481
+      ],
+      [
+        "2019-12",
+        0.0574
+      ],
+      [
+        "2020-12",
+        0.0501
+      ],
+      [
+        "2021-12",
+        0.0764
+      ],
+      [
+        "2022-12",
+        0.0837
+      ],
+      [
+        "2023-12",
+        0.1151
+      ],
+      [
+        "2024-12",
+        0.1285
+      ],
+      [
+        "2025-12",
+        0.1282
       ]
     ],
     "book_value_per_share": [
@@ -339,6 +401,44 @@
       [
         "2025-12",
         3.1332
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2017-12",
+        2.3248
+      ],
+      [
+        "2018-12",
+        2.3616
+      ],
+      [
+        "2019-12",
+        2.6417
+      ],
+      [
+        "2020-12",
+        2.2084
+      ],
+      [
+        "2021-12",
+        1.8336
+      ],
+      [
+        "2022-12",
+        1.9118
+      ],
+      [
+        "2023-12",
+        1.9235
+      ],
+      [
+        "2024-12",
+        1.9022
+      ],
+      [
+        "2025-12",
+        4.0146
       ]
     ]
   }

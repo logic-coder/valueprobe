@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-11-20",
+  "as_of": "2026-11-23",
   "symbol": "HOOD",
   "exchange_": "NASDAQ",
   "company": "Robinhood Markets, Inc.",
@@ -34,6 +34,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 2.826,
+        "depreciation_amortization_per_share": 0.0123,
+        "share_based_comp_per_share": 0.0602,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -44,6 +46,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": 3.7796,
+        "depreciation_amortization_per_share": 0.0204,
+        "share_based_comp_per_share": 0.049,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -54,6 +58,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -0.9627,
+        "depreciation_amortization_per_share": 0.0264,
+        "share_based_comp_per_share": 1.5963,
         "dividends_per_share": null,
         "book_value_per_share": null
       },
@@ -64,6 +70,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": -1.0016,
+        "depreciation_amortization_per_share": 0.0694,
+        "share_based_comp_per_share": 0.7443,
         "dividends_per_share": null,
         "book_value_per_share": 7.7746
       },
@@ -74,6 +82,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.0797,
+        "share_based_comp_per_share": 0.9777,
         "dividends_per_share": null,
         "book_value_per_share": 7.266
       },
@@ -84,6 +94,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.085,
+        "share_based_comp_per_share": 0.3355,
         "dividends_per_share": null,
         "book_value_per_share": 8.558
       },
@@ -94,6 +106,8 @@
         "operating_income_per_share": null,
         "ebitda_per_share": null,
         "free_cash_flow_per_share": null,
+        "depreciation_amortization_per_share": 0.0936,
+        "share_based_comp_per_share": 0.332,
         "dividends_per_share": null,
         "book_value_per_share": 9.358
       }
@@ -185,6 +199,66 @@
       [
         "2022-12",
         -1.0016
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2019-12",
+        0.0123
+      ],
+      [
+        "2020-12",
+        0.0204
+      ],
+      [
+        "2021-12",
+        0.0264
+      ],
+      [
+        "2022-12",
+        0.0694
+      ],
+      [
+        "2023-12",
+        0.0797
+      ],
+      [
+        "2024-12",
+        0.085
+      ],
+      [
+        "2025-12",
+        0.0936
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2019-12",
+        0.0602
+      ],
+      [
+        "2020-12",
+        0.049
+      ],
+      [
+        "2021-12",
+        1.5963
+      ],
+      [
+        "2022-12",
+        0.7443
+      ],
+      [
+        "2023-12",
+        0.9777
+      ],
+      [
+        "2024-12",
+        0.3355
+      ],
+      [
+        "2025-12",
+        0.332
       ]
     ],
     "book_value_per_share": [
