@@ -6,12 +6,14 @@
 //
 //   node scripts/contrast-audit.mjs          # both themes
 //   node scripts/contrast-audit.mjs dark     # one theme
+//   node scripts/contrast-audit.mjs --built  # reuse a root dist/ (not the /valueprobe/ one)
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+
 import { chromium } from 'playwright'
 import { CONTRAST_PORT } from './lib/ports.mjs'
 
-const THEMES = process.argv[2] ? [process.argv[2]] : ['light', 'dark']
+const themes = process.argv.slice(2).filter((arg) => !arg.startsWith('--'))
+const THEMES = themes.length ? themes : ['light', 'dark']
 const PORT = CONTRAST_PORT
 const ORIGIN = 'http://127.0.0.1:' + PORT
 const PAGES = [
@@ -38,8 +40,10 @@ const ratio = (fore, back) => {
   return (a + 0.05) / (b + 0.05)
 }
 
-if (!existsSync('dist/index.html')) {
-  const build = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { stdio: 'inherit' })
+// This audit samples the default root build, so it owns its dist: a leftover
+// /valueprobe/ build answers 404 on every path and used to look like a pass.
+if (!process.argv.includes('--built')) {
+  const build = spawnSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { stdio: 'inherit', shell: process.platform === 'win32' })
   if (build.status !== 0) process.exit(build.status || 1)
 }
 
