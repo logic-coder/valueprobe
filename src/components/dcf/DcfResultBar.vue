@@ -74,7 +74,9 @@
       >
         {{ percent(result.reverseGrowthRate) }}
       </div>
-      <div v-else class="dcf__implied-empty" data-testid="reverse-growth">
+      <!-- The state is a key, the sentence is only its copy: expose the key so a
+      gate can assert the state without freezing a translation. -->
+      <div v-else class="dcf__implied-empty" data-testid="reverse-growth" :data-state="reverseState">
         {{ t(reverseState) }}
       </div>
     </div>
