@@ -20,20 +20,25 @@ export function policyDelivery (root = process.cwd()) {
     const { entries, ...meta } = JSON.parse(raw)
     const { status, batch, generatedAt, upstreamCheckedAt, latestPeriod } = JSON.parse(publishBytes)
     meta.publication = { status, batch, generatedAt, upstreamCheckedAt, latestPeriod }
+    // One row shape for the list endpoints and the detail endpoint: a list is only as
+    // good as the fields the detail carries, so both are built here, together.
     const summaries = {}
+    const details = {}
     for (const [symbol, entry] of Object.entries(entries)) {
       const file = symbol.replace(':', '-') + '.json'
       const stock = JSON.parse(readFileSync(resolve(root, 'public/data', file), 'utf8'))
       const ratios = peerRow(stock, symbol)
       const { name, status, value, price, priceDate, marginOfSafety, reasons, asOf, inputs: { currency } } = entry
       const sameSnapshot = ratios.price === price && stock.as_of === asOf
-      summaries[symbol] = { name, status, value, price, priceDate, marginOfSafety, reasons, asOf, inputs: { currency },
+      const row = { name, status, value, price, priceDate, marginOfSafety, reasons, asOf, inputs: { currency },
         pe: sameSnapshot ? ratios.pe : null, pb: sameSnapshot ? ratios.pb : null }
+      summaries[symbol] = row
+      details[symbol] = { ...entry, pe: row.pe, pb: row.pb }
     }
     // Include the derived representation so URLs also change when its schema changes.
     const id = createHash('sha256').update(raw).update(manifestBytes).update(publishBytes)
       .update(JSON.stringify(summaries)).digest('hex').slice(0, 20)
-    cached = { raw, manifestBytes, publishBytes, id, meta: { ...meta, release: id, symbols: Object.keys(entries) }, entries, summaries }
+    cached = { raw, manifestBytes, publishBytes, id, meta: { ...meta, release: id, symbols: Object.keys(entries) }, entries, details, summaries }
     return cached
   }
   const payload = (d, name) => {
@@ -44,7 +49,7 @@ export function policyDelivery (root = process.cwd()) {
     const match = /^([A-Z]+)-([A-Z0-9.^-]+)\.json$/.exec(name)
     if (!match) return null
     const parsed = parseSymbol(match[1] + ':' + match[2])
-    const entry = parsed.ok && d.entries[parsed.symbol]
+    const entry = parsed.ok && d.details[parsed.symbol]
     return entry ? { release: d.id, entry } : null
   }
   return {

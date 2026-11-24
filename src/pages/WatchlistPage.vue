@@ -81,7 +81,7 @@ import { api } from '../api'
 import { exportWatchlist, exportWatchlistCsv, importWatchCsv, importWatchlist } from '../lib/watchlist'
 import { publishedListRow } from '../lib/watchlistView'
 import { useWatchlistStore } from '../store/watchlist'
-import { usePolicyStore } from '../store/policy'
+import { getPolicyEntry } from '../api/policy'
 import { useMoney } from '../composables/useMoney'
 import { useUndoNotify } from '../composables/useUndoNotify'
 
@@ -90,19 +90,24 @@ const $q = useQuasar()
 const { moneyIn } = useMoney()
 const { notifyUndo } = useUndoNotify()
 const store = useWatchlistStore()
-const policy = usePolicyStore()
 const rows = ref([])
 const retrying = ref(false)
 
 const load = async () => {
   const symbols = store.symbols.slice()
   if (!symbols.length) { rows.value = []; return }
-  const summary = await policy.loadSummary()
-  const settled = await Promise.allSettled(symbols.map(symbol => summary?.[symbol] ? null : api.getStock(symbol)))
+  // One release file per watched symbol, not the whole public summary: a list of three
+  // rows should not download five hundred. The published entry replaces the provider
+  // snapshot; without one the snapshot is all there is.
+  const settled = await Promise.allSettled(symbols.map(async (symbol) => {
+    const published = await getPolicyEntry(symbol)
+    const entry = published?.entry ?? null
+    return { entry, artifactMissing: published === null, stock: entry ? null : await api.getStock(symbol) }
+  }))
   if (store.symbols.join(',') !== symbols.join(',')) return
   rows.value = settled.map((item, index) => {
-    const symbol = symbols[index]
-    return publishedListRow(item.status === 'fulfilled' ? item.value : null, symbol, summary?.[symbol], t, !summary)
+    const loaded = item.status === 'fulfilled' ? item.value : { entry: null, artifactMissing: false, stock: null }
+    return publishedListRow(loaded.stock, symbols[index], loaded.entry, t, loaded.artifactMissing)
   })
 }
 

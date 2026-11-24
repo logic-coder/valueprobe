@@ -76,6 +76,9 @@ async function withRelease (load) {
   const metadataRequest = getMetadataRequest()
   const meta = compatibleMeta(await metadataRequest)
   if (!meta) return null
+  // Release files are immutable, so a resolved body stays cached; keys from an older
+  // release are not, and a reader that outlives a deploy would otherwise keep them.
+  for (const key of pending.keys()) if (key !== 'meta.json' && !key.startsWith(meta.release + '/')) pending.delete(key)
   const result = await load(meta)
   if (!result?.missing) return result
   // Deployments can remove the previous release between loading metadata and a resource.

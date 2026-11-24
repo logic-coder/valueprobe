@@ -90,7 +90,7 @@ import { MAX_COMPARE, parseSymbolsQuery, rankRows } from '../lib/compare'
 import { publishedListRow } from '../lib/watchlistView'
 import { useCompareStore } from '../store/compare'
 import { useWatchlistStore } from '../store/watchlist'
-import { usePolicyStore } from '../store/policy'
+import { getPolicyEntry } from '../api/policy'
 import { useMoney } from '../composables/useMoney'
 import { useUndoNotify } from '../composables/useUndoNotify'
 
@@ -101,7 +101,6 @@ const route = useRoute()
 const router = useRouter()
 const store = useWatchlistStore()
 const compare = useCompareStore()
-const policy = usePolicyStore()
 const { moneyIn } = useMoney()
 const draft = ref('')
 const retrying = ref(false)
@@ -123,12 +122,16 @@ const load = async () => {
     rawRows.value = []
     return
   }
-  const summary = await policy.loadSummary()
-  const settled = await Promise.allSettled(list.map(symbol => summary?.[symbol] ? null : api.getStock(symbol)))
+  // One release file per compared symbol, not the whole public summary.
+  const settled = await Promise.allSettled(list.map(async (symbol) => {
+    const published = await getPolicyEntry(symbol)
+    const entry = published?.entry ?? null
+    return { entry, artifactMissing: published === null, stock: entry ? null : await api.getStock(symbol) }
+  }))
   if (symbols.value !== list) return
   rawRows.value = settled.map((item, index) => {
-    const symbol = list[index]
-    return publishedListRow(item.status === 'fulfilled' ? item.value : null, symbol, summary?.[symbol], t, !summary)
+    const loaded = item.status === 'fulfilled' ? item.value : { entry: null, artifactMissing: false, stock: null }
+    return publishedListRow(loaded.stock, list[index], loaded.entry, t, loaded.artifactMissing)
   })
 }
 

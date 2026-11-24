@@ -19,6 +19,8 @@ export const usePolicyStore = defineStore('policy', {
       this.entries[symbol] = result
       return result.entry
     },
+    // Whole-universe read. Lists prefer one entry per symbol (load); this stays for
+    // callers that really need every row, and the static-host smoke checks it.
     async loadSummary () {
       return getPolicySummary()
     },
