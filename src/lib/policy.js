@@ -302,6 +302,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     if (quoteStatus === 'historical') warnings.push(WARNING.STALE_PRICE)
   }
   if (price === null) warnings.push(WARNING.PRICE_MISSING)
+  // A kept snapshot took a fresh quote: a split since the last filing cannot be ruled out.
+  if (stock.split_unverified === true) warnings.push(WARNING.SPLIT_UNVERIFIED)
 
   // ---- earnings base ------------------------------------------------------
   const latestEps = num(policyEps(stock))

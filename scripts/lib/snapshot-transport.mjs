@@ -103,6 +103,18 @@ export function useQuote (record, quote) {
   return next
 }
 
+/**
+ * Rebuild the record after a failed filings attempt: keep the saved fundamentals
+ * and take the quote that did arrive. A US quote recovered this way can be
+ * post-split while the kept per-share figures are pre-split, and nothing here can
+ * recompute the factor, so the basis is disclosed instead of guessed.
+ */
+export function recoverRecord (record, quote, { market, fundamentalError, us }) {
+  if (!record) return record
+  const next = useQuote(record, quote)
+  return fundamentalError && us.has(market) ? { ...next, split_unverified: true } : next
+}
+
 export function classifyShareBasis (ratio, factor) {
   if (!(ratio > 0)) return 'unknown'
   if (factor !== 1 || ratio < 0.8 || ratio > 1.25) return 'review'

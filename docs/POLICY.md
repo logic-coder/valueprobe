@@ -40,7 +40,7 @@
 - 折现率：`yieldForStock()` 按 `reportingCurrency()` 取该企业报告币种的十年期（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6，再套 10% 下限）→ 夹到 0–50。取不到该币种利率时 `policyValue()` 用 10% 兜底并加 `RATE_FALLBACK`。港币报告币种代理美元十年期；人民币报告币种只用人民币利率，不用美债。公式全市场同一条，不为单只股票或某一对 A/H 上市写例外参数。
 - 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：采用单一干净长窗口（优先十年，否则五年），一律按 15% 承保上限封顶，不再取 min(十年, 五年)，五年单独窗口也不再另设 10% 硬上限，只标 `SHORT_HISTORY`。十年与五年窗口符号相反，或任一窗为负时，点估计仍用长窗口（负长窗口则起点 0%），但标 `REGIME_UNCERTAIN`，区间须覆盖更差窗口并可含终值 0。同向但差距较大时只把另一窗纳入包络，不标体制不确定。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。采用值触到 15% 上限时标 `CAPPED_GROWTH`。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
 - 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点与已披露窗口的增速情景包络（较低一端只用已披露的更差窗口，不对稳健正增长一律纳入 0%；五年窗为正且作为官方窗时高端可到 15%；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景）。头条 `mid` 是官方点估计，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
-- 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。
+- 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。刷新时美股财报链失败但报价成功，会沿用上次每股数据只更新报价并标 `SPLIT_UNVERIFIED`：其间若发生拆股，价格与每股数据可能不同口径。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
 ## 2. 拒绝码（REASON）
@@ -77,6 +77,7 @@
 | `DISCOUNT_CLAMPED` | 折现率被夹到 0–50% 的公开区间。 |
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
+| `SPLIT_UNVERIFIED` | 沿用了上次每股数据、只更新了报价：其间若拆股则两侧口径未知，等下一次财报刷新核对。 |
 | `STALE_DATA` | 估值采用较早的盈利期间。 |
 | `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |

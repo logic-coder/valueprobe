@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, readFile, readdir, stat, unlink, rmdir } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
-import { atomicWrite, classifyShareBasis, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
+import { atomicWrite, classifyShareBasis, recoverRecord, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
 import { installSnapshots, recoverInstall } from '../../scripts/lib/snapshot-install.mjs'
 import { assessPublish, classifyOutcome, refreshVerification } from '../../scripts/lib/publish-gate.mjs'
 import { POLICY_VERSION } from '../../src/lib/policy'
@@ -47,6 +47,21 @@ describe('incremental snapshot refresh', () => {
     expect(useQuote({ ...prior, currency: '$' }, { price: '$14', asOf: '2026-11-19', currency: '$' })).toEqual({
       price: '$14', quote_as_of: '2026-11-19', eps_as_of: '2026-09-30', as_of: '2026-11-19', currency: '$',
     })
+  })
+  it('keeps a quote that arrived when the filings refresh failed, and flags the US basis', () => {
+    const prior = { price: '$12', currency: '$', quote_as_of: '2026-11-18', quote_source: 'filed', eps_as_of: '2026-09-30', split_to_quote: 1 }
+    const quote = { price: '$13', currency: '$', asOf: '2026-11-19' }
+    const us = new Set(['NYSE', 'NASDAQ', 'AMEX'])
+    const recovered = recoverRecord(prior, quote, { market: 'NYSE', fundamentalError: 'no fundamentals', us })
+    expect(recovered).toMatchObject({ price: '$13', quote_as_of: '2026-11-19', eps_as_of: '2026-09-30', split_unverified: true })
+    // The outcome reports the quote as applied. Before, a US recovery was always a quote failure.
+    expect(classifyOutcome({ mode: 'all', quote, prev: prior, patch: recovered, fundamentalError: 'no fundamentals' }).quote).toBe('updated')
+    // Other markets keep the same figures without the extra caveat.
+    const hk = recoverRecord({ ...prior, currency: 'HK$' }, { price: 'HK$13', currency: 'HK$', asOf: '2026-11-19' }, { market: 'HKSE', fundamentalError: 'no fundamentals', us })
+    expect(hk.price).toBe('HK$13')
+    expect(hk.split_unverified).toBeUndefined()
+    // A successful refresh does not carry the flag forward.
+    expect(recoverRecord(prior, quote, { market: 'NYSE', fundamentalError: null, us }).split_unverified).toBeUndefined()
   })
   it('does not assume a split from a share-count discrepancy on a new listing', () => {
     expect(classifyShareBasis(1.04, 1)).toBe('comparable')

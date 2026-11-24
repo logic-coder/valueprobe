@@ -15,7 +15,7 @@ import { fromAshareReports, fromHkReports, supplementsFromHkCashflowItems, toHkQ
 import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/data/providers/edgar-xbrl.js'
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { ARTIFACT_PATH, DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
-import { atomicWrite, classifyShareBasis, readOptionalJson, transport, useQuote } from './lib/snapshot-transport.mjs'
+import { atomicWrite, classifyShareBasis, readOptionalJson, recoverRecord, transport, useQuote } from './lib/snapshot-transport.mjs'
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
@@ -423,10 +423,6 @@ async function refresh (existing, baseline) {
               record = prev
               throw new Error('latest filing is older than the saved filing')
             }
-            if (prev && useQuote(prev, seed) === prev) {
-              const { price, quote_as_of, quote_source } = prev
-              record = { ...record, price, quote_as_of, quote_source }
-            }
             if (prev) {
               const { as_of: oldDate, ...oldFields } = prev
               const { as_of: newDate, ...newFields } = record
@@ -436,8 +432,11 @@ async function refresh (existing, baseline) {
           }
         } catch (error) {
           fundamentalError = error.message
-          if (prev && quote && !US.has(market)) record = useQuote(prev, quote)
         }
+        // The quote is applied once, wherever the record stands: the success path
+        // has already built the record from it, and the recovery path must not
+        // drop a quote that did arrive.
+        if (record) record = recoverRecord(record, quote, { market, fundamentalError, us: US })
         const classified = classifyOutcome({ mode, quote, prev, patch: record, fundamentals, fundamentalError, fundamentalFetched })
         if (record && JSON.stringify(record) !== JSON.stringify(prev)) await atomicWrite(file, JSON.stringify(record, null, 2) + '\n')
         outcomes.push({ symbol, available: Boolean(record), fundamentals, datedQuote: Boolean(record?.quote_as_of), shareRatio,

@@ -56,6 +56,9 @@ export const WARNING = Object.freeze({
   // The normalised base lagged a one-way recent rise, so the published base uses
   // the latest full year's earnings/cash midpoint instead of the stale median.
   RECENT_BASE_LAG: 'RECENT_BASE_LAG',
+  // A kept snapshot took a fresh quote after a failed filings refresh: a split
+  // since the last filing cannot be ruled out, so the two sides may not share a basis.
+  SPLIT_UNVERIFIED: 'SPLIT_UNVERIFIED',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

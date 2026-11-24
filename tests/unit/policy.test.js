@@ -181,6 +181,16 @@ describe('policyValue semantics', () => {
     expect(policyValue({ ...stock, price: '' }, { rates: rateRows }).marginOfSafety).toBeNull()
   })
 
+  it('discloses a kept per-share base that took only a fresh quote', () => {
+    const stock = {
+      ttm_eps: 4, earning_growth_10y: 5, price: '$60', _as_of: '2026-11-19',
+      eps_as_of: '2025-12-31', quote_as_of: '2026-11-06',
+    }
+    const kept = policyValue({ ...stock, split_unverified: true }, { rates: rateRows, generatedAt: '2026-11-19' })
+    expect(kept.warnings).toContain(WARNING.SPLIT_UNVERIFIED)
+    expect(policyValue(stock, { rates: rateRows, generatedAt: '2026-11-19' }).warnings).not.toContain(WARNING.SPLIT_UNVERIFIED)
+  })
+
   it('reads a display-string price and derives the margin', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
     const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
