@@ -30,45 +30,14 @@
           <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
             :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited" :currency="stock.currency || '¥'"
             :expectation="priceExpectation" />
-          <div v-if="!resultLoading && policyEntry && !isManual" class="dcf__provenance" data-testid="valuation-provenance">
-            <span>{{ earningsDateLabel }}</span>
-            <span>{{ quoteDateLabel }}</span>
-          </div>
-          <details v-if="!resultLoading && showPublished" class="dcf__provenance dcf__explanation">
-            <summary>{{ t('valuation_explanation') }}</summary>
-            <p>
-              {{ t('valuation_inputs', {
-                model: t('model_' + policyEntry.inputs.model),
-                eps: moneyIn(stock.currency, policyEntry.inputs.eps),
-                growth: percent(policyEntry.inputs.growth),
-                rate: percent(policyEntry.inputs.discountRate),
-              }) }}
-            </p>
-            <p>
-              {{ t('valuation_base_components', {
-                latest: formatBaseComponent(policyEntry.inputs.epsLatest),
-                normalized: formatBaseComponent(policyEntry.inputs.epsNormalized),
-                da: formatBaseComponent(policyEntry.inputs.daPerShare),
-                maintenance: formatBaseComponent(policyEntry.inputs.maintenanceCapexProxy),
-                sbc: formatBaseComponent(policyEntry.inputs.sbcPerShare),
-                cash: formatBaseComponent(policyEntry.inputs.cashMedian),
-                adopted: formatBaseComponent(policyEntry.inputs.eps),
-                kind: policyEntry.inputs.baseKind ? t('valuation_base_kind_' + policyEntry.inputs.baseKind) : '',
-                gap: policyEntry.inputs.ownerBaseGap ? t('valuation_base_gap') : '',
-              }) }}
-            </p>
-            <p>{{ t('valuation_band_note', { spread: policyEntry.inputs.bandSpread ?? 2 }) }}</p>
-            <p v-if="policyEntry.terminalShare != null">
-              {{ t('valuation_later_share', { share: percent(policyEntry.terminalShare * 100) }) }}
-            </p>
-            <p v-if="policyEntry.earningsSource">
-              <a :href="policyEntry.earningsSource" target="_blank" rel="noreferrer">{{ t('valuation_filing') }}</a>
-            </p>
-            <ul v-if="inputWarnings.length">
-              <li v-for="code in inputWarnings" :key="code">{{ t('warning_' + code) }}</li>
-            </ul>
-            <p><a href="#/method">{{ t('disc_policy_link') }}</a></p>
-          </details>
+          <policy-provenance
+            v-if="!resultLoading && policyEntry && !isManual"
+            :entry="policyEntry"
+            :currency="stock.currency || '¥'"
+            :earnings-label="earningsDateLabel"
+            :quote-label="quoteDateLabel"
+            :show-explanation="showPublished"
+          />
           </div>
 
         <q-card-section ref="assumptionsHead" class="dcf__head">
@@ -404,6 +373,7 @@ import { rateForCurrency, reportingCurrency } from '../lib/riskFree'
 import { quoteDateStatus } from '../lib/policy'
 import APopover from './APopover.vue'
 import EditableValue from './EditableValue.vue'
+import PolicyProvenance from './dcf/PolicyProvenance.vue'
 import DcfHeader from './dcf/DcfHeader.vue'
 import DcfResultBar from './dcf/DcfResultBar.vue'
 import ScenarioBar from './dcf/ScenarioBar.vue'
@@ -449,9 +419,6 @@ const rateNote = computed(() => {
   if (info.source === 'bundled' || info.source === 'snapshot') return 'rate_bundled_note'
   return null
 })
-const formatBaseComponent = (value) => value == null || value === '' || !Number.isFinite(Number(value))
-  ? t('valuation_base_none')
-  : moneyIn(stock.value.currency, value)
 const growthNote = computed(() => {
   const key = dcfBasedOn.value === 'eps' ? 'eps' : 'fcf'
   if (stock.value?.growth_refused?.[key] === 'short') return t('growth_refused_note')
@@ -567,9 +534,6 @@ const quoteDateLabel = computed(() => {
   if (priceStatus.value === 'missing' || priceStatus.value === 'unknown') return t('quote_' + priceStatus.value)
   return t(priceStatus.value === 'historical' ? 'valuation_quote_historical' : 'valuation_quote_dated', { date: entry.priceDate })
 })
-const inputWarnings = computed(() => (policyEntry.value?.warnings || []).filter((code) => ![
-  'PRICE_MISSING', 'QUOTE_DATE_UNKNOWN', 'STALE_PRICE', 'EARNINGS_DATE_UNKNOWN',
-].includes(code)))
 const headerPriceHint = computed(() => t('price_edit_here'))
 const residualIncome = computed(() => model.value === 'residual' && dcfBasedOn.value === 'eps')
 const basisReady = computed(() => (dcfBasedOn.value === 'eps' ? Number(form.eps) : Number(form.freecashflow)) > 0)
