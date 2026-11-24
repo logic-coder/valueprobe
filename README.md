@@ -17,6 +17,8 @@ npm install
 npm run dev
 ```
 
+Ports live in `scripts/lib/ports.mjs`. A host that reserves 5173/4173 (Windows with Hyper-V or WSL does) can move them: `PW_PORT=4300 PW_PREVIEW_PORT=4400 npm run dev`, and set the same variables for the browser suites.
+
 `public/data` is the published source for EPS, free cash flow, book value, growth and the ten-year rates. The deployed site does not fetch quotes. Price and valuation assumptions stay editable. A fixed 12× line shows today's earnings if they never grow; it is a cross-check, not the intrinsic value, and banks do not show it.
 
 ## Scripts

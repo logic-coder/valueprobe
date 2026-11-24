@@ -7,9 +7,10 @@
 import { spawn } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { PREVIEW_PORT } from './lib/ports.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const ORIGIN = 'http://127.0.0.1:4173'
+const ORIGIN = 'http://127.0.0.1:' + PREVIEW_PORT
 const basePath = process.env.VITE_BASE || '/valueprobe/'
 const siteUrl = process.env.VITE_SITE_URL || 'https://example.test' + basePath
 const BASE = ORIGIN + basePath
@@ -50,7 +51,7 @@ if (!process.argv.includes('--built')) {
   await new Promise((done, fail) => run(['build']).on('close', (code) => (code ? fail(new Error('build failed')) : done())))
 }
 
-const server = run(['preview', '--port', '4173', '--strictPort'])
+const server = run(['preview', '--port', String(PREVIEW_PORT), '--strictPort'])
 const closed = new Promise(done => server.once('close', done))
 const stop = () => { if (!server.killed && server.exitCode === null) server.kill('SIGTERM') }
 process.on('exit', stop)

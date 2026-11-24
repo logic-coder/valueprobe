@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { policyDelivery } from './scripts/lib/policy-delivery.mjs'
+import { DEV_PORT, PREVIEW_PORT } from './scripts/lib/ports.mjs'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 // Pages answers unknown paths with 404.html; the app is hash-routed, so the shell is
@@ -99,8 +100,8 @@ export default defineConfig({
   base: process.env.VITE_BASE || '/',
   plugins: [vue({ template: { compilerOptions: { isCustomElement: (tag) => tag === 'font' } } }), pagesFallback(), siteUrl(), policyDelivery()],
   esbuild: false,
-  server: { host: '127.0.0.1', port: 5173, proxy },
-  preview: { host: '127.0.0.1', port: 4173, proxy },
+  server: { host: '127.0.0.1', port: DEV_PORT, proxy },
+  preview: { host: '127.0.0.1', port: PREVIEW_PORT, proxy },
   build: {
     target: 'esnext',
     sourcemap: false,

@@ -9,9 +9,10 @@
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { chromium } from 'playwright'
+import { CONTRAST_PORT } from './lib/ports.mjs'
 
 const THEMES = process.argv[2] ? [process.argv[2]] : ['light', 'dark']
-const PORT = Number(process.env.PW_PORT || 5174)
+const PORT = CONTRAST_PORT
 const ORIGIN = 'http://127.0.0.1:' + PORT
 const PAGES = [
   { path: '/#/', wait: '.home__hero', selectors: ['.home__lead', '.home__note', '.home__kicker', '.home__examples'] },

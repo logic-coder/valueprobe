@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test'
+import { PREVIEW_PORT, DEV_PORT } from './scripts/lib/ports.mjs'
 
 // Default: the chromium Playwright ships, in full-chromium headless mode (no
 // system browser, no separate headless-shell download). Set PW_CHANNEL=chrome
@@ -18,7 +19,7 @@ const webServer = []
 if (!distMode) {
   webServer.push({
     command: 'npm run dev',
-    url: 'http://127.0.0.1:5173',
+    url: 'http://127.0.0.1:' + DEV_PORT,
     reuseExistingServer: true,
     timeout: 120000,
   })
@@ -30,7 +31,7 @@ if (baseMode) {
     // raw PW_BASE=1 run should also work from a clean checkout. PW_DIST reuses
     // the dist/ that npm run build already wrote.
     command: distMode ? 'npm run preview:base' : 'npm run build:base && npm run preview:base',
-    url: 'http://127.0.0.1:4173/valueprobe/',
+    url: 'http://127.0.0.1:' + PREVIEW_PORT + '/valueprobe/',
     reuseExistingServer: true,
     timeout: 180000,
   })
@@ -41,7 +42,7 @@ export default defineConfig({
   testIgnore: distMode ? [] : ['**/upload-gate.spec.js'],
   timeout: 60000,
   use: {
-    baseURL: 'http://127.0.0.1:5173',
+    baseURL: 'http://127.0.0.1:' + DEV_PORT,
     // The suite never touches the network: every /cloud, /em, /sec and /fx call is mocked.
     channel,
     // The suite asserts Chinese copy; the product itself follows the browser language.
