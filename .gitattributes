@@ -1,3 +1,5 @@
-# Generated data is hashed byte-for-byte on Windows and on the Pages runner.
-public/data/**/*.json text eol=lf
-public/research/*.json text eol=lf
+# One line ending in the index. Editing the Chinese locale on Windows had left a
+# few files CRLF while the rest stayed LF, so any tool that rewrote one of them
+# produced a whole-file diff that buried the real change.
+* text=auto eol=lf
+*.png binary
