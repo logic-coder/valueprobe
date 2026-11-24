@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, readFile, readdir, stat, unlink, rmdir } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { atomicWrite, classifyShareBasis, recoverRecord, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
@@ -21,6 +21,14 @@ const cleanupTemp = async (root) => {
   }
   if (dirname(root) === process.cwd() && basename(root).startsWith('tmp-snapshot-test-')) await walk(root)
 }
+
+// Cleanup only runs on the way out, so a killed run leaves its tree behind. Sweep
+// stale siblings before the install test instead of accumulating them in the root.
+beforeAll(async () => {
+  for (const name of await readdir(process.cwd())) {
+    if (name.startsWith('tmp-snapshot-test-')) await cleanupTemp(resolve(name))
+  }
+})
 
 describe('incremental snapshot refresh', () => {
   it('blocks an upstream 404 without claiming a new verification when rates are kept', async () => {
@@ -91,6 +99,7 @@ it('restores the previous snapshot and removes new entries after a failed or int
     await mkdir(run)
     const existing = 'NASDAQ-AAPL.json'
     const added = 'NYSE-IBM.json'
+    // v1 is frozen and no longer in the installer's list: restore must leave it alone anyway.
     const release = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/' + POLICY_VERSION + '.json', 'manifest.json', 'publish.json']
     for (const name of [existing, ...release]) {
       await atomicWrite(resolve(live, name), '{"value":"old"}')

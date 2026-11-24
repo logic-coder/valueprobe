@@ -4,7 +4,10 @@ import { snapshotFiles } from './policy-artifact.mjs'
 import { atomicWrite, readOptionalJson } from './snapshot-transport.mjs'
 import { POLICY_VERSION } from '../../src/lib/policy.js'
 
-const releaseFiles = ['catalog.json', 'rates.json', 'intrinsic/v1.json', 'intrinsic/' + POLICY_VERSION + '.json', 'manifest.json', 'publish.json']
+// Files the installer must carry over beside the snapshots. Frozen earlier
+  // artifacts stay where they are: they never change, so listing one only makes the
+  // list drift (v1 was listed, v2 never was).
+  const releaseFiles = ['catalog.json', 'rates.json', 'intrinsic/' + POLICY_VERSION + '.json', 'manifest.json', 'publish.json']
 const journalPath = backup => resolve(backup, 'install.json')
 const filePattern = /^[A-Z]{2,}-[A-Z0-9.^-]+\.json$/
 const validName = name => filePattern.test(name) || releaseFiles.includes(name)

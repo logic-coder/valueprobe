@@ -6,7 +6,7 @@
 
 - **根目录**只放会被 GitHub、包管理器或法务直接识别的入口与声明：`README.md`、`LICENSE`、`CONTRIBUTING.md`、`CODE_OF_CONDUCT.md`、`SECURITY.md`、`ATTRIBUTION.md`。
 - **`docs/`** 放产品与工程的说明文档（下表）。新增说明文档一律进 `docs/`，根目录不再增加新的说明文件。
-- **内部工作稿与交接笔记**（临时方案、个人评审、HANDOVER 交接稿）不进仓库：留在本机，用 `.git/info/exclude` 或仓库外目录。`docs/` 里只保留能长期维护、对读者负责的内容。
+- **内部工作稿与交接笔记**（临时方案、个人评审、`HANDOVER.md` 交接稿）不进仓库：留在本机，用 `.git/info/exclude` 或仓库外目录。`docs/` 里只保留能长期维护、对读者负责的内容。
 - **引用路径**：根目录文档引用说明文档写 `docs/<文件名>.md`；`docs/` 内部互相引用写同目录文件名；代码注释引用写 `docs/<文件名>.md`。
 
 ## 索引

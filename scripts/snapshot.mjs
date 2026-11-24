@@ -449,13 +449,19 @@ async function refresh (existing, baseline) {
 
   const names = snapshotFiles(root, OUT)
   const catalog = []
+  const catalogSkipped = []
   for (const name of names.sort()) {
     try {
       const row = JSON.parse(await readFile(resolve(OUT, name), 'utf8'))
       if (row.ttm_eps == null && row.tangible_book == null && !(row.financials?.annual || []).some((item) => item.eps_without_nri != null || item.book_value_per_share != null)) continue
       catalog.push({ symbol: row.exchange_ + ':' + row.symbol, name: row.company || row.symbol, market: row.exchange_ })
-    } catch { /* skip a broken file */ }
+    } catch (error) {
+      // Not fatal (verify:data reads every file and will fail loudly), but a silently
+      // dropped symbol still reads as "not in the coverage list".
+      catalogSkipped.push({ file: name, error: error.message })
+    }
   }
+  if (catalogSkipped.length) console.warn('catalog skipped ' + catalogSkipped.length + ' unreadable snapshot(s); verify:data will fail on them')
   await atomicWrite(resolve(OUT, 'catalog.json'), JSON.stringify(catalog, null, 2) + '\n')
 
   // The published value is read from the artifact, not recomputed in the browser, so a
@@ -486,7 +492,7 @@ async function refresh (existing, baseline) {
   await atomicWrite(resolve(OUT, PUBLISH_PATH.replace('public/data/', '')), JSON.stringify(publish, null, 2) + '\n')
   await atomicWrite(resolve(tempRoot, 'report.json'), JSON.stringify({
     outcomes: outcomes.sort((a, b) => a.symbol.localeCompare(b.symbol)),
-    coverage: built.artifact.coverage, universe: built.artifact.universe, byMarket, problems: built.problems,
+    coverage: built.artifact.coverage, universe: built.artifact.universe, byMarket, problems: built.problems, catalogSkipped,
     publish,
   }, null, 2) + '\n')
   for (const blocked of publish.blocked) console.error('publish blocked: ' + blocked)
