@@ -16,7 +16,7 @@ test('shows the published value by default and only edits this page', async ({ p
   await expect(page.getByTestId('value-context')).toContainText('v3')
   await expect(page.locator(FAIR)).toContainText('10.68')
   const stress = page.getByTestId('margin-stress')
-  await expect(stress.locator('.stress__headline')).toHaveText(await stress.locator('.stress__row .stress__value').last().innerText())
+  await expect(stress.locator('.stress__headline-value')).toHaveText(await stress.locator('.stress__row .stress__value').last().innerText())
   const [resultBox, stressBox, formBox] = await Promise.all([
     page.getByTestId('dcf-result').boundingBox(),
     stress.boundingBox(),

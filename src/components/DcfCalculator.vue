@@ -578,17 +578,17 @@ const stressQuote = computed(() => result.stockPrice)
 const stressRows = computed(() => {
   if (isManual.value) return null
   const rows = calculateMarginStress(policyEntry.value, stressQuote.value)
-  // The default case is already the page's published intrinsic value; show only tighter cases.
+  // The default case is already the page's published intrinsic value; show only stricter cases.
   return rows ? rows.slice(1) : null
 })
 const priceExpectation = computed(() => {
   const inputs = policyEntry.value?.inputs
   if (assumptionsEdited.value || !inputs || !(stressQuote.value > 0)) return ''
+  // Owner implied growth already sits on the left card; repeating it here confuses readers.
   if (inputs.model === 'residual' && inputs.tangibleBook > 0) {
     return t('stress_book', { multiple: (Number(stressQuote.value) / inputs.tangibleBook).toFixed(2) })
   }
-  if (inputs.model !== 'owner' || headline.value.reverseGrowthRate == null) return ''
-  return t('stress_implied', { growth: percent(headline.value.reverseGrowthRate), terminal: percent(inputs.terminalGrowthRate), years: inputs.years })
+  return ''
 })
 const hasPeers = computed(() => peersFor(props.symbol).length > 0)
 // Recalculation is announced, but only after typing pauses: a live region that

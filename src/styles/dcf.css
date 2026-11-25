@@ -265,16 +265,21 @@
 .dcf__row > .q-skeleton { margin-left: auto; }
 
 @media (min-width: 1024px) {
+  /* Place the two cards on one implicit row and stretch them to the taller
+     content (notes, cash check, implied growth, language). Do not pin rows or
+     span the stress card beside provenance: a fixed span left the bottoms
+     unaligned when either card grew. The jump control is hidden here, so it
+     does not occupy a cell. */
   .dcf__strip-col:has(.stress) {
     display: grid;
     grid-template-columns: minmax(0, 1.07fr) minmax(0, 1fr);
-    align-items: start;
+    align-items: stretch;
     gap: 8px 16px;
   }
-  .dcf__strip-col:has(.stress) > .dcf__strip { grid-column: 1; grid-row: 1; }
-  .dcf__strip-col > .stress { grid-column: 2; grid-row: 1 / span 3; }
+  .dcf__strip-col:has(.stress) > .dcf__official-note { grid-column: 1 / -1; }
+  .dcf__strip-col:has(.stress) > .dcf__strip { grid-column: 1; height: 100%; min-height: 0; }
+  .dcf__strip-col:has(.stress) > .stress { grid-column: 2; }
   .dcf__strip-col:has(.stress) > .dcf__provenance { grid-column: 1; padding-top: 0; }
-  .dcf__strip-col > .dcf__official-note { grid-column: 1 / -1; }
   .dcf__strip { padding: 18px 18px 18px 22px; }
   .dcf__strip-head { margin-bottom: 6px; }
   .dcf__fair .text-h6 { font-size: 42px; }
