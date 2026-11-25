@@ -2,8 +2,8 @@
   <section class="stress" data-testid="margin-stress">
     <header class="stress__heading">
       <h3>{{ t('stress_title') }}</h3>
-      <span v-if="rows[2]?.value > 0" class="stress__headline">
-        {{ moneyOf(rows[2].value) }}
+      <span v-if="headlineRow?.value > 0" class="stress__headline">
+        {{ moneyOf(headlineRow.value) }}
       </span>
     </header>
     <small>{{ t(custom ? 'stress_trial_quote' : 'stress_quote', { price: quote }) }}</small>
@@ -30,8 +30,9 @@ import { money, percent } from '../../lib/format'
 const props = defineProps({ rows: { type: Array, required: true }, bank: Boolean, custom: Boolean,
   quote: { type: String, required: true }, expectation: { type: String, default: '' }, currency: { type: String, default: '¥' } })
 const { t } = useI18n()
-const labels = ['stress_default', 'stress_earnings', 'stress_joint']
+const labels = ['stress_earnings', 'stress_joint']
 const moneyOf = (value) => money(props.currency, value)
+const headlineRow = computed(() => props.rows.at(-1))
 const axisLimit = computed(() => Math.max(100, Math.ceil(Math.max(...props.rows.map(row => Math.abs(row.margin))) / 50) * 50))
 </script>
 

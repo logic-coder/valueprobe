@@ -575,9 +575,12 @@ const headline = computed(() => {
   return { fairValue: null, marginOfSafety: null, fairLow: null, fairHigh: null, reverseGrowthRate: null }
 })
 const stressQuote = computed(() => result.stockPrice)
-const stressRows = computed(() => isManual.value
-  ? null
-  : calculateMarginStress(policyEntry.value, stressQuote.value))
+const stressRows = computed(() => {
+  if (isManual.value) return null
+  const rows = calculateMarginStress(policyEntry.value, stressQuote.value)
+  // The default case is already the page's published intrinsic value; show only tighter cases.
+  return rows ? rows.slice(1) : null
+})
 const priceExpectation = computed(() => {
   const inputs = policyEntry.value?.inputs
   if (assumptionsEdited.value || !inputs || !(stressQuote.value > 0)) return ''

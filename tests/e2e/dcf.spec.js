@@ -162,7 +162,7 @@ test('the result labels open their help', async ({ page }) => {
 test('the header price is the working price', async ({ page }) => {
   const stress = page.getByTestId('margin-stress')
   const stressBefore = await stress.locator('strong').allTextContents()
-  expect(stressBefore).toHaveLength(3)
+  expect(stressBefore).toHaveLength(2)
   const header = page.getByRole('button', { name: /^参考报价/ })
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
   const marginBefore = await page.locator(STOCK.margin).innerText()
