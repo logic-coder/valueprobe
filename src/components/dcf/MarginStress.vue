@@ -2,8 +2,8 @@
   <section class="stress" data-testid="margin-stress">
     <header class="stress__heading">
       <h3>{{ t('stress_title') }}</h3>
-      <span v-if="rows[2]" class="stress__headline" :class="{ negative: rows[2].margin < 0 }">
-        {{ percent(rows[2].margin) }}
+      <span v-if="rows[2]?.value > 0" class="stress__headline">
+        {{ moneyOf(rows[2].value) }}
       </span>
     </header>
     <small>{{ t(custom ? 'stress_trial_quote' : 'stress_quote', { price: quote }) }}</small>
@@ -53,7 +53,6 @@ const axisLimit = computed(() => Math.max(100, Math.ceil(Math.max(...props.rows.
   .stress__heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   .stress__heading h3 { margin: 0; }
   .stress__headline { display: block; color: var(--accent-strong); font-size: 23px; font-weight: 700; white-space: nowrap; }
-  .stress__headline.negative { color: var(--danger-text); }
   .stress small { margin-top: 5px; }
 }
 </style>
