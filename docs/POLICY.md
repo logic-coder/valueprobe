@@ -8,13 +8,13 @@
 
 | 参数 | 现行值（官方 v3） | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `repeatable-earnings`：五年正常化每股收益。维护性资本开支按折旧摊销计（M≈D），故所有者收益等于该正常化收益；现金只做对照，不再与收益取中点。金融机构同样只用正常化每股收益 | `POLICY_V1.basis` / `revision.earningsBase` |
+| 估值基数 | `repeatable-earnings`：通常为五年正常化每股收益。若盈利与现金流同步抬升，且最近完整财年高于更早高点的 2 倍，两边都改用该财年（不是 TTM）。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
 | 第二阶段年数 | `DCF_DEFAULTS.yearsOfTerminalGrowth` = 10 | `horizon.yearsOfTerminalGrowth` |
 | 终值增速 | `DCF_DEFAULTS.terminalGrowthRate` = 4% | `horizon.terminalGrowthRate` |
-| 历史增速窗口 | 单一干净长窗口：有十年窗则采用十年，否则采用五年；不再与五年窗取 min | `growth.windowYears` / `revision.officialGrowth` |
+| 历史增速窗口 | 两扇已披露干净窗口先经 0% 下限与 15% 上限，取较慢的一扇做中位官方增速；较快的只进区间上沿。只有一扇窗时就用那一扇 | `growth.windowYears` / `revision.officialGrowth` |
 | 承保增速上限 | `MAX_UNDERWRITTEN_GROWTH` = 15%（十年窗与五年单独窗口相同） | `growth.cap` |
 | 五年作为官方窗口 | 不再设 10% 硬上限；仍标 `SHORT_HISTORY`。五年窗为正时，区间高端可向 15% 加宽；负历史、起点已归零时不把高端发明为 15% | `growth.shortHistory` = `wider-band` |
 | 窗口冲突 | 符号相反，或任一窗为负，标 `REGIME_UNCERTAIN`，区间可含终值 0。同向差距只把另一窗纳入包络，不标体制不确定。`regimeGapPp`（8 个百分点）仅保留为加宽参考，不再作为体制阈值 | `growth.regimeGapPp` |
@@ -32,14 +32,14 @@
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
 | 基本面过期 | 盈利所属期间距发布日超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
 | 利率过期 | 超过 10 天在校验提示 | `staleness.ratesDays` |
-| 区间 | 折现率 ±2 个百分点，再叠加已披露窗口的增速情景包络；较低一端只用已披露的更差窗口，不对稳健正增长一律纳入 0%。头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthEnvelope` |
+| 区间 | 折现率 ±2 个百分点，再叠加已披露窗口的增速情景包络；官方增速已是较慢窗时，较快窗只进上沿。若公开值是两套估值的中点，区间取两套折现/增速包络的并集，须覆盖两边且默认值落在区间内。头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthEnvelope` |
 | 终值占比 | 披露 | `terminalShareDisclosed` |
 
 实现细节都以代码为准：
 
 - 折现率：`yieldForStock()` 按 `reportingCurrency()` 取该企业报告币种的十年期（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6，再套 10% 下限）→ 夹到 0–50。取不到该币种利率时 `policyValue()` 用 10% 兜底并加 `RATE_FALLBACK`。港币报告币种代理美元十年期；人民币报告币种只用人民币利率，不用美债。公式全市场同一条，不为单只股票或某一对 A/H 上市写例外参数。
-- 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：采用单一干净长窗口（优先十年，否则五年），一律按 15% 承保上限封顶，不再取 min(十年, 五年)，五年单独窗口也不再另设 10% 硬上限，只标 `SHORT_HISTORY`。十年与五年窗口符号相反，或任一窗为负时，点估计仍用长窗口（负长窗口则起点 0%），但标 `REGIME_UNCERTAIN`，区间须覆盖更差窗口并可含终值 0。同向但差距较大时只把另一窗纳入包络，不标体制不确定。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。采用值触到 15% 上限时标 `CAPPED_GROWTH`。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
-- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点与已披露窗口的增速情景包络（较低一端只用已披露的更差窗口，不对稳健正增长一律纳入 0%；五年窗为正且作为官方窗时高端可到 15%；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景）。头条 `mid` 是官方点估计，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
+- 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：两扇窗口都存在时，先各自经过 0% 下限与 15% 上限，取较慢的一扇作为居中官方增速，较快的只进入区间上沿。只有一扇窗口（包括仅有五年历史）时就用那一扇。五年单独窗口不再另设 10% 硬上限，只标 `SHORT_HISTORY`。十年与五年窗口符号相反，或任一窗为负时，点估计用较慢的已裁剪窗口（负窗口为 0%），标 `REGIME_UNCERTAIN`，区间须覆盖较快窗口并可含终值 0。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。采用值触到 15% 上限时标 `CAPPED_GROWTH`。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
+- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点与已披露窗口的增速情景包络（官方增速已是较慢窗时，较快窗只进上沿；五年窗为正且作为唯一官方窗时高端可到 15%；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景；中点规则下对两套基数分别取包络再取并集）。头条 `mid` 是官方点估计，必须等于默认值并落在区间内，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
 - 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。刷新时美股财报链失败但报价成功，会沿用上次每股数据只更新报价并标 `SPLIT_UNVERIFIED`：其间若发生拆股，价格与每股数据可能不同口径。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
@@ -56,7 +56,7 @@
 | `NO_BOOK` | 金融机构需要正的每股有形账面价值。 |
 | `NOT_FINITE` | 计算结果不是有限正数，不出值。 |
 | `INDUSTRY_MODEL_PENDING` | REIT 或炼化的行业口径仍待验证，仅供试算，不出公开值。 |
-| `CASH_UNRECONCILED` | 选定官方基数后，三年现金中位数核对仍相差 50% 及以上，拒绝发布。 |
+| `CASH_UNRECONCILED` | 选定官方基数后，盈利估值与现金估值的对称差距大于 200%（更大边超过较小边约 3 倍），拒绝发布。50%–200% 改为取中点并发布。金融机构不走此现金核对。 |
 | `UNSTABLE_BASE_REGIME` | 增速体制不确定（`REGIME_UNCERTAIN`：历史为负或窗口符号相反），且最近一期每股收益不为正，拒绝发布。同向差距不触发此码（如 Fiserv）。最近一期为正（如佳品零件）仍可出值。 |
 
 ## 3. 警告码（WARNING）
@@ -77,13 +77,15 @@
 | `DISCOUNT_CLAMPED` | 折现率被夹到 0–50% 的公开区间。 |
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
-| `SPLIT_UNVERIFIED` | 沿用了上次每股数据、只更新了报价：其间若拆股则两侧口径未知，等下一次财报刷新核对。 |
+| `SPLIT_UNVERIFIED` | 沿用上次每股数据、只更新了报价；其间若发生拆股，两个数字可能不在同一口径。 |
 | `STALE_DATA` | 估值采用较早的盈利期间。 |
 | `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |
 | `MODEL_CAVEAT` | REIT 或炼化企业，模型口径仍属试算。 |
 | `TERMINAL_CAPPED` | 终值输入高于折现率减 2 个百分点，按有效增速封顶。 |
-| `CASH_DIVERGENCE` | 三年现金中位数核对与采用的盈利基数相差 25–49%，只披露仍发布。 |
+| `CASH_DIVERGENCE` | 现金核对与盈利估值相差 25–49%，只披露仍发布。 |
+| `CASH_MIDPOINT` | 两边都能形成正估值且对称差距 50%–200%，公开值取中点；区间覆盖这两套估值。 |
+| `LATEST_FY_BASE` | 盈利与现金流同步抬升，且最近完整财年高于更早高点的 2 倍，两边基数都改用该财年。 |
 | `CLASSIFICATION_UNVERIFIED` | 仅因缺列归入某一模型，且另一模型结果差异较大。 |
 | `NORMALIZED_EPS` | 发布基数是可重复盈利，与最近一期报告每股收益相差 25% 或以上。 |
 | `LIFE_BOOK_QUALITY` | 寿险公司的有形账面可能受债券未实现损益和递延获客成本扭曲，剩余收益结果应谨慎阅读。 |

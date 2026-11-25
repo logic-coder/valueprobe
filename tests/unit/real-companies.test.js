@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { POLICY_V1, POLICY_V1_HASH, POLICY_VERSION, policyDiscountRate, policyValue } from '../../src/lib/policy'
-import { RECENT_BASE_LAG_RATIO } from '../../src/lib/dcf'
 import { REASON, WARNING } from '../../src/lib/reasons'
 import { toStock } from '../../src/lib/stockRecord'
 
@@ -59,15 +58,15 @@ describe('US listings keep a published value', () => {
 })
 
 
-describe('NASDAQ:NVDA - a one-way rise that pinned the normalised base to old years', () => {
-  it('publishes a value from the latest earnings/cash midpoint, not the stale normalised median', () => {
+describe('NASDAQ:NVDA is published on the latest complete fiscal year after a synchronous upshift', () => {
+  it('uses the latest fiscal year earnings base, not the five-year median or trailing earnings', () => {
     const value = valueOf('NASDAQ:NVDA')
     expect(value.status).toBe('ok')
+    expect(value.value).toBeCloseTo(113.04, 2)
     expect(value.value).toBe(published('NASDAQ:NVDA').value)
-    expect(value.inputs.ownerBaseRecent).toMatchObject({ ratio: expect.any(Number) })
-    expect(value.inputs.ownerBaseRecent.ratio).toBeGreaterThanOrEqual(RECENT_BASE_LAG_RATIO)
-    expect(value.inputs.eps).toBeCloseTo((4.9 + 3.9437) / 2, 4)
-    expect(value.warnings).toContain(WARNING.RECENT_BASE_LAG)
+    expect(value.inputs.eps).toBeCloseTo(4.9, 4)
+    expect(value.inputs.epsLatest).toBeCloseTo(7.91, 2)
+    expect(value.warnings).toContain(WARNING.LATEST_FY_BASE)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
   })
 })

@@ -5,12 +5,11 @@ import { policyValue } from '../../src/lib/policy'
 import { WARNING } from '../../src/lib/reasons'
 
 describe('officialGrowth window rules', () => {
-  it('takes the slower of two windows as the point estimate and exposes the faster one for the band only', () => {
+  it('uses the slower of two already-clipped windows as the official mid, and keeps the faster for the high end', () => {
     const info = officialGrowth({ growth10: 15, growth5: 14, hasPositiveBase: true })
     expect(info.adopted).toBe(14)
     expect(info.window).toBe('5y')
-    expect(info.fasterWindowRate).toBe(15)
-    expect(info.usedSlowerWindow).toBe(true)
+    expect(info.highGrowth).toBe(15)
     expect(info.cap).toBe(MAX_UNDERWRITTEN_GROWTH)
     expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.warnings).not.toContain(WARNING.SHORT_HISTORY)
@@ -18,13 +17,21 @@ describe('officialGrowth window rules', () => {
     expect(info.regimeUncertain).toBe(false)
   })
 
-  it('caps each window at 15% and underwrites the slower capped rate', () => {
+  it('picks the slower five-year window after the ten-year rate is capped at 15%', () => {
     const info = officialGrowth({ growth10: 16.4, growth5: 10.92, hasPositiveBase: true })
     expect(info.adopted).toBe(10.92)
     expect(info.window).toBe('5y')
-    expect(info.fasterWindowRate).toBe(15)
-    expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
+    expect(info.highGrowth).toBe(15)
+    expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.regimeUncertain).toBe(false)
+  })
+
+  it('caps official growth at 15% when both clipped windows sit at the cap', () => {
+    const info = officialGrowth({ growth10: 16.4, growth5: 18, hasPositiveBase: true })
+    expect(info.adopted).toBe(15)
+    expect(info.window).toBe('10y')
+    expect(info.highGrowth).toBe(15)
+    expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
   })
 
   it('keeps a five-year-only window under the 15% cap and flags short history without a 10% cap', () => {
@@ -36,11 +43,12 @@ describe('officialGrowth window rules', () => {
     expect(info.zeroTerminal).toBe(false)
   })
 
-  it('starts at 0% and keeps the default terminal when the ten-year window is negative', () => {
+  it('starts at 0% when one window is negative, and keeps the positive window only on the high end', () => {
     const info = officialGrowth({ growth10: -5, growth5: 12, hasPositiveBase: true })
     expect(info.adopted).toBe(0)
     expect(info.historical5).toBe(12)
     expect(info.window).toBe('10y')
+    expect(info.highGrowth).toBe(12)
     expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
@@ -59,12 +67,12 @@ describe('officialGrowth window rules', () => {
     expect(info.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
   })
 
-  it('floors an Intel-style negative window to 0% and keeps it as the slower window', () => {
+  it('marks an Intel-style ten-year positive and five-year negative conflict and uses the slower 0% mid', () => {
     const info = officialGrowth({ growth10: 10.73, growth5: -1.5, hasPositiveBase: true })
     expect(windowsConflict(10.73, -1.5)).toBe(true)
     expect(info.adopted).toBe(0)
     expect(info.window).toBe('5y')
-    expect(info.fasterWindowRate).toBe(10.73)
+    expect(info.highGrowth).toBe(10.73)
     expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
@@ -72,16 +80,14 @@ describe('officialGrowth window rules', () => {
     expect(info.warnings).toEqual([WARNING.REGIME_UNCERTAIN])
   })
 
-  it('does not mark a same-sign gap as a regime and keeps the faster window only for the band', () => {
+  it('does not mark a same-sign gap of at least 8 points as a regime, including a Fiserv-style pair', () => {
     expect(windowsConflict(13.18, 35.27)).toBe(false)
     const info = officialGrowth({ growth10: 13.18, growth5: 35.27, hasPositiveBase: true })
     expect(info.adopted).toBe(13.18)
     expect(info.window).toBe('10y')
-    expect(info.fasterWindowRate).toBe(15)
-    expect(info.usedSlowerWindow).toBe(true)
+    expect(info.highGrowth).toBe(15)
     expect(info.regimeUncertain).toBe(false)
     expect(info.windowConflict).toBe(false)
-    expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
     expect(info.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
   })
 

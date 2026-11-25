@@ -236,10 +236,13 @@ export function envelopeScenarios (input) {
   const cap = Number.isFinite(Number(input.growthCap)) ? Number(input.growthCap) : 15
   const officialG = Number(input.growthRate)
   const officialT = Number(input.terminalGrowthRate)
-  const five = input.growth5 == null || input.growth5 === '' ? null : Number(input.growth5)
-  const fiveAdopted = five != null && Number.isFinite(five) ? Math.min(Math.max(five, 0), cap) : null
-  const faster = input.fasterWindowRate == null || input.fasterWindowRate === '' ? null : Number(input.fasterWindowRate)
-  const fasterAdopted = faster != null && Number.isFinite(faster) ? Math.min(Math.max(faster, 0), cap) : null
+  const adopt = (raw) => {
+    if (raw == null || raw === '') return null
+    const parsed = Number(raw)
+    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), cap) : null
+  }
+  const fiveAdopted = adopt(input.growth5)
+  const tenAdopted = adopt(input.growth10)
   const short = input.window === '5y'
   const noWindow = input.window === 'none'
   const regime = input.regimeUncertain === true
@@ -247,17 +250,19 @@ export function envelopeScenarios (input) {
   const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
   let highGrowth = officialG
   if (fiveAdopted != null && fiveAdopted > officialG) highGrowth = fiveAdopted
-  // The faster of the two disclosed windows raises the ceiling only. It never
-  // moves the official point estimate, which is already the slower window.
-  if (fasterAdopted != null && fasterAdopted > highGrowth) highGrowth = fasterAdopted
+  if (tenAdopted != null && tenAdopted > officialG) highGrowth = Math.max(highGrowth, tenAdopted)
+  if (Number.isFinite(Number(input.highGrowth)) && Number(input.highGrowth) > highGrowth) {
+    highGrowth = Math.min(Number(input.highGrowth), cap)
+  }
   if (short && officialG > 0) highGrowth = cap
 
   const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }
   const low = [
     { discount: lowDiscount, growth: officialG, terminal: officialT },
   ]
-  if (fiveAdopted != null && fiveAdopted < officialG) {
-    low.push({ discount: lowDiscount, growth: fiveAdopted, terminal: officialT })
+  const slower = [fiveAdopted, tenAdopted].filter((rate) => rate != null && rate < officialG)
+  if (slower.length) {
+    low.push({ discount: lowDiscount, growth: Math.min(...slower), terminal: officialT })
   }
   if (regime && officialG !== 0) {
     low.push({ discount: lowDiscount, growth: 0, terminal: officialT })
@@ -302,7 +307,35 @@ function bandFromScenarios (input, valueAt) {
 /** Low, mid and high from the same model. Mid is the headline point estimate. */
 export function valueBand (input) {
   if (input.residual) return residualIncomeBand(input)
+  if (input.blend === 'midpoint' && Number(input.cashBase) > 0 && Number(input.base) > 0) {
+    return blendedOwnerBand(input)
+  }
   return bandFromScenarios(input, ownerAt)
+}
+
+/**
+ * Mid is the official midpoint (equivalent to discounting the mid base, because
+ * presentValue is linear in the base when tangible book is not added). Low and
+ * high are the union of the disclosed discount/growth envelopes on both bases,
+ * so the range covers both valuations and is not narrowed twice around the mid.
+ * The midpoint stays strictly inside that union; it is not replaced by the
+ * arithmetic middle of the envelope.
+ */
+function blendedOwnerBand (input) {
+  const midBase = (Number(input.base) + Number(input.cashBase)) / 2
+  const mid = ownerAt({ ...input, base: midBase }, envelopeScenarios(input).mid)
+  const earnings = bandFromScenarios(input, ownerAt)
+  const cash = bandFromScenarios({ ...input, base: input.cashBase }, ownerAt)
+  const lows = [earnings.low, cash.low, earnings.mid, cash.mid]
+  const highs = [earnings.high, cash.high, earnings.mid, cash.mid]
+  const usable = (value) => (Number.isFinite(value) && value > 0 ? value : null)
+  const floor = lows.map(usable).filter((value) => value != null)
+  const ceiling = highs.map(usable).filter((value) => value != null)
+  return orderBand(
+    floor.length ? Math.min(...floor) : null,
+    mid,
+    ceiling.length ? Math.max(...ceiling) : null,
+  )
 }
 
 // One residual model. Discount, growth and terminal follow the same disclosed
@@ -371,6 +404,83 @@ export function sustainableCashBase (stock) {
   return Number([...recent].sort((a, b) => a - b)[1].toFixed(4))
 }
 
+/** Latest complete fiscal year must exceed this multiple of the earlier peak. */
+export const UPSHIFT_PRIOR_MULTIPLE = 2
+
+const datedAnnual = (annual) => (Array.isArray(annual) ? annual.filter((row) => row && row.date) : [])
+
+const metric = (row, field) => {
+  const parsed = Number(row?.[field])
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+/** Latest complete fiscal year figure, or null. */
+export function latestFiscalValue (annual, field) {
+  const rows = datedAnnual(annual)
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const value = metric(rows[i], field)
+    if (value != null) return Number(value.toFixed(4))
+  }
+  return null
+}
+
+/**
+ * Both earnings and cash have risen together off an earlier plateau, so the
+ * repeatable base is the latest complete fiscal year on both sides — not a
+ * multi-year median, and not trailing twelve-month earnings. Cyclical names
+ * that have only returned to an old high stay on the median. Purely mechanical:
+ * last three complete years strictly rise on both series, the latest year is
+ * the high of all available history on both, and that latest year is more than
+ * twice the peak from years before those last three. A missing earlier peak,
+ * or a hole in the last three years, is not an upshift.
+ */
+export function isSynchronousUpshift (annual) {
+  const rows = datedAnnual(annual)
+  if (rows.length < 3) return false
+  const last3 = rows.slice(-3)
+  const eps = last3.map((row) => metric(row, 'eps_without_nri'))
+  const fcf = last3.map((row) => metric(row, 'free_cash_flow_per_share'))
+  if (!eps.every((value) => value > 0) || !fcf.every((value) => value > 0)) return false
+  if (!(eps[0] < eps[1] && eps[1] < eps[2])) return false
+  if (!(fcf[0] < fcf[1] && fcf[1] < fcf[2])) return false
+  const earlier = rows.slice(0, -3)
+  const priorEps = earlier.map((row) => metric(row, 'eps_without_nri')).filter((value) => value > 0)
+  const priorFcf = earlier.map((row) => metric(row, 'free_cash_flow_per_share')).filter((value) => value > 0)
+  if (!priorEps.length || !priorFcf.length) return false
+  const peakEps = Math.max(...priorEps)
+  const peakFcf = Math.max(...priorFcf)
+  const allEps = rows.map((row) => metric(row, 'eps_without_nri')).filter((value) => value > 0)
+  const allFcf = rows.map((row) => metric(row, 'free_cash_flow_per_share')).filter((value) => value > 0)
+  if (eps[2] !== Math.max(...allEps) || fcf[2] !== Math.max(...allFcf)) return false
+  return eps[2] > UPSHIFT_PRIOR_MULTIPLE * peakEps && fcf[2] > UPSHIFT_PRIOR_MULTIPLE * peakFcf
+}
+
+/** Larger / smaller − 1, or null when either side is not a positive value. */
+export function symmetricValueGap (left, right) {
+  if (!(left > 0) || !(right > 0)) return null
+  return Math.max(left, right) / Math.min(left, right) - 1
+}
+
+/**
+ * Choose the published owner-model base after both sides have already been
+ * put on the same footing (median or latest fiscal year). presentValue is
+ * linear in the base when tangible book is not added, so a 50–200% gap
+ * midpoints the two valuations if and only if it midpoints the two bases.
+ * A gap above 200% (about 3×) is still a refusal. Financial institutions
+ * never mix in free cash flow.
+ */
+export function blendOfficialBase (earnings, cash, { financial = false } = {}) {
+  if (financial) {
+    return { base: earnings > 0 ? earnings : null, action: earnings > 0 ? 'earnings' : 'none', gap: null }
+  }
+  if (!(earnings > 0)) return { base: null, action: 'none', gap: null }
+  if (!(cash > 0)) return { base: earnings, action: 'earnings-no-cash', gap: null }
+  const gap = symmetricValueGap(earnings, cash)
+  if (gap > 2) return { base: earnings, action: 'refuse', gap }
+  if (gap >= 0.5) return { base: (earnings + cash) / 2, action: 'midpoint', gap }
+  return { base: earnings, action: 'earnings', gap }
+}
+
 const medianOf = (values) => {
   const sorted = values.filter(Number.isFinite).sort((a, b) => a - b)
   if (!sorted.length) return null
@@ -419,49 +529,18 @@ export function normalizedEarningsBase (stock, _options = {}) {
   return earnings === null ? null : Number(Number(earnings).toFixed(4))
 }
 
-// A one-way rise can pin the normalised median to years-old figures. When the
-// latest full year is at least this multiple of the normalised base, the median
-// is stale rather than merely volatile, and the latest year is the honest
-// starting point. Chosen so NVIDIA (4.9 vs 1.19 ≈ 4.1x) switches while Alphabet
-// (10.81 vs 5.8 ≈ 1.9x) and Apple (8.98 vs 6.13 ≈ 1.5x) keep the normalised base.
-export const RECENT_BASE_LAG_RATIO = 2
-
-/**
- * Latest-full-year earnings/cash midpoint when the normalised base has clearly
- * lagged a one-way rise. Requires a positive latest EPS, a positive latest
- * after-capex cash year, and latestEps / normalised >= RECENT_BASE_LAG_RATIO.
- * Returns null otherwise, so the caller keeps the normalised repeatable base.
- * The midpoint keeps SBC expensed (earnings) and waits for cash to confirm the
- * rise before treating a high EPS as repeatable.
- * @returns {{ base: number, latestEps: number, latestCash: number, ratio: number }|null}
- */
-export function recentLagBase (stock, normalised) {
-  const annual = stock?.financials?.annual
-  const normal = Number(normalised)
-  if (!(normal > 0) || !Array.isArray(annual) || !annual.length) return null
-  const last = annual[annual.length - 1]
-  const latestEps = Number(last?.eps_without_nri)
-  const latestCash = Number(last?.free_cash_flow_per_share)
-  if (!(latestEps > 0) || !(latestCash > 0)) return null
-  const ratio = latestEps / normal
-  if (!(ratio >= RECENT_BASE_LAG_RATIO)) return null
-  return {
-    base: Number(((latestEps + latestCash) / 2).toFixed(4)),
-    latestEps,
-    latestCash,
-    ratio: Number(ratio.toFixed(4)),
-  }
-}
-
 export function buildDefaults (indicator, stock, freeCashFlow) {
   stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)
   const latestEps = preferredEps(stock)
-  const eps = Number.isFinite(stock.earnings_base) ? stock.earnings_base : latestEps
+  const earnings = Number.isFinite(stock.earnings_base) ? stock.earnings_base : latestEps
+  const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
+  const blended = blendOfficialBase(earnings, cashBase, { financial: stock.financial_institution === true })
+  const eps = blended.action === 'refuse' || blended.action === 'none' ? earnings : blended.base
   const official = officialGrowth({
     growth10: stock.earning_growth_10y,
     growth5: stock.earning_growth_5y,
-    hasPositiveBase: eps > 0 && latestEps != null,
+    hasPositiveBase: earnings > 0 && latestEps != null,
   })
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {

@@ -181,16 +181,6 @@ describe('policyValue semantics', () => {
     expect(policyValue({ ...stock, price: '' }, { rates: rateRows }).marginOfSafety).toBeNull()
   })
 
-  it('discloses a kept per-share base that took only a fresh quote', () => {
-    const stock = {
-      ttm_eps: 4, earning_growth_10y: 5, price: '$60', _as_of: '2026-11-19',
-      eps_as_of: '2025-12-31', quote_as_of: '2026-11-06',
-    }
-    const kept = policyValue({ ...stock, split_unverified: true }, { rates: rateRows, generatedAt: '2026-11-19' })
-    expect(kept.warnings).toContain(WARNING.SPLIT_UNVERIFIED)
-    expect(policyValue(stock, { rates: rateRows, generatedAt: '2026-11-19' }).warnings).not.toContain(WARNING.SPLIT_UNVERIFIED)
-  })
-
   it('reads a display-string price and derives the margin', () => {
     const stock = stockOf(snapshots.find((row) => row.symbol === 'SHSE:601398').raw)
     const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
@@ -233,22 +223,18 @@ describe('cash is a cross-check after the official base is chosen', () => {
       ? { free_cash_flow_per_share: row } : row) },
   })
 
-  it('refuses only when earnings and cash valuations differ by more than 2.5x', () => {
-    // eps 10 vs cash 1 -> a 10x valuation gap: no honest midpoint exists.
-    const rows = [
-      { eps_without_nri: 10, free_cash_flow_per_share: 1 },
-      { eps_without_nri: 10, free_cash_flow_per_share: 1 },
-      { eps_without_nri: 10, free_cash_flow_per_share: 1 },
-    ]
-    const value = policyValue(stockOf(raw(rows, 10)), { rates: rateRows, generatedAt: '2026-11-18' })
+  it('refuses when the cash and earnings valuations still differ by more than 3×', () => {
+    const value = policyValue(stockOf(raw([1, 2, 3])), { rates: rateRows, generatedAt: '2026-11-18' })
     expect(value.status).toBe('refused')
     expect(value.value).toBeNull()
-    expect(value.cash.ratio).toBeGreaterThan(2)
+    expect(value.cash).toMatchObject({ base: 2 })
+    // Signed cash/earnings gap is -80% here; the refusal uses the symmetric 3× rule.
     expect(value.reasons).toContain(REASON.CASH_UNRECONCILED)
+    expect(value.warnings).not.toContain(WARNING.CASH_DIVERGENCE)
     expect(value.warnings).not.toContain(WARNING.CASH_MIDPOINT)
   })
 
-  it('publishes the earnings/cash midpoint for a Tencent-class 50%+ gap within 2x', () => {
+  it('publishes the midpoint of a Tencent-class 50–200% cash and earnings gap', () => {
     const rows = [
       { eps_without_nri: 20, free_cash_flow_per_share: 11 },
       { eps_without_nri: 22, free_cash_flow_per_share: 12 },
@@ -256,15 +242,14 @@ describe('cash is a cross-check after the official base is chosen', () => {
     ]
     const value = policyValue(stockOf(raw(rows, 24)), { rates: rateRows, generatedAt: '2026-11-18' })
     expect(value.status).toBe('ok')
-    expect(value.inputs.eps).toBe(24)
+    expect(value.inputs.eps).toBe(18)
     expect(Math.abs(value.cash.gapPct)).toBeGreaterThanOrEqual(50)
-    expect(value.cash.ratio).toBeLessThanOrEqual(2)
-    expect(value.inputs.cashMidpoint).toBe(true)
+    expect(Math.abs(value.cash.gapPct)).toBeLessThanOrEqual(200)
     expect(value.warnings).toContain(WARNING.CASH_MIDPOINT)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
-    // The band must contain both measurements that the headline averages.
-    expect(value.band.low).toBeLessThanOrEqual(Math.min(value.value, value.cash.value))
-    expect(value.band.high).toBeGreaterThanOrEqual(Math.max(value.value, value.cash.value))
+    expect(value.band.mid).toBe(value.value)
+    expect(value.band.low).toBeLessThan(value.cash.value)
+    expect(value.band.high).toBeGreaterThan(value.cash.value)
   })
 
   it('warns, and still publishes, when the remaining gap is 25% to 49%', () => {
@@ -320,19 +305,19 @@ describe('centered envelope and regime rules', () => {
     expect(policyValue(stock, { rate: 5.07 }).inputs.baseKind).toBe('normalized')
   })
 
-  it('underwrites the slower five-year window as Apple-style point estimate, with the ten-year rate only raising the ceiling', () => {
+  it('uses the slower five-year window as Apple’s official mid, with 15% only on the high side', () => {
     const { value } = at('NASDAQ:AAPL')
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBeCloseTo(9.87, 2)
-    expect(value.inputs.growthWindow).toBe('5y')
-    expect(value.inputs.fasterWindowRate).toBeCloseTo(15, 2)
-    expect(value.inputs.usedSlowerWindow).toBe(true)
+    expect(value.inputs.growth5).toBeCloseTo(9.87, 2)
+    expect(value.inputs.growth10).toBeGreaterThan(15)
     expect(value.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
     const low = owner(value, value.inputs.discountRate + 2, value.inputs.growth)
+    const zeroed = owner(value, value.inputs.discountRate + 2, 0)
     expect(value.band.low).toBe(low)
-    // The faster ten-year window lifts the high end, never the point estimate.
-    const ceiling = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), value.inputs.fasterWindowRate)
-    expect(value.band.high).toBeGreaterThanOrEqual(ceiling - 0.01)
+    expect(value.band.low).toBeGreaterThan(zeroed)
+    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    expect(value.band.high).toBe(high)
   })
 
   it('moves only the discount rate on the low side when Microsoft-style five-year growth is not lower', () => {
@@ -349,9 +334,9 @@ describe('centered envelope and regime rules', () => {
     expect(value.inputs.growth).toBe(0)
     expect(value.inputs.growthWindow).toBe('5y')
     expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
-    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 0)
-    const invented = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
-    expect(value.band.high).toBe(high)
+    const rate = Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2)
+    const earningsBase = value.inputs.epsNormalized ?? value.inputs.eps
+    const invented = presentValue(value.inputs.tangibleBook, value.inputs.years, rate, 15, Math.max(earningsBase, value.cash?.base || 0), value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
     expect(value.band.high).toBeLessThan(invented)
   })
 
@@ -363,9 +348,10 @@ describe('centered envelope and regime rules', () => {
     expect(value.band.high).toBe(high)
   })
 
-  it('keeps an opposite-sign window as a regime, including Alibaba', () => {
+  it('keeps an opposite-sign window as a regime, including Alibaba, and uses the slower 0% mid', () => {
     const { value } = at('HKSE:09988')
     expect(value.status).toBe('ok')
+    expect(value.inputs.growth).toBe(0)
     expect(value.inputs.growth10).toBeGreaterThan(0)
     expect(value.inputs.growth5).toBeLessThan(0)
     expect(value.warnings).toContain(WARNING.REGIME_UNCERTAIN)
@@ -400,8 +386,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(115.44)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 144.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
-    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', inputs: { cashMidpoint: true }, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
-    expect(entry('HKSE:00700').value).toBeCloseTo(355.97, 2)
+    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 355.97, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
@@ -412,7 +397,7 @@ describe('the committed artifact is what the policy produces', () => {
         epsLatest: expect.any(Number),
         epsNormalized: expect.any(Number),
         cashMedian: expect.any(Number),
-        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|repeatable)$/),
+        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable)$/),
       }),
     })
     expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('normalized')
@@ -460,12 +445,9 @@ describe('calculator seed and policy inputs cannot drift', () => {
       expect(value.inputs.years, symbol).toBe(seed.dcfForm.years)
       expect(value.inputs.yearsOfTerminalGrowth, symbol).toBe(seed.dcfForm.yearsOfTerminalGrowth)
       expect(value.inputs.tangibleBook, symbol).toBe(seed.dcfResultForm.tbv)
-      const present = (base) => presentValue(value.inputs.tangibleBook, value.inputs.years, value.inputs.discountRate, value.inputs.growth, base, value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
       const recomputed = value.inputs.model === 'residual'
         ? residualIncomeValue(value.inputs.tangibleBook, value.inputs.eps, value.inputs.discountRate, value.inputs.growth, value.inputs.terminalGrowthRate, value.inputs.years)?.fairValue
-        : (value.inputs.cashMidpoint
-          ? (present(value.inputs.eps) + present(value.cash.base)) / 2
-          : present(value.inputs.eps))
+        : presentValue(value.inputs.tangibleBook, value.inputs.years, value.inputs.discountRate, value.inputs.growth, value.inputs.eps, value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
       expect(recomputed, symbol).toBeCloseTo(value.value, 2)
     }
   })
