@@ -2322,7 +2322,7 @@
     {
       "ticker": "GS",
       "cik": 886982,
-      "factsSha256": "c8981e6740f6d5db16cdd41a228a35327c22c287ef3cc5a77d79a8878c9fb576",
+      "factsSha256": "2406e1a1628dc7be16feab519e4b096d95d779c106b2c723c100fd1f955e0ca1",
       "path": {
         "status": "ineligible"
       },
@@ -2519,7 +2519,7 @@
     {
       "ticker": "HD",
       "cik": 354950,
-      "factsSha256": "aaf03befa1695d87ce1252bc08ca278b65be63782e46dc0b2858aab7a32c1be2",
+      "factsSha256": "0aa535de219a99716dc9bdcf2d26a28598ef883137f770741042ded520bd546c",
       "path": {
         "status": "observedCrossing",
         "year": 9,
@@ -3450,7 +3450,7 @@
     {
       "ticker": "JPM",
       "cik": 19617,
-      "factsSha256": "62b75ceeb51f5efc30e3fd20da66759522525961bb1e56ca756f881b40832e8a",
+      "factsSha256": "ad1147c7f1549f8f23e2534335157869a77014336dde1a4f9482c7836795f3f0",
       "path": {
         "status": "ineligible"
       },
@@ -3995,18 +3995,20 @@
           "eps": 3.57,
           "epsDate": "2019-06-30",
           "epsPeriod": "TTM",
-          "growth": 15,
+          "growth": 2,
           "discount": 8,
-          "value": 148.16,
+          "value": 85.03,
           "zero": 44.625,
           "annualDate": "2018-12",
           "fcf": 3.1008,
-          "valueAtEntryRate": 117.4,
-          "v1Eps10": 8.8019,
+          "valueAtEntryRate": 68.16,
+          "v1Eps10": 4.7969,
           "normalEps": 1.41,
-          "normalizedOnly": 58.52,
+          "normalizedOnly": 33.58,
           "roe": 0.0877,
-          "candidateReason": "unavailableOrUnfunded"
+          "candidate": 18.1607,
+          "candidateEps10": 1.8946,
+          "distributable10": 0.9473
         },
         {
           "date": "2020-10-30",
