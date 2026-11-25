@@ -1,112 +1,492 @@
 {
-  "kind": "official-policy-run",
+  "kind": "official-policy-factor-run",
   "policyVersion": "v3",
   "policyHash": "5e20efa4a63b89b7f46efa4170588cfa775c3ad3bda1f225c5454eafb0741978",
   "growthRule": "slower-of-two-clipped-windows",
   "discountRule": "max(floor, local-10y-ceil+6)",
   "asOf": "2006-03-15",
-  "note": "Maintainer evaluation on the frozen 2006 cash panel under official v3 policy. The reference growth rule is officialGrowth(): when both clean disclosed windows exist, each is floored at 0% and capped at 15%, then the slower of the two is the official mid rate; the faster window only widens the high end of the range. A single window is used as official. Negative history starts at 0%, keeps the default 4% terminal, and marks REGIME_UNCERTAIN. There is no mechanical 0% terminal. Official, flat, historical, blended and dampened columns all include that same official terminal so the scores are aligned. In this harness the official column starts from the five-year earnings median and the flat column starts from the three-year cash median; both then use constant explicit-window growth plus the official Gordon terminal, which is not the published fade path. Official v3 does not publish a 5/10/1 blend. Discount is max(10%, ceil(local 10y)+6). The committed 2006 no-terminal research file remains a historical contrast and is not a license to change official growth or discount. This rerun includes official terminal growth on every named column; the sample was not expanded beyond the frozen five-name 2006 panel. n is small. Beating flat is not a publication gate. This is not an official published value.",
+  "role": "harness-debug",
+  "note": "Maintainer factor experiment on the official v3 published path. Forecast cells call presentValue() (linear fade over the explicit window, finite terminal years, then continuation) with the official discount max(10%, ceil(local 10y)+6) and the official 4% terminal. Discount and terminal are not tuned to this sample. Bases are crossed with growth rules: earnings is toStock() earnings_base (normalised EPS, or the latest fiscal year when the synchronous upshift rule fires); cash is toStock() cash_base; midpoint is the arithmetic mid of the two when both are positive, used only as a factor; officialSelected is blendOfficialBase() (earnings-primary below a 50% gap, midpoint at 50–200%, refuse above 200%; financial residual-income names are not cash-blended). Growth rules are zero, the clipped five-year window, the clipped ten-year window, and officialGrowth() (slower of the two clipped windows). The main growth comparison is officialSelected crossed with those four rates, never a mixed-base table. Realised cash is the observed ten-year after-capex cash path plus the same official terminal tail. Realised owner earnings use the same scorer on post-entry EPS when epsObservations are present (OE=E under M≈D); the frozen 2006 debug panel does not include those EPS outcomes. The 2006-03-15 five-name US industrials set is a harness debug set, not a general acceptance sample. Beating zero growth is not a publication gate and is not a license to change official growth or discount. This is not an official published value.",
+  "path": {
+    "forecast": "src/lib/dcf.js presentValue: linear fade from starting growth to the effective terminal, 10 explicit years, 10 finite terminal years, then a continuation value. addToFairValue is false.",
+    "baseSelection": "src/lib/stockRecord.js toStock plus src/lib/dcf.js blendOfficialBase, the same official-selected base policyValue() uses.",
+    "discount": "max(10%, ceil(local 10y)+6); not adjusted to market prices or to this sample.",
+    "terminal": "POLICY_V1 4% terminal growth, 10 finite terminal years, continuation capped 2 percentage points below the discount rate.",
+    "realisedCash": "Discount observed FY+1..+10 after-capex cash per share, then attach the same finite terminal years and continuation from the last observed cash flow.",
+    "realisedOwnerEarnings": "Same published-path scorer on observed post-entry EPS when the panel provides epsObservations. Under the disclosed M≈D proxy, owner earnings equal earnings. Missing on the 2006 debug panel."
+  },
   "discountRate": 11,
   "terminalIncluded": true,
   "terminalAligned": true,
   "defaultTerminalGrowthRate": 4,
+  "years": 10,
+  "yearsOfTerminalGrowth": 10,
   "growthCap": 15,
-  "shortHistory": "wider-band",
-  "windowYears": 10,
-  "growthBlendExperiment": {
-    "oneYear": 0.2,
-    "fiveYear": 0.5,
-    "tenYear": 0.3
+  "definitions": {
+    "bases": {
+      "earnings": "toStock() earnings_base: five-year normalised EPS, or the latest complete fiscal year when the synchronous upshift rule fires.",
+      "cash": "toStock() cash_base: three-year positive after-capex cash median, or the latest fiscal year when the upshift rule fires.",
+      "midpoint": "Arithmetic mid of earnings and cash when both are positive. A factor cell, not automatically the official published base.",
+      "officialSelected": "blendOfficialBase(earnings, cash): earnings if the symmetric gap is under 50%, midpoint at 50–200%, refuse above 200%. This is the official published base for owner-model names."
+    },
+    "growths": {
+      "zero": "Starting growth 0%, still fading to the official 4% terminal on the published path.",
+      "five": "The five-year earnings window after the official 0% floor and 15% cap. Null when that window cannot be formed.",
+      "ten": "The ten-year earnings window after the official 0% floor and 15% cap. Null when that window cannot be formed.",
+      "slower": "officialGrowth(): slower of the two clipped windows, or the one available window."
+    },
+    "cells": "Each cell is the SMAPE between publishedPathValue(base, growth) and the named realised published-path value. Read down a column to compare bases at one growth rule; read across a row to compare growth rules at one base. Do not compare earnings-plus-slower with cash-plus-zero as if that were a growth test."
   },
-  "dampeningReference": 0.5,
-  "sample": 5,
-  "paired": 5,
-  "medians": {
-    "official": 76.6889,
-    "flat": 43.9684,
-    "historical": 61.3794,
-    "dampened": 55.4474,
-    "blended": 37.4756
+  "debugSet": {
+    "asOf": "2006-03-15",
+    "yieldPct": 4.73,
+    "role": "harness-debug",
+    "universeRule": "Frozen 2006-03-15 entry-date cash panel from scripts/research/cash-path-inputs.json. Six US names drawn from a period industrial/tech filing set; VZ has no complete cash path. This is a harness debug set, not a general acceptance sample.",
+    "sample": 5,
+    "pairedCash": 5,
+    "pairedOwnerEarnings": 0,
+    "tickers": [
+      "GE",
+      "UPS",
+      "BA",
+      "INTC",
+      "IBM"
+    ],
+    "cashFactors": {
+      "earnings": {
+        "zero": 65.7895,
+        "five": 51.867,
+        "ten": 45.1572,
+        "slower": 51.867
+      },
+      "cash": {
+        "zero": 43.9535,
+        "five": 43.4394,
+        "ten": 27.0336,
+        "slower": 43.4394
+      },
+      "midpoint": {
+        "zero": 40.3331,
+        "five": 55.5436,
+        "ten": 35.6945,
+        "slower": 55.5436
+      },
+      "officialSelected": {
+        "zero": 38.5156,
+        "five": 51.8355,
+        "ten": 45.1572,
+        "slower": 51.8355
+      }
+    },
+    "ownerEarningsFactors": null,
+    "growthOnOfficialBaseCash": {
+      "zero": 38.5156,
+      "five": 51.8355,
+      "ten": 45.1572,
+      "slower": 51.8355
+    },
+    "growthOnOfficialBaseOwnerEarnings": null,
+    "rows": [
+      {
+        "ticker": "GE",
+        "excludedAfterSplit": false,
+        "blend": "earnings",
+        "blendGap": 0.0811,
+        "upshift": false,
+        "bases": {
+          "earnings": 1.54,
+          "cash": 1.6649,
+          "midpoint": 1.6025,
+          "officialSelected": 1.54,
+          "earningsFiveMedian": 1.51
+        },
+        "growths": {
+          "zero": 0,
+          "five": 3.93,
+          "ten": 9.12,
+          "slower": 3.93,
+          "window": "5y",
+          "reason": "historical",
+          "historical5": 3.93,
+          "historical10": 9.12
+        },
+        "publishedValue": 22.81,
+        "publishedBaseKind": "normalized",
+        "publishedGrowth": 3.93,
+        "predictedOfficial": 22.81,
+        "realisedCash": 13.42,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": {
+          "earnings": {
+            "zero": 36.491,
+            "five": 51.8355,
+            "ten": 70.8373,
+            "slower": 51.8355
+          },
+          "cash": {
+            "zero": 43.9535,
+            "five": 59.0706,
+            "ten": 77.5827,
+            "slower": 59.0706
+          },
+          "midpoint": {
+            "zero": 40.3331,
+            "five": 55.5436,
+            "ten": 74.3151,
+            "slower": 55.5436
+          },
+          "officialSelected": {
+            "zero": 36.491,
+            "five": 51.8355,
+            "ten": 70.8373,
+            "slower": 51.8355
+          }
+        },
+        "ownerEarningsCells": null
+      },
+      {
+        "ticker": "UPS",
+        "excludedAfterSplit": false,
+        "blend": "earnings",
+        "blendGap": 0.2314,
+        "upshift": false,
+        "bases": {
+          "earnings": 3.47,
+          "cash": 2.8179,
+          "midpoint": 3.144,
+          "officialSelected": 3.47,
+          "earningsFiveMedian": 2.81
+        },
+        "growths": {
+          "zero": 0,
+          "five": 6.78,
+          "ten": 14.2,
+          "slower": 6.78,
+          "window": "5y",
+          "reason": "historical",
+          "historical5": 6.78,
+          "historical10": 14.2
+        },
+        "publishedValue": 57.72,
+        "publishedBaseKind": "normalized",
+        "publishedGrowth": 6.78,
+        "predictedOfficial": 57.72,
+        "realisedCash": 49,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": {
+          "earnings": {
+            "zero": 11.3435,
+            "five": 16.3418,
+            "ten": 45.1572,
+            "slower": 16.3418
+          },
+          "cash": {
+            "zero": 31.8978,
+            "five": 4.4435,
+            "ten": 25,
+            "slower": 4.4435
+          },
+          "midpoint": {
+            "zero": 21.1441,
+            "five": 6.4962,
+            "ten": 35.6945,
+            "slower": 6.4962
+          },
+          "officialSelected": {
+            "zero": 11.3435,
+            "five": 16.3418,
+            "ten": 45.1572,
+            "slower": 16.3418
+          }
+        },
+        "ownerEarningsCells": null
+      },
+      {
+        "ticker": "BA",
+        "excludedAfterSplit": false,
+        "blend": "earnings",
+        "blendGap": 0.1522,
+        "upshift": false,
+        "bases": {
+          "earnings": 3.2,
+          "cash": 2.7774,
+          "midpoint": 2.9887,
+          "officialSelected": 3.2,
+          "earningsFiveMedian": 2.3
+        },
+        "growths": {
+          "zero": 0,
+          "five": 5.57,
+          "ten": 6.28,
+          "slower": 5.57,
+          "window": "5y",
+          "reason": "historical",
+          "historical5": 5.57,
+          "historical10": 6.28
+        },
+        "publishedValue": 50.68,
+        "publishedBaseKind": "normalized",
+        "publishedGrowth": 5.57,
+        "predictedOfficial": 50.68,
+        "realisedCash": 86.17,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": {
+          "earnings": {
+            "zero": 72.4743,
+            "five": 51.867,
+            "ten": 49.1723,
+            "slower": 51.867
+          },
+          "cash": {
+            "zero": 84.4364,
+            "five": 64.8125,
+            "ten": 62.2337,
+            "slower": 64.8125
+          },
+          "midpoint": {
+            "zero": 78.3269,
+            "five": 58.1873,
+            "ten": 55.5267,
+            "slower": 58.1873
+          },
+          "officialSelected": {
+            "zero": 72.4743,
+            "five": 51.867,
+            "ten": 49.1723,
+            "slower": 51.867
+          }
+        },
+        "ownerEarningsCells": null
+      },
+      {
+        "ticker": "INTC",
+        "excludedAfterSplit": false,
+        "blend": "midpoint",
+        "blendGap": 0.6805,
+        "upshift": false,
+        "bases": {
+          "earnings": 0.85,
+          "cash": 1.4284,
+          "midpoint": 1.1392,
+          "officialSelected": 1.1392,
+          "earningsFiveMedian": 0.85
+        },
+        "growths": {
+          "zero": 0,
+          "five": 0,
+          "ten": 10.73,
+          "slower": 0,
+          "window": "5y",
+          "reason": "zeroed",
+          "historical5": -1.5,
+          "historical10": 10.73
+        },
+        "publishedValue": 14.36,
+        "publishedBaseKind": "midpoint",
+        "publishedGrowth": 0,
+        "predictedOfficial": 14.36,
+        "realisedCash": 21.21,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": {
+          "earnings": {
+            "zero": 65.7895,
+            "five": 65.7895,
+            "ten": 24.5633,
+            "slower": 65.7895
+          },
+          "cash": {
+            "zero": 16.3734,
+            "five": 16.3734,
+            "ten": 27.0336,
+            "slower": 16.3734
+          },
+          "midpoint": {
+            "zero": 38.5156,
+            "five": 38.5156,
+            "ten": 4.5612,
+            "slower": 38.5156
+          },
+          "officialSelected": {
+            "zero": 38.5156,
+            "five": 38.5156,
+            "ten": 4.5612,
+            "slower": 38.5156
+          }
+        },
+        "ownerEarningsCells": null
+      },
+      {
+        "ticker": "IBM",
+        "excludedAfterSplit": false,
+        "blend": "earnings",
+        "blendGap": 0.3208,
+        "upshift": false,
+        "bases": {
+          "earnings": 4.87,
+          "cash": 6.4321,
+          "midpoint": 5.6511,
+          "officialSelected": 4.87,
+          "earningsFiveMedian": 3.74
+        },
+        "growths": {
+          "zero": 0,
+          "five": 1.87,
+          "ten": 10.68,
+          "slower": 1.87,
+          "window": "5y",
+          "reason": "historical",
+          "historical5": 1.87,
+          "historical10": 10.68
+        },
+        "publishedValue": 66.31,
+        "publishedBaseKind": "normalized",
+        "publishedGrowth": 1.87,
+        "predictedOfficial": 66.31,
+        "realisedCash": 136.18,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": {
+          "earnings": {
+            "zero": 75.7238,
+            "five": 69.0108,
+            "ten": 35.9117,
+            "slower": 69.0108
+          },
+          "cash": {
+            "zero": 50.7342,
+            "five": 43.4394,
+            "ten": 8.4733,
+            "slower": 43.4394
+          },
+          "midpoint": {
+            "zero": 62.6296,
+            "five": 55.5931,
+            "ten": 21.3499,
+            "slower": 55.5931
+          },
+          "officialSelected": {
+            "zero": 75.7238,
+            "five": 69.0108,
+            "ten": 35.9117,
+            "slower": 69.0108
+          }
+        },
+        "ownerEarningsCells": null
+      }
+    ]
   },
-  "officialBeatsFlat": 2,
-  "officialBeatsHistorical": 2,
-  "blendedBeatsFlat": 2,
-  "blendedBeatsHistorical": 3,
-  "rows": [
-    {
-      "ticker": "GE",
-      "official": 49.8013,
-      "flat": 31.9143,
-      "historical": 85.1635,
-      "dampened": 35.8349,
-      "blended": 49.1232,
-      "officialGrowth": 3.93,
-      "officialWindow": "5y",
-      "officialReason": "historical",
-      "officialTerminalGrowth": 4,
-      "growth10": 9.12,
-      "growth5": 3.93,
-      "excludedAfterSplit": false
+  "expansion": {
+    "status": "blocked",
+    "panels": [],
+    "blockers": [
+      "No frozen expansion panel is committed under scripts/research/forecast-validation-panels/.",
+      "An honest panel needs an entry-date universe fixed at the time (not today's survivors), fundamentals visible on the entry date only (filed and period-end filters, no look-ahead), and ten subsequent fiscal years of both after-capex cash and earnings.",
+      "This repository has no committed SEC as-of facts cache, and no walk-forward cash-and-earnings panels beyond the 2006-03-15 debug set.",
+      "The 2006 debug panel itself has no post-entry EPS series, so the owner-earnings target cannot be scored until a frozen epsObservations sidecar is added.",
+      "Desired coverage once those inputs exist: later entry dates, A/H listings, platforms, and cyclicals, stored as separate labeled expansion results."
+    ],
+    "howToAdd": "Add a frozen JSON panel under scripts/research/forecast-validation-panels/ with asOf, yieldPct, universeRule, and companies[{ ticker, epsFrom1995 or epsSeries, baseYears, revenueChecks, observations or cashObservations, epsObservations }]. Then rerun npm run research:forecast. Do not back-cast a universe from later survivors.",
+    "runs": []
+  },
+  "legacyConstantGordon": {
+    "kind": "retired-constant-explicit-plus-gordon",
+    "note": "Retired 口径, kept so the old mixed table can be reproduced. officialMixed is five-year earnings median plus slower-window growth; flatCashZero is three-year cash median plus zero growth. Those two columns are not a same-base growth comparison. fiveMedTen vs fiveMedSlower holds the earnings median fixed. officialSelectedTen/Slower/Zero use toStock plus blendOfficialBase (the 50–200% midpoint rule) but still the constant-explicit-plus-Gordon scorer, not presentValue(). Not a license to change official policy.",
+    "medians": {
+      "officialMixed": 76.6889,
+      "flatCashZero": 43.9684,
+      "fiveMedTen": 57.3822,
+      "fiveMedSlower": 76.6889,
+      "fiveMedZero": 76.6889,
+      "officialSelectedTen": 42.1353,
+      "officialSelectedSlower": 50.4228,
+      "officialSelectedZero": 50.4228
     },
-    {
-      "ticker": "UPS",
-      "official": 4.3465,
-      "flat": 43.9684,
-      "historical": 76.0867,
-      "dampened": 3.817,
-      "blended": 37.4756,
-      "officialGrowth": 6.78,
-      "officialWindow": "5y",
-      "officialReason": "historical",
-      "officialTerminalGrowth": 4,
-      "growth10": 14.2,
-      "growth5": 6.78,
-      "excludedAfterSplit": false
-    },
-    {
-      "ticker": "BA",
-      "official": 76.852,
-      "flat": 94.4515,
-      "historical": null,
-      "dampened": 72.575,
-      "blended": 29.7774,
-      "officialGrowth": 5.57,
-      "officialWindow": "5y",
-      "officialReason": "historical",
-      "officialTerminalGrowth": 4,
-      "growth10": 6.28,
-      "growth5": 5.57,
-      "excludedAfterSplit": false
-    },
-    {
-      "ticker": "INTC",
-      "official": 76.6889,
-      "flat": 28.7116,
-      "historical": 46.6721,
-      "dampened": 55.4474,
-      "blended": 32.4725,
-      "officialGrowth": 0,
-      "officialWindow": "5y",
-      "officialReason": "zeroed",
-      "officialTerminalGrowth": 4,
-      "growth10": 10.73,
-      "growth5": -1.5,
-      "excludedAfterSplit": false
-    },
-    {
-      "ticker": "IBM",
-      "official": 96.4063,
-      "flat": 62.2431,
-      "historical": 14.0934,
-      "dampened": 88.8921,
-      "blended": 69.2477,
-      "officialGrowth": 1.87,
-      "officialWindow": "5y",
-      "officialReason": "historical",
-      "officialTerminalGrowth": 4,
-      "growth10": 10.68,
-      "growth5": 1.87,
-      "excludedAfterSplit": false
-    }
-  ]
+    "officialMixedBeatsFlatCashZero": 2,
+    "rows": [
+      {
+        "ticker": "GE",
+        "officialMixed": 49.8013,
+        "flatCashZero": 31.9143,
+        "fiveMedTen": 83.5399,
+        "fiveMedSlower": 49.8013,
+        "fiveMedZero": 22.3296,
+        "officialSelectedTen": 85.1572,
+        "officialSelectedSlower": 51.642,
+        "officialSelectedZero": 24.2702,
+        "officialGrowth": 3.93,
+        "officialWindow": "5y",
+        "growth10": 9.12,
+        "growth5": 3.93,
+        "excludedAfterSplit": false
+      },
+      {
+        "ticker": "UPS",
+        "officialMixed": 4.3465,
+        "flatCashZero": 43.9684,
+        "fiveMedTen": 57.3822,
+        "fiveMedSlower": 4.3465,
+        "fiveMedZero": 44.2369,
+        "officialSelectedTen": 76.1065,
+        "officialSelectedSlower": 25.3078,
+        "officialSelectedZero": 23.7703,
+        "officialGrowth": 6.78,
+        "officialWindow": "5y",
+        "growth10": 14.2,
+        "growth5": 6.78,
+        "excludedAfterSplit": false
+      },
+      {
+        "ticker": "BA",
+        "officialMixed": 76.852,
+        "flatCashZero": 94.4515,
+        "fiveMedTen": 72.3677,
+        "fiveMedSlower": 76.852,
+        "fiveMedZero": 108.4404,
+        "officialSelectedTen": 42.1353,
+        "officialSelectedSlower": 47.0854,
+        "officialSelectedZero": 83.0847,
+        "officialGrowth": 5.57,
+        "officialWindow": "5y",
+        "growth10": 6.28,
+        "growth5": 5.57,
+        "excludedAfterSplit": false
+      },
+      {
+        "ticker": "INTC",
+        "officialMixed": 76.6889,
+        "flatCashZero": 28.7116,
+        "fiveMedTen": 2.3855,
+        "fiveMedSlower": 76.6889,
+        "fiveMedZero": 76.6889,
+        "officialSelectedTen": 26.7379,
+        "officialSelectedSlower": 50.4228,
+        "officialSelectedZero": 50.4228,
+        "officialGrowth": 0,
+        "officialWindow": "5y",
+        "growth10": 10.73,
+        "growth5": -1.5,
+        "excludedAfterSplit": false
+      },
+      {
+        "ticker": "IBM",
+        "officialMixed": 96.4063,
+        "flatCashZero": 62.2431,
+        "fiveMedTen": 39.989,
+        "fiveMedSlower": 96.4063,
+        "fiveMedZero": 106.4092,
+        "officialSelectedTen": 14.1108,
+        "officialSelectedSlower": 74.896,
+        "officialSelectedZero": 86.1782,
+        "officialGrowth": 1.87,
+        "officialWindow": "5y",
+        "growth10": 10.68,
+        "growth5": 1.87,
+        "excludedAfterSplit": false
+      }
+    ]
+  }
 }
