@@ -489,6 +489,8 @@ export function scalePerShare (pack, factor) {
     operating_income_per_share: scaleValue(row.operating_income_per_share, factor),
     free_cash_flow_per_share: scaleValue(row.free_cash_flow_per_share, factor),
     book_value_per_share: scaleValue(row.book_value_per_share, factor),
+    operating_cash_flow_per_share: scaleValue(row.operating_cash_flow_per_share, factor),
+    capex_per_share: scaleValue(row.capex_per_share, factor),
   })
   return {
     ...pack,
@@ -535,6 +537,144 @@ async function loadFacts (symbol) {
 }
 
 const findYear = (series, fy) => series.find((item) => item.fy === fy)?.val ?? null
+
+
+// First-release non-operating whitelist: totals only. Component tags in the
+// same family are ignored so a total and its parts cannot be added twice.
+export const QUALITY_WHITELIST_CONCEPTS = ['EquitySecuritiesFvNiGainLoss']
+const NET_INCOME_CONCEPTS = ['NetIncomeLoss', 'ProfitLoss']
+const IFRS_NET_INCOME_CONCEPTS = ['ProfitLoss']
+const OPERATING_INCOME_CONCEPTS = ['OperatingIncomeLoss']
+const IFRS_OPERATING_INCOME_CONCEPTS = ['ProfitLossFromOperatingActivities']
+
+function conceptUnits (facts, concept, unit, taxonomyName = 'us-gaap') {
+  return taxonomy(facts)[taxonomyName]?.[concept]?.units?.[unit] || []
+}
+
+function annualByYear (facts, concepts, unit, taxonomyName = 'us-gaap') {
+  const byYear = new Map()
+  for (const concept of concepts) {
+    for (const point of annualConcept(facts, concept, unit, taxonomyName)) {
+      if (!byYear.has(point.fy)) byYear.set(point.fy, point)
+    }
+    if (byYear.size) break
+  }
+  return byYear
+}
+
+function preferAnnualByYear (facts, gaapConcepts, ifrsConcepts, unit) {
+  const gaap = annualByYear(facts, gaapConcepts, unit, 'us-gaap')
+  if (gaap.size) return gaap
+  if (ifrsConcepts?.length) return annualByYear(facts, ifrsConcepts, unit, 'ifrs-full')
+  return gaap
+}
+
+const fullYear = (item) => {
+  const days = durationDays(item)
+  return days == null || (days >= 350 && days <= 378)
+}
+
+const ytdSpan = (item) => {
+  const days = durationDays(item)
+  return days != null && days >= 75 && days <= 290
+}
+
+function pickDuration (entries, predicate, preferEarliest = false) {
+  const matches = entries.filter((item) => Number.isFinite(item.val) && predicate(item))
+  if (!matches.length) return null
+  return [...matches].sort((a, b) => preferEarliest
+    ? String(a.filed || '').localeCompare(String(b.filed || ''))
+    : String(b.filed || '').localeCompare(String(a.filed || '')))[0]
+}
+
+/**
+ * Twelve-month total ending on `end`, using a full-year fact when one exists
+ * or the same 10-Q current/comparative bridge as trailing EPS. A single
+ * quarter is never treated as TTM.
+ */
+export function trailingTotal (entries, end, annualPoint) {
+  if (!end) return null
+  const direct = pickDuration(entries, (item) => item.end === end && fullYear(item))
+  if (direct) return { val: direct.val, end: direct.end, start: direct.start || null }
+  if (!annualPoint?.end || !annualPoint.start || !fullYear(annualPoint)) return null
+  const next = Date.parse(annualPoint.end) + 86400000
+  const quarters = entries.filter((item) =>
+    (item.form === '10-Q' || item.form === '20-F') && item.accn && item.filed >= item.end
+    && Number.isFinite(item.val) && ytdSpan(item))
+  const current = quarters.filter((item) => Date.parse(item.start) === next && item.end === end)
+    .sort((a, b) => b.end.localeCompare(a.end) || a.filed.localeCompare(b.filed))[0]
+  if (!current || current.filed <= annualPoint.filed) return null
+  const prior = quarters.find((item) => item.accn === current.accn && item.start === annualPoint.start
+    && Math.abs(durationDays(item) - durationDays(current)) <= 7)
+  if (!prior) return null
+  const original = quarters.filter((item) => item.start === prior.start && item.end === prior.end && item.filed <= annualPoint.filed)
+    .sort((a, b) => b.filed.localeCompare(a.filed))[0]
+  if (!original || original.val !== prior.val) return null
+  return { val: annualPoint.val + current.val - prior.val, end: current.end, start: annualPoint.start }
+}
+
+function firstPresentEntries (facts, concepts, unit, taxonomies = ['us-gaap', 'ifrs-full']) {
+  for (const taxonomyName of taxonomies) {
+    for (const concept of concepts) {
+      const entries = conceptUnits(facts, concept, unit, taxonomyName)
+      if (entries.length) return { concept, taxonomyName, entries }
+    }
+  }
+  return { concept: null, taxonomyName: null, entries: [] }
+}
+
+/**
+ * Period totals used by the official quality gate. The whitelist is searched
+ * even when it is empty: a missing total is N = 0, not unknown.
+ */
+export function qualityFactsFromFacts (facts, { ttmEnd = null, ttmAnnualEnd = null } = {}) {
+  const searched = true
+  const gainMap = preferAnnualByYear(facts, QUALITY_WHITELIST_CONCEPTS, QUALITY_WHITELIST_CONCEPTS, 'USD')
+  const niMap = preferAnnualByYear(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, 'USD')
+  const oiMap = preferAnnualByYear(facts, OPERATING_INCOME_CONCEPTS, IFRS_OPERATING_INCOME_CONCEPTS, 'USD')
+  const years = new Set([...gainMap.keys(), ...niMap.keys(), ...oiMap.keys()])
+  const annual = [...years].sort((a, b) => a - b).map((fy) => ({
+    fy,
+    end: gainMap.get(fy)?.end || niMap.get(fy)?.end || oiMap.get(fy)?.end || null,
+    n: gainMap.has(fy) ? gainMap.get(fy).val : 0,
+    ni: niMap.get(fy)?.val ?? null,
+    oi: oiMap.get(fy)?.val ?? null,
+    searched,
+  }))
+  const gainEntries = firstPresentEntries(facts, QUALITY_WHITELIST_CONCEPTS, 'USD').entries
+  const niEntries = firstPresentEntries(facts, [...NET_INCOME_CONCEPTS, ...IFRS_NET_INCOME_CONCEPTS], 'USD').entries
+  const oiEntries = firstPresentEntries(facts, [...OPERATING_INCOME_CONCEPTS, ...IFRS_OPERATING_INCOME_CONCEPTS], 'USD').entries
+  const annualEnd = ttmAnnualEnd || annual.at(-1)?.end || null
+  const annualPointFor = (entries) => {
+    if (!annualEnd) return null
+    return pickDuration(entries, (item) => item.end === annualEnd && (item.form === '10-K' || item.form === '20-F' || item.fp === 'FY') && fullYear(item))
+      || pickDuration(entries, (item) => item.end === annualEnd && fullYear(item))
+  }
+  const end = ttmEnd || annualEnd
+  const ttm = end
+    ? {
+        end,
+        n: trailingTotal(gainEntries, end, annualPointFor(gainEntries))?.val ?? (end === annualEnd ? (annual.at(-1)?.n ?? 0) : null),
+        ni: trailingTotal(niEntries, end, annualPointFor(niEntries))?.val ?? (end === annualEnd ? (annual.at(-1)?.ni ?? null) : null),
+        oi: trailingTotal(oiEntries, end, annualPointFor(oiEntries))?.val ?? (end === annualEnd ? (annual.at(-1)?.oi ?? null) : null),
+        searched,
+      }
+    : null
+  // A searched miss on the same fiscal-year period is N = 0. A TTM period that
+  // cannot be bridged stays null so the quality gate can mark it unknown.
+  if (ttm && ttm.n == null && ttm.searched && end === annualEnd) ttm.n = 0
+  return { annual, ttm, searched }
+}
+
+function attachQuality (row, fy, quality) {
+  const match = quality.annual.find((item) => item.fy === fy)
+    || quality.annual.find((item) => item.end && row.date && item.end.slice(0, 7) === String(row.date).slice(0, 7))
+  row.quality_facts_searched = true
+  row.equity_securities_fv_ni_gain_loss = match ? match.n : 0
+  row.net_income = match?.ni ?? null
+  row.operating_income = match?.oi ?? null
+  return row
+}
 
 function assemble (facts) {
   const { series: reportedEps, points: epsFacts } = earningsPerShare(facts)
@@ -601,6 +741,20 @@ function assemble (facts) {
     }
   })
   const latestEpsYear = keptEps.at(-1)?.fy || years.at(-1) || 0
+  const trailingPreview = trailingReportedEps(epsFacts, keptEps.at(-1))
+  const quality = qualityFactsFromFacts(facts, {
+    ttmEnd: trailingPreview?.end || keptEps.at(-1)?.end || null,
+    ttmAnnualEnd: keptEps.at(-1)?.end || null,
+  })
+  for (const row of rows) {
+    const fy = Number(String(row.date || '').slice(0, 4))
+    attachQuality(row, fy, quality)
+    const capexVal = findYear(capex, fy)
+    row.operating_cash_flow_per_share = perShare(ocf, fy)
+    row.capex_per_share = capexVal == null || !(shareFor(fy) > 0)
+      ? null
+      : Number((Math.abs(capexVal) / shareFor(fy)).toFixed(4))
+  }
   const fcfHistory = rows
     .filter((row) => row.free_cash_flow_per_share != null)
     .map((row) => ({ fy: Number(row.date.slice(0, 4)), val: row.free_cash_flow_per_share }))
@@ -633,6 +787,11 @@ function assemble (facts) {
       cashflow_growth_5y: recentFcf ? growthWindow(fcfHistory, 5) : null,
       cashflow_growth_1y: recentFcf ? growthWindow(fcfHistory, 1) : null,
       predictability: predictability(keptEps),
+      ttm_nonoperating_gain: quality.ttm?.n ?? null,
+      ttm_net_income: quality.ttm?.ni ?? null,
+      ttm_operating_income: quality.ttm?.oi ?? null,
+      ttm_quality_as_of: quality.ttm?.end ?? trailingEps?.end ?? lastAnnualEps?.end ?? null,
+      ttm_quality_facts_searched: true,
     },
   }
 }

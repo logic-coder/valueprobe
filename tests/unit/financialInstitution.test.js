@@ -126,12 +126,12 @@ describe('financial institution detector', () => {
 describe('watchlist and compare share the page model', () => {
   it('prices CMB and ICBC on residual income at 10%', () => {
     // Margin is a number under the public policy (the UI appends the percent sign).
-    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 51.81, mos: 16.77 })
-    expect(defaultView(loadFixture('SHSE-601398'), 4)).toEqual({ fairValue: 10.95, mos: 17.26 })
+    expect(defaultView(loadFixture('SHSE-600036'), 4)).toEqual({ fairValue: 50.51, mos: 14.63 })
+    expect(defaultView(loadFixture('SHSE-601398'), 4)).toEqual({ fairValue: 10.68, mos: 15.17 })
   })
 
   it('prices JPM on residual income, not the 520.84 owner-earnings annuity', () => {
-    expect(defaultView(loadFixture('NYSE-JPM'), 4).fairValue).toBe(153.11)
+    expect(defaultView(loadFixture('NYSE-JPM'), 4).fairValue).toBe(142.73)
   })
 
   it('keeps a Tencent-shaped payload (invest, not flagged) on the owner model', () => {

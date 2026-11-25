@@ -217,9 +217,10 @@ describe('buildDefaults', () => {
     expect(dcfForm.freecashflowGrowthRate).toBe(15)
   })
 
-  it('seeds a 0% start when earnings exist but history is missing', () => {
-    const { dcfForm } = buildDefaults(4, { ttm_eps: 1, price: '1' }, 1)
+  it('seeds a 0% start when a positive official base exists but history is missing', () => {
+    const { dcfForm } = buildDefaults(4, { earnings_base: 1, ttm_eps: 1, price: '1' }, 1)
     expect(dcfForm.growthRate).toBe(0)
+    expect(dcfForm.eps).toBe(1)
     expect(dcfForm.terminalGrowthRate).toBe(4)
     expect(dcfForm.freecashflowGrowthRate).toBeNull()
   })
@@ -237,8 +238,8 @@ describe('buildDefaults', () => {
     expect(buildDefaults(4, { price: '1' }, undefined).dcfForm.freecashflow).toBeNull()
   })
 
-  it('keeps a reported zero', () => {
-    const { dcfForm } = buildDefaults(4, { ttm_eps: 0, ttm_eps_nri: null, price: '1' }, 0)
+  it('keeps an official zero base and does not replace it with trailing earnings', () => {
+    const { dcfForm } = buildDefaults(4, { earnings_base: 0, ttm_eps: 2, ttm_eps_nri: null, price: '1' }, 0)
     expect(dcfForm.eps).toBe(0)
     expect(dcfForm.freecashflow).toBe(0)
   })
@@ -247,21 +248,25 @@ describe('buildDefaults', () => {
 
 describe('normalized earnings base', () => {
   const annual = (rows) => ({ financials: { annual: rows }, ttm_eps: rows.at(-1)?.eps_without_nri ?? null })
+  const weighted = (values) => values.reduce((sum, value, index) => sum + value * (index + 1), 0)
+    / (values.length * (values.length + 1) / 2)
 
-  it('uses the five-year median when the latest year is more than 40% from it', () => {
+  it('uses recency-weighted fiscal years instead of a 40% latest-vs-median cliff', () => {
     const stock = annual([
       { eps_without_nri: 6.23 }, { eps_without_nri: 8.31 }, { eps_without_nri: 9.33 },
       { eps_without_nri: 6.47 }, { eps_without_nri: 0.47 },
     ])
-    expect(normalizedEpsBase(stock)).toBe(6.47)
+    expect(normalizedEpsBase(stock)).toBeCloseTo(weighted([6.23, 8.31, 9.33, 6.47, 0.47]), 4)
+    expect(normalizedEpsBase(stock)).not.toBe(6.47)
+    expect(normalizedEpsBase(stock)).not.toBe(0.47)
   })
 
-  it('keeps the latest year when it is within 40% of the median', () => {
+  it('does not snap to the latest year just because it is close to the median', () => {
     const stock = annual([
       { eps_without_nri: 6 }, { eps_without_nri: 7 }, { eps_without_nri: 8 },
       { eps_without_nri: 9 }, { eps_without_nri: 8.5 },
     ])
-    expect(normalizedEpsBase(stock)).toBe(8.5)
+    expect(normalizedEpsBase(stock)).toBeCloseTo(weighted([6, 7, 8, 9, 8.5]), 4)
   })
 
   it('uses normalised earnings as the official base and does not average in cash', () => {
@@ -272,8 +277,9 @@ describe('normalized earnings base', () => {
       { eps_without_nri: 6.47, free_cash_flow_per_share: 4.8966 },
       { eps_without_nri: 0.47, free_cash_flow_per_share: 3.0228 },
     ])
-    expect(normalizedEarningsBase(stock)).toBe(6.47)
-    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(6.47)
+    const expected = Number(weighted([6.23, 8.31, 9.33, 6.47, 0.47]).toFixed(4))
+    expect(normalizedEarningsBase(stock)).toBe(expected)
+    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(expected)
   })
 
   it('does not average two cash years into a fake median and falls back to earnings', () => {
@@ -283,7 +289,7 @@ describe('normalized earnings base', () => {
       { eps_without_nri: 8, free_cash_flow_per_share: 6 },
     ])
     expect(sustainableCashBase(stock)).toBeNull()
-    expect(normalizedEarningsBase(stock)).toBe(8)
+    expect(normalizedEarningsBase(stock)).toBe(Number(weighted([6, 7, 8]).toFixed(4)))
   })
 
   it('uses normalised earnings for a financial institution as well, without averaging cash', () => {
@@ -292,8 +298,9 @@ describe('normalized earnings base', () => {
       { eps_without_nri: 1.1, free_cash_flow_per_share: 6 },
       { eps_without_nri: 1.2, free_cash_flow_per_share: 7 },
     ])
-    expect(normalizedEarningsBase(stock, { midpointCash: false })).toBe(1.2)
-    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(1.2)
+    const expected = Number(weighted([1.0, 1.1, 1.2]).toFixed(4))
+    expect(normalizedEarningsBase(stock, { midpointCash: false })).toBe(expected)
+    expect(normalizedEarningsBase(stock, { midpointCash: true })).toBe(expected)
   })
 
   it('skips a missing year in the five-year window instead of treating it as zero', () => {
@@ -301,22 +308,29 @@ describe('normalized earnings base', () => {
       { eps_without_nri: 5.66 }, { eps_without_nri: null }, { eps_without_nri: 6.58 },
       { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
     ]
-    // Median of the four reported years is 10.49; 19.23 is more than 40% from it.
-    expect(normalizedEpsBase(annual(rows))).toBeCloseTo((6.58 + 14.4) / 2, 10)
+    expect(normalizedEpsBase(annual(rows))).toBeCloseTo(weighted([5.66, 6.58, 14.4, 19.23]), 4)
     rows[1] = { eps_without_nri: '' }
-    expect(normalizedEpsBase(annual(rows))).toBeCloseTo((6.58 + 14.4) / 2, 10)
+    expect(normalizedEpsBase(annual(rows))).toBeCloseTo(weighted([5.66, 6.58, 14.4, 19.23]), 4)
   })
 
-  it('still treats an explicit zero as a real observation in the five-year median', () => {
+  it('still treats an explicit zero as a real observation in the weighted window', () => {
     const stock = annual([
       { eps_without_nri: 5.66 }, { eps_without_nri: 0 }, { eps_without_nri: 6.58 },
       { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
     ])
-    expect(normalizedEpsBase(stock)).toBe(6.58)
+    expect(normalizedEpsBase(stock)).toBeCloseTo(weighted([5.66, 0, 6.58, 14.4, 19.23]), 4)
     const asString = annual([
       { eps_without_nri: 5.66 }, { eps_without_nri: '0' }, { eps_without_nri: 6.58 },
       { eps_without_nri: 14.4 }, { eps_without_nri: 19.23 },
     ])
-    expect(normalizedEpsBase(asString)).toBe(6.58)
+    expect(normalizedEpsBase(asString)).toBeCloseTo(weighted([5.66, 0, 6.58, 14.4, 19.23]), 4)
+  })
+
+  it('does not fall back to trailing twelve-month earnings', () => {
+    const stock = annual([
+      { eps_without_nri: -1 }, { eps_without_nri: -2 }, { eps_without_nri: -3 },
+    ])
+    stock.ttm_eps = 9
+    expect(normalizedEpsBase(stock)).toBeNull()
   })
 })

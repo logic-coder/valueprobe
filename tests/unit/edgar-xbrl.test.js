@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, quoteSplitFactor, scalePerShare } from '../../src/data/providers/edgar-xbrl'
+import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, qualityFactsFromFacts, quoteSplitFactor, scalePerShare, trailingTotal } from '../../src/data/providers/edgar-xbrl'
+import { QUALITY, classifyEarningsQuality } from '../../src/lib/valuationBase'
 import interimEps from '../fixtures/edgar-interim-eps.json'
 
 const year = (fy, val, extra = {}) => ({
@@ -737,3 +738,69 @@ describe('EDGAR depreciation and share-based compensation lines', () => {
   })
 })
 
+
+
+describe('EDGAR quality metadata', () => {
+  it('records whitelist totals and leaves a searched miss at zero rather than unknown', () => {
+    const table = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2024, 8.04), year(2025, 10.81)]],
+      EquitySecuritiesFvNiGainLoss: ['USD', [year(2024, 37.14e8), year(2025, 240.80e8)]],
+      NetIncomeLoss: ['USD', [year(2024, 1001.18e8), year(2025, 1321.70e8)]],
+      OperatingIncomeLoss: ['USD', [year(2024, 1123.90e8), year(2025, 1290.39e8)]],
+    }))
+    const row2024 = table.annual.find((row) => row.date.startsWith('2024'))
+    const row2025 = table.annual.find((row) => row.date.startsWith('2025'))
+    expect(row2024.quality_facts_searched).toBe(true)
+    expect(row2024.equity_securities_fv_ni_gain_loss).toBe(37.14e8)
+    expect(row2025.equity_securities_fv_ni_gain_loss).toBe(240.80e8)
+    expect(classifyEarningsQuality({
+      n: row2024.equity_securities_fv_ni_gain_loss, ni: row2024.net_income, oi: row2024.operating_income, searched: true,
+    })).toBe(QUALITY.CLEAN)
+    expect(classifyEarningsQuality({
+      n: row2025.equity_securities_fv_ni_gain_loss, ni: row2025.net_income, oi: row2025.operating_income, searched: true,
+    })).toBe(QUALITY.NONOPERATING)
+
+    const noWhitelist = financialsFromFacts(facts({
+      EarningsPerShareDiluted: ['USD/shares', [year(2024, 8), year(2025, 9)]],
+      NetIncomeLoss: ['USD', [year(2024, 80), year(2025, 90)]],
+      OperatingIncomeLoss: ['USD', [year(2024, 100), year(2025, 110)]],
+    }))
+    expect(noWhitelist.annual.at(-1).quality_facts_searched).toBe(true)
+    expect(noWhitelist.annual.at(-1).equity_securities_fv_ni_gain_loss).toBe(0)
+  })
+
+  it('bridges a twelve-month whitelist total and does not treat one quarter as TTM', () => {
+    const annual = year(2025, 240.80e8, { start: '2025-01-01', end: '2025-12-31', filed: '2026-02-05', accn: 'fy' })
+    const ytdPriorOriginal = {
+      fy: 2025, fp: 'Q3', form: '10-Q', val: 217.78e8, start: '2025-01-01', end: '2025-09-30',
+      filed: '2025-10-29', accn: 'prior-q3',
+    }
+    const currentYtd = {
+      fy: 2026, fp: 'Q3', form: '10-Q', val: 1272.82e8, start: '2026-01-01', end: '2026-09-30',
+      filed: '2026-10-29', accn: 'q3',
+    }
+    const priorComparative = {
+      fy: 2025, fp: 'Q3', form: '10-Q', val: 217.78e8, start: '2025-01-01', end: '2025-09-30',
+      filed: '2026-10-29', accn: 'q3',
+    }
+    const oneQuarter = {
+      fy: 2026, fp: 'Q2', form: '10-Q', val: 990.31e8, start: '2026-04-01', end: '2026-06-30',
+      filed: '2026-07-24', accn: 'q2',
+    }
+    const quality = qualityFactsFromFacts({
+      'us-gaap': {
+        EquitySecuritiesFvNiGainLoss: { units: { USD: [annual, ytdPriorOriginal, currentYtd, priorComparative, oneQuarter] } },
+        NetIncomeLoss: { units: { USD: [
+          year(2025, 1321.70e8, { start: '2025-01-01', end: '2025-12-31', filed: '2026-02-05', accn: 'fy' }),
+        ] } },
+        OperatingIncomeLoss: { units: { USD: [
+          year(2025, 1290.39e8, { start: '2025-01-01', end: '2025-12-31', filed: '2026-02-05', accn: 'fy' }),
+        ] } },
+      },
+    }, { ttmEnd: '2026-09-30', ttmAnnualEnd: '2025-12-31' })
+    expect(quality.ttm.n).toBeCloseTo(1295.84e8, 0)
+    expect(quality.ttm.n).not.toBe(990.31e8)
+    expect(quality.annual.find((row) => row.fy === 2025).n).toBe(240.80e8)
+    expect(trailingTotal([annual, oneQuarter], '2026-06-30', annual)).toBeNull()
+  })
+})

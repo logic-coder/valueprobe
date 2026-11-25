@@ -14,6 +14,8 @@ export const REASON = Object.freeze({
   CASH_UNRECONCILED: 'CASH_UNRECONCILED',
   // Negative or conflicting history, and the latest reported EPS is not positive.
   UNSTABLE_BASE_REGIME: 'UNSTABLE_BASE_REGIME',
+  // No clean complete fiscal year can form a positive official base. TTM is display-only.
+  BASE_QUALITY_INSUFFICIENT: 'BASE_QUALITY_INSUFFICIENT',
 })
 
 export const WARNING = Object.freeze({
@@ -59,6 +61,18 @@ export const WARNING = Object.freeze({
   // A kept snapshot took a fresh quote after a failed filings refresh: a split
   // since the last filing cannot be ruled out, so the two sides may not share a basis.
   SPLIT_UNVERIFIED: 'SPLIT_UNVERIFIED',
+  // Latest two clean years confirm a new earnings platform; the base uses the last three weighted years.
+  PERSISTENT_STEP_BASE: 'PERSISTENT_STEP_BASE',
+  // TTM includes a material non-operating gain and is not used as the official base.
+  TTM_NONOPERATING: 'TTM_NONOPERATING',
+  // TTM non-operating quality could not be confirmed; TTM is not used as the official base.
+  TTM_QUALITY_UNKNOWN: 'TTM_QUALITY_UNKNOWN',
+  // TTM is more than 180 days later than the annual cash date; cash still participates.
+  CASH_PERIOD_LAG: 'CASH_PERIOD_LAG',
+  // Fewer than three complete fiscal years; a short-history normalisation was used.
+  BASE_HISTORY_SHORT: 'BASE_HISTORY_SHORT',
+  // Some fiscal years are non-operating or unknown and were down-weighted; they cannot confirm a step.
+  BASE_QUALITY_REDUCED: 'BASE_QUALITY_REDUCED',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

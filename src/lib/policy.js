@@ -28,7 +28,7 @@ export const POLICY_V1 = deepFreeze({
     terminalBoundary: 'shared-effective-growth',
     band: 'disclosed-window-and-cash-earnings-envelope',
     cashCrossCheck: 'midpoint-when-gap-50-to-200',
-    earningsBase: 'normalized-or-latest-fy-upshift',
+    earningsBase: 'weighted-or-persistent-step',
     publicationGate: 'cash-unreconciled-over-3x',
     officialGrowth: 'slower-of-two-clipped-windows',
     insuranceEvidence: 'underwriting-insurers',
@@ -93,7 +93,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '5e20efa4a63b89b7f46efa4170588cfa775c3ad3bda1f225c5454eafb0741978'
+export const POLICY_V1_HASH = '07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -130,11 +130,15 @@ export function quoteDateStatus (price, priceDate, referenceDate = new Date().to
 const close4 = (left, right) => left != null && right != null && Math.abs(left - right) < 0.00015
 
 /** Which ingredient official `eps` came from. Disclosure only; does not change the base. */
-function describeBaseKind (eps, latest, normalized, cash, financial, { upshift = false, blend = null } = {}) {
+function describeBaseKind (eps, latest, normalized, cash, financial, { upshift = false, blend = null, method = null } = {}) {
   if (eps == null) return null
   if (blend === 'midpoint') return 'midpoint'
+  if (method === 'persistent-step') return 'persistent-step'
+  if (method === 'short-history') return 'short-history'
+  if (method === 'median-fallback') return 'median-fallback'
   if (upshift) return 'latest-fiscal'
   if (financial) return 'normalized'
+  if (method === 'weighted') return 'normalized'
   if (normalized != null && close4(eps, normalized)) return 'normalized'
   if (cash > 0 && close4(eps, cash) && !(normalized > 0)) return 'cash'
   if (latest != null && close4(eps, latest)) return 'latest'
@@ -189,6 +193,14 @@ const emptyInputs = () => ({
   latestFyEps: null,
   latestFyFcf: null,
   baseUpshift: false,
+  baseMethod: null,
+  baseAsOf: null,
+  cashAsOf: null,
+  ttmAsOf: null,
+  ttmQuality: null,
+  capexToOcf: null,
+  capexToRevenue: null,
+  maintenanceCapexMethod: null,
   daPerShare: null,
   maintenanceCapexProxy: null,
   sbcPerShare: null,
@@ -296,8 +308,10 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   if (stock.split_unverified === true) warnings.push(WARNING.SPLIT_UNVERIFIED)
 
   // ---- earnings base ------------------------------------------------------
+  // Official earnings_base is already chosen from complete fiscal years.
+  // TTM (policyEps) stays a display figure and is not a fallback base.
   const latestEps = num(policyEps(stock))
-  const earningsSide = num(stock.earnings_base) ?? latestEps
+  const earningsSide = num(stock.earnings_base)
   const cashSide = num(stock.cash_base)
   const epsNormalized = num(stock.eps_normalized)
   const upshift = stock.base_upshift === true
@@ -317,17 +331,30 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.latestFyEps = num(stock.latest_fy_eps)
   inputs.latestFyFcf = num(stock.latest_fy_fcf)
   inputs.baseUpshift = upshift
+  inputs.baseMethod = stock.base_method || null
+  inputs.baseAsOf = stock.base_as_of || null
+  inputs.cashAsOf = stock.cash_as_of || null
+  inputs.ttmAsOf = stock.ttm_as_of || null
+  inputs.ttmQuality = stock.ttm_eps_quality || null
+  inputs.capexToOcf = num(stock.capex_to_ocf)
+  inputs.capexToRevenue = num(stock.capex_to_revenue)
+  inputs.maintenanceCapexMethod = stock.maintenance_capex_method || null
   inputs.daPerShare = daPerShare
   inputs.maintenanceCapexProxy = maintenanceCapexProxy
   inputs.sbcPerShare = sbcPerShare
   inputs.ownerBaseGap = stock.owner_base_gap === true || daPerShare == null
   inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashSide, stock.financial_institution === true, {
-    upshift, blend: blended.action,
+    upshift, blend: blended.action, method: stock.base_method || null,
   })
-  if (earningsSide === null) reasons.push(REASON.NO_EPS)
+  if (stock.base_refusal && REASON[stock.base_refusal]) reasons.push(REASON[stock.base_refusal])
+  else if (earningsSide === null) reasons.push(REASON.NO_EPS)
   else if (earningsSide <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)
-  if (upshift) warnings.push(WARNING.LATEST_FY_BASE)
+  if (Array.isArray(stock.base_warnings)) {
+    for (const code of stock.base_warnings) {
+      if (WARNING[code]) warnings.push(WARNING[code])
+    }
+  }
 
   // ---- growth -------------------------------------------------------------
   // A cash-only base without a reported EPS (Visa) is not enough to assume 0%.

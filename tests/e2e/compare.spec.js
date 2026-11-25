@@ -32,7 +32,7 @@ test('adds a symbol from the input and drops one from its row', async ({ page })
 test('preserves the published value when individual sources fail', async ({ page }) => {
   page.apiMock.fail = true
   await page.goto('/#/compare?s=NASDAQ:AAPL')
-  await expect(page.locator('.cmp__table tbody tr')).toContainText('115.44')
+  await expect(page.locator('.cmp__table tbody tr')).toContainText('150.47')
   await expect(page.locator('.cmp__failed')).toHaveCount(0)
 })
 
@@ -46,7 +46,7 @@ test('reaches the page from the header icon', async ({ page }) => {
 
 test('queues a stock from its header and restores the queue', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.76', { timeout: 20000 })
+  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.68', { timeout: 20000 })
   await page.locator('.compare-button').click()
   await expect(page.locator('.compare-button')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.locator('.compare-link')).toHaveAttribute('href', /SHSE:601398/)

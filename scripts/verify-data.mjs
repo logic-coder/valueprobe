@@ -165,7 +165,7 @@ groups.length === 9 ? ok('cross-listing report', groups.length + ' pairs') : fai
 // diluted EPS, so a few percent is expected. Any NEW mismatch (or a resolved one that
 // this list has not been updated for) fails the gate so a data regression cannot hide
 // behind a familiar list.
-const KNOWN_CROSS_LISTING_MISMATCHES = ['BYD', 'PING_AN']
+const KNOWN_CROSS_LISTING_MISMATCHES = ['BYD']
 const mismatched = artifact.crossListing.filter((row) => row.status === 'input-mismatch').map((row) => row.id).sort()
 const expected = [...KNOWN_CROSS_LISTING_MISMATCHES].sort()
 const sameMismatches = mismatched.length === expected.length && mismatched.every((id, index) => id === expected[index])

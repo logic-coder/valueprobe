@@ -88,8 +88,8 @@ describe('forecast-validation harness', () => {
     expect(Number.isFinite(ba.cashCells.officialSelected.slower)).toBe(true)
 
     const intc = report.debugSet.rows.find((row) => row.ticker === 'INTC')
-    expect(intc.blend).toBe('midpoint')
-    expect(intc.bases.earnings).toBe(0.85)
+    expect(intc.blend).toBe('earnings')
+    expect(intc.bases.earnings).toBe(1.02)
     expect(intc.bases.cash).toBe(1.4284)
     expect(intc.growths.slower).toBe(0)
     expect(intc.growths.five).toBe(0)
@@ -118,9 +118,9 @@ describe('forecast-validation harness', () => {
     expect(legacy.medians.fiveMedTen).toBe(57.3822)
     expect(legacy.medians.fiveMedSlower).toBe(76.6889)
     // Official selected base (including the INTC midpoint) with the old scorer.
-    expect(legacy.medians.officialSelectedTen).toBe(42.1353)
-    expect(legacy.medians.officialSelectedSlower).toBe(50.4228)
-    expect(legacy.medians.officialSelectedZero).toBe(50.4228)
+    expect(legacy.medians.officialSelectedTen).toBe(62.2006)
+    expect(legacy.medians.officialSelectedSlower).toBe(60.6202)
+    expect(legacy.medians.officialSelectedZero).toBe(60.6202)
     expect(legacy.officialMixedBeatsFlatCashZero).toBe(2)
     const frozen = JSON.parse(readFileSync(LEGACY_GORDON_OUT, 'utf8'))
     expect(frozen.medians.official).toBe(76.6889)

@@ -1,5 +1,6 @@
 // Published rows consume the same release record on both list pages.
 import { policyValue, quoteDateStatus } from './policy'
+import { toStock } from './stockRecord'
 import { symbolOf } from './fx'
 import { peerRow } from './peers'
 import { REASON } from './reasons'
@@ -40,7 +41,10 @@ export function publishedRow (row, entry, translate, unavailable = false) {
  */
 export function defaultView (stock, indicator = null) {
   if (!stock) return { fairValue: null, mos: null }
-  const value = policyValue(stock, { rate: indicator === undefined ? null : indicator })
+  const official = (stock.earnings_base == null && !stock.base_refusal && stock.financials)
+    ? toStock(stock)
+    : stock
+  const value = policyValue(official, { rate: indicator === undefined ? null : indicator })
   if (value.status !== 'ok') return { fairValue: null, mos: null }
   return { fairValue: value.value, mos: value.marginOfSafety }
 }

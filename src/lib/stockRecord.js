@@ -2,7 +2,8 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth, windowGrowth } from './assumptions'
-import { isSynchronousUpshift, latestFiscalValue, normalizedEarningsBase, normalizedEpsBase, sustainableCashBase } from './dcf'
+import { latestFiscalValue } from './dcf'
+import { selectOfficialBase } from './valuationBase'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -108,22 +109,33 @@ export function toStock (raw) {
   const annual = raw.financials?.annual
   const da = latestPerShare(annual, 'depreciation_amortization_per_share')
   const sbc = latestPerShare(annual, 'share_based_comp_per_share')
-  // Official sides start as five-year normalised earnings and the three-year
-  // cash median. When earnings and cash have risen together off an earlier
-  // plateau, both sides switch to the latest complete fiscal year.
-  stock.eps_normalized = normalizedEpsBase(raw)
+  // Official sides come from valuationBase: recency-weighted fiscal-year
+  // earnings, a persistent step when it is confirmed, and same-period cash.
+  // TTM is classified for display and never becomes the official base.
+  const official = selectOfficialBase(raw, { financial: classification.financial === true })
+  stock.eps_normalized = official.epsNormalized
   stock.latest_fy_eps = latestFiscalValue(annual, 'eps_without_nri')
   stock.latest_fy_fcf = latestFiscalValue(annual, 'free_cash_flow_per_share')
-  stock.cash_median = sustainableCashBase(raw)
-  stock.base_upshift = isSynchronousUpshift(annual)
-  if (stock.base_upshift && stock.latest_fy_eps > 0 && stock.latest_fy_fcf > 0) {
-    stock.earnings_base = stock.latest_fy_eps
-    stock.cash_base = stock.latest_fy_fcf
-  } else {
-    stock.base_upshift = false
-    stock.earnings_base = normalizedEarningsBase(raw)
-    stock.cash_base = stock.cash_median
-  }
+  stock.cash_median = official.cashBase
+  stock.base_upshift = false
+  stock.base_method = official.method
+  stock.base_as_of = official.baseAsOf
+  stock.cash_as_of = official.cashAsOf
+  stock.ttm_as_of = official.ttmAsOf
+  stock.cash_lag_days = official.cashLagDays
+  stock.ttm_eps_quality = official.ttmQuality
+  stock.ttm_nonoperating_gain = official.ttmNonoperatingGain
+  stock.ttm_quality_as_of = official.ttmQualityAsOf
+  stock.capex_per_share = official.capexPerShare
+  stock.ocf_per_share = official.ocfPerShare
+  stock.capex_to_ocf = official.capexToOcf
+  stock.capex_to_revenue = official.capexToRevenue
+  stock.maintenance_capex_method = official.maintenanceCapexMethod
+  stock.base_warnings = official.warnings
+  stock.base_refusal = official.refusal
+  stock.persistent_step = official.step?.hit === true
+  stock.earnings_base = official.earningsBase
+  stock.cash_base = official.cashBase
   stock.da_per_share = da
   stock.maintenance_capex_proxy = da
   stock.sbc_per_share = sbc

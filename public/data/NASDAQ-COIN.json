@@ -36,7 +36,11 @@
         "depreciation_amortization_per_share": null,
         "share_based_comp_per_share": null,
         "dividends_per_share": null,
-        "book_value_per_share": null
+        "book_value_per_share": null,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": null,
+        "operating_income": null
       },
       {
         "date": "2019-12",
@@ -48,7 +52,11 @@
         "depreciation_amortization_per_share": 0.2753,
         "share_based_comp_per_share": 0.508,
         "dividends_per_share": null,
-        "book_value_per_share": 7.2148
+        "book_value_per_share": 7.2148,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -30387000,
+        "operating_income": -45783000
       },
       {
         "date": "2020-12",
@@ -60,7 +68,11 @@
         "depreciation_amortization_per_share": 0.3395,
         "share_based_comp_per_share": 0.7735,
         "dividends_per_share": null,
-        "book_value_per_share": 5.5856
+        "book_value_per_share": 5.5856,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": 322317000,
+        "operating_income": 408951000
       },
       {
         "date": "2021-12",
@@ -72,7 +84,11 @@
         "depreciation_amortization_per_share": 0.2894,
         "share_based_comp_per_share": 3.731,
         "dividends_per_share": null,
-        "book_value_per_share": 25.3642
+        "book_value_per_share": 25.3642,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": 3624120000,
+        "operating_income": 3076570000
       },
       {
         "date": "2022-12",
@@ -84,7 +100,11 @@
         "depreciation_amortization_per_share": 0.6929,
         "share_based_comp_per_share": 7.0425,
         "dividends_per_share": null,
-        "book_value_per_share": 19.0936
+        "book_value_per_share": 19.0936,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -2624949000,
+        "operating_income": -2710208000
       },
       {
         "date": "2023-12",
@@ -96,7 +116,11 @@
         "depreciation_amortization_per_share": 0.5489,
         "share_based_comp_per_share": 3.0688,
         "dividends_per_share": null,
-        "book_value_per_share": 19.8732
+        "book_value_per_share": 19.8732,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 24368000,
+        "net_income": 94871000,
+        "operating_income": -161662000
       },
       {
         "date": "2024-12",
@@ -108,7 +132,11 @@
         "depreciation_amortization_per_share": 0.4665,
         "share_based_comp_per_share": 3.3391,
         "dividends_per_share": null,
-        "book_value_per_share": 33.2521
+        "book_value_per_share": 33.2521,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": -11553000,
+        "net_income": 2579066000,
+        "operating_income": 2307160000
       },
       {
         "date": "2025-12",
@@ -120,7 +148,11 @@
         "depreciation_amortization_per_share": 0.6561,
         "share_based_comp_per_share": 2.9227,
         "dividends_per_share": null,
-        "book_value_per_share": 32.124
+        "book_value_per_share": 32.124,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 680520000,
+        "net_income": 1260327000,
+        "operating_income": 1435441000
       }
     ],
     "ttm": [
@@ -332,5 +364,10 @@
         32.124
       ]
     ]
-  }
+  },
+  "ttm_nonoperating_gain": -366828000,
+  "ttm_net_income": -701621000,
+  "ttm_operating_income": 200513000,
+  "ttm_quality_as_of": "2026-09-30",
+  "ttm_quality_facts_searched": true
 }

@@ -7,7 +7,7 @@ const FAIR = '.text-h6.button-font-weight'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.76', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.68', { timeout: 20000 })
 })
 
 test('stars a stock, lists it, keeps it across a reload and removes it', async ({ page }) => {
@@ -20,7 +20,7 @@ test('stars a stock, lists it, keeps it across a reload and removes it', async (
   await page.locator('.watch-link').click()
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
   await expect(page.locator('.wl__table tbody tr')).toContainText('SHSE:601398')
-  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.76')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.68')
   await expect(page.locator('.wl__table tbody tr')).toContainText('16.08%')
 
   await page.reload()
@@ -36,7 +36,7 @@ test('shows an empty state that links back', async ({ page }) => {
   await expect(page.locator('.watchlist .muted')).toContainText('还没有自选股')
   await expect(page.locator('.ticker')).toHaveCount(0)
   await page.locator('.watchlist .muted a').click()
-  await expect(page.getByTestId('home-valuation-preview')).toContainText('10.76', { timeout: 20000 })
+  await expect(page.getByTestId('home-valuation-preview')).toContainText('10.68', { timeout: 20000 })
 })
 
 test('exports the list and imports it back', async ({ page }) => {
@@ -83,7 +83,7 @@ test('preserves the published estimate when individual sources fail', async ({ p
   page.apiMock.fail = true
   await page.goto('/#/watchlist')
   await page.reload() // the init script only runs in a fresh document
-  await expect(page.locator('.wl__table tbody tr')).toContainText('115.44')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('150.47')
   await expect(page.locator('.wl__failed')).toHaveCount(0)
 })
 
@@ -92,5 +92,5 @@ test('opens a watched stock from the list', async ({ page }) => {
   await page.locator('.watch-link').click()
   await page.locator('.wl__table tbody th a').click()
   await expect(page).toHaveURL(/SHSE:601398/)
-  await expect(page.locator(FAIR)).toContainText('10.76', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.68', { timeout: 20000 })
 })

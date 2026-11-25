@@ -1,16 +1,22 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { defaultView, publishedRow } from '../../src/lib/watchlistView'
-import fixture from '../../src/data/bundled/stock_icbc.json'
+import { policyValue } from '../../src/lib/policy'
+import { toStock } from '../../src/lib/stockRecord'
 
 describe('watchlist default view', () => {
   it('reproduces the public policy value for a real payload', () => {
-    const view = defaultView(fixture, 6) // 6 + 6 is the page's 12% seed in the specs
-    expect(view.fairValue).toBe(13.17)
-    expect(view.mos).toBeCloseTo(32.8, 1)
+    const rates = JSON.parse(readFileSync('public/data/rates.json', 'utf8'))
+    const stock = toStock(JSON.parse(readFileSync('public/data/SHSE-601398.json', 'utf8')))
+    const view = defaultView(stock, rates.CNY.value)
+    const value = policyValue(stock, { rate: rates.CNY.value, generatedAt: '2026-11-23' })
+    expect(view.fairValue).toBe(value.value)
+    expect(view.mos).toBe(value.marginOfSafety)
+    expect(view.fairValue).toBeGreaterThan(0)
   })
 
   it('keeps a value when the price is missing and only drops the margin', () => {
-    const view = defaultView({ ttm_eps: 1.08, earning_growth_10y: 3, tangible_book: 11.24 })
+    const view = defaultView({ earnings_base: 1.08, ttm_eps: 1.08, earning_growth_10y: 3, tangible_book: 11.24 })
     expect(view.fairValue).toBeGreaterThan(0)
     expect(view.mos).toBeNull()
   })

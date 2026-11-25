@@ -66,15 +66,19 @@ describe('earnings input boundary', () => {
   it('keeps explicit zero and string zero for publish and the calculator', () => {
     for (const stock of [{ ttm_eps_nri: 0 }, { ttm_eps: '0' }, { ttm_eps_nri: '', ttm_eps: 0 }]) {
       expect(policyEps(stock)).toBe(0)
-      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBe(0)
-      expect(policyValue({ ...stock, currency: '$', earning_growth_10y: 3, price: '$10' }, { rates: rateRows }).reasons).toContain(REASON.NON_POSITIVE_EPS)
+      // Trailing EPS is display-only. The official form and published path
+      // need an official fiscal-year base, including an explicit zero.
+      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBeNull()
+      expect(policyValue({ ...stock, earnings_base: 0, currency: '$', earning_growth_10y: 3, price: '$10' }, { rates: rateRows }).reasons).toContain(REASON.NON_POSITIVE_EPS)
+      expect(buildDefaults(5, { ...stock, earnings_base: 0 }, 0).dcfForm.eps).toBe(0)
     }
   })
 
   it('skips blanks and invalid values instead of turning them into zero', () => {
     for (const stock of [{ ttm_eps_nri: null, ttm_eps: 2 }, { ttm_eps_nri: '', ttm_eps: 2 }, { ttm_eps_nri: 'n/a', ttm_eps: 2 }]) {
       expect(policyEps(stock)).toBe(2)
-      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBe(2)
+      expect(buildDefaults(5, stock, 0).dcfForm.eps).toBeNull()
+      expect(buildDefaults(5, { ...stock, earnings_base: 2 }, 0).dcfForm.eps).toBe(2)
     }
     for (const stock of [null, {}, { ttm_eps_nri: null, ttm_eps: '' }, { ttm_eps: 'n/a' }]) {
       expect(policyEps(stock)).toBeNull()
@@ -206,7 +210,7 @@ describe('classification evidence is disclosed, never a silent guess', () => {
     const raw = {
       exchange_: 'NYSE', symbol: 'X', company: 'Acme', price: '$50', ttm_eps: 1,
       tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
-      financials: { annual: [{ book_value_per_share: 100 }] },
+      financials: { annual: [{ date: '2025-12', book_value_per_share: 100, eps_without_nri: 1 }] },
     }
     const value = policyValue(stockOf(raw), { rates: rateRows, generatedAt: artifact.generatedAt })
     expect(value.status).toBe('ok')
@@ -220,7 +224,7 @@ describe('cash is a cross-check after the official base is chosen', () => {
     exchange_: 'SHSE', symbol: '600000', price: '¥50', ttm_eps: ttm,
     tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
     financials: { annual: annual.map((row) => typeof row === 'number' || row == null
-      ? { free_cash_flow_per_share: row } : row) },
+      ? { free_cash_flow_per_share: row, eps_without_nri: ttm } : row) },
   })
 
   it('refuses when the cash and earnings valuations still differ by more than 3×', () => {
@@ -242,10 +246,12 @@ describe('cash is a cross-check after the official base is chosen', () => {
     ]
     const value = policyValue(stockOf(raw(rows, 24)), { rates: rateRows, generatedAt: '2026-11-18' })
     expect(value.status).toBe('ok')
-    expect(value.inputs.eps).toBe(18)
-    expect(Math.abs(value.cash.gapPct)).toBeGreaterThanOrEqual(50)
-    expect(Math.abs(value.cash.gapPct)).toBeLessThanOrEqual(200)
+    expect(value.inputs.eps).toBeCloseTo((22.6667 + 12) / 2, 3)
     expect(value.warnings).toContain(WARNING.CASH_MIDPOINT)
+    // cash.gapPct is signed cash/earnings, which can be just under 50% even
+    // when the symmetric gap used for midpoint selection is in the 50–200% band.
+    expect(Math.abs(value.cash.gapPct)).toBeGreaterThan(40)
+    expect(Math.abs(value.cash.gapPct)).toBeLessThan(200)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
     expect(value.band.mid).toBe(value.value)
     expect(value.band.low).toBeLessThan(value.cash.value)
@@ -324,8 +330,11 @@ describe('centered envelope and regime rules', () => {
     const { value } = at('NASDAQ:MSFT')
     expect(value.inputs.growth).toBe(15)
     expect(value.inputs.growth5).toBeGreaterThan(15)
-    const low = owner(value, value.inputs.discountRate + 2, 15)
-    expect(value.band.low).toBe(low)
+    const lowMid = owner(value, value.inputs.discountRate + 2, 15)
+    const lowCash = value.cash?.base != null
+      ? presentValue(value.inputs.tangibleBook, value.inputs.years, value.inputs.discountRate + 2, 15, value.cash.base, value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
+      : lowMid
+    expect(value.band.low).toBe(Math.min(lowMid, lowCash))
   })
 
   it('does not invent a 15% high for Tesla-style zeroed five-year history', () => {
@@ -382,29 +391,29 @@ describe('the committed artifact is what the policy produces', () => {
 
   it('publishes the pinned values and refusals', () => {
     const entry = (symbol) => artifact.entries[symbol]
-    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.76 })
+    expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.68 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
-    expect(entry('NASDAQ:AAPL').value).toBe(115.44)
-    expect(entry('NYSE:TSM')).toMatchObject({ value: 144.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 6.25 } })
-    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 355.97, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
+    expect(entry('NASDAQ:AAPL').value).toBe(150.47)
+    expect(entry('NYSE:TSM')).toMatchObject({ value: 125.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 5.4265 } })
+    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 313.71, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
-    expect(entry('NYSE:GPC').value).toBe(81.55)
+    expect(entry('NYSE:GPC').value).toBe(66.44)
     expect(entry('NYSE:GPC').warnings).toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NYSE:GPC')).toMatchObject({
       inputs: expect.objectContaining({
         epsLatest: expect.any(Number),
         epsNormalized: expect.any(Number),
         cashMedian: expect.any(Number),
-        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable)$/),
+        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable|persistent-step|short-history|median-fallback)$/),
       }),
     })
-    expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('normalized')
+    expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('persistent-step')
     expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
-    expect(entry('SHSE:601398').value).toBe(10.76)
-    expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 136.16 })
+    expect(entry('SHSE:601398').value).toBe(10.68)
+    expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 139.91 })
     expect(entry('NASDAQ:FISV').warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NASDAQ:FISV').reasons).not.toContain(REASON.UNSTABLE_BASE_REGIME)
     expect(entry('NYSE:V')).toMatchObject({ status: 'refused', value: null })
@@ -426,7 +435,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeCloseTo(-30.33, 2)
+    expect(byd.valueDiffPct).toBeCloseTo(-53.36, 2)
   })
 })
 
@@ -453,9 +462,10 @@ describe('calculator seed and policy inputs cannot drift', () => {
   })
 
   it('keeps the watchlist overview on the same function', () => {
-    const fixture = readJson('src/data/bundled/stock_icbc.json')
-    const view = defaultView(fixture, 6)
-    expect(view.fairValue).toBe(13.17)
-    expect(view.mos).toBeCloseTo(32.8, 1)
+    const stock = stockOf(readJson('public/data/SHSE-601398.json'))
+    const view = defaultView(stock, ratesFile.CNY.value)
+    const value = policyValue(stock, { rates: rateRows, generatedAt: artifact.generatedAt })
+    expect(view.fairValue).toBe(value.value)
+    expect(view.mos).toBe(value.marginOfSafety)
   })
 })

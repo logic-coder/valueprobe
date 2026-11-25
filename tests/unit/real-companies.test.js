@@ -31,12 +31,12 @@ describe('public policy v3 regression runs on the committed artifact', () => {
 })
 
 describe('SHSE:601398 - residual income on a real bank', () => {
-  it('publishes the public v3 value around 10.76 on the residual model', () => {
+  it('publishes the public v3 value around 10.68 on the residual model', () => {
     const value = valueOf('SHSE:601398')
     expect(value.status).toBe('ok')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
     // Public policy v3 golden for ICBC: update only with a policy version bump.
-    expect(value.value).toBeCloseTo(10.76, 2)
+    expect(value.value).toBeCloseTo(10.68, 2)
     expect(value.value).toBe(published('SHSE:601398').value)
     expect(value.inputs.rate.proxy).toBeNull()
     expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.CNY.value))
@@ -58,28 +58,30 @@ describe('US listings keep a published value', () => {
 })
 
 
-describe('NASDAQ:NVDA is published on the latest complete fiscal year after a synchronous upshift', () => {
-  it('uses the latest fiscal year earnings base, not the five-year median or trailing earnings', () => {
+describe('NASDAQ:NVDA is published on a confirmed persistent step, not the single latest year', () => {
+  it('uses the last three years of weighted earnings, not trailing earnings or the latest year alone', () => {
     const value = valueOf('NASDAQ:NVDA')
     expect(value.status).toBe('ok')
-    expect(value.value).toBeCloseTo(113.04, 2)
+    expect(value.value).toBeCloseTo(83.71, 2)
     expect(value.value).toBe(published('NASDAQ:NVDA').value)
-    expect(value.inputs.eps).toBeCloseTo(4.9, 4)
+    expect(value.inputs.eps).toBeCloseTo(3.6283, 4)
     expect(value.inputs.epsLatest).toBeCloseTo(7.91, 2)
-    expect(value.warnings).toContain(WARNING.LATEST_FY_BASE)
+    expect(value.warnings).toContain(WARNING.PERSISTENT_STEP_BASE)
+    expect(value.warnings).not.toContain(WARNING.LATEST_FY_BASE)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
   })
 })
 
 describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
-  it('publishes Progressive on the residual model and does not invent a cash veto', () => {
+  it('refuses Progressive when no complete fiscal year is clean, and does not invent a cash veto', () => {
     const value = valueOf('NYSE:PGR')
-    expect(value.status).toBe('ok')
+    expect(value.status).toBe('refused')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
+    expect(value.reasons).toContain(REASON.BASE_QUALITY_INSUFFICIENT)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
-    expect(value.value).toBeGreaterThan(0)
+    expect(value.value).toBeNull()
     expect(value.value).toBe(published('NYSE:PGR').value)
-    expect(published('NYSE:PGR').status).toBe('ok')
+    expect(published('NYSE:PGR').status).toBe('refused')
   })
 })
 describe('refusals name the missing fact instead of inventing one', () => {

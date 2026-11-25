@@ -9,7 +9,7 @@ const DISCOUNT = '.input-section'
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.76', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText('10.68', { timeout: 20000 })
 })
 
 test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
@@ -54,7 +54,7 @@ test('D5: a fallback source is announced, not silently used', async ({ page }) =
 test('a US quote and EDGAR fundamentals meet on one page', async ({ page }) => {
   await page.goto('/#/stock/NASDAQ:AAPL/dcf')
   await expect(page.locator('.stock-head h1')).toHaveText('Apple Inc.', { timeout: 25000 })
-  await expect(page.locator('.dcf')).toContainText('$ 115.44')
+  await expect(page.locator('.dcf')).toContainText('$ 150.47')
 })
 
 test('D7: an unreachable source set says so instead of leaving a skeleton', async ({ page }) => {
@@ -73,7 +73,7 @@ test('D7: an unreachable source set says so instead of leaving a skeleton', asyn
 })
 
 test('D6: the display currency converts results and says the inputs stay native', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 10.76')
+  await expect(page.locator(FAIR)).toContainText('¥ 10.68')
   await page.locator('.currency-select').click()
   await page.locator('.q-menu .q-item', { hasText: 'USD' }).click()
   await expect(page.locator(FAIR)).toContainText('≈ $1.51')

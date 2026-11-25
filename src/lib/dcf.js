@@ -2,6 +2,7 @@
 // shows, adds a continuing value after the second stage.
 import { adoptGrowth, officialGrowth } from './assumptions'
 import { defaultDiscountRate } from './riskFree'
+import { selectOfficialBase } from './valuationBase'
 
 export const round2 = (value) => Math.round(100 * value) / 100
 
@@ -487,35 +488,13 @@ export function blendOfficialBase (earnings, cash, { financial = false } = {}) {
   return { base: earnings, action: 'earnings', gap }
 }
 
-const medianOf = (values) => {
-  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b)
-  if (!sorted.length) return null
-  const middle = sorted.length >> 1
-  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
-}
-
 /**
- * Reported earnings, five-year normalised away from a single outlier year.
- * If the latest year and the five-year median are both positive and the latest
- * year is more than 40% from the median, the median is the repeatable figure.
- * Otherwise the latest year is used; if either side is not positive, fall back
- * to preferred EPS (TTM).
+ * Reported earnings, recency-weighted across up to five complete fiscal years
+ * with quality down-weights. A confirmed persistent step uses the last three
+ * weighted years. TTM is never a fallback official base.
  */
 export function normalizedEpsBase (stock) {
-  const annual = stock?.financials?.annual
-  const eps = []
-  if (Array.isArray(annual)) {
-    for (const row of annual.slice(-5)) {
-      const raw = row?.eps_without_nri
-      if (raw === null || raw === undefined || raw === '') continue
-      const parsed = Number(raw)
-      if (Number.isFinite(parsed)) eps.push(parsed)
-    }
-  }
-  const latest = eps.at(-1)
-  const median = medianOf(eps)
-  if (!(latest > 0) || !(median > 0)) return preferredEps(stock)
-  return Math.abs(latest / median - 1) > 0.4 ? median : latest
+  return selectOfficialBase(stock).earningsBase
 }
 
 /**
@@ -543,7 +522,7 @@ export function buildDefaults (indicator, stock, freeCashFlow) {
   stock = stock || {}
   const discountRate = defaultDiscountRate(indicator)
   const latestEps = preferredEps(stock)
-  const earnings = Number.isFinite(stock.earnings_base) ? stock.earnings_base : latestEps
+  const earnings = Number.isFinite(stock.earnings_base) ? stock.earnings_base : null
   const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
   const blended = blendOfficialBase(earnings, cashBase, { financial: stock.financial_institution === true })
   const eps = blended.action === 'refuse' || blended.action === 'none' ? earnings : blended.base

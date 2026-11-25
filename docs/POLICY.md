@@ -8,7 +8,7 @@
 
 | 参数 | 现行值（官方 v3） | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `repeatable-earnings`：通常为五年正常化每股收益。若盈利与现金流同步抬升，且最近完整财年高于更早高点的 2 倍，两边都改用该财年（不是 TTM）。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
+| 估值基数 | `repeatable-earnings`：最多五年完整财年每股收益按近因加权正常化（干净年份权重 1.0，非经营或未知 0.25）。非金融企业若确认持续盈利台阶，改用最近三年加权值（`PERSISTENT_STEP_BASE`）。近十二个月盈利只展示，不作为正式基数。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
@@ -52,6 +52,7 @@
 | `NO_SNAPSHOT` | 没有可用的本地快照。 |
 | `NO_EPS` | 快照里没有每股收益。 |
 | `NON_POSITIVE_EPS` | 每股收益不为正，折现模型不出值。 |
+| `BASE_QUALITY_INSUFFICIENT` | 有年度每股收益，但窗口内没有可形成正正式基数的干净完整财年。 |
 | `NO_GROWTH` | 没有可用的历史增速，且不符合「无窗但有报告盈利、基数为正则按 0% 起点」的条件。 |
 | `NO_BOOK` | 金融机构需要正的每股有形账面价值。 |
 | `NOT_FINITE` | 计算结果不是有限正数，不出值。 |
@@ -85,7 +86,13 @@
 | `TERMINAL_CAPPED` | 终值输入高于折现率减 2 个百分点，按有效增速封顶。 |
 | `CASH_DIVERGENCE` | 现金核对与盈利估值相差 25–49%，只披露仍发布。 |
 | `CASH_MIDPOINT` | 两边都能形成正估值且对称差距 50%–200%，公开值取中点；区间覆盖这两套估值。 |
-| `LATEST_FY_BASE` | 盈利与现金流同步抬升，且最近完整财年高于更早高点的 2 倍，两边基数都改用该财年。 |
+| `LATEST_FY_BASE` | 历史工件用语：盈利与现金流同步抬升时两边曾改用最近完整财年。新政策不再发出此码，改为 `PERSISTENT_STEP_BASE`。定义保留以便读取旧工件。 |
+| `PERSISTENT_STEP_BASE` | 最近两年确认新盈利平台，基数改用最近三年加权正常化盈利。 |
+| `TTM_NONOPERATING` | 近十二个月盈利含重大非经营收益，未用于正式基数。 |
+| `TTM_QUALITY_UNKNOWN` | 近十二个月盈利的非经营质量无法确认，未用于正式基数。 |
+| `CASH_PERIOD_LAG` | 近十二个月盈利比年度现金截止日晚 180 天以上；仅提示，同期间年度现金仍可参与核对。 |
+| `BASE_HISTORY_SHORT` | 完整财年不足三年，按短历史正常化。 |
+| `BASE_QUALITY_REDUCED` | 部分完整财年含非经营收益或质量未知，已降低权重且不得用于确认台阶。 |
 | `CLASSIFICATION_UNVERIFIED` | 仅因缺列归入某一模型，且另一模型结果差异较大。 |
 | `NORMALIZED_EPS` | 发布基数是可重复盈利，与最近一期报告每股收益相差 25% 或以上。 |
 | `LIFE_BOOK_QUALITY` | 寿险公司的有形账面可能受债券未实现损益和递延获客成本扭曲，剩余收益结果应谨慎阅读。 |
@@ -109,7 +116,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
 | `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。 |
-| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, epsLatest, epsNormalized, cashMedian, baseKind, growth, growthWindow, growthCap, growth10, growth5, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。`growthWindow` 为 `10y` / `5y` / `none`；`growthCap` 为当时适用的 15 或 10；`growth10` / `growth5` 是重算后的原始窗口，供对照。`eps` 是官方基数，`epsLatest` 是最近报告每股收益，`epsNormalized` 是五年正常化，`cashMedian` 是三年现金中位数，`baseKind` 是 `midpoint` / `normalized` / `cash` / `latest` / `repeatable`，只作披露，不改基数定义。估值区间只扰动折现率 ±2 个百分点，不是情景包络。 |
+| `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, epsLatest, epsNormalized, cashMedian, baseKind, growth, growthWindow, growthCap, growth10, growth5, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。`growthWindow` 为 `10y` / `5y` / `none`；`growthCap` 为当时适用的 15 或 10；`growth10` / `growth5` 是重算后的原始窗口，供对照。`eps` 是官方基数，`epsLatest` 是最近报告每股收益，`epsNormalized` 是五年正常化，`cashMedian` 是三年现金中位数，`baseKind` 是 `midpoint` / `normalized` / `persistent-step` / `short-history` / `median-fallback` / `cash` / `latest` / `repeatable`，只作披露，不改基数定义。`inputs` 另含 `baseMethod`、`baseAsOf`、`cashAsOf`、`ttmAsOf`、`ttmQuality` 及 capex 诊断。估值区间是已披露假设的情景包络。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
 
@@ -178,11 +185,11 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-23。政策哈希为 `5e20efa4a63b89b7f46efa4170588cfa775c3ad3bda1f225c5454eafb0741978`（2026-11-25 居中估值三规则修订了 `POLICY_V1`）。`upstreamCheckedAt` 为 2026-11-23T12:55:13.240Z（真实上游核验时间，本轮离线重算未改）。发布状态 `partial`。
+- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-23。政策哈希为 `07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e`（2026-11-25 估值基数修复修订了 `POLICY_V1`）。`upstreamCheckedAt` 为 2026-11-23T12:55:13.240Z（真实上游核验时间，本轮离线重算未改）。发布状态 `partial`。
 - 利率：CNY 1.5861（asOf 2026-11-23，live）、USD 4.92（asOf 2026-11-20，live）、HKD 4.92（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币现为 11%（ceil(4.92)+6；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
-- 声明、快照与估值条目各 500 条，有值 450 条，拒绝 50 条（冻结 v2：407 / 93；上一份带日期刷新工件、政策哈希 `dd3549a33d…`：392 / 108）。`CASH_UNRECONCILED` 23 条（仅对称差距大于 200% 时拒绝）；50%–200% 改为取中点并发布，`CASH_MIDPOINT` 68 条。`LATEST_FY_BASE` 7 条。洛斯（`NYSE:L`）此前曾因现金缺口被拒绝，现已按中点规则发布。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
-- 拒绝原因出现次数，`CASH_UNRECONCILED` 23、`NO_GROWTH` 18、`NON_POSITIVE_EPS` 17、`UNSTABLE_BASE_REGIME` 6、`INDUSTRY_MODEL_PENDING` 3、`NO_EPS` 1。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 70 条。`NORMALIZED_EPS` 198 条，`CASH_DIVERGENCE`（25–49%）62 条，`CASH_MIDPOINT` 68 条，`LATEST_FY_BASE` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 61 条，`NO_WINDOW_ZERO_START` 39 条，`CAPPED_GROWTH` 87 条，`GROWTH_ABOVE_RETENTION` 27 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED` 或 `NEGATIVE_HISTORY_GROWTH`。模型为 `owner` 451 条、`residual` 49 条。
+- 声明、快照与估值条目各 500 条，有值 452 条，拒绝 48 条（冻结 v2：407 / 93；上一轮居中三规则：450 / 50）。`CASH_UNRECONCILED` 14 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 55 条。`BASE_QUALITY_INSUFFICIENT` 9 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
+- 拒绝原因出现次数，`NO_GROWTH` 15、`CASH_UNRECONCILED` 14、`NO_EPS` 11、`BASE_QUALITY_INSUFFICIENT` 9、`UNSTABLE_BASE_REGIME` 6、`NON_POSITIVE_EPS` 5、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 70 条。`NORMALIZED_EPS` 218 条，`CASH_DIVERGENCE`（25–49%）54 条，`CASH_MIDPOINT` 55 条，`PERSISTENT_STEP_BASE` 134 条，`CASH_PERIOD_LAG` 377 条，`BASE_QUALITY_REDUCED` 38 条，`TTM_NONOPERATING` 7 条，`TTM_QUALITY_UNKNOWN` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 64 条，`NO_WINDOW_ZERO_START` 42 条，`CAPPED_GROWTH` 87 条，`GROWTH_ABOVE_RETENTION` 17 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 451 条、`residual` 49 条。
 - REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条。报价 52 条带日期更新、448 条失败后保留既有报价，其中 `QUOTE_DATE_UNKNOWN` 仍为 140 条，故发布状态保持 `partial`，不把报价视为已全部核验。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 399 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；显式 `reporting_currency` 仍为 0，读时派生。
 

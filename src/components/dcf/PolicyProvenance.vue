@@ -28,6 +28,16 @@
         gap: entry.inputs.ownerBaseGap ? t('valuation_base_gap') : '',
       }) }}
     </p>
+    <p v-if="entry.inputs.baseAsOf || entry.inputs.cashAsOf || entry.inputs.ttmAsOf">
+      {{ t('valuation_base_periods', {
+        baseAsOf: formatDate(entry.inputs.baseAsOf),
+        cashAsOf: formatDate(entry.inputs.cashAsOf),
+        ttmAsOf: formatDate(entry.inputs.ttmAsOf),
+        ttmNote: ttmNote,
+        capexToOcf: formatRatio(entry.inputs.capexToOcf),
+        capexToRevenue: formatRatio(entry.inputs.capexToRevenue),
+      }) }}
+    </p>
     <p>{{ t('valuation_band_note', { spread: entry.inputs.bandSpread ?? 2 }) }}</p>
     <p v-if="entry.terminalShare != null">
       {{ t('valuation_later_share', { share: percent(entry.terminalShare * 100) }) }}
@@ -60,6 +70,17 @@ const { moneyIn } = useMoney()
 const formatComponent = (value) => value == null || value === '' || !Number.isFinite(Number(value))
   ? t('valuation_base_none')
   : moneyIn(props.currency, value)
+const formatDate = (value) => value || t('valuation_base_none')
+const formatRatio = (value) => value == null || !Number.isFinite(Number(value))
+  ? t('valuation_base_none')
+  : percent(Number(value) * 100)
+const ttmNote = computed(() => {
+  const quality = props.entry.inputs?.ttmQuality
+  if (quality === 'nonoperating') return t('valuation_ttm_unused_nonoperating')
+  if (quality === 'unknown') return t('valuation_ttm_unused_unknown')
+  if (quality === 'clean') return t('valuation_ttm_unused_clean')
+  return t('valuation_ttm_unused_none')
+})
 // The dates and the stale-price flags are already shown above this block.
 const warnings = computed(() => (props.entry.warnings || []).filter((code) => ![
   'PRICE_MISSING', 'QUOTE_DATE_UNKNOWN', 'STALE_PRICE', 'EARNINGS_DATE_UNKNOWN',
