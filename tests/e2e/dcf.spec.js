@@ -102,7 +102,7 @@ test('adds tangible book value to the fair value', async ({ page }) => {
   await expect(page.getByTestId('long-run-note')).toContainText('不是内在价值')
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('27.91')
+  await expect(page.locator(FAIR)).toContainText('27.56')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
@@ -192,9 +192,18 @@ test('uses a shared pressure axis for margins below minus 100 percent', async ({
   await page.keyboard.press('Enter')
   const stress = page.getByTestId('margin-stress')
   await expect(stress.locator('.stress__axis')).not.toContainText('−100%')
+  // The published default is already the headline card; only the two stricter rows remain.
+  await expect(stress.locator('.stress__row')).toHaveCount(2)
   const widths = await stress.locator('.stress__track i').evaluateAll(bars => bars.map(bar => bar.getBoundingClientRect().width))
-  expect(widths[2]).toBeGreaterThan(widths[1])
+  expect(widths).toHaveLength(2)
   expect(widths[1]).toBeGreaterThan(widths[0])
+})
+
+test('says when the published value has no cash cross-check', async ({ page }) => {
+  await page.goto('/#/stock/NASDAQ:CHTR/dcf')
+  await expect(page.locator(FAIR)).toContainText('801.92', { timeout: 20000 })
+  await expect(page.getByTestId('dcf-cash-check')).toHaveCount(0)
+  await expect(page.getByTestId('dcf-cash-missing')).toContainText('未做现金口径核对')
 })
 
 test('editing earnings starts a trial and restores the original value on reset', async ({ page }) => {
@@ -237,7 +246,7 @@ test('keeps the card rows in a fixed order', async ({ page }) => {
     const rows = [...document.querySelectorAll('.dcf__strip > div, .dcf__form > div')]
     return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
   })
-  const expected = ['内在价值', '快照安全边际', '每股收益', '折现率', '首年增长率', '情景']
+  const expected = ['内在价值', '安全边际', '每股收益', '折现率', '首年增长率', '情景']
   const indexes = expected.map((label) => order.findIndex((row) => row.startsWith(label)))
   expect(indexes.every((index) => index >= 0)).toBe(true)
   expect([...indexes].sort((a, b) => a - b)).toEqual(indexes)

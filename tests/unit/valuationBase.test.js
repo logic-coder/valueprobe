@@ -295,6 +295,38 @@ describe('selectOfficialBase official path', () => {
     expect(result.earningsBase).not.toBe(12)
   })
 
+  it('bounds an unknown latest year with same-period cash instead of refusing', () => {
+    const raw = stockOf([
+      yearRow(2023, 4, { quality_facts_searched: false, free_cash_flow_per_share: 5 }),
+      yearRow(2024, 5, { quality_facts_searched: false, free_cash_flow_per_share: 6 }),
+      yearRow(2025, 8, { quality_facts_searched: false, free_cash_flow_per_share: 7 }),
+    ])
+    const result = selectOfficialBase(raw)
+    expect(result.refusal).toBeNull()
+    expect(result.method).toBe(BASE_METHOD.CASH_CONFIRMED_FALLBACK)
+    expect(result.earningsBase).toBe(6)
+    expect(result.cashBase).toBe(6)
+    expect(result.warnings).toContain('BASE_CASH_CONFIRMED')
+  })
+
+  it('keeps the refusal for a confirmed non-operating latest year even with positive cash', () => {
+    const raw = stockOf([
+      yearRow(2023, 4, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 50, net_income: 40, operating_income: 30, free_cash_flow_per_share: 5 }),
+      yearRow(2024, 5, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 50, net_income: 40, operating_income: 30, free_cash_flow_per_share: 6 }),
+      yearRow(2025, 6, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 50, net_income: 40, operating_income: 30, free_cash_flow_per_share: 7 }),
+    ])
+    expect(selectOfficialBase(raw).refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+  })
+
+  it('does not use cash to bound a financial residual path', () => {
+    const raw = stockOf([
+      yearRow(2023, 4, { quality_facts_searched: false, free_cash_flow_per_share: 5 }),
+      yearRow(2024, 5, { quality_facts_searched: false, free_cash_flow_per_share: 6 }),
+      yearRow(2025, 8, { quality_facts_searched: false, free_cash_flow_per_share: 7 }),
+    ])
+    expect(selectOfficialBase(raw, { financial: true }).refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+  })
+
   it('uses NON_POSITIVE_EPS when known-quality years are explicitly zero or negative', () => {
     const raw = stockOf([
       yearRow(2023, -1, { operating_income_per_share: 2, quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0, net_income: -10, operating_income: 20 }),

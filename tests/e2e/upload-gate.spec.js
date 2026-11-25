@@ -3,11 +3,12 @@ import { resolve } from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { mockApi } from './support/api-mock'
+import { PREVIEW_PORT } from '../../scripts/lib/ports.mjs'
 
 // The deploy-only gate: runs in CI after `npm run build`, against the exact
 // dist that is about to be uploaded, served under /valueprobe/ by vite preview.
 // PW_DIST keeps the full PR suite on the dev server instead.
-const BASE = 'http://127.0.0.1:4173/valueprobe/'
+const BASE = 'http://127.0.0.1:' + PREVIEW_PORT + '/valueprobe/'
 const DIST = process.env.UPLOAD_DIST || 'dist'
 const STOCK = '/valueprobe/#/stock/SHSE:601398/dcf'
 

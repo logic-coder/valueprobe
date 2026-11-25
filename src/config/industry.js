@@ -50,6 +50,9 @@ export const INDUSTRY_EVIDENCE = Object.freeze({
   'NYSE:HIG': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/874766/000087476626000012/hig-20251231.htm' }), // SIC 6331
   'NYSE:AIG': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/5272/000000527226000023/aig-20251231.htm' }), // SIC 6331
   'NYSE:ALL': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/899051/000089905126000031/all-20251231.htm' }), // SIC 6331
+  // Assurant files under SIC 6399 (Insurance Carriers, NEC), not 6331, so the
+  // earlier insurer sweep missed it and the owner model read its cash as owner earnings.
+  'NYSE:AIZ': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/1267238/000126723826000010/aiz-20251231.htm' }), // SIC 6399
   'NASDAQ:CINF': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/20286/000002028626000008/cinf-20251231.htm' }), // SIC 6331
   'NASDAQ:ACGL': Object.freeze({ industry: 'insurance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/947484/000094748426000017/acgl-20251231.htm' }), // SIC 6331
   'NYSE:SYF': Object.freeze({ industry: 'consumer-finance', financial: true, source: 'https://www.sec.gov/Archives/edgar/data/1601712/000160171226000006/syf-20251231.htm' }), // SIC 6199

@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "policyVersion": "v3",
-  "policyHash": "07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e",
+  "policyHash": "c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5",
   "generatedAt": "2026-11-25",
   "rates": {
     "asOf": "2026-11-25",
     "CNY": {
-      "value": 1.5853,
-      "asOf": "2026-11-24",
+      "value": 1.5914,
+      "asOf": "2026-11-25",
       "source": "snapshot"
     },
     "USD": {
@@ -28,8 +28,8 @@
     "missing": []
   },
   "coverage": {
-    "valued": 452,
-    "refused": 48,
+    "valued": 455,
+    "refused": 45,
     "reasons": {
       "NO_EPS": 11,
       "NON_POSITIVE_EPS": 5,
@@ -37,7 +37,7 @@
       "INDUSTRY_MODEL_PENDING": 3,
       "CASH_UNRECONCILED": 14,
       "UNSTABLE_BASE_REGIME": 6,
-      "BASE_QUALITY_INSUFFICIENT": 9
+      "BASE_QUALITY_INSUFFICIENT": 6
     },
     "warnings": {
       "CAPPED_GROWTH": 89,
@@ -45,13 +45,12 @@
       "NO_WINDOW_ZERO_START": 42,
       "GROWTH_ABOVE_RETENTION": 17,
       "STALE_DATA": 68,
-      "QUOTE_DATE_UNKNOWN": 75,
       "EARNINGS_DATE_UNKNOWN": 1,
       "CLASSIFICATION_UNVERIFIED": 1,
       "MODEL_CAVEAT": 3,
-      "CASH_DIVERGENCE": 56,
+      "CASH_DIVERGENCE": 57,
       "CASH_MIDPOINT": 53,
-      "NORMALIZED_EPS": 220,
+      "NORMALIZED_EPS": 223,
       "LIFE_BOOK_QUALITY": 3,
       "OWNER_BASE_GAP": 2,
       "REGIME_UNCERTAIN": 111,
@@ -59,11 +58,12 @@
       "TTM_NONOPERATING": 7,
       "TTM_QUALITY_UNKNOWN": 7,
       "CASH_PERIOD_LAG": 375,
-      "BASE_QUALITY_REDUCED": 38
+      "BASE_QUALITY_REDUCED": 38,
+      "BASE_CASH_CONFIRMED": 3
     },
     "models": {
-      "owner": 451,
-      "residual": 49
+      "owner": 450,
+      "residual": 50
     },
     "currencies": {
       "CNY": 50,
@@ -434,13 +434,12 @@
         "base": 10.0223,
         "gapPct": 78.4433
       },
-      "price": 68.6,
-      "priceDate": null,
-      "marginOfSafety": 30.4,
+      "price": 63.6,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 35.47,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -510,13 +509,12 @@
       },
       "terminalShare": 0.5056,
       "cash": null,
-      "price": 81.9,
-      "priceDate": null,
-      "marginOfSafety": -49.15,
+      "price": 80.35,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -46.33,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "PERSISTENT_STEP_BASE"
       ],
@@ -585,12 +583,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 133.5,
-      "priceDate": null,
-      "marginOfSafety": -53.57,
+      "price": 128.6,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -47.94,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -663,13 +660,12 @@
         "base": 11.264,
         "gapPct": 47.8854
       },
-      "price": 110.2,
-      "priceDate": null,
-      "marginOfSafety": -14.79,
+      "price": 106.6,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -11.04,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "REGIME_UNCERTAIN"
       ],
@@ -738,13 +734,12 @@
       },
       "terminalShare": 0.5445,
       "cash": null,
-      "price": 33.02,
-      "priceDate": null,
-      "marginOfSafety": 25.6,
+      "price": 32.76,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 26.18,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -890,13 +885,12 @@
         "base": 2.595,
         "gapPct": 52.1087
       },
-      "price": 13.45,
-      "priceDate": null,
-      "marginOfSafety": 72.89,
+      "price": 12.79,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 74.22,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -962,15 +956,14 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 7.89,
-      "priceDate": null,
+      "price": 7.47,
+      "priceDate": "2026-11-25",
       "marginOfSafety": null,
       "reasons": [
         "NO_EPS"
       ],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "PERSISTENT_STEP_BASE"
       ],
@@ -1039,13 +1032,12 @@
       },
       "terminalShare": 0.5424,
       "cash": null,
-      "price": 21.3,
-      "priceDate": null,
-      "marginOfSafety": 27.53,
+      "price": 21,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 28.55,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -1118,12 +1110,11 @@
         "base": 11.0076,
         "gapPct": -14.311
       },
-      "price": 375.6,
-      "priceDate": null,
-      "marginOfSafety": -50.86,
+      "price": 346.8,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -39.29,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -1196,13 +1187,12 @@
         "base": 3.2801,
         "gapPct": 57.9671
       },
-      "price": 11.46,
-      "priceDate": null,
-      "marginOfSafety": 66.05,
+      "price": 10.55,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 68.75,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -1277,12 +1267,11 @@
         "base": 12.6052,
         "gapPct": -46.4776
       },
-      "price": 372.8,
-      "priceDate": null,
-      "marginOfSafety": -18.55,
+      "price": 337.4,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -7.3,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -1356,14 +1345,13 @@
         "base": 2.0752,
         "gapPct": -33.6566
       },
-      "price": 22.28,
-      "priceDate": null,
-      "marginOfSafety": 62.88,
+      "price": 20.64,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 65.61,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "CASH_PERIOD_LAG"
       ],
@@ -1432,12 +1420,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 10.51,
-      "priceDate": null,
-      "marginOfSafety": 31.8,
+      "price": 10.21,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 33.74,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -1509,12 +1496,11 @@
         "base": 5.3954,
         "gapPct": -26.0874
       },
-      "price": 80.55,
-      "priceDate": null,
-      "marginOfSafety": 18.52,
+      "price": 78.45,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 20.65,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -1579,15 +1565,14 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 3.57,
-      "priceDate": null,
+      "price": 3.22,
+      "priceDate": "2026-11-25",
       "marginOfSafety": null,
       "reasons": [
         "UNSTABLE_BASE_REGIME"
       ],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -1730,14 +1715,13 @@
       },
       "terminalShare": 0.5056,
       "cash": null,
-      "price": 24.04,
-      "priceDate": null,
-      "marginOfSafety": -93.25,
+      "price": 19.52,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -56.91,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -1810,12 +1794,11 @@
         "base": 0.2012,
         "gapPct": -58.2237
       },
-      "price": 7.99,
-      "priceDate": null,
-      "marginOfSafety": -85.38,
+      "price": 7.73,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -79.35,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -1886,13 +1869,12 @@
       },
       "terminalShare": 0.5057,
       "cash": null,
-      "price": 29.52,
-      "priceDate": null,
-      "marginOfSafety": 48.29,
+      "price": 27.28,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 52.22,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -2035,13 +2017,12 @@
       },
       "terminalShare": 0.5055,
       "cash": null,
-      "price": 5.42,
-      "priceDate": null,
-      "marginOfSafety": -97.81,
+      "price": 5.16,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -88.32,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -2115,15 +2096,14 @@
         "base": 0.6582,
         "gapPct": -65.2393
       },
-      "price": 38.26,
-      "priceDate": null,
-      "marginOfSafety": -30,
+      "price": 37,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -25.72,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
@@ -2194,12 +2174,11 @@
       },
       "terminalShare": 0.5339,
       "cash": null,
-      "price": 64.05,
-      "priceDate": null,
-      "marginOfSafety": 40.04,
+      "price": 57.95,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 45.75,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -2268,12 +2247,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 6.87,
-      "priceDate": null,
-      "marginOfSafety": 23.41,
+      "price": 6.6,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 26.42,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -2341,13 +2319,12 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 76.85,
-      "priceDate": null,
-      "marginOfSafety": -123.66,
+      "price": 73.4,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -113.62,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -2416,14 +2393,13 @@
       },
       "terminalShare": 0.5054,
       "cash": null,
-      "price": 77.4,
-      "priceDate": null,
-      "marginOfSafety": -545.54,
+      "price": 62.5,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -421.27,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -2492,12 +2468,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 7.94,
-      "priceDate": null,
-      "marginOfSafety": 34.43,
+      "price": 7.66,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 36.75,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -2565,15 +2540,14 @@
       },
       "terminalShare": 0.5064,
       "cash": null,
-      "price": 83.5,
-      "priceDate": null,
-      "marginOfSafety": -5252.56,
+      "price": 81.6,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -5130.77,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -2642,14 +2616,13 @@
       },
       "terminalShare": 0.5543,
       "cash": null,
-      "price": 29.66,
-      "priceDate": null,
-      "marginOfSafety": 3.64,
+      "price": 26.56,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 13.71,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "GROWTH_ABOVE_RETENTION",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -3174,13 +3147,12 @@
       },
       "terminalShare": 0.5057,
       "cash": null,
-      "price": 61.2,
-      "priceDate": null,
-      "marginOfSafety": -43.49,
+      "price": 61.15,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -43.38,
       "reasons": [],
       "warnings": [
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -3250,13 +3222,12 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 26.8,
-      "priceDate": null,
-      "marginOfSafety": 38.38,
+      "price": 26,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 40.22,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -3324,13 +3295,12 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 22.58,
-      "priceDate": null,
-      "marginOfSafety": 31.37,
+      "price": 21.28,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 35.32,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -4207,13 +4177,12 @@
       },
       "terminalShare": 0.5592,
       "cash": null,
-      "price": 188.4,
-      "priceDate": null,
-      "marginOfSafety": 29.27,
+      "price": 157.9,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 40.72,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -4285,12 +4254,11 @@
         "base": 7.0617,
         "gapPct": -11.6169
       },
-      "price": 351.91,
-      "priceDate": null,
-      "marginOfSafety": -133.87,
+      "price": 354.07,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -135.31,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -5283,13 +5251,12 @@
         "base": 4.1295,
         "gapPct": 36.2362
       },
-      "price": 341.6,
-      "priceDate": null,
-      "marginOfSafety": -388.49,
+      "price": 301.08,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -330.54,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -5429,34 +5396,43 @@
     "NASDAQ:BIIB": {
       "symbol": "NASDAQ:BIIB",
       "name": "BIOGEN INC.",
-      "status": "refused",
-      "value": null,
-      "band": null,
-      "terminalShare": null,
-      "cash": null,
+      "status": "ok",
+      "value": 110.79,
+      "band": {
+        "low": 67.62,
+        "mid": 110.79,
+        "high": 153.93
+      },
+      "terminalShare": 0.5056,
+      "cash": {
+        "value": 175.72,
+        "base": 13.9415,
+        "gapPct": 58.6064
+      },
       "price": 251.41,
       "priceDate": "2026-11-18",
-      "marginOfSafety": null,
-      "reasons": [
-        "BASE_QUALITY_INSUFFICIENT"
-      ],
+      "marginOfSafety": -126.92,
+      "reasons": [],
       "warnings": [
+        "CASH_DIVERGENCE",
+        "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "TTM_QUALITY_UNKNOWN",
         "CASH_PERIOD_LAG",
-        "BASE_QUALITY_REDUCED"
+        "BASE_QUALITY_REDUCED",
+        "BASE_CASH_CONFIRMED"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": null,
+        "eps": 8.79,
         "epsLatest": 2.31,
         "epsNormalized": null,
         "cashMedian": 13.9415,
         "latestFyEps": 8.79,
         "latestFyFcf": 13.9415,
         "baseUpshift": false,
-        "baseMethod": "weighted",
+        "baseMethod": "cash-confirmed-fallback",
         "baseAsOf": "2025-12-31",
         "cashAsOf": "2025-12-31",
         "ttmAsOf": "2026-09-30",
@@ -5468,7 +5444,7 @@
         "maintenanceCapexProxy": 5.3018,
         "sbcPerShare": 1.9769,
         "ownerBaseGap": false,
-        "baseKind": null,
+        "baseKind": "cash-confirmed-fallback",
         "growth": 0,
         "growthWindow": "10y",
         "growthCap": 15,
@@ -5507,8 +5483,8 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 154.46,
-      "priceDate": null,
+      "price": 146.64,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "BASE_QUALITY_INSUFFICIENT"
@@ -5516,7 +5492,6 @@
       "warnings": [
         "CAPPED_GROWTH",
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "BASE_QUALITY_REDUCED"
       ],
       "inputs": {
@@ -6348,12 +6323,11 @@
         "base": 17.619,
         "gapPct": -8.2827
       },
-      "price": 1110.08,
-      "priceDate": null,
-      "marginOfSafety": -170.98,
+      "price": 1091.71,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -166.5,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -6501,13 +6475,11 @@
         "base": 3.2022,
         "gapPct": 10.609
       },
-      "price": 95.11,
-      "priceDate": null,
-      "marginOfSafety": -104.67,
+      "price": 93.99,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -102.26,
       "reasons": [],
-      "warnings": [
-        "QUOTE_DATE_UNKNOWN"
-      ],
+      "warnings": [],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
@@ -7947,14 +7919,13 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 170.26,
-      "priceDate": null,
+      "price": 178.29,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "UNSTABLE_BASE_REGIME"
       ],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "TTM_NONOPERATING",
@@ -8108,13 +8079,12 @@
         "base": 5.8459,
         "gapPct": -16.5925
       },
-      "price": 280.2,
-      "priceDate": null,
-      "marginOfSafety": -73.28,
+      "price": 279.05,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -72.57,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "TTM_NONOPERATING",
         "CASH_PERIOD_LAG",
@@ -8635,15 +8605,14 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 55.17,
-      "priceDate": null,
+      "price": 54.8,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "NON_POSITIVE_EPS",
         "NO_GROWTH"
       ],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
       ],
@@ -8716,13 +8685,12 @@
         "base": 21.636,
         "gapPct": 48.9555
       },
-      "price": 320.79,
-      "priceDate": null,
-      "marginOfSafety": 4.27,
+      "price": 279.42,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": 16.62,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "PERSISTENT_STEP_BASE"
       ],
@@ -8795,14 +8763,13 @@
         "base": 3.6017,
         "gapPct": -47.9027
       },
-      "price": 430.53,
-      "priceDate": null,
-      "marginOfSafety": -254.96,
+      "price": 434.46,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -258.2,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
@@ -9624,13 +9591,12 @@
         "base": 17.9134,
         "gapPct": -19.2233
       },
-      "price": 618.87,
-      "priceDate": null,
-      "marginOfSafety": -20.96,
+      "price": 589.82,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -15.28,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -9931,13 +9897,12 @@
         "base": 9.5929,
         "gapPct": -38.0639
       },
-      "price": 506.24,
-      "priceDate": null,
-      "marginOfSafety": -74.98,
+      "price": 496.13,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -71.48,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
@@ -10007,15 +9972,14 @@
         "base": 1.4827,
         "gapPct": -94.4556
       },
-      "price": 712.42,
-      "priceDate": null,
+      "price": 629.79,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "CASH_UNRECONCILED"
       ],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS"
       ],
       "inputs": {
@@ -10238,14 +10202,13 @@
       },
       "terminalShare": 0.5592,
       "cash": null,
-      "price": 59.68,
-      "priceDate": null,
-      "marginOfSafety": -21.75,
+      "price": 58.87,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -20.09,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -10465,14 +10428,13 @@
         "base": 2.4534,
         "gapPct": -32.3856
       },
-      "price": 155.46,
-      "priceDate": null,
-      "marginOfSafety": -85.71,
+      "price": 155.38,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -85.62,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "STALE_DATA",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
@@ -11000,14 +10962,13 @@
         "base": 0.4657,
         "gapPct": 18.3468
       },
-      "price": 156.56,
-      "priceDate": null,
-      "marginOfSafety": -3056.45,
+      "price": 161.18,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -3149.6,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG",
@@ -11160,12 +11121,11 @@
         "base": 5.7479,
         "gapPct": 38.5467
       },
-      "price": 58.11,
-      "priceDate": null,
-      "marginOfSafety": 22.52,
+      "price": 56.17,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": 25.11,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -12452,14 +12412,13 @@
         "base": 1.63,
         "gapPct": -74.6263
       },
-      "price": 295.86,
-      "priceDate": null,
+      "price": 258.44,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "CASH_UNRECONCILED"
       ],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -13810,7 +13769,7 @@
         "BASE_QUALITY_REDUCED"
       ],
       "inputs": {
-        "model": "owner",
+        "model": "residual",
         "basis": "repeatable-earnings",
         "eps": null,
         "epsLatest": 21.2,
@@ -13853,8 +13812,8 @@
           "source": "snapshot",
           "proxy": null
         },
-        "classification": "none",
-        "industry": null
+        "classification": "industry",
+        "industry": "insurance"
       },
       "asOf": "2026-11-25",
       "earningsDate": "2026-09-30",
@@ -18646,12 +18605,11 @@
       },
       "terminalShare": 0.5056,
       "cash": null,
-      "price": 116.94,
-      "priceDate": null,
-      "marginOfSafety": -67.13,
+      "price": 122.51,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -75.09,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "PERSISTENT_STEP_BASE"
       ],
@@ -21831,12 +21789,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 877.52,
-      "priceDate": null,
-      "marginOfSafety": -137.13,
+      "price": 806.02,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -117.81,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -22063,12 +22020,11 @@
         "base": 16.4401,
         "gapPct": 9.584
       },
-      "price": 339.01,
-      "priceDate": null,
-      "marginOfSafety": -54.79,
+      "price": 353.69,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -61.49,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -23582,12 +23538,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 329.96,
-      "priceDate": null,
-      "marginOfSafety": -141.48,
+      "price": 317.1,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -132.07,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -23973,12 +23928,11 @@
         "base": 1.2279,
         "gapPct": -52.8708
       },
-      "price": 98.09,
-      "priceDate": null,
-      "marginOfSafety": -190.04,
+      "price": 97.62,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -188.65,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -24520,15 +24474,14 @@
         "base": 4.159,
         "gapPct": -77.0284
       },
-      "price": 1382.75,
-      "priceDate": null,
+      "price": 1407.59,
+      "priceDate": "2026-11-24",
       "marginOfSafety": null,
       "reasons": [
         "CASH_UNRECONCILED"
       ],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -25062,13 +25015,12 @@
         "base": 15.4326,
         "gapPct": 2.7326
       },
-      "price": 643.37,
-      "priceDate": null,
-      "marginOfSafety": -85.64,
+      "price": 647.44,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -86.82,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
       ],
@@ -25974,34 +25926,42 @@
     "NYSE:MRK": {
       "symbol": "NYSE:MRK",
       "name": "Merck & Co., Inc.",
-      "status": "refused",
-      "value": null,
-      "band": null,
-      "terminalShare": null,
-      "cash": null,
+      "status": "ok",
+      "value": 133.48,
+      "band": {
+        "low": 102.11,
+        "mid": 133.48,
+        "high": 190.26
+      },
+      "terminalShare": 0.5592,
+      "cash": {
+        "value": 133.48,
+        "base": 5.7856,
+        "gapPct": 0
+      },
       "price": 141.57,
       "priceDate": "2026-11-24",
-      "marginOfSafety": null,
-      "reasons": [
-        "BASE_QUALITY_INSUFFICIENT"
-      ],
+      "marginOfSafety": -6.06,
+      "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "NORMALIZED_EPS",
         "TTM_NONOPERATING",
         "CASH_PERIOD_LAG",
-        "BASE_QUALITY_REDUCED"
+        "BASE_QUALITY_REDUCED",
+        "BASE_CASH_CONFIRMED"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": null,
+        "eps": 5.7856,
         "epsLatest": 0.99,
         "epsNormalized": null,
         "cashMedian": 5.7856,
         "latestFyEps": 7.28,
         "latestFyFcf": 4.9302,
         "baseUpshift": false,
-        "baseMethod": "weighted",
+        "baseMethod": "cash-confirmed-fallback",
         "baseAsOf": "2025-12-31",
         "cashAsOf": "2025-12-31",
         "ttmAsOf": "2026-09-30",
@@ -26013,7 +25973,7 @@
         "maintenanceCapexProxy": 1.2146,
         "sbcPerShare": 0.3271,
         "ownerBaseGap": false,
-        "baseKind": null,
+        "baseKind": "cash-confirmed-fallback",
         "growth": 15,
         "growthWindow": "10y",
         "growthCap": 15,
@@ -26739,12 +26699,11 @@
         "base": 2.1968,
         "gapPct": -18.7262
       },
-      "price": 35.85,
-      "priceDate": null,
-      "marginOfSafety": -5.22,
+      "price": 35.75,
+      "priceDate": "2026-11-24",
+      "marginOfSafety": -4.93,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN"
       ],
@@ -27710,34 +27669,42 @@
     "NYSE:PFE": {
       "symbol": "NYSE:PFE",
       "name": "PFIZER INC",
-      "status": "refused",
-      "value": null,
-      "band": null,
-      "terminalShare": null,
-      "cash": null,
+      "status": "ok",
+      "value": 17.14,
+      "band": {
+        "low": 10.46,
+        "mid": 17.14,
+        "high": 25.62
+      },
+      "terminalShare": 0.5058,
+      "cash": {
+        "value": 20.02,
+        "base": 1.5885,
+        "gapPct": 16.8028
+      },
       "price": 28.46,
       "priceDate": "2026-11-24",
-      "marginOfSafety": null,
-      "reasons": [
-        "BASE_QUALITY_INSUFFICIENT"
-      ],
+      "marginOfSafety": -66.04,
+      "reasons": [],
       "warnings": [
+        "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "TTM_QUALITY_UNKNOWN",
         "CASH_PERIOD_LAG",
-        "BASE_QUALITY_REDUCED"
+        "BASE_QUALITY_REDUCED",
+        "BASE_CASH_CONFIRMED"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": null,
+        "eps": 1.36,
         "epsLatest": 0.7,
         "epsNormalized": null,
         "cashMedian": 1.5885,
         "latestFyEps": 1.36,
         "latestFyFcf": 1.5885,
         "baseUpshift": false,
-        "baseMethod": "weighted",
+        "baseMethod": "cash-confirmed-fallback",
         "baseAsOf": "2025-12-31",
         "cashAsOf": "2025-12-31",
         "ttmAsOf": "2026-09-27",
@@ -27749,7 +27716,7 @@
         "maintenanceCapexProxy": 1.1539,
         "sbcPerShare": 0.1399,
         "ownerBaseGap": false,
-        "baseKind": null,
+        "baseKind": "cash-confirmed-fallback",
         "growth": 0,
         "growthWindow": "5y",
         "growthCap": 15,
@@ -34582,12 +34549,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 10.64,
-      "priceDate": null,
-      "marginOfSafety": 45.38,
+      "price": 10.67,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 45.23,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -34630,8 +34596,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -34642,7 +34608,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600000&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600016": {
       "symbol": "SHSE:600016",
@@ -34656,12 +34622,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 3.47,
-      "priceDate": null,
-      "marginOfSafety": 67.81,
+      "price": 3.51,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 67.44,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -34705,8 +34670,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -34717,7 +34682,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600016&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600028": {
       "symbol": "SHSE:600028",
@@ -34731,12 +34696,11 @@
       },
       "terminalShare": 0.5548,
       "cash": null,
-      "price": 5.87,
-      "priceDate": null,
-      "marginOfSafety": -2.09,
+      "price": 5.81,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -1.04,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -34779,8 +34743,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -34791,7 +34755,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600028&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600030": {
       "symbol": "SHSE:600030",
@@ -34852,8 +34816,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -34864,7 +34828,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600030&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600036": {
       "symbol": "SHSE:600036",
@@ -34878,12 +34842,11 @@
       },
       "terminalShare": null,
       "cash": null,
-      "price": 43.22,
-      "priceDate": null,
-      "marginOfSafety": 14.43,
+      "price": 43.2,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 14.47,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -34925,8 +34888,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -34937,7 +34900,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600036&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600050": {
       "symbol": "SHSE:600050",
@@ -35003,8 +34966,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35015,7 +34978,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600050&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600276": {
       "symbol": "SHSE:600276",
@@ -35075,8 +35038,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35087,7 +35050,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600276&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600309": {
       "symbol": "SHSE:600309",
@@ -35148,8 +35111,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35160,7 +35123,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600309&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600438": {
       "symbol": "SHSE:600438",
@@ -35174,14 +35137,13 @@
       },
       "terminalShare": 0.5556,
       "cash": null,
-      "price": 11.08,
-      "priceDate": null,
-      "marginOfSafety": -108.66,
+      "price": 11.29,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -112.62,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -35224,8 +35186,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35236,7 +35198,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600438&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600519": {
       "symbol": "SHSE:600519",
@@ -35254,12 +35216,11 @@
         "base": 53.2648,
         "gapPct": -18.8301
       },
-      "price": 1454.3,
-      "priceDate": null,
-      "marginOfSafety": 7.52,
+      "price": 1474.84,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 6.22,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -35302,8 +35263,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35314,7 +35275,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600519&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600585": {
       "symbol": "SHSE:600585",
@@ -35332,12 +35293,11 @@
         "base": 1.7414,
         "gapPct": -13.0539
       },
-      "price": 18.33,
-      "priceDate": null,
-      "marginOfSafety": 37.53,
+      "price": 17.98,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 38.72,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -35381,8 +35341,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35393,7 +35353,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600585&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600887": {
       "symbol": "SHSE:600887",
@@ -35411,12 +35371,11 @@
         "base": 2.25,
         "gapPct": 58.8918
       },
-      "price": 32.82,
-      "priceDate": null,
-      "marginOfSafety": 15.87,
+      "price": 33.58,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 13.92,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "CASH_PERIOD_LAG"
       ],
@@ -35459,8 +35418,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35471,7 +35430,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600887&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:600900": {
       "symbol": "SHSE:600900",
@@ -35485,12 +35444,11 @@
       },
       "terminalShare": 0.5671,
       "cash": null,
-      "price": 30.68,
-      "priceDate": null,
-      "marginOfSafety": -40.54,
+      "price": 31.96,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -46.4,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -35532,8 +35490,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35544,7 +35502,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH600900&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601012": {
       "symbol": "SHSE:601012",
@@ -35558,14 +35516,13 @@
       },
       "terminalShare": 0.5554,
       "cash": null,
-      "price": 10.69,
-      "priceDate": null,
-      "marginOfSafety": 37.63,
+      "price": 10.92,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 36.29,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -35608,8 +35565,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35620,7 +35577,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601012&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601088": {
       "symbol": "SHSE:601088",
@@ -35684,8 +35641,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35696,7 +35653,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601088&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601166": {
       "symbol": "SHSE:601166",
@@ -35756,8 +35713,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35768,7 +35725,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601166&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601186": {
       "symbol": "SHSE:601186",
@@ -35786,12 +35743,11 @@
         "base": 2.027,
         "gapPct": 52.1516
       },
-      "price": 5.84,
-      "priceDate": null,
-      "marginOfSafety": 76.27,
+      "price": 5.7,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 76.84,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -35836,8 +35792,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35848,7 +35804,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601186&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601225": {
       "symbol": "SHSE:601225",
@@ -35914,8 +35870,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35926,7 +35882,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601225&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601288": {
       "symbol": "SHSE:601288",
@@ -35986,8 +35942,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -35998,7 +35954,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601288&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601318": {
       "symbol": "SHSE:601318",
@@ -36058,8 +36014,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36070,7 +36026,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601318&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601328": {
       "symbol": "SHSE:601328",
@@ -36130,8 +36086,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36142,7 +36098,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601328&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601390": {
       "symbol": "SHSE:601390",
@@ -36204,8 +36160,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36216,7 +36172,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601390&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601398": {
       "symbol": "SHSE:601398",
@@ -36276,8 +36232,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36288,7 +36244,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601398&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601601": {
       "symbol": "SHSE:601601",
@@ -36349,8 +36305,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36361,7 +36317,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601601&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601628": {
       "symbol": "SHSE:601628",
@@ -36423,8 +36379,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36435,7 +36391,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601628&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601668": {
       "symbol": "SHSE:601668",
@@ -36501,8 +36457,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36513,7 +36469,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601668&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601728": {
       "symbol": "SHSE:601728",
@@ -36579,8 +36535,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36591,7 +36547,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601728&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601800": {
       "symbol": "SHSE:601800",
@@ -36658,8 +36614,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36670,7 +36626,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601800&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601857": {
       "symbol": "SHSE:601857",
@@ -36736,8 +36692,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36748,7 +36704,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601857&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601899": {
       "symbol": "SHSE:601899",
@@ -36810,8 +36766,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36822,7 +36778,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601899&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601939": {
       "symbol": "SHSE:601939",
@@ -36882,8 +36838,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36894,7 +36850,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601939&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:601988": {
       "symbol": "SHSE:601988",
@@ -36954,8 +36910,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -36966,7 +36922,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH601988&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:603259": {
       "symbol": "SHSE:603259",
@@ -37029,8 +36985,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37041,7 +36997,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH603259&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:688111": {
       "symbol": "SHSE:688111",
@@ -37104,8 +37060,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37116,7 +37072,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH688111&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SHSE:688981": {
       "symbol": "SHSE:688981",
@@ -37179,8 +37135,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37191,7 +37147,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SH688981&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000001": {
       "symbol": "SZSE:000001",
@@ -37251,8 +37207,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37263,7 +37219,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000001&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000333": {
       "symbol": "SZSE:000333",
@@ -37323,8 +37279,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37335,7 +37291,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000333&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000568": {
       "symbol": "SZSE:000568",
@@ -37396,8 +37352,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37408,7 +37364,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000568&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000651": {
       "symbol": "SZSE:000651",
@@ -37473,8 +37429,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37485,7 +37441,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000651&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000725": {
       "symbol": "SZSE:000725",
@@ -37546,8 +37502,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37558,7 +37514,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000725&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:000858": {
       "symbol": "SZSE:000858",
@@ -37624,8 +37580,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37636,7 +37592,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ000858&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:002230": {
       "symbol": "SZSE:002230",
@@ -37650,12 +37606,11 @@
       },
       "terminalShare": 0.5562,
       "cash": null,
-      "price": 36.34,
-      "priceDate": null,
-      "marginOfSafety": -1941.57,
+      "price": 34.81,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -1855.62,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -37698,8 +37653,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37710,7 +37665,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ002230&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:002304": {
       "symbol": "SZSE:002304",
@@ -37720,14 +37675,13 @@
       "band": null,
       "terminalShare": null,
       "cash": null,
-      "price": 35.58,
-      "priceDate": null,
+      "price": 34.2,
+      "priceDate": "2026-11-25",
       "marginOfSafety": null,
       "reasons": [
         "UNSTABLE_BASE_REGIME"
       ],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -37771,8 +37725,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37783,7 +37737,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ002304&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:002415": {
       "symbol": "SZSE:002415",
@@ -37847,8 +37801,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37859,7 +37813,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ002415&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:002475": {
       "symbol": "SZSE:002475",
@@ -37921,8 +37875,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -37933,7 +37887,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ002475&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:002594": {
       "symbol": "SZSE:002594",
@@ -37947,13 +37901,12 @@
       },
       "terminalShare": 0.6068,
       "cash": null,
-      "price": 80.15,
-      "priceDate": null,
-      "marginOfSafety": 58.82,
+      "price": 74.45,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 61.75,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -37996,8 +37949,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -38008,7 +37961,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ002594&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:300059": {
       "symbol": "SZSE:300059",
@@ -38022,12 +37975,11 @@
       },
       "terminalShare": 0.5756,
       "cash": null,
-      "price": 18.38,
-      "priceDate": null,
-      "marginOfSafety": -56.96,
+      "price": 17.72,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -51.32,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -38070,8 +38022,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -38082,7 +38034,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300059&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:300124": {
       "symbol": "SZSE:300124",
@@ -38096,12 +38048,11 @@
       },
       "terminalShare": 0.5934,
       "cash": null,
-      "price": 53.45,
-      "priceDate": null,
-      "marginOfSafety": -49.68,
+      "price": 52.23,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -46.26,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -38143,8 +38094,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -38155,7 +38106,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300124&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:300750": {
       "symbol": "SZSE:300750",
@@ -38169,14 +38120,13 @@
       },
       "terminalShare": 0.6068,
       "cash": null,
-      "price": 241.01,
-      "priceDate": null,
-      "marginOfSafety": 23.83,
+      "price": 208.42,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 34.13,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -38219,8 +38169,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -38231,7 +38181,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300750&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     },
     "SZSE:300760": {
       "symbol": "SZSE:300760",
@@ -38249,12 +38199,11 @@
         "base": 9.3032,
         "gapPct": 14.7494
       },
-      "price": 184.61,
-      "priceDate": null,
-      "marginOfSafety": -29.41,
+      "price": 181,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -26.88,
       "reasons": [],
       "warnings": [
-        "QUOTE_DATE_UNKNOWN",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -38297,8 +38246,8 @@
         "addToFairValue": false,
         "currency": "CNY",
         "rate": {
-          "value": 1.5853,
-          "asOf": "2026-11-24",
+          "value": 1.5914,
+          "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
         },
@@ -38309,7 +38258,7 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://emweb.securities.eastmoney.com/PC_HSF10/NewFinanceAnalysis/ZYZBAjaxNew?code=SZ300760&type=0",
-      "ratesAsOf": "2026-11-24"
+      "ratesAsOf": "2026-11-25"
     }
   }
 }

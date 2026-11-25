@@ -30,6 +30,7 @@ export const BASE_METHOD = Object.freeze({
   PERSISTENT_STEP: 'persistent-step',
   SHORT_HISTORY: 'short-history',
   MEDIAN_FALLBACK: 'median-fallback',
+  CASH_CONFIRMED_FALLBACK: 'cash-confirmed-fallback',
 })
 
 export const NI_MATERIALITY = 0.25
@@ -452,11 +453,24 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
   }
 
   const rounded = (value) => (value == null ? null : Number(Number(value).toFixed(4)))
-  const refusal = refusalOf({
+  let refusal = refusalOf({
     hasAnnualEps,
     hasCleanPositive: normalized.hasCleanPositive,
     knownNonPositive,
   })
+  // A missing quality label is a data gap, not evidence that the business has
+  // no earning power. When the latest complete year is merely unknown and
+  // same-period cash is positive, the lower of that year's EPS and cash bounds
+  // the base. A confirmed non-operating year and financial residual paths keep
+  // the refusal: cash cannot clean a polluted year, and for a bank or insurer
+  // free cash flow is not owner earnings.
+  if (refusal === 'BASE_QUALITY_INSUFFICIENT' && !financial && cashBase > 0
+    && latest?.quality === QUALITY.UNKNOWN && latest.eps > 0 && !normalized.hasCleanPositive) {
+    earningsBase = Math.min(latest.eps, cashBase)
+    method = BASE_METHOD.CASH_CONFIRMED_FALLBACK
+    warnings.push('BASE_CASH_CONFIRMED')
+    refusal = null
+  }
   if (refusal) {
     earningsBase = null
     method = method || (normalized.n > 0 && normalized.n < 3 ? BASE_METHOD.SHORT_HISTORY : normalized.method)

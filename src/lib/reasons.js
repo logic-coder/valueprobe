@@ -73,6 +73,9 @@ export const WARNING = Object.freeze({
   BASE_HISTORY_SHORT: 'BASE_HISTORY_SHORT',
   // Some fiscal years are non-operating or unknown and were down-weighted; they cannot confirm a step.
   BASE_QUALITY_REDUCED: 'BASE_QUALITY_REDUCED',
+  // No clean year, but the latest year is merely unknown and same-period cash is positive:
+  // the base is the lower of that year's EPS and cash, and is never mid-pointed upward.
+  BASE_CASH_CONFIRMED: 'BASE_CASH_CONFIRMED',
 })
 
 /** Canonical order for the artifact, so diffs stay readable. */

@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { mkdir, mkdtemp, readFile, readdir, stat, unlink, rmdir } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 import { atomicWrite, classifyShareBasis, recoverRecord, transport, useQuote } from '../../scripts/lib/snapshot-transport.mjs'
+import { tencentKlineQuote, tencentKlineSymbol } from '../../scripts/lib/snapshot-quotes.mjs'
 import { installSnapshots, recoverInstall } from '../../scripts/lib/snapshot-install.mjs'
 import { assessPublish, classifyOutcome, refreshVerification } from '../../scripts/lib/publish-gate.mjs'
 import { POLICY_VERSION } from '../../src/lib/policy'
@@ -86,6 +87,22 @@ describe('incremental snapshot refresh', () => {
     await expect(read('https://data.sec.gov/sample')).resolves.toEqual({ ok: true })
     await expect(read('https://data.sec.gov/missing')).rejects.toThrow('404')
     expect(fetcher).toHaveBeenCalledTimes(3)
+  })
+  it('falls back to a dated close only from the listing that was asked for', () => {
+    expect(tencentKlineSymbol('SHSE', '600519')).toBe('sh600519')
+    expect(tencentKlineSymbol('SZSE', '000001')).toBe('sz000001')
+    expect(tencentKlineSymbol('HKSE', '00700')).toBe('hk00700')
+    expect(tencentKlineSymbol('NASDAQ', 'AAPL')).toBe('usAAPL.OQ')
+    expect(tencentKlineSymbol('NYSE', 'KO')).toBe('usKO.N')
+    // An unverified suffix is not guessed.
+    expect(tencentKlineSymbol('LSE', 'VOD')).toBeNull()
+    const body = market => ({ data: { [tencentKlineSymbol(market, '00700')]: { day: [['2026-11-25', '339.800', '337.400', '348.000', '336.000', '2359']], qt: { hk00700: ['100', '腾讯控股'] } } } })
+    // [date, open, close, ...]: the close is read, not the open, and the source is disclosed.
+    expect(tencentKlineQuote(body('HKSE'), 'HKSE', '00700')).toMatchObject({ price: 'HK$337.4', currency: 'HK$', asOf: '2026-11-25', source: 'tencent-kline' })
+    expect(() => tencentKlineQuote({ data: { hk00005: { day: [] } } }, 'HKSE', '00700')).toThrow('empty fallback quote')
+    expect(() => tencentKlineQuote({ data: { hk00700: { day: [['', '339.8', '337.4']] } } }, 'HKSE', '00700')).toThrow('quote date missing')
+    expect(() => tencentKlineQuote({ data: { hk00700: { day: [['2026-11-25', '339.8', '0']] } } }, 'HKSE', '00700')).toThrow('empty fallback quote')
+    expect(() => tencentKlineQuote({}, 'LSE', 'VOD')).toThrow('market not on the fallback quote feed')
   })
 })
 

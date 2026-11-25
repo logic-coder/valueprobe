@@ -3,7 +3,7 @@
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth, windowGrowth } from './assumptions'
 import { latestFiscalValue } from './dcf'
-import { selectOfficialBase } from './valuationBase'
+import { BASE_METHOD, selectOfficialBase } from './valuationBase'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -119,6 +119,7 @@ export function toStock (raw) {
   stock.cash_median = official.cashBase
   stock.base_upshift = false
   stock.base_method = official.method
+  stock.cash_bounded_fallback = official.method === BASE_METHOD.CASH_CONFIRMED_FALLBACK
   stock.base_as_of = official.baseAsOf
   stock.cash_as_of = official.cashAsOf
   stock.ttm_as_of = official.ttmAsOf

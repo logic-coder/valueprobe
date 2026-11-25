@@ -19,6 +19,7 @@ import { atomicWrite, classifyShareBasis, readOptionalJson, recoverRecord, trans
 import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
+import { tencentKlineQuote, tencentKlineSymbol } from './lib/snapshot-quotes.mjs'
 import { PUBLISH_PATH, assessPublish, classifyOutcome, committedPublish, previousRelease, publishState, refreshVerification } from './lib/publish-gate.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -168,6 +169,25 @@ async function refresh (existing, baseline) {
       return { price: '$' + saved.close, currency: '$', company: saved.name, asOf: reference.date,
         marketCap: NaN, checkedSince: saved.checkedSince, issuer: saved.cik, source: reference.source, localReference: true }
     }
+    try {
+      return await eastMoneyQuote(market, code)
+    } catch (error) {
+      // The primary feed rate-limits by closing the connection. A dated close from
+      // the second feed is better than an undated price; the record keeps the
+      // source, and a later primary success replaces it.
+      try { return await tencentQuote(market, code) } catch { throw error }
+    }
+  }
+
+  async function tencentQuote (market, code) {
+    const symbol = tencentKlineSymbol(market, code)
+    if (!symbol) throw new Error('market not on the fallback quote feed')
+    const read = transport({ headers: { 'User-Agent': UA, Accept: 'application/json', Referer: 'https://gu.qq.com/' }, cacheDir })
+    const body = await read('https://web.ifzq.gtimg.cn/appstock/app/kline/kline?param=' + encodeURIComponent(symbol + ',day,,,1'))
+    return tencentKlineQuote(body, market, code)
+  }
+
+  async function eastMoneyQuote (market, code) {
     const secid = SECID[market]
     if (!secid) throw new Error('market not on the quote feed')
     const live = 'https://push2.eastmoney.com/api/qt/stock/get?secid=' + encodeURIComponent(secid + '.' + code) + '&fields=f43,f57,f58,f59,f116,f124'

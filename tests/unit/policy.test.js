@@ -406,7 +406,7 @@ describe('the committed artifact is what the policy produces', () => {
         epsLatest: expect.any(Number),
         epsNormalized: expect.any(Number),
         cashMedian: expect.any(Number),
-        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable|persistent-step|short-history|median-fallback)$/),
+        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable|persistent-step|short-history|median-fallback|cash-confirmed-fallback)$/),
       }),
     })
     expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('persistent-step')

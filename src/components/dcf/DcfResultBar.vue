@@ -37,6 +37,9 @@
       <span class="dcf__cash-value">{{ moneyIn(stock.currency, cash.value) }}</span>
       <span class="dcf__cash-gap">{{ t('cash_cross_gap', { gap: percent(cash.gapPct) }) }}</span>
     </div>
+    <div v-else-if="cashUnchecked" class="dcf__cash dcf__cash--missing" data-testid="dcf-cash-missing">
+      <span>{{ t('cash_cross_missing') }}</span>
+    </div>
 
     <!-- margin of safety -->
     <div class="dcf__block dcf__mos">
@@ -106,6 +109,7 @@ const props = defineProps({
   marginLabel: { type: String, default: 'margin_of_safety' },
   reverseState: { type: String, required: true },
   cash: { type: Object, default: null },
+  cashUnchecked: { type: Boolean, default: false },
 })
 const { t } = useI18n()
 const { moneyIn } = useMoney()

@@ -524,7 +524,11 @@ export function buildDefaults (indicator, stock, freeCashFlow) {
   const latestEps = preferredEps(stock)
   const earnings = Number.isFinite(stock.earnings_base) ? stock.earnings_base : null
   const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
-  const blended = blendOfficialBase(earnings, cashBase, { financial: stock.financial_institution === true })
+  // A cash-bounded fallback is already the lower of two reported measures; the
+  // seeded calculator must not blend it back up with the higher cash side.
+  const blended = stock.cash_bounded_fallback === true
+    ? { base: earnings, action: 'earnings', gap: null }
+    : blendOfficialBase(earnings, cashBase, { financial: stock.financial_institution === true })
   const eps = blended.action === 'refuse' || blended.action === 'none' ? earnings : blended.base
   const official = officialGrowth({
     growth10: stock.earning_growth_10y,

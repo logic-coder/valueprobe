@@ -28,7 +28,7 @@ export const POLICY_V1 = deepFreeze({
     terminalBoundary: 'shared-effective-growth',
     band: 'disclosed-window-and-cash-earnings-envelope',
     cashCrossCheck: 'midpoint-when-gap-50-to-200',
-    earningsBase: 'weighted-or-persistent-step',
+    earningsBase: 'weighted-or-persistent-step-cash-bounded-fallback',
     publicationGate: 'cash-unreconciled-over-3x',
     officialGrowth: 'slower-of-two-clipped-windows',
     insuranceEvidence: 'underwriting-insurers',
@@ -93,7 +93,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e'
+export const POLICY_V1_HASH = 'c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -136,6 +136,7 @@ function describeBaseKind (eps, latest, normalized, cash, financial, { upshift =
   if (method === 'persistent-step') return 'persistent-step'
   if (method === 'short-history') return 'short-history'
   if (method === 'median-fallback') return 'median-fallback'
+  if (method === 'cash-confirmed-fallback') return 'cash-confirmed-fallback'
   if (upshift) return 'latest-fiscal'
   if (financial) return 'normalized'
   if (method === 'weighted') return 'normalized'
@@ -315,7 +316,11 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   const cashSide = num(stock.cash_base)
   const epsNormalized = num(stock.eps_normalized)
   const upshift = stock.base_upshift === true
-  const blended = blendOfficialBase(earningsSide, cashSide, { financial: stock.financial_institution === true })
+  // A cash-bounded fallback is already the lower of two reported measures; blending
+  // it with the higher cash side would undo the bound.
+  const blended = stock.cash_bounded_fallback === true
+    ? { base: earningsSide, action: 'earnings', gap: null }
+    : blendOfficialBase(earningsSide, cashSide, { financial: stock.financial_institution === true })
   // Midpoint of the two bases is the official mid because DCF is linear in the
   // base when tangible book is not added. A gap above 3× keeps the earnings
   // side only long enough to disclose the cash check, then refuses.

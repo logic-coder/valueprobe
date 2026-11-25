@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { guessSymbol } from '../../src/lib/symbolInput'
+import { guessSymbol, searchStocks } from '../../src/lib/symbolInput'
 
 describe('guessSymbol', () => {
   it('keeps an explicit exchange', () => {
@@ -21,5 +21,14 @@ describe('guessSymbol', () => {
   it('falls back to NASDAQ for tickers and leaves empty input empty', () => {
     expect(guessSymbol('aapl')).toBe('NASDAQ:aapl')
     expect(guessSymbol('')).toBe('')
+  })
+})
+
+describe('searchStocks keeps a recognisable alias beside a legal entity name', () => {
+  const catalog = [{ symbol: 'NYSE:BAC', name: 'BofA Finance LLC' }]
+
+  it('finds the bank by its Chinese and English common names', () => {
+    expect(searchStocks(catalog, '美国银行').map(match => match.stock.symbol)).toEqual(['NYSE:BAC'])
+    expect(searchStocks(catalog, 'bank of america').map(match => match.stock.symbol)).toEqual(['NYSE:BAC'])
   })
 })

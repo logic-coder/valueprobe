@@ -64,7 +64,7 @@ describe('financial institution detector', () => {
   it('routes US financials on citable SIC and filing evidence, not missing columns', () => {
     for (const name of ['NYSE-JPM', 'NYSE-MS', 'NYSE-GS', 'NASDAQ-PFG', 'NYSE-APO', 'NYSE-CB', 'NYSE-EG',
       'NYSE-PNC', 'NYSE-PRU', 'NYSE-SYF', 'NYSE-TFC', 'NYSE-USB', 'NYSE-WFC',
-      'NYSE-PGR', 'NYSE-TRV', 'NYSE-MET', 'NYSE-AFL', 'NYSE-HIG', 'NYSE-AIG', 'NYSE-ALL', 'NASDAQ-CINF', 'NASDAQ-ACGL']) {
+      'NYSE-PGR', 'NYSE-TRV', 'NYSE-MET', 'NYSE-AFL', 'NYSE-HIG', 'NYSE-AIG', 'NYSE-ALL', 'NASDAQ-CINF', 'NASDAQ-ACGL', 'NYSE-AIZ']) {
       const stock = loadSnapshot(name)
       expect(stock.financial_institution, name).toBe(true)
       expect(stock.classification_basis, name).toBe('industry')

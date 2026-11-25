@@ -86,7 +86,7 @@ npm run snapshot -- --stage=tmp-snapshot-pilot --universe=tmp-candidates.json --
 - 卡片右上菜单可以为当前代码固定一个来源或切回自动，偏好仅保存在本机。
 - 季度快照：`npm run snapshot` 按 `scripts/watchlist.json` 生成 `public/data/*.json`（带
   `as_of`），提交即随 Pages 发布。`VITE_SNAPSHOT=off` 可暂时跳过快照行情。
-  报价日期来自上游时间戳，回退用最近一根不复权日 K 的日期及收盘价。历史快照若没有原始报价日期，页面标为交易日未核实。
+  报价日期优先取上游时间戳；主源失败或没有日期时，回退最近一根不复权日 K 的日期及收盘价，并写 `quote_source: tencent-kline`。该回退只覆盖已验证后缀的沪深、港股、纳斯达克与纽交所代码，不写今天，也不编造日期。历史快照若仍没有原始报价日期，页面标为交易日未核实。
 - 冒烟/测试里可用 `page.apiMock.down.add('eastmoney')` 让某个源掉线，观察兜底。
 
 ## 加点新源

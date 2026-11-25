@@ -72,6 +72,20 @@ describe('NASDAQ:NVDA is published on a confirmed persistent step, not the singl
   })
 })
 
+describe('an unknown latest year with positive cash is bounded, not refused', () => {
+  it('publishes NYSE:PFE on the lower of the latest EPS and same-period cash', () => {
+    const value = valueOf('NYSE:PFE')
+    const stock = stockOf('NYSE:PFE')
+    expect(value.status).toBe('ok')
+    expect(value.reasons).not.toContain(REASON.BASE_QUALITY_INSUFFICIENT)
+    expect(value.warnings).toContain(WARNING.BASE_CASH_CONFIRMED)
+    expect(value.inputs.baseKind).toBe('cash-confirmed-fallback')
+    expect(value.inputs.eps).toBeCloseTo(Math.min(stock.latest_fy_eps, stock.cash_base), 4)
+    expect(value.value).toBe(published('NYSE:PFE').value)
+    expect(published('NYSE:PFE').status).toBe('ok')
+  })
+})
+
 describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
   it('refuses Progressive when no complete fiscal year is clean, and does not invent a cash veto', () => {
     const value = valueOf('NYSE:PGR')
@@ -82,6 +96,15 @@ describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
     expect(value.value).toBeNull()
     expect(value.value).toBe(published('NYSE:PGR').value)
     expect(published('NYSE:PGR').status).toBe('refused')
+  })
+
+  it('keeps Assurant on residual income instead of cash-bounding an unknown year', () => {
+    const value = valueOf('NYSE:AIZ')
+    expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
+    expect(value.status).toBe('refused')
+    expect(value.reasons).toContain(REASON.BASE_QUALITY_INSUFFICIENT)
+    expect(value.warnings).not.toContain(WARNING.BASE_CASH_CONFIRMED)
+    expect(published('NYSE:AIZ').status).toBe('refused')
   })
 })
 describe('refusals name the missing fact instead of inventing one', () => {

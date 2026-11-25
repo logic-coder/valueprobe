@@ -70,7 +70,14 @@ test('exports the list and imports it back', async ({ page }) => {
 })
 
 test('distinguishes an unverified quote date from the snapshot date', async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem('fv-watchlist', JSON.stringify(['SHSE:601398'])))
+  // Every committed quote now carries a trading date, so simulate the legacy
+  // snapshot at the release boundary: same price, no quote date.
+  await page.route('**/data/valuation/**/HKSE-00700.json', async route => {
+    const response = await route.fetch()
+    const body = await response.json()
+    await route.fulfill({ response, body: JSON.stringify({ ...body, entry: { ...body.entry, priceDate: null } }) })
+  })
+  await page.addInitScript(() => window.localStorage.setItem('fv-watchlist', JSON.stringify(['HKSE:00700'])))
   page.apiMock.down.add('eastmoney')
   await page.goto('/#/watchlist')
   await page.reload()

@@ -8,7 +8,7 @@
 
 | 参数 | 现行值（官方 v3） | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `repeatable-earnings`：最多五年完整财年每股收益按近因加权正常化（干净年份权重 1.0，非经营或未知 0.25）。非金融企业若确认持续盈利台阶，改用最近三年加权值（`PERSISTENT_STEP_BASE`）。近十二个月盈利只展示，不作为正式基数。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
+| 估值基数 | `repeatable-earnings`：最多五年完整财年每股收益按近因加权正常化（干净年份权重 1.0，非经营或未知 0.25）。非金融企业若确认持续盈利台阶，改用最近三年加权值（`PERSISTENT_STEP_BASE`）。没有干净正年份、但最新年度只是质量未知且同期间现金为正时，非金融企业取该年每股收益与现金中位数的较低者（`BASE_CASH_CONFIRMED`），不再向上取中点；已确认非经营或金融机构仍拒绝。近十二个月盈利只展示，不作为正式基数。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
@@ -52,7 +52,7 @@
 | `NO_SNAPSHOT` | 没有可用的本地快照。 |
 | `NO_EPS` | 快照里没有每股收益。 |
 | `NON_POSITIVE_EPS` | 每股收益不为正，折现模型不出值。 |
-| `BASE_QUALITY_INSUFFICIENT` | 有年度每股收益，但窗口内没有可形成正正式基数的干净完整财年。 |
+| `BASE_QUALITY_INSUFFICIENT` | 有年度每股收益，但窗口内没有可形成正正式基数的干净完整财年，且不满足现金兜底：最新年度已确认非经营、同期间现金不可用，或属于金融机构。 |
 | `NO_GROWTH` | 没有可用的历史增速，且不符合「无窗但有报告盈利、基数为正则按 0% 起点」的条件。 |
 | `NO_BOOK` | 金融机构需要正的每股有形账面价值。 |
 | `NOT_FINITE` | 计算结果不是有限正数，不出值。 |
@@ -93,6 +93,7 @@
 | `CASH_PERIOD_LAG` | 近十二个月盈利比年度现金截止日晚 180 天以上；仅提示，同期间年度现金仍可参与核对。 |
 | `BASE_HISTORY_SHORT` | 完整财年不足三年，按短历史正常化。 |
 | `BASE_QUALITY_REDUCED` | 部分完整财年含非经营收益或质量未知，已降低权重且不得用于确认台阶。 |
+| `BASE_CASH_CONFIRMED` | 没有干净正年份，但最新年度只是质量未知且同期间现金为正；基数取该年每股收益与现金中位数的较低者，不向上取中点。 |
 | `CLASSIFICATION_UNVERIFIED` | 仅因缺列归入某一模型，且另一模型结果差异较大。 |
 | `NORMALIZED_EPS` | 发布基数是可重复盈利，与最近一期报告每股收益相差 25% 或以上。 |
 | `LIFE_BOOK_QUALITY` | 寿险公司的有形账面可能受债券未实现损益和递延获客成本扭曲，剩余收益结果应谨慎阅读。 |
@@ -185,12 +186,12 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-25；`rates.asOf` 2026-11-25。政策哈希仍为 `07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e`（2026-11-25 估值基数修复修订了 `POLICY_V1`，本轮只刷新数据，未改官方规则）。`upstreamCheckedAt` 为 2026-11-25T09:09:32.854Z（真实上游核验时间，台北时间 17:09:32）。发布状态 `partial`。
-- 利率：CNY 1.5853（asOf 2026-11-24，live）、USD 4.91（asOf 2026-11-24，live）、HKD 4.91（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币现为 11%（ceil(4.91)+6；上一批 USD 4.92 时同为 11%；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
-- 声明、快照与估值条目各 500 条，有值 452 条，拒绝 48 条（冻结 v2：407 / 93；居中三规则：450 / 50）。`CASH_UNRECONCILED` 14 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 53 条。`BASE_QUALITY_INSUFFICIENT` 9 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
-- 拒绝原因出现次数，`NO_GROWTH` 15、`CASH_UNRECONCILED` 14、`NO_EPS` 11、`BASE_QUALITY_INSUFFICIENT` 9、`UNSTABLE_BASE_REGIME` 6、`NON_POSITIVE_EPS` 5、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。本轮没有新的拒绝或恢复。
-- 过期基本面标记 `STALE_DATA` 68 条。`NORMALIZED_EPS` 220 条，`CASH_DIVERGENCE`（25–49%）56 条，`CASH_MIDPOINT` 53 条，`PERSISTENT_STEP_BASE` 134 条，`CASH_PERIOD_LAG` 375 条，`BASE_QUALITY_REDUCED` 38 条，`TTM_NONOPERATING` 7 条，`TTM_QUALITY_UNKNOWN` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 64 条，`NO_WINDOW_ZERO_START` 42 条，`CAPPED_GROWTH` 89 条，`GROWTH_ABOVE_RETENTION` 17 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 451 条、`residual` 49 条。
-- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 1 条（`NYSE:BAC`）。报价 213 条带日期更新、287 条失败后保留既有报价，其中 `QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条，故发布状态保持 `partial`，不把报价视为已全部核验，也不编造缺失的报价日期。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
+- `generatedAt` 2026-11-25；`rates.asOf` 2026-11-25。政策哈希为 `c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5`（2026-11-25 现金兜底与 Assurant 行业证据修订）。`upstreamCheckedAt` 为 2026-11-25T10:54:05.691Z（真实上游核验时间，台北时间 18:54:05）。发布状态 `ok`；报价补刷前曾为 `rebuilt`（离线全量重算），再上一轮真实上游刷新为 `partial`（287 条报价沿用既有值）。
+- 利率：CNY 1.5914（asOf 2026-11-25，snapshot）、USD 4.91（asOf 2026-11-24，snapshot）、HKD 4.91（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币现为 11%（ceil(4.91)+6；上一批 USD 4.92 时同为 11%；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
+- 声明、快照与估值条目各 500 条，有值 455 条，拒绝 45 条（冻结 v2：407 / 93；现金兜底前：452 / 48）。`CASH_UNRECONCILED` 14 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 53 条；`BASE_CASH_CONFIRMED` 3 条（BIIB、默克、辉瑞）。`BASE_QUALITY_INSUFFICIENT` 6 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
+- 拒绝原因出现次数，`NO_GROWTH` 15、`CASH_UNRECONCILED` 14、`NO_EPS` 11、`BASE_QUALITY_INSUFFICIENT` 6、`UNSTABLE_BASE_REGIME` 6、`NON_POSITIVE_EPS` 5、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 68 条。`NORMALIZED_EPS` 223 条，`CASH_DIVERGENCE`（25–49%）57 条，`CASH_MIDPOINT` 53 条，`PERSISTENT_STEP_BASE` 134 条，`CASH_PERIOD_LAG` 375 条，`BASE_QUALITY_REDUCED` 38 条，`TTM_NONOPERATING` 7 条，`TTM_QUALITY_UNKNOWN` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 64 条，`NO_WINDOW_ZERO_START` 42 条，`CAPPED_GROWTH` 89 条，`GROWTH_ABOVE_RETENTION` 17 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 450 条、`residual` 50 条（`NYSE:AIZ` 按 SEC SIC 6399 归入保险）。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 1 条（`NYSE:BAC`）。此前报价 213 条带日期更新、287 条失败后保留既有报价，`QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条；随后对这 75 条用不复权日 K 回退补刷，当前 500 条快照全部有交易日，`QUOTE_DATE_UNKNOWN` 0、`STALE_PRICE` 0，发布状态 `ok`，不编造缺失的报价日期。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 399 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；经营现金流每股 397 条、资本开支每股 369 条（主要用于美国年报，工件中 342 条带 capex/OCF 诊断）。显式 `reporting_currency` 仍为 0，读时派生。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

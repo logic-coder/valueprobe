@@ -37,7 +37,7 @@ test('the header lookup navigates to a typed ticker', async ({ page }) => {
   await expect(page.locator('.stock-head h1')).toHaveText('Apple Inc.', { timeout: 20000 })
   // The old symbol's figures must not survive the swap.
   await expect(page.locator('.dcf')).toContainText('$ 150.47')
-  await expect(page.locator('.dcf')).toContainText('$ 351.91')
+  await expect(page.locator('.dcf')).toContainText('$ 354.07')
   await expect(page.locator('.dcf')).not.toContainText('¥ 1.08')
 })
 
@@ -113,13 +113,14 @@ test('an IME confirmation keeps search open and normalizes full-width ticker inp
   await page.goto('/#/')
   const input = page.getByRole('combobox', { name: '查询股票' })
   await input.fill('ＮＡＳＤＡＱ：ＡＡＰＬ')
-  await expect(page.getByRole('option', { name: /苹果.*AAPL/ })).toBeVisible()
+  await expect(page.getByRole('option', { name: /Apple.*AAPL/ })).toBeVisible()
   await input.dispatchEvent('keydown', { key: 'Enter', isComposing: true })
   await expect(page).toHaveURL(/#\/$/)
   await input.press('Enter')
   await expect(page).toHaveURL(/#\/stock\/NASDAQ:AAPL\/dcf$/)
   await input.fill('Apple')
-  await expect(page.getByRole('option', { name: /苹果.*AAPL/ })).toBeVisible()
+  // SEC entityName is the reported display name; the Chinese alias still resolves the same row.
+  await expect(page.getByRole('option', { name: /Apple.*AAPL/ })).toBeVisible()
   await input.press('Enter')
   await expect(input).toHaveValue('')
 })

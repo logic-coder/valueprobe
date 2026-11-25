@@ -10,6 +10,9 @@ const COMMON_NAMES = {
   'NASDAQ:MSFT': ['Microsoft', '微软'],
   'HKSE:00700': ['Tencent', '腾讯'],
   'SHSE:600519': ['Moutai', '茅台'],
+  // SEC entityName for this CIK is the financing subsidiary, not the bank's
+  // recognisable name; keep the legal name as reported and alias what people type.
+  'NYSE:BAC': ['Bank of America', '美国银行', 'BOA'],
 }
 
 export function guessSymbol (raw) {

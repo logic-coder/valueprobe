@@ -23,6 +23,7 @@
             :margin-label="marginLabel"
             :reverse-state="reverseState"
             :cash="showPublished ? policyEntry?.cash : null"
+            :cash-unchecked="showPublished && policyEntry?.inputs?.model === 'owner' && !(Number(policyEntry?.inputs?.cashMedian) > 0)"
           />
           <button class="dcf__jump" type="button" :disabled="resultLoading" @click="focusAssumptions">
             {{ t('adjust_assumptions') }}
