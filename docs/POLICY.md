@@ -178,11 +178,11 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-23。政策哈希仍为 `dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d`（本轮未改 `POLICY_V1`）。`upstreamCheckedAt` 为 2026-11-23T12:55:13.240Z（真实上游核验时间）。发布状态 `partial`。
+- `generatedAt` 2026-11-23；`rates.asOf` 2026-11-23。政策哈希为 `5e20efa4a63b89b7f46efa4170588cfa775c3ad3bda1f225c5454eafb0741978`（2026-11-25 居中估值三规则修订了 `POLICY_V1`）。`upstreamCheckedAt` 为 2026-11-23T12:55:13.240Z（真实上游核验时间，本轮离线重算未改）。发布状态 `partial`。
 - 利率：CNY 1.5861（asOf 2026-11-23，live）、USD 4.92（asOf 2026-11-20，live）、HKD 4.92（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币现为 11%（ceil(4.92)+6；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
-- 声明、快照与估值条目各 500 条，有值 392 条，拒绝 108 条（带日期刷新后、洛斯改回所有者模型之前曾为 393 / 107；冻结 v2：407 / 93；D64 区间修订：392 / 108，原因构成不同；D60–D63：391 / 109；`71c1fd6` / D59：461 / 39）。`CASH_UNRECONCILED` 81 条，未放松 |gap|≥50% 否决。洛斯（`NYSE:L`）此前被东财行情名「洛斯保险」误判为承保保险并走剩余收益，现已按 10-K 证据回到控股公司、所有者模型，因现金缺口触碰该否决而无值。`OWNER_BASE_GAP` 降为 2 条（`NASDAQ:TROW`、`NYSE:PCG`），因多数年报已补齐折旧摊销每股。
-- 拒绝原因出现次数，`CASH_UNRECONCILED` 81、`NO_GROWTH` 18、`NON_POSITIVE_EPS` 17、`UNSTABLE_BASE_REGIME` 6、`INDUSTRY_MODEL_PENDING` 3、`NO_EPS` 1。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 70 条。`NORMALIZED_EPS` 199 条，`CASH_DIVERGENCE`（25–49%）76 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 61 条，`NO_WINDOW_ZERO_START` 39 条，`CAPPED_GROWTH` 123 条，`GROWTH_ABOVE_RETENTION` 38 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED` 或 `NEGATIVE_HISTORY_GROWTH`。模型为 `owner` 451 条、`residual` 49 条。
+- 声明、快照与估值条目各 500 条，有值 450 条，拒绝 50 条（冻结 v2：407 / 93；上一份带日期刷新工件、政策哈希 `dd3549a33d…`：392 / 108）。`CASH_UNRECONCILED` 23 条（仅对称差距大于 200% 时拒绝）；50%–200% 改为取中点并发布，`CASH_MIDPOINT` 68 条。`LATEST_FY_BASE` 7 条。洛斯（`NYSE:L`）此前曾因现金缺口被拒绝，现已按中点规则发布。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
+- 拒绝原因出现次数，`CASH_UNRECONCILED` 23、`NO_GROWTH` 18、`NON_POSITIVE_EPS` 17、`UNSTABLE_BASE_REGIME` 6、`INDUSTRY_MODEL_PENDING` 3、`NO_EPS` 1。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 70 条。`NORMALIZED_EPS` 198 条，`CASH_DIVERGENCE`（25–49%）62 条，`CASH_MIDPOINT` 68 条，`LATEST_FY_BASE` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 61 条，`NO_WINDOW_ZERO_START` 39 条，`CAPPED_GROWTH` 87 条，`GROWTH_ABOVE_RETENTION` 27 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED` 或 `NEGATIVE_HISTORY_GROWTH`。模型为 `owner` 451 条、`residual` 49 条。
 - REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 0 条。报价 52 条带日期更新、448 条失败后保留既有报价，其中 `QUOTE_DATE_UNKNOWN` 仍为 140 条，故发布状态保持 `partial`，不把报价视为已全部核验。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 399 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；显式 `reporting_currency` 仍为 0，读时派生。
 

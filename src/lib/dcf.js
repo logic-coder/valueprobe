@@ -394,7 +394,13 @@ export function preferredEps (stock) {
 
 /**
  * Median after-capex cash of the latest three fiscal years, or null unless all
- * three are reported and positive. It is a cross-check, never the published base.
+ * three are reported and positive. This function returns only the cash figure.
+ * It is a cross-check input, not by itself the published base. When both the
+ * cash and earnings sides can form a positive valuation and the symmetric gap
+ * is 50%–200%, the official published value uses the midpoint of those two
+ * valuations (CASH_MIDPOINT). A gap under 50% stays earnings-primary; a gap
+ * above 200%, or a side that cannot form a positive base, still refuses.
+ * Financial residual-income paths do not use a cash midpoint.
  */
 export function sustainableCashBase (stock) {
   const annual = stock?.financials?.annual
@@ -513,14 +519,18 @@ export function normalizedEpsBase (stock) {
 }
 
 /**
- * Official earnings base: five-year normalised earnings.
+ * Official earnings-base helper: five-year normalised earnings.
  *
  * Under the disclosed maintenance proxy M≈D, owner earnings equal normalised
  * earnings (OE = E + D − M = E). Depreciation, the maintenance proxy and
  * share-based compensation are listed as components; SBC stays expensed and
- * is not added back. After-capex cash remains a cross-check only and is no
- * longer averaged into the published base. The midpoint option is ignored:
- * mixing earnings with cash would smuggle a 50% maintenance assumption.
+ * is not added back. This function itself returns only the earnings figure;
+ * it does not blend in cash. After-capex cash remains a separate cross-check
+ * input. The published official value is chosen later by blendOfficialBase /
+ * policyValue: a 50%–200% gap midpoints the two valuations (CASH_MIDPOINT);
+ * a gap under 50% stays earnings-primary; a gap above 200% or a side that
+ * cannot form a positive base still refuses. Financial residual-income
+ * paths do not use a cash midpoint.
  *
  * No growth is assumed here: this is a repeatable base, not a forecast.
  */
