@@ -2,7 +2,7 @@
 // browser and the offline official-value build, so a value shown in the UI is
 // computed from exactly the fields the committed artifact used.
 import { cleanGrowth, windowGrowth } from './assumptions'
-import { normalizedEarningsBase, normalizedEpsBase, sustainableCashBase } from './dcf'
+import { isSynchronousUpshift, latestFiscalValue, normalizedEarningsBase, normalizedEpsBase, sustainableCashBase } from './dcf'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -108,10 +108,22 @@ export function toStock (raw) {
   const annual = raw.financials?.annual
   const da = latestPerShare(annual, 'depreciation_amortization_per_share')
   const sbc = latestPerShare(annual, 'share_based_comp_per_share')
-  // Official base is normalised earnings (M≈D, so owner earnings equal E).
+  // Official sides start as five-year normalised earnings and the three-year
+  // cash median. When earnings and cash have risen together off an earlier
+  // plateau, both sides switch to the latest complete fiscal year.
   stock.eps_normalized = normalizedEpsBase(raw)
-  stock.earnings_base = normalizedEarningsBase(raw)
-  stock.cash_base = sustainableCashBase(raw)
+  stock.latest_fy_eps = latestFiscalValue(annual, 'eps_without_nri')
+  stock.latest_fy_fcf = latestFiscalValue(annual, 'free_cash_flow_per_share')
+  stock.cash_median = sustainableCashBase(raw)
+  stock.base_upshift = isSynchronousUpshift(annual)
+  if (stock.base_upshift && stock.latest_fy_eps > 0 && stock.latest_fy_fcf > 0) {
+    stock.earnings_base = stock.latest_fy_eps
+    stock.cash_base = stock.latest_fy_fcf
+  } else {
+    stock.base_upshift = false
+    stock.earnings_base = normalizedEarningsBase(raw)
+    stock.cash_base = stock.cash_median
+  }
   stock.da_per_share = da
   stock.maintenance_capex_proxy = da
   stock.sbc_per_share = sbc

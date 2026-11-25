@@ -10,7 +10,7 @@ export const REASON = Object.freeze({
   NO_BOOK: 'NO_BOOK',
   NOT_FINITE: 'NOT_FINITE',
   INDUSTRY_MODEL_PENDING: 'INDUSTRY_MODEL_PENDING',
-  // After the official base is chosen, cash still differs from it by 50%+.
+  // After the official base is chosen, the two valuations still differ by more than 3×.
   CASH_UNRECONCILED: 'CASH_UNRECONCILED',
   // Negative or conflicting history, and the latest reported EPS is not positive.
   UNSTABLE_BASE_REGIME: 'UNSTABLE_BASE_REGIME',
@@ -40,6 +40,10 @@ export const WARNING = Object.freeze({
   MODEL_CAVEAT: 'MODEL_CAVEAT',
   // After-capex cash cross-check differs from the published value by 25–49%.
   CASH_DIVERGENCE: 'CASH_DIVERGENCE',
+  // Both sides form a positive value and differ by 50–200%; the published mid is their midpoint.
+  CASH_MIDPOINT: 'CASH_MIDPOINT',
+  // Earnings and cash rose together, so both bases use the latest complete fiscal year.
+  LATEST_FY_BASE: 'LATEST_FY_BASE',
   // Terminal growth was cut to (at most) two points under the discount rate.
   TERMINAL_CAPPED: 'TERMINAL_CAPPED',
   // The published base is normalised away from the latest reported EPS.

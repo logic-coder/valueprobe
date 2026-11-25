@@ -54,13 +54,17 @@ describe('policy publishes the residual band without moving the headline', () =>
     expect(value.value).toBe(artifact.entries['SHSE:601398'].value)
   })
 
-  it('places the published endpoints two points either side of the base rate', () => {
+  it('keeps the ICBC headline inside a residual envelope that can also include the faster window', () => {
     const stock = toStock(read('public/data/SHSE-601398.json'))
     const value = policyValue(stock, { rates: cnyRate, generatedAt: artifact.generatedAt })
     const inputs = value.inputs
-    const at = (rate) => residualIncomeValue(inputs.tangibleBook, inputs.eps, rate, inputs.growth, inputs.terminalGrowthRate, inputs.years).fairValue
+    const at = (rate, growth = inputs.growth) => residualIncomeValue(inputs.tangibleBook, inputs.eps, rate, growth, inputs.terminalGrowthRate, inputs.years).fairValue
+    expect(value.band.mid).toBe(value.value)
+    expect(value.inputs.growth).toBeCloseTo(Math.min(value.inputs.growth10, value.inputs.growth5), 2)
     expect(value.band.low).toBe(at(inputs.discountRate + 2))
-    expect(value.band.high).toBe(at(inputs.discountRate - 2))
+    expect(value.band.high).toBeGreaterThanOrEqual(at(inputs.discountRate - 2))
+    expect(value.band.low).toBeLessThan(value.value)
+    expect(value.band.high).toBeGreaterThan(value.value)
   })
 
   it('gives no residual entry a high equal to its value', () => {

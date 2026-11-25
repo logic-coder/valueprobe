@@ -7,7 +7,7 @@
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
 import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, REGIME_GAP_PP } from './assumptions'
 import { cashflowCurrency, reportingCurrency, reportingCurrencySource, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
-import { DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
+import { blendOfficialBase, DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
 
 export const POLICY_VERSION = 'v3'
@@ -26,11 +26,11 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'disclosed-worse-window-envelope',
-    cashCrossCheck: 'three-year-median',
-    earningsBase: 'normalized-eps-maintenance-equals-da',
-    publicationGate: 'cash-unreconciled-veto',
-    officialGrowth: 'centered-single-window-sign-regime',
+    band: 'disclosed-window-and-cash-earnings-envelope',
+    cashCrossCheck: 'midpoint-when-gap-50-to-200',
+    earningsBase: 'normalized-or-latest-fy-upshift',
+    publicationGate: 'cash-unreconciled-over-3x',
+    officialGrowth: 'slower-of-two-clipped-windows',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
@@ -51,11 +51,12 @@ export const POLICY_V1 = deepFreeze({
     shortHistory: 'wider-band',
     cleanYears: MIN_CLEAN_YEARS,
     regimeGapPp: REGIME_GAP_PP,
-    // Negative history starts at 0% when the long window is negative, fades
-    // to the default terminal, and carries REGIME_UNCERTAIN. Opposite-sign
-    // windows also carry REGIME_UNCERTAIN; a same-sign gap only widens the
-    // range. Missing windows with a positive repeatable base start at 0% and
-    // still fade to the default terminal.
+    // When both windows exist, each is floored at 0% and capped at 15%, and
+    // the slower is the official mid; the faster only widens the high end.
+    // Negative history starts at 0%, fades to the default terminal, and
+    // carries REGIME_UNCERTAIN. Opposite-sign windows also carry
+    // REGIME_UNCERTAIN. Missing windows with a positive repeatable base
+    // start at 0% and still fade to the default terminal.
     negative: 'zero-start-default-terminal',
     missingWindow: 'zero-start',
   },
@@ -92,7 +93,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'dd3549a33d394570d02cac748826242a50ac8ed934af833655f0c82fce7c7a9d'
+export const POLICY_V1_HASH = '5e20efa4a63b89b7f46efa4170588cfa775c3ad3bda1f225c5454eafb0741978'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -129,8 +130,10 @@ export function quoteDateStatus (price, priceDate, referenceDate = new Date().to
 const close4 = (left, right) => left != null && right != null && Math.abs(left - right) < 0.00015
 
 /** Which ingredient official `eps` came from. Disclosure only; does not change the base. */
-function describeBaseKind (eps, latest, normalized, cash, financial) {
+function describeBaseKind (eps, latest, normalized, cash, financial, { upshift = false, blend = null } = {}) {
   if (eps == null) return null
+  if (blend === 'midpoint') return 'midpoint'
+  if (upshift) return 'latest-fiscal'
   if (financial) return 'normalized'
   if (normalized != null && close4(eps, normalized)) return 'normalized'
   if (cash > 0 && close4(eps, cash) && !(normalized > 0)) return 'cash'
@@ -183,6 +186,9 @@ const emptyInputs = () => ({
   epsLatest: null,
   epsNormalized: null,
   cashMedian: null,
+  latestFyEps: null,
+  latestFyFcf: null,
+  baseUpshift: false,
   daPerShare: null,
   maintenanceCapexProxy: null,
   sbcPerShare: null,
@@ -289,9 +295,15 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   // ---- earnings base ------------------------------------------------------
   const latestEps = num(policyEps(stock))
-  const eps = num(stock.earnings_base) ?? latestEps
+  const earningsSide = num(stock.earnings_base) ?? latestEps
+  const cashSide = num(stock.cash_base)
   const epsNormalized = num(stock.eps_normalized)
-  const cashMedian = num(stock.cash_base)
+  const upshift = stock.base_upshift === true
+  const blended = blendOfficialBase(earningsSide, cashSide, { financial: stock.financial_institution === true })
+  // Midpoint of the two bases is the official mid because DCF is linear in the
+  // base when tangible book is not added. A gap above 3× keeps the earnings
+  // side only long enough to disclose the cash check, then refuses.
+  const eps = blended.action === 'midpoint' ? blended.base : earningsSide
   const daPerShare = num(stock.da_per_share)
   const maintenanceCapexProxy = num(stock.maintenance_capex_proxy)
   const sbcPerShare = num(stock.sbc_per_share)
@@ -299,22 +311,28 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.eps = eps
   inputs.epsLatest = latestEps
   inputs.epsNormalized = epsNormalized
-  inputs.cashMedian = cashMedian
+  inputs.cashMedian = cashSide
+  inputs.latestFyEps = num(stock.latest_fy_eps)
+  inputs.latestFyFcf = num(stock.latest_fy_fcf)
+  inputs.baseUpshift = upshift
   inputs.daPerShare = daPerShare
   inputs.maintenanceCapexProxy = maintenanceCapexProxy
   inputs.sbcPerShare = sbcPerShare
   inputs.ownerBaseGap = stock.owner_base_gap === true || daPerShare == null
-  inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashMedian, stock.financial_institution === true)
-  if (eps === null) reasons.push(REASON.NO_EPS)
-  else if (eps <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
+  inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashSide, stock.financial_institution === true, {
+    upshift, blend: blended.action,
+  })
+  if (earningsSide === null) reasons.push(REASON.NO_EPS)
+  else if (earningsSide <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)
+  if (upshift) warnings.push(WARNING.LATEST_FY_BASE)
 
   // ---- growth -------------------------------------------------------------
   // A cash-only base without a reported EPS (Visa) is not enough to assume 0%.
   const official = officialGrowth({
     growth10: stock.earning_growth_10y,
     growth5: stock.earning_growth_5y,
-    hasPositiveBase: eps > 0 && latestEps != null,
+    hasPositiveBase: earningsSide > 0 && latestEps != null,
   })
   const growth = official.adopted
   const terminalGrowthRate = POLICY_V1.horizon.terminalGrowthRate
@@ -380,15 +398,19 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   let cash = null
   if (value !== null) {
     if (model !== POLICY_V1.model.financialInstitution) {
-      const cashBase = Number.isFinite(stock.cash_base) ? stock.cash_base : null
+      const cashBase = cashSide != null && Number.isFinite(cashSide) ? cashSide : null
       const cashValue = cashBase === null
         ? null
         : presentValue(tangibleBook, horizon.years, discountRate, growth, cashBase, terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
       if (cashValue !== null && Number.isFinite(cashValue) && cashValue > 0) {
-        const gap = cashValue / value - 1
-        cash = { value: round2(cashValue), base: cashBase, gapPct: round4(gap * 100) }
-        if (Math.abs(gap) >= 0.5) reasons.push(REASON.CASH_UNRECONCILED)
-        else if (Math.abs(gap) >= 0.25) warnings.push(WARNING.CASH_DIVERGENCE)
+        const earningsValue = blended.action === 'midpoint'
+          ? presentValue(tangibleBook, horizon.years, discountRate, growth, earningsSide, terminalGrowthRate, horizon.yearsOfTerminalGrowth, false).fairValue
+          : value
+        const gap = earningsValue > 0 ? cashValue / earningsValue - 1 : null
+        cash = { value: round2(cashValue), base: cashBase, gapPct: gap == null ? null : round4(gap * 100) }
+        if (blended.action === 'refuse') reasons.push(REASON.CASH_UNRECONCILED)
+        else if (blended.action === 'midpoint') warnings.push(WARNING.CASH_MIDPOINT)
+        else if (gap != null && Math.abs(gap) >= 0.25) warnings.push(WARNING.CASH_DIVERGENCE)
       }
     }
     // Only a column-shaped route is unverified; record it when the other model
@@ -413,11 +435,15 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     residual: model === POLICY_V1.model.financialInstitution,
     bandSpread: POLICY_V1.band.discountSpread,
     tbv: tangibleBook,
-    base: eps,
+    base: blended.action === 'midpoint' ? earningsSide : eps,
+    cashBase: blended.action === 'midpoint' ? cashSide : null,
+    blend: blended.action === 'midpoint' ? 'midpoint' : null,
     discountRate,
     growthRate: growth,
     terminalGrowthRate,
+    growth10: official.historical10,
     growth5: official.historical5,
+    highGrowth: official.highGrowth,
     growthCap: official.cap,
     window: official.window,
     regimeUncertain: official.regimeUncertain === true,
@@ -425,6 +451,9 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     yearsOfTerminalGrowth: horizon.yearsOfTerminalGrowth,
     addToFairValue: false,
   })
+
+  // The headline is the official mid, including a cash/earnings midpoint.
+  if (band.mid != null) value = band.mid
 
   // ---- price is a separate fact: it only feeds the margin of safety --------
   const margin = Number(marginOfSafety(price, value))

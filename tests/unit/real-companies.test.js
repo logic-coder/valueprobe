@@ -58,13 +58,16 @@ describe('US listings keep a published value', () => {
 })
 
 
-describe('NASDAQ:NVDA is refused when cash still differs from normalised earnings by 50%+', () => {
-  it('does not invent a published value after the midpoint is withdrawn', () => {
+describe('NASDAQ:NVDA is published on the latest complete fiscal year after a synchronous upshift', () => {
+  it('uses the latest fiscal year earnings base, not the five-year median or trailing earnings', () => {
     const value = valueOf('NASDAQ:NVDA')
-    expect(value.status).toBe('refused')
-    expect(value.value).toBeNull()
-    expect(value.reasons).toContain(REASON.CASH_UNRECONCILED)
-    expect(value.reasons).toEqual(published('NASDAQ:NVDA').reasons)
+    expect(value.status).toBe('ok')
+    expect(value.value).toBeCloseTo(113.04, 2)
+    expect(value.value).toBe(published('NASDAQ:NVDA').value)
+    expect(value.inputs.eps).toBeCloseTo(4.9, 4)
+    expect(value.inputs.epsLatest).toBeCloseTo(7.91, 2)
+    expect(value.warnings).toContain(WARNING.LATEST_FY_BASE)
+    expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
   })
 })
 

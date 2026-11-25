@@ -5,10 +5,11 @@ import { policyValue } from '../../src/lib/policy'
 import { WARNING } from '../../src/lib/reasons'
 
 describe('officialGrowth window rules', () => {
-  it('uses the ten-year window as the centered prior and does not take the min with five-year growth', () => {
+  it('uses the slower of two already-clipped windows as the official mid, and keeps the faster for the high end', () => {
     const info = officialGrowth({ growth10: 15, growth5: 14, hasPositiveBase: true })
-    expect(info.adopted).toBe(15)
-    expect(info.window).toBe('10y')
+    expect(info.adopted).toBe(14)
+    expect(info.window).toBe('5y')
+    expect(info.highGrowth).toBe(15)
     expect(info.cap).toBe(MAX_UNDERWRITTEN_GROWTH)
     expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.warnings).not.toContain(WARNING.SHORT_HISTORY)
@@ -16,12 +17,21 @@ describe('officialGrowth window rules', () => {
     expect(info.regimeUncertain).toBe(false)
   })
 
-  it('caps the ten-year prior at 15% even when the five-year rate is lower', () => {
+  it('picks the slower five-year window after the ten-year rate is capped at 15%', () => {
     const info = officialGrowth({ growth10: 16.4, growth5: 10.92, hasPositiveBase: true })
+    expect(info.adopted).toBe(10.92)
+    expect(info.window).toBe('5y')
+    expect(info.highGrowth).toBe(15)
+    expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
+    expect(info.regimeUncertain).toBe(false)
+  })
+
+  it('caps official growth at 15% when both clipped windows sit at the cap', () => {
+    const info = officialGrowth({ growth10: 16.4, growth5: 18, hasPositiveBase: true })
     expect(info.adopted).toBe(15)
     expect(info.window).toBe('10y')
+    expect(info.highGrowth).toBe(15)
     expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
-    expect(info.regimeUncertain).toBe(false)
   })
 
   it('keeps a five-year-only window under the 15% cap and flags short history without a 10% cap', () => {
@@ -33,11 +43,12 @@ describe('officialGrowth window rules', () => {
     expect(info.zeroTerminal).toBe(false)
   })
 
-  it('starts at 0% and keeps the default terminal when the ten-year window is negative', () => {
+  it('starts at 0% when one window is negative, and keeps the positive window only on the high end', () => {
     const info = officialGrowth({ growth10: -5, growth5: 12, hasPositiveBase: true })
     expect(info.adopted).toBe(0)
     expect(info.historical5).toBe(12)
     expect(info.window).toBe('10y')
+    expect(info.highGrowth).toBe(12)
     expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
@@ -56,12 +67,13 @@ describe('officialGrowth window rules', () => {
     expect(info.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
   })
 
-  it('marks an Intel-style ten-year positive and five-year negative conflict without zeroing growth', () => {
+  it('marks an Intel-style ten-year positive and five-year negative conflict and uses the slower 0% mid', () => {
     const info = officialGrowth({ growth10: 10.73, growth5: -1.5, hasPositiveBase: true })
     expect(windowsConflict(10.73, -1.5)).toBe(true)
-    expect(info.adopted).toBe(10.73)
-    expect(info.window).toBe('10y')
-    expect(info.reason).toBe('historical')
+    expect(info.adopted).toBe(0)
+    expect(info.window).toBe('5y')
+    expect(info.highGrowth).toBe(10.73)
+    expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
     expect(info.windowConflict).toBe(true)
@@ -73,6 +85,7 @@ describe('officialGrowth window rules', () => {
     const info = officialGrowth({ growth10: 13.18, growth5: 35.27, hasPositiveBase: true })
     expect(info.adopted).toBe(13.18)
     expect(info.window).toBe('10y')
+    expect(info.highGrowth).toBe(15)
     expect(info.regimeUncertain).toBe(false)
     expect(info.windowConflict).toBe(false)
     expect(info.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
