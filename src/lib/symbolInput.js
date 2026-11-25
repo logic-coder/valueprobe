@@ -1,18 +1,23 @@
 import { parseSymbol } from '../config/markets'
+import { LEGACY_SEARCH_NAMES } from '../config/searchAliases'
 
 // The header box accepts what people actually type: a bare six-digit A-share code,
 // a short Hong Kong number or a US ticker. Only the input boundary guesses — nothing
 // downstream sees a partial form.
 const A_SHARE = /^\d{6}$/
 const HK = /^\d{1,5}$/
+const withLegacy = (symbol, ...names) => [...(LEGACY_SEARCH_NAMES[symbol] ?? []), ...names]
 const COMMON_NAMES = {
-  'NASDAQ:AAPL': ['Apple', '苹果'],
-  'NASDAQ:MSFT': ['Microsoft', '微软'],
+  ...LEGACY_SEARCH_NAMES,
+  'NASDAQ:AAPL': withLegacy('NASDAQ:AAPL', 'Apple'),
+  'NASDAQ:MSFT': withLegacy('NASDAQ:MSFT', 'Microsoft'),
+  'NASDAQ:GOOGL': withLegacy('NASDAQ:GOOGL', 'Google', 'Alphabet', '谷歌A'),
+  'NASDAQ:META': withLegacy('NASDAQ:META', 'Facebook', '脸书'),
   'HKSE:00700': ['Tencent', '腾讯'],
   'SHSE:600519': ['Moutai', '茅台'],
   // SEC entityName for this CIK is the financing subsidiary, not the bank's
   // recognisable name; keep the legal name as reported and alias what people type.
-  'NYSE:BAC': ['Bank of America', '美国银行', 'BOA'],
+  'NYSE:BAC': withLegacy('NYSE:BAC', 'Bank of America', 'BOA'),
 }
 
 export function guessSymbol (raw) {
