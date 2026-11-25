@@ -1,14 +1,18 @@
 {
-  "as_of": "2026-11-23",
+  "as_of": "2026-11-25",
   "symbol": "FDXF",
   "exchange_": "NYSE",
   "company": "FedEx Freight Holding Company, Inc.",
   "currency": "$",
-  "price": "$129.43",
-  "quote_as_of": "2026-11-18",
-  "quote_source": "https://finance.yahoo.com/quote/",
+  "price": "$114.94",
+  "quote_as_of": "2026-11-24",
   "ttm_eps": 4.38,
   "ttm_eps_nri": 4.38,
+  "ttm_nonoperating_gain": 0,
+  "ttm_net_income": 655000000,
+  "ttm_operating_income": 540000000,
+  "ttm_quality_as_of": "2026-05-31",
+  "ttm_quality_facts_searched": true,
   "free_cash_flow_per_share": -1.418,
   "tangible_book": -7.3509,
   "earning_growth_10y": null,
@@ -41,7 +45,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": null,
-        "operating_income": null
+        "operating_income": null,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": null
       },
       {
         "date": "2024-05",
@@ -57,7 +63,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 1574000000,
-        "operating_income": 1753000000
+        "operating_income": 1753000000,
+        "operating_cash_flow_per_share": 10.3073,
+        "capex_per_share": 3.0835
       },
       {
         "date": "2025-05",
@@ -73,7 +81,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 1346000000,
-        "operating_income": 1404000000
+        "operating_income": 1404000000,
+        "operating_cash_flow_per_share": 10.2404,
+        "capex_per_share": 2.923
       },
       {
         "date": "2026-05",
@@ -89,7 +99,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 655000000,
-        "operating_income": 540000000
+        "operating_income": 540000000,
+        "operating_cash_flow_per_share": 1.117,
+        "capex_per_share": 2.535
       }
     ],
     "ttm": [
@@ -119,6 +131,42 @@
       [
         "2026-05",
         -7.3509
+      ]
+    ],
+    "quality_facts_searched": [
+      [
+        "2023-12",
+        true
+      ],
+      [
+        "2024-05",
+        true
+      ],
+      [
+        "2025-05",
+        true
+      ],
+      [
+        "2026-05",
+        true
+      ]
+    ],
+    "equity_securities_fv_ni_gain_loss": [
+      [
+        "2023-12",
+        0
+      ],
+      [
+        "2024-05",
+        0
+      ],
+      [
+        "2025-05",
+        0
+      ],
+      [
+        "2026-05",
+        0
       ]
     ],
     "eps_without_nri": [
@@ -204,11 +252,62 @@
         "2026-05",
         0.087
       ]
+    ],
+    "net_income": [
+      [
+        "2024-05",
+        1574000000
+      ],
+      [
+        "2025-05",
+        1346000000
+      ],
+      [
+        "2026-05",
+        655000000
+      ]
+    ],
+    "operating_income": [
+      [
+        "2024-05",
+        1753000000
+      ],
+      [
+        "2025-05",
+        1404000000
+      ],
+      [
+        "2026-05",
+        540000000
+      ]
+    ],
+    "operating_cash_flow_per_share": [
+      [
+        "2024-05",
+        10.3073
+      ],
+      [
+        "2025-05",
+        10.2404
+      ],
+      [
+        "2026-05",
+        1.117
+      ]
+    ],
+    "capex_per_share": [
+      [
+        "2024-05",
+        3.0835
+      ],
+      [
+        "2025-05",
+        2.923
+      ],
+      [
+        "2026-05",
+        2.535
+      ]
     ]
-  },
-  "ttm_nonoperating_gain": 0,
-  "ttm_net_income": 655000000,
-  "ttm_operating_income": 540000000,
-  "ttm_quality_as_of": "2026-05-31",
-  "ttm_quality_facts_searched": true
+  }
 }

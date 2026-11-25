@@ -395,7 +395,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(150.47)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 125.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 5.4265 } })
-    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 313.71, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
+    expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 314.46, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)

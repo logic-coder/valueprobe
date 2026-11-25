@@ -52,7 +52,7 @@ describe('financial institution detector', () => {
     for (const name of ['SHSE-600036', 'SHSE-601398', 'SHSE-601318', 'SHSE-600030', 'SZSE-000001', 'HKSE-01398', 'NYSE-BAC']) {
       expect(loadSnapshot(name).financial_institution, name).toBe(true)
     }
-    expect(loadSnapshot('NYSE-BAC').classification_basis).toBe('name')
+    expect(loadSnapshot('NYSE-BAC').classification_basis).toBe('columns')
   })
 
   it('flags HK insurers and HSBC by name', () => {

@@ -2,8 +2,8 @@
   "schema": 1,
   "policyVersion": "v3",
   "policyHash": "07a8a857626ac0122e55de3dfcf062296515a758366c65a62967b1cf6e34625e",
-  "generatedAt": "2026-11-23",
-  "dataAsOf": "2026-11-23",
+  "generatedAt": "2026-11-25",
+  "dataAsOf": "2026-11-25",
   "universe": {
     "declared": 500,
     "snapshots": 500,
@@ -15,20 +15,20 @@
     "refused": 48
   },
   "rates": {
-    "asOf": "2026-11-23",
+    "asOf": "2026-11-25",
     "CNY": {
-      "value": 1.5861,
-      "asOf": "2026-11-23",
+      "value": 1.5853,
+      "asOf": "2026-11-24",
       "source": "snapshot"
     },
     "USD": {
-      "value": 4.92,
-      "asOf": "2026-11-20",
+      "value": 4.91,
+      "asOf": "2026-11-24",
       "source": "snapshot"
     },
     "HKD": {
-      "value": 4.92,
-      "asOf": "2026-11-20",
+      "value": 4.91,
+      "asOf": "2026-11-24",
       "source": "usd_proxy",
       "proxy": "USD"
     }
@@ -36,2278 +36,2278 @@
   "files": [
     {
       "name": "catalog.json",
-      "bytes": 44957,
-      "sha256": "7985bd4d950a45fa73534b7e8e7ccba5507ab6468e7544d8e153e539d87fa8ef"
+      "bytes": 46101,
+      "sha256": "028529d3d0fa9f829d0724df362cc7fba80295351bef6ebfd99654b8b050dc47"
     },
     {
       "name": "HKSE-00001.json",
-      "bytes": 15546,
-      "sha256": "ef0e32c1bf22ed7beaf3cce92ebc8e11ace9597cae47fb130569bda16bf906e9"
+      "bytes": 15569,
+      "sha256": "cfe6626010e14517c0aec0824246628143efcdc99de066610a54e91649fe4f79"
     },
     {
       "name": "HKSE-00002.json",
-      "bytes": 15552,
-      "sha256": "0c0a50e08a330a562da2396469de9723d2dd7be87d01e8ef0b2fb1dbee9fd0d4"
+      "bytes": 15589,
+      "sha256": "09a2efa988a5501ea0728176b13e496d5ee22e6eb0650983ca74638b72314b52"
     },
     {
       "name": "HKSE-00005.json",
-      "bytes": 8081,
-      "sha256": "4f69a0c3b882a970fa062a2876b15a6d7b25508410d49face98628bfc1d7570c"
+      "bytes": 8098,
+      "sha256": "22cfd34c0dc23d99b72c4ecfc530869ce958307606b93e7ca8df5da1303cf4d2"
     },
     {
       "name": "HKSE-00016.json",
-      "bytes": 14794,
-      "sha256": "8548ec0b5ed482f6671a48d4a88f6d4aca4b14c6309c914a0dda6fdad1f91f78"
+      "bytes": 14817,
+      "sha256": "8f8ba30590cfcd497c451ace74960c659bf1106654bd7b7db65b4b64e47f607c"
     },
     {
       "name": "HKSE-00027.json",
-      "bytes": 15139,
-      "sha256": "b800adfb6ba3f38792f774dded7d1a01eb48fdeb48c381cd6df8cee963297a9b"
+      "bytes": 15170,
+      "sha256": "14fac4ea1816427684e851685532fc1880b0677e0acb41ca37d46694900fbe31"
     },
     {
       "name": "HKSE-00066.json",
-      "bytes": 14799,
-      "sha256": "9671c9e0e42efff15a0d9d07aea440acabc0c58ed3469f94e61114500dc697b6"
+      "bytes": 14856,
+      "sha256": "2f40fd8830bc95e8317aac386f551a33fec503729ce91de2c552e2e31b02d74d"
     },
     {
       "name": "HKSE-00175.json",
-      "bytes": 12538,
-      "sha256": "19a705a275823a519e94daad9466142c918f7643f538c2b036996f8ca392a49d"
+      "bytes": 12547,
+      "sha256": "e841e7509e6f93246bb3872e24db6f5a93ff72b541eae0f2d1011c14225d4d1c"
     },
     {
       "name": "HKSE-00268.json",
-      "bytes": 14837,
-      "sha256": "96165ce3671e78fbfdf0fb3f43fff5f62f0a755671c9b31bcfa33b7c3979b158"
+      "bytes": 14864,
+      "sha256": "005573b1ebb7e76751079844390047025e2a92a08dc4661d53dc374c012f8652"
     },
     {
       "name": "HKSE-00291.json",
-      "bytes": 12443,
-      "sha256": "aa61bfcd5c76130329ab6725a4535619790a9420d6063c4837065e8454c661af"
+      "bytes": 12478,
+      "sha256": "79a767af9d8883a0ba08265e8600e96b8087d3457b08c69df7b2cc4685969fb9"
     },
     {
       "name": "HKSE-00388.json",
-      "bytes": 8571,
-      "sha256": "b580d28a0c524e6bdd56d0aa15548f14fbd18ea58a51720896a4498c78a9563c"
+      "bytes": 8598,
+      "sha256": "11179b407eb84e60b64a71de18b58f0210c3bc2ab0fa90f406949d9f5839ccb5"
     },
     {
       "name": "HKSE-00688.json",
-      "bytes": 13915,
-      "sha256": "38f7c3e3fc189eb004606cf0ff7d76b0a17e025b2648a48579c3dde838c6f042"
+      "bytes": 13938,
+      "sha256": "e48a3fe95ce704c99b6b6e82148c8439cd528c583c97475c74f7466cdde87a46"
     },
     {
       "name": "HKSE-00700.json",
-      "bytes": 8657,
-      "sha256": "0fc5519d5ce1e5f6987d710b10f6ae397e99fe7dfd8bb49cf98127281b1a06c9"
+      "bytes": 8679,
+      "sha256": "c3ff3b8992782d87abe5fb59c0aafbbb6c68ce5140d6a3e43554477c70d38e79"
     },
     {
       "name": "HKSE-00883.json",
-      "bytes": 11206,
-      "sha256": "e4c6a48cb5fc0e1e93efe5840c521bb606bd5d0d7679b7f47af8c882598a94c1"
+      "bytes": 11217,
+      "sha256": "24b56cf2b66f36eeb7363b7aa91984a12d3f7d87e46322a9dbffe2427bb566ad"
     },
     {
       "name": "HKSE-00939.json",
-      "bytes": 7935,
-      "sha256": "7f621463aa1cc169b8fdd027ac5e436ea41229ba99d8c3d24a816fcdac5a54c8"
+      "bytes": 7962,
+      "sha256": "aa9d8edc74aee408f2caaf006cda20a5bb3d4948fc3f104936e761c590275f6f"
     },
     {
       "name": "HKSE-00941.json",
-      "bytes": 11239,
-      "sha256": "41db00bffbf0d49e59725347094f1c0e5b7cbbd44e284e680716dfcb8c32ef2b"
+      "bytes": 11257,
+      "sha256": "661f55d4903dbd8cda6406075e7bb725de951ed003a36a0893c2e05b3c76cae4"
     },
     {
       "name": "HKSE-00960.json",
-      "bytes": 15257,
-      "sha256": "50b7fc738d869ea8263bbfb12917241346b526eeb6a3e95cfc586ac56e94350f"
+      "bytes": 15276,
+      "sha256": "3ce53597752429a874d50f1561dab58113dc60fd74a4fa1a08becc98103020ab"
     },
     {
       "name": "HKSE-00981.json",
-      "bytes": 8593,
-      "sha256": "f8ad76f2bab0a8cbc5a1684a63de16fb73dc2abecf76fb075fbe89a0cfad0f60"
+      "bytes": 8612,
+      "sha256": "4e8547b2b68c8ee8a5dcd361c514c04cfbbad389377d74be1ea7b17caf633523"
     },
     {
       "name": "HKSE-01024.json",
-      "bytes": 7809,
-      "sha256": "d8d9643f20a5bf8e7bf6ba2321beac71b2de560988ac5117b5161a295b050885"
+      "bytes": 7818,
+      "sha256": "6424e542f9f836f70f5da86e0c44766bd4c77111e70389f4856c53fc92bb2fe8"
     },
     {
       "name": "HKSE-01093.json",
-      "bytes": 8491,
-      "sha256": "b0644dad4c4ec19b165c378011b10fc7f4d43603d7a55e06ca901bada400b5d2"
+      "bytes": 8522,
+      "sha256": "6073d85ae8a47030617709cec111c6598e8a06e0d1703a39716baf2978aa6248"
     },
     {
       "name": "HKSE-01109.json",
-      "bytes": 15206,
-      "sha256": "3c9c669260606e60443f8a0d4e5fff0ae7c9638567cb45d8110be34114f12cc5"
+      "bytes": 15221,
+      "sha256": "f8894e9701f73fecd991fbe2cc2c6e2a4cdc86e4685b520d0ed41bd356acdb6d"
     },
     {
       "name": "HKSE-01113.json",
-      "bytes": 11059,
-      "sha256": "1ae6df6cf091b333e884bffbb83247c08a2503d6dcdfaa0622e09f67283563e2"
+      "bytes": 11088,
+      "sha256": "2f4391f49d418013118d93ab7037eeadd22065bccf5398335862e5956bc7b996"
     },
     {
       "name": "HKSE-01177.json",
-      "bytes": 9841,
-      "sha256": "7664763ccf623f2874370437a00ba513852af46492c245f73dd6f499fec0c747"
+      "bytes": 9872,
+      "sha256": "4372f316a16ad803142807c766542530760374028b4f497677219868e6aabaf3"
     },
     {
       "name": "HKSE-01209.json",
-      "bytes": 7575,
-      "sha256": "8284dd808d0e783f8c300698f8b562125724cc8787402e1fe5c8111ff7141fca"
+      "bytes": 7606,
+      "sha256": "be9618b01411b240cb2c54112f6021da5f5f46b4ff4ac8958fd9f8910098bf8d"
     },
     {
       "name": "HKSE-01211.json",
-      "bytes": 8300,
-      "sha256": "b8f13bf0a8bc47e08f0535cf8852e090461cb0b41cfceb56868873800eed02dd"
+      "bytes": 8319,
+      "sha256": "bc21ae56f3ea314e0b37f64462c20db141c58164ffe099286389e161da0cf07e"
     },
     {
       "name": "HKSE-01288.json",
-      "bytes": 8010,
-      "sha256": "72340717a8eb88dd807122c44be4d8166b05490e87f3111fde5f02b491c7e164"
+      "bytes": 8043,
+      "sha256": "492412bab1d5953b0fafc23e7d41a8354a119db66b15959166cee3e7a54fa6c1"
     },
     {
       "name": "HKSE-01299.json",
-      "bytes": 11909,
-      "sha256": "940c184381a026420fe4ba6ea4c88908551fe12d3f8086385f4224f9a4b55745"
+      "bytes": 11926,
+      "sha256": "1c16d747772aa7f0d91438d978a4bcabfd42e020a8d0df91124604fcbba96c71"
     },
     {
       "name": "HKSE-01347.json",
-      "bytes": 8538,
-      "sha256": "71fe1aaf3b187de4e2574c381cbc14410d8b19405b17a2085da813363844bc12"
+      "bytes": 8563,
+      "sha256": "426cac69d943fbc7384bafbbe25febc983855c33e7117c5e4631ed8630417b2d"
     },
     {
       "name": "HKSE-01398.json",
-      "bytes": 7931,
-      "sha256": "1635bac832f21cb61082a9360170d954b3baf2511c14bb743ef2ef99b8adbb8f"
+      "bytes": 7942,
+      "sha256": "8196a339799fb159d8a836e7b44494cbf455f715108a5aea08487a813cfd1bf6"
     },
     {
       "name": "HKSE-01801.json",
-      "bytes": 8485,
-      "sha256": "8d1cab42ddaea2aaa72a664a2728d353b9c8cba34b59a39c3822b2f31b588cc7"
+      "bytes": 8514,
+      "sha256": "6bcdaa4b3f31b4ad222ba617b5b23a223bf77618b7226528d090e64b7101c59e"
     },
     {
       "name": "HKSE-01810.json",
-      "bytes": 9203,
-      "sha256": "be37132b68daca19c9d290135e552a129f9c3c2e74f961bbb086b19a2af715be"
+      "bytes": 8570,
+      "sha256": "95f43e3f91143c351c6df3ec5511b6b63b2feec77f078ef80f127649467105a6"
     },
     {
       "name": "HKSE-01928.json",
-      "bytes": 11202,
-      "sha256": "b0a2d89aa8e670e7e76a5174b0fcf23254622ae92e300c5e8a882d3970312c7f"
+      "bytes": 11223,
+      "sha256": "43be85724192140abd652fda3c94edfd51c4af95cdef07a807c41bdc6871913c"
     },
     {
       "name": "HKSE-02015.json",
-      "bytes": 7028,
-      "sha256": "4e974a34ceef38e8755c641a716db75d57b6bc1b690c15271b57a0e2958741bd"
+      "bytes": 7048,
+      "sha256": "c49b6c8c0108263bc7a7877a07364572df069fc43c9c6bc4f6219190704c6456"
     },
     {
       "name": "HKSE-02020.json",
-      "bytes": 15193,
-      "sha256": "cf13d76fd6cfd541c0c8e930a66b3334fcfe08a66b897a0705c7304a91819cd2"
+      "bytes": 15230,
+      "sha256": "62270d8a027e90cb4c856a7ce7023014e33b39e1d3c1dce1249ad77207c8a46c"
     },
     {
       "name": "HKSE-02269.json",
-      "bytes": 9755,
-      "sha256": "a72c873710fef2609fc884f80b1d36e0da0f56db6202d104f392627fa37d40e7"
+      "bytes": 9791,
+      "sha256": "baf68118aaca1e83eb1c7b4b1a72f6c0c46836cc0694c5cbb5fa35dda457683b"
     },
     {
       "name": "HKSE-02318.json",
-      "bytes": 7966,
-      "sha256": "77689c49a1bcab0a60953545369614aa8d829d144ec6a20b8aee56193411bd8e"
+      "bytes": 8004,
+      "sha256": "bc60ad00feb961612d2fb37f1aac992391f05d2010e6d0ca06c91d4a6c5afc50"
     },
     {
       "name": "HKSE-02331.json",
-      "bytes": 15096,
-      "sha256": "10994688e9729256d16db363e23eb77e67576a79d339e413d04d485a601d5899"
+      "bytes": 15130,
+      "sha256": "3a4a01157d7907169114e61bb008ab10e9cfe80d19f5511e3443c4b1b196da1e"
     },
     {
       "name": "HKSE-02382.json",
-      "bytes": 15234,
-      "sha256": "76cef4b6b8a9589b0208a8327926722f149ac63ea42714b75d514d6c4eae1388"
+      "bytes": 15245,
+      "sha256": "132428aee4a1f2267bf67f038e1938b5355cd0adb13bc2436de4beaf977b7a01"
     },
     {
       "name": "HKSE-02601.json",
-      "bytes": 7700,
-      "sha256": "c155205e3506af559f7b5b2b44f2ca874f828f7d219060dacb62d6ff2dbf55bd"
+      "bytes": 7719,
+      "sha256": "14ecf8a4a82699bbc1783b0f07746612e84c7015448252ec28665e1e765475eb"
     },
     {
       "name": "HKSE-02628.json",
-      "bytes": 7961,
-      "sha256": "03ce5db00d5e2401448b023f7b76fa04ab97bf0786400f8953ed61008b0964bb"
+      "bytes": 7990,
+      "sha256": "9ee6930ecb786f722310f2976c3c144efec2f32d70aa5984fb97d45ba67c8249"
     },
     {
       "name": "HKSE-03328.json",
-      "bytes": 7922,
-      "sha256": "3faf7475d89004ab0fa4659d7f0c3ce0817f546ae2ef99fe071e00b7c6af2d2a"
+      "bytes": 7954,
+      "sha256": "e3f3b629eebaecc785e09fe0a1bd45b54a2457b3772816eb753f8ccbaf6747f4"
     },
     {
       "name": "HKSE-03690.json",
-      "bytes": 9261,
-      "sha256": "e75e255c10a0d52789e94d34882e423192e328c015dc0fc299a7607847671456"
+      "bytes": 9298,
+      "sha256": "aef3a218d1db39535c51efe7b7ba9e83f5012b4fd82697a06e3a22e6d7de9a28"
     },
     {
       "name": "HKSE-03988.json",
-      "bytes": 7918,
-      "sha256": "79807137480c158db08009446b828c3abfcd9e6b8b4240ec96e5444dfd9fcd7a"
+      "bytes": 7951,
+      "sha256": "69786eac13a5d3c7c598f41767ab890049ea85dacfa6f57ae9fd056cb1c3bf37"
     },
     {
       "name": "HKSE-06160.json",
-      "bytes": 8579,
-      "sha256": "da810e0104fffbe5bbc11f608841b807a90ec73de70e1d4d74d9ed14359567bc"
+      "bytes": 8610,
+      "sha256": "8a4db0219cb725b18cbb1a016dc64155aa2bd27884b54817df979ebd279a4dab"
     },
     {
       "name": "HKSE-06618.json",
-      "bytes": 7564,
-      "sha256": "c051e4f67025da2c28c60f9c5a4fe6f209dcaf09407c36988db402f396097f00"
+      "bytes": 7598,
+      "sha256": "9e1c6784df071420f6fe5630e1610963c7c0a519dd03a13f1219fa9f10e7866a"
     },
     {
       "name": "HKSE-06862.json",
-      "bytes": 9075,
-      "sha256": "87069e27316f2efd878385b604fbdd45262efa738123d2c3ab3d7042973ed4e5"
+      "bytes": 9097,
+      "sha256": "c74c353dfb532615192e418681bd5eafde40bbd57289d48a28105cce63d1adf6"
     },
     {
       "name": "HKSE-09618.json",
-      "bytes": 7921,
-      "sha256": "196edacc3eb46a303918e6eb13000b52e6c65afe854a8c702ca1963fa7ddeecf"
+      "bytes": 7957,
+      "sha256": "2c4c68a3b0d33a73dd330f5facc700630b4f427dfbbe9e880e7a40847aea4b98"
     },
     {
       "name": "HKSE-09626.json",
-      "bytes": 7220,
-      "sha256": "2f62d73fdd99632018b1d630566dd4c27d2862d2ce2d1bff140ced9d86ff698a"
+      "bytes": 7244,
+      "sha256": "84c3258f9ab8c5202a89df94cd425e2b5acd731987e4f29d70bf439955ba6bc5"
     },
     {
       "name": "HKSE-09866.json",
-      "bytes": 7197,
-      "sha256": "e9642277887ecba2a5f8b13c5afe92ed09b02098bb4f02d09b0d4d6738d19ab5"
+      "bytes": 7227,
+      "sha256": "5cb9bed2416c1682a94469378c48911fe80061885124f1364f7f7289359eb0bb"
     },
     {
       "name": "HKSE-09868.json",
-      "bytes": 7120,
-      "sha256": "19bd6295bd4c66b91a486ce3fef5193d7db199ac8e2d3c6c3d9c7576632d7d3e"
+      "bytes": 7143,
+      "sha256": "26eb6be474ad31ecb6d24b99ab5c6dddea5f8c62f05dddf711aad49f6b9097dd"
     },
     {
       "name": "HKSE-09988.json",
-      "bytes": 8605,
-      "sha256": "5a7e6c729040ba415112c96d133a114f75b1005b6257c6c6fc9a90e5dd108c7e"
+      "bytes": 8631,
+      "sha256": "edd163afb3595816994205317d286c13be543a2f2e7ca69306d434131f75ecab"
     },
     {
       "name": "HKSE-09999.json",
-      "bytes": 7892,
-      "sha256": "4ef93efe8091351ee31c1ee7f9317f3db2d7fbea05811eb84ca785b9f49e9036"
+      "bytes": 7917,
+      "sha256": "736afbedd5d3f77a4f774eb0e1b933605f22f89dd949cb3b87968d62a0e54cea"
     },
     {
       "name": "NASDAQ-AAPL.json",
-      "bytes": 10768,
-      "sha256": "1be8363f9daa33ad524bfbd3b677e77fae8f869f46c3156820d43328dad7ee9c"
+      "bytes": 14952,
+      "sha256": "84923018aac94639c6f33ad4755314acb084d42aab6c989ff0b6c26a179395c4"
     },
     {
       "name": "NASDAQ-ACGL.json",
-      "bytes": 9592,
-      "sha256": "84c9eecfb7b7376a2277445973f83befa84e286d91cbfe4f1c76f633759ce694"
+      "bytes": 13093,
+      "sha256": "e2c7a0d7bb05d7293ad6322024663c0e7fa4e6cb242c897ef49c9e5509d6be70"
     },
     {
       "name": "NASDAQ-ADBE.json",
-      "bytes": 10761,
-      "sha256": "912221445b45ddf6afb47dac9aa614dceb7ebe307920abb98515880f3d90cacd"
+      "bytes": 14930,
+      "sha256": "5abb6c774bd33d40775fc03a8abd1512fc27a9d2c6e1ee17a193132ee9711114"
     },
     {
       "name": "NASDAQ-ADI.json",
-      "bytes": 10796,
-      "sha256": "21e070372296f4f92fc9784b2b38bf0c736599280099e45ea69cfa3c36b5521d"
+      "bytes": 14944,
+      "sha256": "bcf8bead1d0102ffe02b400e242d0d53d98382f7d5802a685773a44efadcf1d1"
     },
     {
       "name": "NASDAQ-ADP.json",
-      "bytes": 10202,
-      "sha256": "87ff43d56bdbb30038ad596d1fec5a77f56e0ffbbadd748c92e2d8635e13c8a9"
+      "bytes": 13707,
+      "sha256": "af6d895d903205e91455ea48010adeecc9f7a493ec60dc4143f5e18ecc80f175"
     },
     {
       "name": "NASDAQ-ADSK.json",
-      "bytes": 10743,
-      "sha256": "206be98676fc4caa51d302078a10d0690975ad67f56c8b5b5516b24579e453e2"
+      "bytes": 14742,
+      "sha256": "13f3ceb4dc81cd0b8be143f1a6ee127415294b84d3a330b444dae08255a94154"
     },
     {
       "name": "NASDAQ-AEP.json",
-      "bytes": 9783,
-      "sha256": "2c71a76884b46009f64bef5f7bedfa61187c54df90039d7d0ad5a263122ac3f5"
+      "bytes": 12978,
+      "sha256": "5acc6b910639aae617834a109a49113f0885a8c3fbb44c547af3cbefdde3aad5"
     },
     {
       "name": "NASDAQ-AKAM.json",
-      "bytes": 10809,
-      "sha256": "e36cdcfb28513efa43355bfc4fd66c55c0a5ce02affb8a16533db39121260485"
+      "bytes": 14921,
+      "sha256": "2b4985b9832fc80f5286f75c44338660159e608421248ca42cd401a778ed12d8"
     },
     {
       "name": "NASDAQ-AMAT.json",
-      "bytes": 10763,
-      "sha256": "8506281bf545980d486a6378b1982cba6ab913da7c243325e133b4f77948a93e"
+      "bytes": 14870,
+      "sha256": "bdb0bf92effd413f09517c93f4f765575820af1acc6e0c8446435698dfbf38c5"
     },
     {
       "name": "NASDAQ-AMD.json",
-      "bytes": 10730,
-      "sha256": "c0f30652a88bade4ba5b3f963902fc751714cd43e1f7a18f4ee455da550e7dc6"
+      "bytes": 14896,
+      "sha256": "a277bba8c200a17820464b67ccecc850a8bd64a6c8b363af575b8564d8b0e478"
     },
     {
       "name": "NASDAQ-AMGN.json",
-      "bytes": 10677,
-      "sha256": "256089cbf99aba3abd96dbe15333203fd96204264e38d6edfdb1c1f8babb1e9a"
+      "bytes": 14863,
+      "sha256": "7cddb6561c21338a6da4811a8380a6e88b752cfbf9b500282fceb2792d35f03d"
     },
     {
       "name": "NASDAQ-AMZN.json",
-      "bytes": 10853,
-      "sha256": "9ffaa1b74c5d5756ee4a477696edb1a0cc7dd2e3d1a56f1fe28b88a3e79d5c7a"
+      "bytes": 15107,
+      "sha256": "36a5155af55ebd2d0c1836180e2840e38ffaa1e4e5b3989a6bcab722b3661cf2"
     },
     {
       "name": "NASDAQ-APP.json",
-      "bytes": 8525,
-      "sha256": "59764213d0dd43a78ca96208e78808f7afdedbd106baf0aba0d63b97d7d2d362"
+      "bytes": 11547,
+      "sha256": "fc02ad6d1896d2baa36b05965c234417ebf0c93cab9652f081945cae16a724ee"
     },
     {
       "name": "NASDAQ-AVGO.json",
-      "bytes": 10680,
-      "sha256": "de1a14e924253ac2feec56e9b6dce8122be2303a5d51756062841303188b7d0f"
+      "bytes": 14625,
+      "sha256": "3720a29f21d92e77d2d83085df673a635e7b4b1e11f4226cc0037a366237be53"
     },
     {
       "name": "NASDAQ-AXON.json",
-      "bytes": 10808,
-      "sha256": "910e07e57ef3211b7a8aaef316917fa5dd7704626ef691815f0ba79842665095"
+      "bytes": 14906,
+      "sha256": "53d3ec5424d50679fb104f7521d3477759ab58e344d04b0f009364435fb0b631"
     },
     {
       "name": "NASDAQ-BIIB.json",
-      "bytes": 13202,
-      "sha256": "e3746fd899369970f92e586320868ac7a1b77599f3e7442bc7e5a6c704be9817"
+      "bytes": 18343,
+      "sha256": "77747aeae2e3fe8623f1bc134a766a1a2444040551a6a38b53edbf5d063b321d"
     },
     {
       "name": "NASDAQ-BKNG.json",
-      "bytes": 10858,
-      "sha256": "d13274ef9811a1ee27e185fd80744b735f29d4717d7caf423fcf784e6cfe5c6f"
+      "bytes": 14504,
+      "sha256": "0e9c70bfb5c1277ce7e2417e4e60cc2d55e57096130024aafd0c5a1a19e319e3"
     },
     {
       "name": "NASDAQ-BKR.json",
-      "bytes": 11075,
-      "sha256": "432c2a5e29dbdb428cd30def00998c4eb601ea75533e13b5a7fe3039777c2b82"
+      "bytes": 15461,
+      "sha256": "907c09f6f67ddf572b844779471b58ade926ebde5d5f6f672237399ae26b6181"
     },
     {
       "name": "NASDAQ-CASY.json",
-      "bytes": 10257,
-      "sha256": "beacf89c5b989b303dc98ebdd59795be2a7d43a2b44870c626592e69c7df6fb1"
+      "bytes": 13825,
+      "sha256": "a7560317f6e63795d4fd48da4d3451a4509f927150d865bd897235c1d07504a6"
     },
     {
       "name": "NASDAQ-CDNS.json",
-      "bytes": 10797,
-      "sha256": "6b1b9bd2e2cbd66291099107d1b98eec3e996f77b8adc93ad550c69dae11aad9"
+      "bytes": 14937,
+      "sha256": "f106a25fa9fbe53cb8e61d8d2ed59e87f9e8f851e2c090f1a232b374b2e8e7df"
     },
     {
       "name": "NASDAQ-CDW.json",
-      "bytes": 10877,
-      "sha256": "be9f15fa322f24dd7a37d88bfcb928a84f3f77d169e63da0c33dd4f9ce4aa495"
+      "bytes": 14947,
+      "sha256": "68694f3f424a78a9b4438d9685ceb173cc30c9d83c213a9d7b4703bb1ad6f909"
     },
     {
       "name": "NASDAQ-CEG.json",
-      "bytes": 7136,
-      "sha256": "d729c7855266e6caa30edf974ec1ca3ea056c4c509a005113cce15c48338401a"
+      "bytes": 9673,
+      "sha256": "8307db9696cfc2dd249e4ab27fbedbacfa9cfabf95b5b871dfc00a9acb434369"
     },
     {
       "name": "NASDAQ-CHRW.json",
-      "bytes": 10837,
-      "sha256": "8a16f737a1a9e61cd90d88860e5c670d45f724a05a9810de7ee8983835fb9074"
+      "bytes": 14895,
+      "sha256": "7051f150117754c4a5b2c78461ffa83b7bfc326665c7c074344a7c90820b7801"
     },
     {
       "name": "NASDAQ-CHTR.json",
-      "bytes": 10991,
-      "sha256": "c21429a59612b0ccfcd8804c964b4aaf58e5e2af2fd7fb8a5cb940c25556b6ac"
+      "bytes": 15158,
+      "sha256": "46020573f8ee5efcc1e1cc4855bbc227b74c4f5a0f673e3432bc09a66fbe8a6f"
     },
     {
       "name": "NASDAQ-CINF.json",
-      "bytes": 10039,
-      "sha256": "e8ed69793d0a7168ff27c324d19159dbcca7a5ab04b0e978d945f6594e01e7e1"
+      "bytes": 13601,
+      "sha256": "37656465cdddbe997c3e2a996473703871a5d982ca090816f8bbbc1c54d46eb7"
     },
     {
       "name": "NASDAQ-CME.json",
-      "bytes": 10862,
-      "sha256": "dfe3c2472d66564198e6fc9a614c1d13685e68ea9450a09b7ab1e76b2a3c80d6"
+      "bytes": 14995,
+      "sha256": "d352cb9d34ce01ad952c3759dedc54e2191d675a958c516176a74886bfd9932d"
     },
     {
       "name": "NASDAQ-COIN.json",
-      "bytes": 8420,
-      "sha256": "3212dcd010f8a9f7932bb3a7bad0e6dce8bc017ee359038df344f945b1ef70fe"
+      "bytes": 11417,
+      "sha256": "982b2c1401561ee510a2adbb1dd61dad8763bd774d7092c0eb48201e83194309"
     },
     {
       "name": "NASDAQ-COST.json",
-      "bytes": 10763,
-      "sha256": "7dd6ac50b63eb17aad395d84c63b577e5fd45d3addc5aaf3946328be68237ff5"
+      "bytes": 14899,
+      "sha256": "4eef9c03e96bc03a802efff51855d9991aa3e50edfc584e09e0af0b00090c196"
     },
     {
       "name": "NASDAQ-CPRT.json",
-      "bytes": 10780,
-      "sha256": "4f1a5cf5bf48b7f0901c4eb37a6090137805680faf34201bce8979d6a76cfe94"
+      "bytes": 14844,
+      "sha256": "a131d3df837b6fdca465a1526788d1b77e65d7cc82976550f39599b1bf5962ac"
     },
     {
       "name": "NASDAQ-CSCO.json",
-      "bytes": 10710,
-      "sha256": "1428a5b294eb8b07b5169cd8bef3deeaf28bb6060e222af15fb238da15bd6b9a"
+      "bytes": 14888,
+      "sha256": "85ee49d7746f6eb55165b0380fd23af32bd5fbb30d888d2b3945441b0e4273f2"
     },
     {
       "name": "NASDAQ-CSX.json",
-      "bytes": 10587,
-      "sha256": "4f2cd3f68949445abdb83dbb732795da7eca896a726aa37c2c06041bc8b20557"
+      "bytes": 14721,
+      "sha256": "f90126ad09c9f7dcce64c90a031e0c363ef16247ed574c0cf8eea04aaba9c602"
     },
     {
       "name": "NASDAQ-CTSH.json",
-      "bytes": 10862,
-      "sha256": "3239589bd4f8596a9ae1396541e480c531124b38a2da8579b24fb6ab11246aa4"
+      "bytes": 14988,
+      "sha256": "776ee74e82246b74b548fc71e99c8693e538a26a9e0c9cbab621771496f89474"
     },
     {
       "name": "NASDAQ-DASH.json",
-      "bytes": 9167,
-      "sha256": "8f40e90d37bd7ff088dab8f69475d226a6c3433deb18fc46dacc4e4e895b1633"
+      "bytes": 12581,
+      "sha256": "d2c22721de84899bd3a5c365501893f1cef9ce5d3dddd4cb371937d593c244e7"
     },
     {
       "name": "NASDAQ-DDOG.json",
-      "bytes": 10432,
-      "sha256": "3d4c3add05ccd24afadc82e39a6e70e7bc534974328ec10f9c124683b11ba67d"
+      "bytes": 14321,
+      "sha256": "d56d20bb3e7ad69253d7f51f529785a38bd635335fcbe22e277c54026d19645a"
     },
     {
       "name": "NASDAQ-DLTR.json",
-      "bytes": 10686,
-      "sha256": "96e79a2acea0ecca408154d8a97ff0498b8f2c0ede1adfe4d36a67d3924febf6"
+      "bytes": 14660,
+      "sha256": "7a6550e643550a5fb6fb77b4b646475a66bd5ba6dc3bded497d1366a2d2e26ca"
     },
     {
       "name": "NASDAQ-DXCM.json",
-      "bytes": 10670,
-      "sha256": "788b7013e3d9428ad64e9c6a82349aba69ef5b543618cd6d8ea732df6628ae84"
+      "bytes": 14749,
+      "sha256": "813d4a9864afd9fee423d7bf89edf5a34f26cf4035a219adcabfb3f19a7eaaa2"
     },
     {
       "name": "NASDAQ-EBAY.json",
-      "bytes": 10887,
-      "sha256": "2fc27a6dc8763301d820784a93f3f0bbeb0be72595969ac67ea86d7727d65087"
+      "bytes": 15075,
+      "sha256": "9c83c7932af9ca57f7f4345ae83cf2414e124b90256beb2fb70d7ce6f1028a45"
     },
     {
       "name": "NASDAQ-EQIX.json",
-      "bytes": 10656,
-      "sha256": "e670fc0a9bc2e97601facd0c108192d5945ce9b3e0cf9043520e950bc1d13b75"
+      "bytes": 14807,
+      "sha256": "659f58c3c42919872ba93174f7b6fb1f576f5a1bc1ced740fdb4608ce16054c1"
     },
     {
       "name": "NASDAQ-EVRG.json",
-      "bytes": 10788,
-      "sha256": "9718354b8260fd5813fc3db273a7bf0a75945931bb10d72dc49c1804eb9e96c2"
+      "bytes": 14912,
+      "sha256": "7d3e614b07248b2807be0695758b60151851d39857832f999c9c221fa95a0bbd"
     },
     {
       "name": "NASDAQ-EXE.json",
-      "bytes": 10838,
-      "sha256": "1bdfd02cfcadc92f914589d8fafece31cfa7ba6e915b46f1b43eaaf35310ad1d"
+      "bytes": 14731,
+      "sha256": "77bf94a71bd56df406fb517abb9a58d055975177c630d9e0e05752f79dd7f6b9"
     },
     {
       "name": "NASDAQ-EXPE.json",
-      "bytes": 10836,
-      "sha256": "5649060ae18a79639c9bcdbb7dee5f1626f7920e2c3ba0e6242fe65422a56da9"
+      "bytes": 14924,
+      "sha256": "3b5ed6bb9cf330ccae0b7ff6ef9d455cbf534066e6a59be2f67e846500c0f92c"
     },
     {
       "name": "NASDAQ-FANG.json",
-      "bytes": 10203,
-      "sha256": "7eed463e8e89d3d9e95dc087ea9cf0f495ea5d867e7ed3b0d72428db7e726fe8"
+      "bytes": 13732,
+      "sha256": "c2e33805b2db4700cdc6fdc8821b3e40b69238e7e49ea997e182b4dba4dcd5c9"
     },
     {
       "name": "NASDAQ-FFIV.json",
-      "bytes": 10800,
-      "sha256": "5810af77cedd39ae8bfe9e82c83e3fad829ef4a0be282fa0989447d26d4bcdd6"
+      "bytes": 14869,
+      "sha256": "5454e326bfc93ad1b4638162b297aac61daa60ce83c5700e70cf326b5b36525f"
     },
     {
       "name": "NASDAQ-FISV.json",
-      "bytes": 11324,
-      "sha256": "244ff643756710f72eed3a3e47375af71b35e7f9fd3313bd801d6cb744466c18"
+      "bytes": 15636,
+      "sha256": "e4676a4b2304f538243d4d2654046d779230343031e19a7d55e16aa645e52e22"
     },
     {
       "name": "NASDAQ-FSLR.json",
-      "bytes": 10886,
-      "sha256": "2c79561f4da450f718162a75fb48ba8a9e9f869c0ab557e4e2bc178f3ff020a7"
+      "bytes": 14954,
+      "sha256": "2777091beccd0caa6a1ab5011c0078711cfadbdf7867552c724682a4d545539e"
     },
     {
       "name": "NASDAQ-FTNT.json",
-      "bytes": 10743,
-      "sha256": "86ebb00c76bc9081c1684a71e5cc7ec5f38feaafa7e97d501713bef95dc5e95e"
+      "bytes": 14796,
+      "sha256": "80df0ddff5a80ba4df347c795f47a5e9c0728d2ef815a3b79e49fbda990303f6"
     },
     {
       "name": "NASDAQ-GEHC.json",
-      "bytes": 6486,
-      "sha256": "35d17440473d153a2f7ec1716976df41bd671b9d024201eda5d4ee256c575d7d"
+      "bytes": 8525,
+      "sha256": "d594802f965ad20895003cb015d483ef098601bea1f221703e29cb40860451a8"
     },
     {
       "name": "NASDAQ-GEN.json",
-      "bytes": 10849,
-      "sha256": "4da058a58be3c5cf23b6ef200d0fcb0ef1cf7e790be00c63039ea993d78a8838"
+      "bytes": 14998,
+      "sha256": "6acdec68e12543e319d5c75d6733d6e7a58c0e1eb4fb1397bcc6e8808d91f199"
     },
     {
       "name": "NASDAQ-GILD.json",
-      "bytes": 10683,
-      "sha256": "7b53f2ff0ff2d33c4a48225abf5baa3125f894c71133238162cc12fdadb0bc8a"
+      "bytes": 14768,
+      "sha256": "a057fd488581421e13441169a49d6aaefaf0168a92a9c2339749699434043d42"
     },
     {
       "name": "NASDAQ-GM.json",
-      "bytes": 10867,
-      "sha256": "55458578e897cc1bd9d187530bd904aaabcbf76053adda11d2d1e5d03e1a7c17"
+      "bytes": 15026,
+      "sha256": "5a72ecc097dc0ee6aa6e0c087aa650aa97b6a1542aa0d59598552e995e40f016"
     },
     {
       "name": "NASDAQ-GOOGL.json",
-      "bytes": 9476,
-      "sha256": "8c997dc74bbdd17f967312d854c87bd8cf563dcabe2fe7b4729b49aa7915fc0d"
+      "bytes": 13401,
+      "sha256": "3ab97c6c2dfd10691e9fc17b76f2e8f6e1bd955ea68161437a23cd01d342ce4d"
     },
     {
       "name": "NASDAQ-HBAN.json",
-      "bytes": 9697,
-      "sha256": "b04257c0ad8327704e93f54642c4645b49f1c4d4208cf1fb524e5ff8d6ccaab7"
+      "bytes": 13246,
+      "sha256": "395db376aa0531203806900e0bf054c9fc792018828ecf64897750f6766ef8de"
     },
     {
       "name": "NASDAQ-HLT.json",
-      "bytes": 10849,
-      "sha256": "b28299900adb67b5c78ef0562be6911eec8ac820034ab88aa99b2b2a0a5ba0fe"
+      "bytes": 14969,
+      "sha256": "8df4590497ea1d653d9a93e725ade019d18fa55ab182cbd7de5e8610e832fc36"
     },
     {
       "name": "NASDAQ-HOOD.json",
-      "bytes": 7235,
-      "sha256": "aaf4e247b1e2965eec7ab096ccd691658e9d1620bfb11ff5a421e5a67e913bbd"
+      "bytes": 9564,
+      "sha256": "b28de11b7128a52b2d1d66ceee10af3589d48c4cb3b24ca2e8f00a749eb340fd"
     },
     {
       "name": "NASDAQ-HST.json",
-      "bytes": 10430,
-      "sha256": "a70b40b465ab1a81d03711cc887d87f373ee6e20443afa4f6c03ae43c443d01c"
+      "bytes": 14170,
+      "sha256": "92c32c47ca005ff05bdaf33e4c06ba8a67dd03a7a74fdff4c0121dbe75f62ba4"
     },
     {
       "name": "NASDAQ-IDXX.json",
-      "bytes": 10809,
-      "sha256": "4f882765aaf9b268dbe8ce2532f9181904beb14aa79016e2e0f64b042c28f74f"
+      "bytes": 14821,
+      "sha256": "f1d67db7980a772fafc4549619b91e815996ca25670b4e1efe2e6d5d1ae4114c"
     },
     {
       "name": "NASDAQ-INCY.json",
-      "bytes": 10639,
-      "sha256": "4de18f0fa216072cb5df17e7fb720c35df789d18b61d4619648b864b6bca8746"
+      "bytes": 14634,
+      "sha256": "ad50cdbd4e71b428959bc37168d5927d5682a1412f9b2002053e71b59f3bec17"
     },
     {
       "name": "NASDAQ-INTC.json",
-      "bytes": 10775,
-      "sha256": "5f623f83699473834aec9791685fdd4f54c02bf417f87e33e340a60d5fa2f70e"
+      "bytes": 14940,
+      "sha256": "a66dd932ce36eb289c354e7c58d5f52967e3a8284648d20a8fd90689e406ecfa"
     },
     {
       "name": "NASDAQ-INTU.json",
-      "bytes": 10771,
-      "sha256": "e7998499b8ff934200095dc02c09ea79c47ae0744d262d40edfb530bcd50520f"
+      "bytes": 14935,
+      "sha256": "231915f9b03bd7d0fc8c095554a9646a5cdf69588db2e851a95c8422fa9d1475"
     },
     {
       "name": "NASDAQ-ISRG.json",
-      "bytes": 10761,
-      "sha256": "48d1516eff8fb0122e9c2618892fa0c61c5ffc46e619dd2434f0d456c0df8cd4"
+      "bytes": 14920,
+      "sha256": "bf136b39e224d56378422c7ce6d6d9f604d2a6ad292bcb574be1650eb651ba82"
     },
     {
       "name": "NASDAQ-JBHT.json",
-      "bytes": 10854,
-      "sha256": "418e13d33a0e5d4b70bd3a2763c19e886ae4f46399af5bc120dba449744bc637"
+      "bytes": 14980,
+      "sha256": "ecd7dd29ff6e9afcbebfd2c0953694ddaaad0d39e2af58fbd3cd497e0dd9aa2f"
     },
     {
       "name": "NASDAQ-KDP.json",
-      "bytes": 10804,
-      "sha256": "75638ca855e02e98c77d21e8ed1532d62770420cd7ab4e4860eccdc4d948c4e7"
+      "bytes": 14923,
+      "sha256": "9eefc765b571353c096103aa0c0a2e214c7627aba17e61523ff26b503298b30c"
     },
     {
       "name": "NASDAQ-KMB.json",
-      "bytes": 10791,
-      "sha256": "c3a694eb7950345d662ee97fa2416cf71ebb00b7bcc2429950fd98addcbc2756"
+      "bytes": 14878,
+      "sha256": "7ac43cd21f7cece62a7f5374e5f6b88e7fd2487da9686df1c817257fd5f3e6d4"
     },
     {
       "name": "NASDAQ-LIN.json",
-      "bytes": 10376,
-      "sha256": "a80d5c41203cd5774e521f66a6f5cd9af99e49f538c0fe45b6551a2f26d82b5c"
+      "bytes": 14307,
+      "sha256": "7ac2cf4ac124d3f1561b80ce68332106147258b2d8a62790056ce461141bd490"
     },
     {
       "name": "NASDAQ-LITE.json",
-      "bytes": 10870,
-      "sha256": "fdb091578968dfe32d7e2b57a536c6b6941f288be946c04988d499c064416837"
+      "bytes": 14975,
+      "sha256": "db182286dff5b83fbd319e9d67c502ded9b86aa092813c87801c093b445505f7"
     },
     {
       "name": "NASDAQ-LNT.json",
-      "bytes": 11254,
-      "sha256": "8042c41a2b7eb1bb6f701321e33bdbec4450756ef91383832f6f3b4944a8b062"
+      "bytes": 15600,
+      "sha256": "3225e04c03ac44588d738fdad69257d3ff551e061651760bc326c9852bc1642e"
     },
     {
       "name": "NASDAQ-LULU.json",
-      "bytes": 10809,
-      "sha256": "9851086319008043b42297f9520f347e5071f34217730c1b02cc9818fe5b86cb"
+      "bytes": 14934,
+      "sha256": "db28aa8a47102a9246c7eb84405e42a790c330f29ec19578fcd05727cfca52ea"
     },
     {
       "name": "NASDAQ-MAR.json",
-      "bytes": 10515,
-      "sha256": "1d2a66ecbbf2079d7359e06b825b08d80726b50f92dccd0d5168dff2e170e698"
+      "bytes": 14276,
+      "sha256": "26836af8036d4ad1f57433fb44868473d1559f46b6e9f8e6370b03a81daad9df"
     },
     {
       "name": "NASDAQ-MCHP.json",
-      "bytes": 10746,
-      "sha256": "8aa807a1453b16487f4fb41059b049a1434ddb7f974a1bf3ab0cd4c1a975db65"
+      "bytes": 14751,
+      "sha256": "239e43691ce0005909ac79b74d3bdea04c4e75de0dc0d43867d0fb00e970be5e"
     },
     {
       "name": "NASDAQ-MDLZ.json",
-      "bytes": 10876,
-      "sha256": "873aa2b0d3e7e67b8f6f76502f0b679da181284a8e231581e3ff038701075c95"
+      "bytes": 15015,
+      "sha256": "9c8ef6fbc42fa9002492ae5b6a19e0dbcde0473e093c2f7eadce13e52f0226e9"
     },
     {
       "name": "NASDAQ-META.json",
-      "bytes": 10848,
-      "sha256": "4986044383ea07a4001288407edff387154eaf9784ab91903a86daeec0aef1b7"
+      "bytes": 15063,
+      "sha256": "83773d8104a2060165d87c970d5c653bda26f823f57a1406d05f9472c6240230"
     },
     {
       "name": "NASDAQ-MPWR.json",
-      "bytes": 10794,
-      "sha256": "8ee6a31b8812e22263532c93dee608370c7b130bf978c3f1b3ba34728e90c21f"
+      "bytes": 14906,
+      "sha256": "257081649e8364f6aec6989186f0bbcf66e939dc8f0adb51ec1934e4b3504a9f"
     },
     {
       "name": "NASDAQ-MRNA.json",
-      "bytes": 10537,
-      "sha256": "8040ddd318226fa43d2e6fe46fff257719386a34aa3587ed7851278d4812d1af"
+      "bytes": 14636,
+      "sha256": "965a11d3c3e1039d1a5e6097d8eaf7ab4a534c4fcd66887fea8bcb2aaff07d8d"
     },
     {
       "name": "NASDAQ-MRVL.json",
-      "bytes": 8649,
-      "sha256": "192c0761133af54abd3e19a4ab14d8f4323c0ea250a1412eddbca768302b4a66"
+      "bytes": 11780,
+      "sha256": "9ac1c047025c33e3b8ad334f44ef62dfc5ebe8a7b9c40155049052013f02d333"
     },
     {
       "name": "NASDAQ-MSFT.json",
-      "bytes": 10779,
-      "sha256": "057a2400cd73fbf9826c7285e74f5fc77ba5b7adb7f80e7e8545ddbd2ab385fa"
+      "bytes": 14978,
+      "sha256": "7bae489a24d1e067130221f761f5aa0a09d98a7a99fd153e54cab530086e2325"
     },
     {
       "name": "NASDAQ-MU.json",
-      "bytes": 10787,
-      "sha256": "9aa5ccde99122099015f40a60b779b5ff6bf1367162f003689435bf1b8c36420"
+      "bytes": 14974,
+      "sha256": "81dbf8e0a63500b83c12a2871000c0e4eef65e278bf40301625308f0f9f246c7"
     },
     {
       "name": "NASDAQ-NDAQ.json",
-      "bytes": 10845,
-      "sha256": "6e45361f96d9b2d940aa1e12104750b133185194447e4e742fe228bc5826ed55"
+      "bytes": 14965,
+      "sha256": "febfa1ea370061fbec17640e1b270ca0f6d1df22bdea47e662c3b3d865c91dc8"
     },
     {
       "name": "NASDAQ-NDSN.json",
-      "bytes": 10722,
-      "sha256": "304b49aa04a9203348af82f086b4842131b4db9e518fb95f050663808c2bd539"
+      "bytes": 14850,
+      "sha256": "a8c3634044647492eceb6ddf14c1700393781a0836c42eb2701ef44e1e91d7de"
     },
     {
       "name": "NASDAQ-NFLX.json",
-      "bytes": 10735,
-      "sha256": "df2f148f271118898e8494721cde84dd3eb70bde87ec4cee9b8aadf63537f0db"
+      "bytes": 14895,
+      "sha256": "1a2fe451fce79e75d2d3a1e33d06f0b963b771f0685ff261228bf2b6a3e3b5d8"
     },
     {
       "name": "NASDAQ-NTAP.json",
-      "bytes": 10832,
-      "sha256": "e98fa4dd8ef5fca6fdb83c22f68bbe3ad4a24bf205123157a2170afff268a83f"
+      "bytes": 14898,
+      "sha256": "c20ff312d3470de1aaa00e89779079ae4cee07e005425709f7bf412f2e6f20db"
     },
     {
       "name": "NASDAQ-NTRS.json",
-      "bytes": 10123,
-      "sha256": "04bcc6891bd5b6f5495a4e9fe80d8e8d526883fa9f20d020ccda5cb3bbdeec74"
+      "bytes": 13682,
+      "sha256": "6765b217cee30c9a1be4ca4d8e081c364e81111967f9bc67c2fac9fa70b94bab"
     },
     {
       "name": "NASDAQ-NVDA.json",
-      "bytes": 11043,
-      "sha256": "2f2348b7a208b3e21dfeddaf5099e026dfed9fc05b515d06bf3171671ba74691"
+      "bytes": 15224,
+      "sha256": "d7e5c7025b861200d8f3433581c5c02ba83788206f2986122a6b01bff117b6a4"
     },
     {
       "name": "NASDAQ-NXPI.json",
-      "bytes": 10860,
-      "sha256": "4f94d084ed36bfab29c4b97cb7ba4bb43503afb0f32e6a4508d8ed1394b767de"
+      "bytes": 14995,
+      "sha256": "13a30b568e3a40439724f3a596cc8c9270105752e0fbc45064fe35bf92dc5d28"
     },
     {
       "name": "NASDAQ-ON.json",
-      "bytes": 10760,
-      "sha256": "457755b1b939ea99af5b0828795842b085e334a952d6ae16ace711728f37d03a"
+      "bytes": 14873,
+      "sha256": "6246a48a5acef7c2ada8bd32f85ffef5840ec467e4f2705751a3f5ea7ec701c1"
     },
     {
       "name": "NASDAQ-PAYX.json",
-      "bytes": 10782,
-      "sha256": "c8acc05649de896aaaa5086f3536b1315ecd5fc614bb6679db4dcf06e07c8b6d"
+      "bytes": 14472,
+      "sha256": "8be1f0232edcf829c63a26fb3e0413ea87ed26bb98d0c24a875d5b44edbd11d1"
     },
     {
       "name": "NASDAQ-PCAR.json",
-      "bytes": 10209,
-      "sha256": "1efe1475b5fa5d98d7f68690097d9dc93c06dbe98cd483ef567d1839cfb8ab32"
+      "bytes": 13753,
+      "sha256": "1e80af02edfbbe03e16bcb6781527c822d643e9f3796b58059070252903b9741"
     },
     {
       "name": "NASDAQ-PEP.json",
-      "bytes": 10824,
-      "sha256": "ec16bd6c14c86315c03f59503ff462351f5de52b28bf6fe48637d2449c2016df"
+      "bytes": 14959,
+      "sha256": "5c6bbf63a9e987ac905c531b06429c4386aa98d870e59737cc786e7867cdc481"
     },
     {
       "name": "NASDAQ-PFG.json",
-      "bytes": 9633,
-      "sha256": "efc7579be738b40a95480216886603d3cc9d1f8d5c5cf6a8c44a30348e2472b2"
+      "bytes": 12716,
+      "sha256": "fc28269192734f68ef66801c4f7b4ce3d36b7ea637590e4bdfd01ef6a03ff18b"
     },
     {
       "name": "NASDAQ-PLTR.json",
-      "bytes": 9463,
-      "sha256": "77d4537445b01ad23dc7ace93218db1c7c26958959fb4d7b093b6ea3f3c88a75"
+      "bytes": 13030,
+      "sha256": "250638adccddaf7669ecada9b7ff55b22f3edd4fd8662b580a68767391e861c9"
     },
     {
       "name": "NASDAQ-PTC.json",
-      "bytes": 10799,
-      "sha256": "2a55c1052afcc3b9dba9ce589c2eb35c9d347a6fa98dcb52dad559972c41f480"
+      "bytes": 14901,
+      "sha256": "ada75fed31e48a01e6f592a24f6dbd916bdfac3dcc47087e6a026d7149150dc9"
     },
     {
       "name": "NASDAQ-PYPL.json",
-      "bytes": 10640,
-      "sha256": "48df8a739fe782cf7f51e46ed294bb43b90f495743bb6fa6e833105029d19a72"
+      "bytes": 14796,
+      "sha256": "4b0dc17d7211f1cb3c0cbd34a46ebb4a988a759458b14f50aea3d5119ee063a7"
     },
     {
       "name": "NASDAQ-QCOM.json",
-      "bytes": 10755,
-      "sha256": "9b32a67a522cf8417a0f8952414ca80319e872acc1590256dd07c2899befeb04"
+      "bytes": 14928,
+      "sha256": "d226786c7ff2e7e0bfadb8e8543124c3e3fcb10bc64c97d453215849b77ef746"
     },
     {
       "name": "NASDAQ-REGN.json",
-      "bytes": 10970,
-      "sha256": "62a52606239edb91980197849d54279c33e0f7d556259333e739608c803502c5"
+      "bytes": 15089,
+      "sha256": "aedfdef39e3e50c73daea9c670fd18152a805860435c5be8e8f6d306dd599b17"
     },
     {
       "name": "NASDAQ-ROP.json",
-      "bytes": 10529,
-      "sha256": "5654d60a7c1baac4ca90042ac887af728f05a1ffd16b6c99af333195ae847016"
+      "bytes": 14299,
+      "sha256": "0326470e7dbabb5dde324a243432e56ee131c770ed45048db5af513912f0ebd2"
     },
     {
       "name": "NASDAQ-ROST.json",
-      "bytes": 10485,
-      "sha256": "75901eda49495a653c84e4d6446d62309deb25232e6217e5c555438763d402af"
+      "bytes": 14224,
+      "sha256": "ea6151acf40bacf420b15751c4cfe5caab9de5fc028bfb5ab4822ac77ac94df8"
     },
     {
       "name": "NASDAQ-SBAC.json",
-      "bytes": 10851,
-      "sha256": "29fabcc7caa7a18bd4643f9e94e851f87c3cb55123381a501fd6135b3ec414f0"
+      "bytes": 14975,
+      "sha256": "2c2640442a044296ef378bb116b997753608bb670522609b38696e045f1197a2"
     },
     {
       "name": "NASDAQ-SBUX.json",
-      "bytes": 10786,
-      "sha256": "716bffaffc90bb95769fd824d1504f5f7e782c0255bc0b65d6bca5bc6687041c"
+      "bytes": 14914,
+      "sha256": "7ad2888a68b72e98dd8476a36d066c7e45ba74fc3918c2a03b059669e5ba3f9a"
     },
     {
       "name": "NASDAQ-SNDK.json",
-      "bytes": 5889,
-      "sha256": "01d26bca84feea70307a0fcc0f731fc103ca61f357b9bed920a12d3a0cadf5d2"
+      "bytes": 7811,
+      "sha256": "15783c6d79fac5923f5ccde6216dc7e7648aa03f42f3a10fc0ef1a226fdcac7a"
     },
     {
       "name": "NASDAQ-SNPS.json",
-      "bytes": 10671,
-      "sha256": "987911393d41e392ca68bbd85bb9420673fd9a0759967ba981632f0837291175"
+      "bytes": 14737,
+      "sha256": "c09de733d474cec24ec0e7513f6a23d6f3a053d276b1fe186ddb6e4dd5b10e01"
     },
     {
       "name": "NASDAQ-STLD.json",
-      "bytes": 10848,
-      "sha256": "db3814af8b1430dfb2a76b1afb910d1a1a14a5475b59f5bcb8e33c5bf1340060"
+      "bytes": 14705,
+      "sha256": "5ed76810fe2374a05a0d9fa6c863c97b74a2be2ff7480347b60aabd075e3ab23"
     },
     {
       "name": "NASDAQ-STX.json",
-      "bytes": 10860,
-      "sha256": "fc8c0cf6a2e728e5e6a79a9901932087ffc67e436bd3d1c01b6d38e2424397f9"
+      "bytes": 14988,
+      "sha256": "e5f4dd66c6c96724be43b7857e9312a6eefd184137f8550610271574456c9a33"
     },
     {
       "name": "NASDAQ-TER.json",
-      "bytes": 10802,
-      "sha256": "ecc6f1731b6fa9f2449c88af68180aaf927eaeb74219dfb3e3dc2c6922f565d6"
+      "bytes": 14906,
+      "sha256": "8c473844dd68a137f61000d506e275be3bfbcfca4367179c8302b05da8f41df8"
     },
     {
       "name": "NASDAQ-TMUS.json",
-      "bytes": 10875,
-      "sha256": "8eb204b007c72fe3fbee6777474070bb706caf19c98dabd02ef8d2a4ec9e6f8f"
+      "bytes": 14966,
+      "sha256": "d6a0c55561d532c0ef6b514a3b513c8d583be2a4b88e9d9e134b57f8ca0eb413"
     },
     {
       "name": "NASDAQ-TRMB.json",
-      "bytes": 11334,
-      "sha256": "2d98c6ff2cfe12c34ac87c79a4944730fd35b134f1bbc12304a41dcc47cbb85f"
+      "bytes": 15619,
+      "sha256": "465c7baf6c315cc5dba1089862562f48387339704178a17ee9464e2b9740f2e9"
     },
     {
       "name": "NASDAQ-TROW.json",
-      "bytes": 10286,
-      "sha256": "a01700ffda45d6f2bb66af821cddaf858ff2dc97008788a10081a788f91165fd"
+      "bytes": 14361,
+      "sha256": "9ad3da8132db30d228354a9cc374e18fb0d31816d8d46a220b07a4f9775cab2b"
     },
     {
       "name": "NASDAQ-TSLA.json",
-      "bytes": 10780,
-      "sha256": "c90702f4a91cc68d7b3ff92939f996ff1047e295ed0da38070836f15f81de954"
+      "bytes": 14945,
+      "sha256": "f709a93df2b5562c2762035f1d064bbb40daaa0ff975394e571ad30087a4026a"
     },
     {
       "name": "NASDAQ-TTWO.json",
-      "bytes": 10883,
-      "sha256": "73f016e14e6a6ab595a06ee597e7ed4bcefb48ff6287d75d5dbe4ff9ce8d36ea"
+      "bytes": 15007,
+      "sha256": "502d3f0d17bd294bc4389eb206af883780973c94bab0fcd3e3fc5cb7c5cc6ffd"
     },
     {
       "name": "NASDAQ-TXN.json",
-      "bytes": 10744,
-      "sha256": "9c8459192c5004c36e8994478d9248100a12f5c1667479408042217449660dd8"
+      "bytes": 14906,
+      "sha256": "11b002149ea28903795009f0a272dc6c6b4c7c6f30afbd3a683e13d21006ac7f"
     },
     {
       "name": "NASDAQ-UAL.json",
-      "bytes": 10753,
-      "sha256": "606eb574beaebb01e229b0a28c2b5187fe2afc6988788c98edef585ae9c5d3dd"
+      "bytes": 14871,
+      "sha256": "a7260a128bf22516f2dd0474d88ec2ecdf8fbd5ff107952235aeed19f1b1c01f"
     },
     {
       "name": "NASDAQ-ULTA.json",
-      "bytes": 10838,
-      "sha256": "e52ae3520843dea27891a08ec327f731ef5d6b3ab4bd0a68f39a9cb1f07a7b11"
+      "bytes": 14985,
+      "sha256": "17392459b812a27c05d13c9ac35a4976e51f697db7aa3a0ac123f394bd952b72"
     },
     {
       "name": "NASDAQ-VRSK.json",
-      "bytes": 10840,
-      "sha256": "b524b5e42568fda10e5778aa7a91901da92e91fba90872fa56cbef5951eca6e1"
+      "bytes": 14957,
+      "sha256": "2e0336d0dc85332b0d0943223ee8242d403aba291bd6edc0751b23cbe40ece15"
     },
     {
       "name": "NASDAQ-VRTX.json",
-      "bytes": 10887,
-      "sha256": "6ff685f51d938b95aea0dc2a2809bb201738c94f1150b2dd9d315d732f84c826"
+      "bytes": 14962,
+      "sha256": "5c9dde05e7ce83056f0890fec02a5ef2a3b4ef65bb89908127f1229709449a0e"
     },
     {
       "name": "NASDAQ-VTRS.json",
-      "bytes": 9518,
-      "sha256": "ac6d680fec782feca8979a92a666339c35f38aa664586a4d87c40fff7ef31015"
+      "bytes": 12644,
+      "sha256": "9b508799ee68e276d18e776093ff97614b1deddb8ffda6ea3922803d93672509"
     },
     {
       "name": "NASDAQ-WDAY.json",
-      "bytes": 10454,
-      "sha256": "34eb894a41b75dbeb2136e36b20b7619064da1d326140d9049dbe872130cdef1"
+      "bytes": 14280,
+      "sha256": "37c3373babd4b9d795bbb1e8864ab99af529fc6014112af2c596908951649218"
     },
     {
       "name": "NASDAQ-WTW.json",
-      "bytes": 10679,
-      "sha256": "6dd37753ee300c8da07d32a55ba754b01de0b1defb054b7dd9dd4dd7548f395a"
+      "bytes": 14590,
+      "sha256": "9e032f261a8c7e0f4999cb1e965f16faca66ff072090cba04ad1687ff5113eb2"
     },
     {
       "name": "NASDAQ-XEL.json",
-      "bytes": 14813,
-      "sha256": "e2c27f5a4aa66f5a7b65309a49fff02618229f4474bed363bd563b12f7ab61ce"
+      "bytes": 20880,
+      "sha256": "b9e61263eac34f4055ca0ee67f64a8cc4d44ab8dfbc2faca3abd659ef5675ff9"
     },
     {
       "name": "NASDAQ-ZBRA.json",
-      "bytes": 10904,
-      "sha256": "47c128d5f74b6a113e43fb3a8a6c0760ea9c76ba53583e854bb08a2cf1c8046b"
+      "bytes": 15040,
+      "sha256": "4f53b6d0a7e8cefbdca7b5d35bf0201d0600237110d3464b8531030b75fe2217"
     },
     {
       "name": "NYSE-A.json",
-      "bytes": 10844,
-      "sha256": "df223f68228b5056520f6eed34136b47d84cb2ae38fc19ea2ddccf79e2dde0fc"
+      "bytes": 14737,
+      "sha256": "9ba69b160d11625998575e31dbb8a9e8b503539e0f02249551adcd0b8e3770f3"
     },
     {
       "name": "NYSE-ABBV.json",
-      "bytes": 10754,
-      "sha256": "c40b9d29584922a286c9ccba980e121a2f6b6ff6f5d3edd3ccdc1a671da2148b"
+      "bytes": 14875,
+      "sha256": "da9fd8eca9ea451510b755c1acbee8f1ccd1429dba33db0ea2f483582ac28574"
     },
     {
       "name": "NYSE-ABT.json",
-      "bytes": 10835,
-      "sha256": "9b0a0e582a59fe869d351487cd0ecc7d2e8cc1f50bc977eb1c05b35c7063e2a3"
+      "bytes": 14962,
+      "sha256": "e81314266b4821dcdb1afa3549a2813210437967a6dd5bcafcd08e636eaa383f"
     },
     {
       "name": "NYSE-ACN.json",
-      "bytes": 10882,
-      "sha256": "0a166a061f9d318332e218a4f917895f90c939707f6acf3efaaf7d74616d5d66"
+      "bytes": 14977,
+      "sha256": "4077f955f45ce31775613493913cecbc59bfba0f6e12197992d01957e59dfdec"
     },
     {
       "name": "NYSE-ADM.json",
-      "bytes": 10197,
-      "sha256": "866715860bbd3afc16b9aefb33312c908ce60a126b572d0971a92dfe7c8b3a29"
+      "bytes": 13758,
+      "sha256": "bc7f407288b45aefd75589b6655a897785499a9c6eed3e78a6d7952feb0e44c1"
     },
     {
       "name": "NYSE-AEE.json",
-      "bytes": 10791,
-      "sha256": "dee388e8250b4e1b8b9a29217f4ca0a2fda92588d0fee34cfac60bbded478b10"
+      "bytes": 14496,
+      "sha256": "c83c545a77da1e779e15b461cce0ea3bcd28234c683f3eabb2e5ed6f266d7ae2"
     },
     {
       "name": "NYSE-AFL.json",
-      "bytes": 11363,
-      "sha256": "944651063c2679cd11ba689ac7eb7ed3e9a612f87efa438e240d5ac10aaa0e7e"
+      "bytes": 15628,
+      "sha256": "23fca4c5b29811cfec6c080ff9e010ce5b053bcbf84ef35999bf7d5873ad3d71"
     },
     {
       "name": "NYSE-AIG.json",
-      "bytes": 10196,
-      "sha256": "b3cd3f9b8b1cc75d0b860e425692d685f3d279031060e6f4f262850310c784fb"
+      "bytes": 13704,
+      "sha256": "f35cc5a08d063c51f55d3fa9d3ba7cb115cf2f32213e26b37e254e8a0aa22f48"
     },
     {
       "name": "NYSE-AIZ.json",
-      "bytes": 10290,
-      "sha256": "bfc01bfd3d1cc37198cd2df7ec681473cd87dfaf4318a07a7add8e0b9468c787"
+      "bytes": 13905,
+      "sha256": "b9168f64aef804da8d5c616b532ecfa895fe3e2fc5ada46803001b9d0a98da06"
     },
     {
       "name": "NYSE-AJG.json",
-      "bytes": 9737,
-      "sha256": "8b8080ab8c2b651e24d9128188a859b1bb81f710550c985dbf7f42df4ea288ff"
+      "bytes": 12750,
+      "sha256": "bc878a0817bb864c70d95049f9d802f3af2b194695486e168e0ce089412073c1"
     },
     {
       "name": "NYSE-ALB.json",
-      "bytes": 10893,
-      "sha256": "dfd48d0585b988301db978c6851f8b76bfbe04e67592d3307042fe0a2f012993"
+      "bytes": 15004,
+      "sha256": "612c435d5abdbb90c3a3babbe193c69f1128a89347bfeeeb4a25bd04ff7ead67"
     },
     {
       "name": "NYSE-ALL.json",
-      "bytes": 10259,
-      "sha256": "84a6c7324462e258d540d26ae8a08285ef9c70d3749ce3a4f6c06cf33fd654de"
+      "bytes": 13774,
+      "sha256": "4fabab5a5242d0bb8cd1d45b40c8ad758a5714f24b5604397a06f8186398d505"
     },
     {
       "name": "NYSE-ALLE.json",
-      "bytes": 10752,
-      "sha256": "295e8a982e9fac0c738b3d9b15d6693bcc6bd4d135b00d357bf8277fbd5e2d36"
+      "bytes": 14863,
+      "sha256": "dee2c470fb7d6ebfeda93d7ce08bf27926cd78523b2b74a8eec71aa76d68d76b"
     },
     {
       "name": "NYSE-AME.json",
-      "bytes": 10502,
-      "sha256": "85004942cd8c87fe538060e4910c6a8d384b1fef2a376d36689f13926db7336c"
+      "bytes": 14567,
+      "sha256": "044333e30b5e048463fddb17794c23887f01df27ea613b2b4f46e15d6b737118"
     },
     {
       "name": "NYSE-AMP.json",
-      "bytes": 10265,
-      "sha256": "261756bde9e1abb5375216d500c08ddb6b6f6aea05d5ce1dadf847583a0481de"
+      "bytes": 13820,
+      "sha256": "c80bb047350c6b072357892b47a4d751ea94dbb9d7ab41cbb007ab495547d01f"
     },
     {
       "name": "NYSE-AMT.json",
-      "bytes": 10726,
-      "sha256": "77543ec53d35b711c42a0a32e63e5f0f312cc9b5b15e48fa6f055261b95af8f0"
+      "bytes": 14538,
+      "sha256": "425422971440d12ab4893805448035b5b19108db8d2269af831623a98cf9e421"
     },
     {
       "name": "NYSE-AON.json",
-      "bytes": 10871,
-      "sha256": "09fc41cb9917a2b5cba25c3c303b48f8486a520a92a4c2688de34a94503042a2"
+      "bytes": 14845,
+      "sha256": "d8ea1b13e99f81ce73e37f0a4f8c234b0aeed81e42c137624e3a2965ffa146e7"
     },
     {
       "name": "NYSE-APD.json",
-      "bytes": 10505,
-      "sha256": "7e3db3220ae1847d620bb17fc75f6a8a969c435eb828ca985ed1aae3f201368b"
+      "bytes": 14224,
+      "sha256": "03273f37d51743797c8b6449c210a21a17e937cf4fcf54710a38f7aff8151766"
     },
     {
       "name": "NYSE-APO.json",
-      "bytes": 6970,
-      "sha256": "2a3e528143a14aca83039b7a1d320028ab48fb0a590a295465af0c4ae72d71bc"
+      "bytes": 9007,
+      "sha256": "f0e89b8c6c6e26ca4f70838e6b6ba0b7f0f0f1e8d3ae9e07a12eff8628384591"
     },
     {
       "name": "NYSE-APTV.json",
-      "bytes": 10857,
-      "sha256": "bee7c6eab4168401ee5c7eb3c794ec698890c41b09c7159646a3d9a493e3cec6"
+      "bytes": 14956,
+      "sha256": "6ff522666d9986cefc321177425f3609b687f0465a7dbf8280c7f4c082908cf6"
     },
     {
       "name": "NYSE-ATO.json",
-      "bytes": 10845,
-      "sha256": "9a7826e3394ab9bbf6a3817df61d50c2fdf88c9c49479585ccbae8d5fd6c44db"
+      "bytes": 14989,
+      "sha256": "98316c821c176b676a9ef0f344075737e608a4384535b8db761c4b3ee1fc8ff8"
     },
     {
       "name": "NYSE-AVY.json",
-      "bytes": 10753,
-      "sha256": "f3b0df5ee4e5da45a31899d2ead618d05a016ccf5597b6e10a8719d139067229"
+      "bytes": 14372,
+      "sha256": "66395547bcf0e01711c40c270e28406821e6f9df631fd1e1540885eec97822b8"
     },
     {
       "name": "NYSE-AWK.json",
-      "bytes": 10751,
-      "sha256": "f3b320082c882bff47c6a3df2d6a45f5d621df6b0ce028219f6d98d760db780b"
+      "bytes": 14873,
+      "sha256": "47cb227892171968bec67f81b4b328eb99ce1dfa4fe60e19db52ed7f3a8b4ffc"
     },
     {
       "name": "NYSE-AXP.json",
-      "bytes": 12029,
-      "sha256": "3eda0f915c8edac0c62116ed76417b769132911874d8b3143285d0a68311d335"
+      "bytes": 16367,
+      "sha256": "56cac28e2fbcd12b264fd5bf2549ef9ba24c8e6fdd409183274d9d25a51edb73"
     },
     {
       "name": "NYSE-AZO.json",
-      "bytes": 11025,
-      "sha256": "2b81e9d34f887fb60d0792f73812e788a56efac73eadb9a3f4d836098b3671fa"
+      "bytes": 15211,
+      "sha256": "6e65adac447203ed27863a4878feabf700a8efc6f3b1b95d945b05f5f9b8b247"
     },
     {
       "name": "NYSE-BA.json",
-      "bytes": 10942,
-      "sha256": "20771448c12981a4f83ec591006372031d3329ce57d58e469587ed27f317737d"
+      "bytes": 15061,
+      "sha256": "df7f82cc3cb88d1a1d85466946848e67cbe6a132aa38ff2ccd0ec14b01bf860c"
     },
     {
       "name": "NYSE-BAC.json",
-      "bytes": 9490,
-      "sha256": "8cfa7d2f688471e093ecd2cd9f72267a4b9bced9243e02b29fa93dadefd236ca"
+      "bytes": 12529,
+      "sha256": "c5ae331f6d9e08947267fdf57b5c861fab8219a7e50a8d0e6b68078efd144746"
     },
     {
       "name": "NYSE-BALL.json",
-      "bytes": 11868,
-      "sha256": "694468d19a50600b1fada31dec14dbe375dc5d0ef35d2f3734b688db1bcd27aa"
+      "bytes": 15774,
+      "sha256": "50825e7e49e0fe63ea7541ff5f4a1eb223520dd6f922220b32aac21563a5099d"
     },
     {
       "name": "NYSE-BBY.json",
-      "bytes": 10786,
-      "sha256": "60ebb16cfa36bef7d7b231fcc5120e50849936b224d9b1b181c1484f745bae68"
+      "bytes": 14927,
+      "sha256": "fd4eb709afee263227850eb46af1e41e7a992e436a9b66d0749f969af09dc651"
     },
     {
       "name": "NYSE-BG.json",
-      "bytes": 6460,
-      "sha256": "c59a42b0b726497307f9d632bfce08168b694388179bf72592c593e11258a88d"
+      "bytes": 8517,
+      "sha256": "5f431ea7c9cbe8fdb96bcb85281fb4bd868b9940ad4fe26ca11489a9a6750999"
     },
     {
       "name": "NYSE-BLK.json",
-      "bytes": 5890,
-      "sha256": "151f869df86507a6c8bd96f912d9a8694cc1ed243a31d21f2acb71f97ea35e0b"
+      "bytes": 7856,
+      "sha256": "8b09b591168bda38d1370e2562f4cb97a2952904160dc7b6d234ee8a51d50783"
     },
     {
       "name": "NYSE-BMY.json",
-      "bytes": 10180,
-      "sha256": "c5241cf04a6c8c841a7f0e7a7a2fda9fc0150fb16027dc9e4bc559e3314498a9"
+      "bytes": 13754,
+      "sha256": "3acdeb22414c25ffc270ab0b252f56d95732234b9d1a850f335c7e311cb30665"
     },
     {
       "name": "NYSE-BNY.json",
-      "bytes": 10385,
-      "sha256": "28bae2236333def1c29c1d5838a5bc4284ed40d9f9f53aeb876315b9e8bd091b"
+      "bytes": 14165,
+      "sha256": "6ac71b2d1b45061dbb4f2f7934d7aa35ac22bb71d1766a8079145d1ea136203a"
     },
     {
       "name": "NYSE-BR.json",
-      "bytes": 10544,
-      "sha256": "dee34fcfe002c6883cbd8eb039e3a7ba40cec155d11efe54ac80ec49445192ab"
+      "bytes": 14601,
+      "sha256": "dea2bd606b27c94367bdae68562bcffde6386a5d022cb3c65975b85062654fd1"
     },
     {
       "name": "NYSE-BRO.json",
-      "bytes": 9866,
-      "sha256": "9936e5a162294644c3798df6ae427fdf15b290235af91514aabe2dfbc52b0920"
+      "bytes": 13300,
+      "sha256": "43b940cdd93b10becd8eceabb84347653cbbf800e774acde3b0b9d5b773bd748"
     },
     {
       "name": "NYSE-BSX.json",
-      "bytes": 10828,
-      "sha256": "f286fc5762388616a15735d2b6195cf7a622241dae453dd90cf932937275b9e7"
+      "bytes": 14897,
+      "sha256": "543f8abb410d6e9454b368af4f291aa9143e6158e24c2f9e07f06302d952c20e"
     },
     {
       "name": "NYSE-BX.json",
-      "bytes": 10081,
-      "sha256": "7f5bfe19bb6baba22e283170d44acfa4d05ab710899b540220cb342c1be44fcf"
+      "bytes": 13634,
+      "sha256": "f8bd72590c6de9039cb743499ca7cce66b80c68968ecc59901c721e77b513a2a"
     },
     {
       "name": "NYSE-C.json",
-      "bytes": 9551,
-      "sha256": "918be69d8fc0363c35240e64891110d2838cc989ca64b6d8c883bdfd6d9f3247"
+      "bytes": 13025,
+      "sha256": "0ffb13911502863192fc827a9614a4296112a26dbea2deb936d0aa253f3ba977"
     },
     {
       "name": "NYSE-CAH.json",
-      "bytes": 10897,
-      "sha256": "714462c2fc63f5621d81bd9831eed36d8910ef3a66bf1d89ecf8147891653514"
+      "bytes": 15021,
+      "sha256": "8164474e0c82da1671f6e3997a2dc6ad504a4855ab773a2042b38cbb7ffa3de4"
     },
     {
       "name": "NYSE-CARR.json",
-      "bytes": 9560,
-      "sha256": "a75773912526d83fe20f7f39c4fbcdf169006abcd8cad6f7bb09da83429c6073"
+      "bytes": 12808,
+      "sha256": "765ccf1bf973e77b49f402d10469c157f9c9858591ddc98df76d0f2bd555e4ca"
     },
     {
       "name": "NYSE-CAT.json",
-      "bytes": 10634,
-      "sha256": "2750cfdd8b0aeea755a80a7b71edcab267872883fba5f30b68f6ac944077b233"
+      "bytes": 14079,
+      "sha256": "7872bea1a852d25db354d059bddf19a29b49fc0564cad9c17f2fed187e29dbc3"
     },
     {
       "name": "NYSE-CB.json",
-      "bytes": 8455,
-      "sha256": "3df6cc055e5098d078845d122ae4eb910fdc6ed042513447c68b34cf68f2b969"
+      "bytes": 11408,
+      "sha256": "f0851ad6ad5baad484127d4739a1472f6566e3f4fe5e08214cf4ec48a948443d"
     },
     {
       "name": "NYSE-CBRE.json",
-      "bytes": 10562,
-      "sha256": "6f50708f1e611663375cd9cfdcf09f6196d8322bde0730c3a3f338a5c63aaaf0"
+      "bytes": 14419,
+      "sha256": "f93d8b763a9062e2f69d73234ab828ac7757c785bc3b7157e822cb5d9ff33bf6"
     },
     {
       "name": "NYSE-CCI.json",
-      "bytes": 10809,
-      "sha256": "998803082e622f857bc8c07c8f49da82cdeda99df560fc96e61d913bb2fa5c0d"
+      "bytes": 14767,
+      "sha256": "58ba184ffba3b9ec026ac03f367c1a5b727ed6741c0d0dee6b1cce05102b586c"
     },
     {
       "name": "NYSE-CCL.json",
-      "bytes": 10786,
-      "sha256": "fdc1a0e3d6d75be8fc12816470be1e664b323a1eb71b04bd88843f62ffef7f3f"
+      "bytes": 14925,
+      "sha256": "c0be47bc8cf4f61c5f2c2d3d911918f5f862164084a65359af85828607468964"
     },
     {
       "name": "NYSE-CF.json",
-      "bytes": 11241,
-      "sha256": "ab84c534cd109b4b73b81d220c1962b0b3c51fd26df2e64ec5cec3962ffba72c"
+      "bytes": 14922,
+      "sha256": "39ad44917ee3da2a086cd14031fae134db33422b65b5a35f34f574348acc0238"
     },
     {
       "name": "NYSE-CFG.json",
-      "bytes": 9835,
-      "sha256": "527003e5703655784c38d0c56b9b8630ae80881f9f99e146bf927c53ba6a308f"
+      "bytes": 13011,
+      "sha256": "a536984527a43de2ae3443954c9d1a611e631c3d72ec246efab231971d89f714"
     },
     {
       "name": "NYSE-CHD.json",
-      "bytes": 10824,
-      "sha256": "9eb98841c9761aa7c89028b55264ca45579a674cd2a41e30b61635515c3f57ca"
+      "bytes": 14871,
+      "sha256": "c779c0098b08788b46151e3023fd5d13a91f372b0a81f5797578069784ef384e"
     },
     {
       "name": "NYSE-CI.json",
-      "bytes": 10554,
-      "sha256": "6e35690c62d9c8b0394def24fc3975833fc7fc0aa4e687ee570e13f2c2dd68c0"
+      "bytes": 13947,
+      "sha256": "57c390be21642ff2ff71b26337c68b03c4546ba8625c10f0eb34f34bfbeb13d4"
     },
     {
       "name": "NYSE-CIEN.json",
-      "bytes": 10808,
-      "sha256": "fbfe2bc2b240cdeee8c172aec72db3c4365ed5fd1ae55cc948aa586a8bb5a56f"
+      "bytes": 14863,
+      "sha256": "97f928cb42bcb8836d5ab420af2b9c99d218861a39071d87c88173670d5709be"
     },
     {
       "name": "NYSE-CL.json",
-      "bytes": 10847,
-      "sha256": "3d5192fc60ffc6ff33a3f3c0eecd90f12d23d7c9b2a3c562459f698369275960"
+      "bytes": 14977,
+      "sha256": "49ca9fe49bbd6ac433579f52d386e9b30ab01cab023c48408f3fcf8e0a9ee99a"
     },
     {
       "name": "NYSE-CMI.json",
-      "bytes": 10849,
-      "sha256": "999b9109f2a94f3164af9769d5f2241330c8f427e0c0f01ec333008bab7c935f"
+      "bytes": 14421,
+      "sha256": "428bd9d1a603804f7b278874986f7dedfc1021bef32b0b4d86ea8f285acddc10"
     },
     {
       "name": "NYSE-CMS.json",
-      "bytes": 10105,
-      "sha256": "02cdcecd7e59352a8ad62d62008d4b1b18de31358ebb260ea0ed7c4ad83c72a7"
+      "bytes": 14006,
+      "sha256": "fe3cd340d714627723e01162d8bfe6158ca2a5abeff724d5a31578122f44a68e"
     },
     {
       "name": "NYSE-CNC.json",
-      "bytes": 10853,
-      "sha256": "c1ed9adb3d55d2c8748c3b780d3972746135a7d1639b4a006afc62ccd7b95bf8"
+      "bytes": 14990,
+      "sha256": "ce14f7aa579d844aefe41bc918fedeba34bcfa6d8f8902a090f04380a72d06d5"
     },
     {
       "name": "NYSE-CNP.json",
-      "bytes": 9950,
-      "sha256": "60a6ac7dc7a0550541d9d367f70dbd1c3ed0392674eab71fdf44635c7f097849"
+      "bytes": 13760,
+      "sha256": "648811f002fea252726d3dc1bf062765ced7c904556a950d1548316de64558ae"
     },
     {
       "name": "NYSE-COF.json",
-      "bytes": 10269,
-      "sha256": "8b57cd5ec3a9c02c352e4aeb7d7c734cfeb9386bec420b8610cb737e0d692a58"
+      "bytes": 13787,
+      "sha256": "5c0026c21ecc5e6d45fb99e5dfb4d2b33a69d75f2b2952dfcc5ebc113080604e"
     },
     {
       "name": "NYSE-COHR.json",
-      "bytes": 11952,
-      "sha256": "b50bfe80290c65778024ab228fdff6906b90880354cc489f7b7096f7000009a0"
+      "bytes": 16458,
+      "sha256": "400af0c4c4ace327834494c1592ddb5bf2537ed04e868b4f129b1043a192850f"
     },
     {
       "name": "NYSE-COP.json",
-      "bytes": 10248,
-      "sha256": "59ae15e3e8063b510f78874608ddc4146319da13c927f9494f3be68574264e1d"
+      "bytes": 13707,
+      "sha256": "b72ceffe88c0a254d4afc28cb86490d3f531df9e050d666e9458dc7249a45be1"
     },
     {
       "name": "NYSE-COR.json",
-      "bytes": 10868,
-      "sha256": "7f4bd2e7ccafa4ec706b3b2f8b96b7e26f55224290330cbe3bf7dc2cd85dea09"
+      "bytes": 15022,
+      "sha256": "8c3ab23fe5c44ae8f0cc6c97e8fc6e2b15cb36fa07e6495603bba569c74680f7"
     },
     {
       "name": "NYSE-CPAY.json",
-      "bytes": 10880,
-      "sha256": "1b44a51dc565178fb337f2f043014ae77386aba11ce1585894c0fbc5fffd842b"
+      "bytes": 14953,
+      "sha256": "f098c10b8770a7b3ea82dc88696cad74a5d6fea932ec91c308015f4fca5cfba1"
     },
     {
       "name": "NYSE-CRH.json",
-      "bytes": 6772,
-      "sha256": "0f0e93f26db7578e89bcb5175551711cb89f74321ed5e89e77cf1380980d2e05"
+      "bytes": 9069,
+      "sha256": "3f597d66a3106992e894511ccddb91e5541d763c8e78fd109366604b4f12c566"
     },
     {
       "name": "NYSE-CRM.json",
-      "bytes": 10746,
-      "sha256": "c05d8f0e892fc09c2f662eb9a0c48535b70dd80555b04fceafbc5fae4fba537b"
+      "bytes": 14932,
+      "sha256": "3b60abb05c772456240c5180b2e1520fe9464b735fc66e322bb39c8e231ae9b5"
     },
     {
       "name": "NYSE-CVS.json",
-      "bytes": 10915,
-      "sha256": "2de991907ac72e25519864c205f749f1a2efc74cee9204678a343b8bb29b51d9"
+      "bytes": 15003,
+      "sha256": "75b5ba9f9cef34fd4a7cc9c117336a8fb36c0031cdae3b1dd035a216e46ebb94"
     },
     {
       "name": "NYSE-CVX.json",
-      "bytes": 9587,
-      "sha256": "4e6971cffae476b5b339ac23856b66591a14796b6738d257f1c2315f0a11431b"
+      "bytes": 13189,
+      "sha256": "d4c51b17bda090520a54fdf1dd0bca11d863378f40811c4d57e856568d77f53f"
     },
     {
       "name": "NYSE-D.json",
-      "bytes": 10606,
-      "sha256": "1ec0433d3dd06cf3b7f6b3584b3317c3e223211b2e9cb0f9842f947f6982f7fa"
+      "bytes": 14481,
+      "sha256": "49c91aa6251d37c8352a1f2aabe1427a87cacd29b4e9dfcf1909f26a3f895e10"
     },
     {
       "name": "NYSE-DAL.json",
-      "bytes": 10818,
-      "sha256": "410a0ed3247d9b9444ce6c076db247c32d5ebfdff5a528591c1a60620d7308bf"
+      "bytes": 14963,
+      "sha256": "1f64c0007d975a0b4db3c6311ac40a15f0ff4e8d705ab8c446f6246445753db6"
     },
     {
       "name": "NYSE-DE.json",
-      "bytes": 11490,
-      "sha256": "691ac2ae16dd1304165eefb825706aa36ec1a600e3cf5d45f878dcc919d37d29"
+      "bytes": 15845,
+      "sha256": "6feaf1741a8b4bb73316d61d30f4d3b2b5abf23176919984ebe06f92cbd5f3e3"
     },
     {
       "name": "NYSE-DELL.json",
-      "bytes": 9734,
-      "sha256": "7b7536654d40e4b03de498fabeda566ae8dc7a13719bc9a219235e38af60934e"
+      "bytes": 13504,
+      "sha256": "6a175c4d4fae134ac364b7a1d8da4ffc31464418c4b101007a4875eac3b8c201"
     },
     {
       "name": "NYSE-DG.json",
-      "bytes": 10867,
-      "sha256": "097973137d4a9bd80baa5fb41363eeb1ea5c0249bcc6186b43cf0a3cea870e35"
+      "bytes": 14952,
+      "sha256": "aeaa773a3dccabdd022515ddbd482fd87873e474fbbbbbf3a9230f5ed2ba065b"
     },
     {
       "name": "NYSE-DGX.json",
-      "bytes": 10894,
-      "sha256": "bb697d3499a79a7e8da69f2c0042aa524c212f3d7c53b2aa8a4245463e2b3eff"
+      "bytes": 15031,
+      "sha256": "118d971fd41b471c59d6ede2015edcfde09760afd5d1f6b405653bf5bd18fbf6"
     },
     {
       "name": "NYSE-DHI.json",
-      "bytes": 10248,
-      "sha256": "1f28917465ad50ad9bfc51983a11fd3b52e2c64eb624253469bf3f08885653fa"
+      "bytes": 13795,
+      "sha256": "920bd68d67ef4e37242af0f9ad22396fb2838df87c285ebaa927a62512bb4da8"
     },
     {
       "name": "NYSE-DHR.json",
-      "bytes": 10739,
-      "sha256": "45ed52eb31d34c2fdd0b6234e3cf7a418b742f425c2682b41edecea81c6adfc9"
+      "bytes": 14882,
+      "sha256": "ee7e2378f06f2619f5fb4f55acb414f1d7dc21a11aeb232ee89a973d73608209"
     },
     {
       "name": "NYSE-DIS.json",
-      "bytes": 10385,
-      "sha256": "baa6153c4bc82781c3440f326c7b201fbaaeca314522957126db89bad5f4e529"
+      "bytes": 14239,
+      "sha256": "ad8876194f9d7b0b989b9d3fec2be96a69f4794f54819dc8cb54e076dca3ad47"
     },
     {
       "name": "NYSE-DLR.json",
-      "bytes": 9676,
-      "sha256": "ad6b677ab7f3a0e2bbf3aa8e35d7d0649c775ae333f62ea78a2f71da6766045e"
+      "bytes": 13222,
+      "sha256": "3415fd799e8d0b3f3f7eab048f0b90a387f5ddd5ca502a581be130b142a93135"
     },
     {
       "name": "NYSE-DOC.json",
-      "bytes": 10178,
-      "sha256": "64b23d1f4caab3dcb0dbfced47101d7dd3d01368ee3b13e38552c5bbc48b983d"
+      "bytes": 13712,
+      "sha256": "0ad311c1a06943506bc7be658d1f4334f5624869cb3acf37f114ecf70978ca3a"
     },
     {
       "name": "NYSE-DOV.json",
-      "bytes": 12197,
-      "sha256": "f5ea33f8f82a15378141e822cd2cbc01db89783e2912b795750ffcc836bda8ce"
+      "bytes": 16841,
+      "sha256": "65e3c9dffdf2e9393307eebec96ee9f44fee6aed2da4fd184e086e67e92e3aef"
     },
     {
       "name": "NYSE-DOW.json",
-      "bytes": 9263,
-      "sha256": "87b606bc6873fde301b5e0a29db2654d430c53df87d3c4462de986048669da3f"
+      "bytes": 12478,
+      "sha256": "041c72c8bf627f30947b2463d0acbb41b30fd99330f3cb25ead3c8d0a15c5aa3"
     },
     {
       "name": "NYSE-DRI.json",
-      "bytes": 10254,
-      "sha256": "dbec6a7ce9204ef9ba1e904c351a9b9fde79fa0541bbb4119c0e2c6f65842931"
+      "bytes": 13742,
+      "sha256": "cf054411e1c6181bd5c92115145290ac45b316918b90bf5b66e6fdf58ba0b539"
     },
     {
       "name": "NYSE-DTE.json",
-      "bytes": 12584,
-      "sha256": "09ce1fed1f8c740c38045d72bd8de0274abedb3c47813b71ce6b26ee3645a951"
+      "bytes": 17617,
+      "sha256": "08339b3a24932eca625ddcc940b2c8e0f3f3aa92772312fe5bbe5c7b0724fefe"
     },
     {
       "name": "NYSE-DUK.json",
-      "bytes": 10761,
-      "sha256": "14a285558d49373ed101fe7e002fb50c51e9aa460ce02acd4311efce38896c2c"
+      "bytes": 14860,
+      "sha256": "d7965f3b1ecd6688354b1163c67c6598b8ce35f8c45f43d7cd863a5b1972aae0"
     },
     {
       "name": "NYSE-DVN.json",
-      "bytes": 13251,
-      "sha256": "ebaea454bab412bf6e08ba09f68a7758db9eb41014b388812cb1860d918f9402"
+      "bytes": 18318,
+      "sha256": "0349b17ec6e517d3169cd0af07507f04c56638b6004dc94a16f43426dccc317d"
     },
     {
       "name": "NYSE-ECL.json",
-      "bytes": 10811,
-      "sha256": "b05770e2e580ad00cc579083a13af39f50c40d1920f3abbf820404a4faa7b524"
+      "bytes": 14609,
+      "sha256": "e7fa6bdb26fbdd427d51170074bb1bab4c7c28517a6a5258ea6c55b7f4399722"
     },
     {
       "name": "NYSE-ED.json",
-      "bytes": 10701,
-      "sha256": "505f27118744e88e5ae30a01f331f3a8f6338395563429ec1116ef3c23bcc491"
+      "bytes": 14691,
+      "sha256": "03c2451d187524ecc0aaa81fe2faade47f68f337acfd1d4299f423f283b4d898"
     },
     {
       "name": "NYSE-EFX.json",
-      "bytes": 10856,
-      "sha256": "ecf836401aecea0726ecf5d84eaec139a57ec5bf2d09f9199e21e315eda59a28"
+      "bytes": 14921,
+      "sha256": "342e1907d33d02c47b1883324c91248714d338876df6c18ca0dd42aee1e86311"
     },
     {
       "name": "NYSE-EG.json",
-      "bytes": 9083,
-      "sha256": "190b3974cda9b5eaeba7204513ef21f3967854c850463007f2bb6c32ae8a3ba6"
+      "bytes": 11755,
+      "sha256": "fbeb728e3fcbb4a4900b25ed772947564d5449190298cda2bfbb1fa5585da4af"
     },
     {
       "name": "NYSE-EIX.json",
-      "bytes": 10841,
-      "sha256": "8612a4f2b028a27515b4e8a78f0a2a973ce8eb4b1d905eb658dbd1a7c2f20e22"
+      "bytes": 14831,
+      "sha256": "892778be22d5aa158b9ae71c37ff061875235e6848e0ab278367a30e390b01a1"
     },
     {
       "name": "NYSE-EL.json",
-      "bytes": 10732,
-      "sha256": "50b9ee12cb8f7586f14d1ce6b8af23c11db1f677200b3653d9b6671c666ec8c8"
+      "bytes": 14533,
+      "sha256": "a31247330644e477c522622320337709954d76d40174e3cd7a21271aa5a4f6d0"
     },
     {
       "name": "NYSE-ELV.json",
-      "bytes": 10948,
-      "sha256": "b71d804d9821061567309c9b83c98b7293fb77a6c285f120e1a91db7ba2992d1"
+      "bytes": 15122,
+      "sha256": "3f702f5091f97492b53585f32ec0d7e0a9bba8615b905d6549eb32401486616b"
     },
     {
       "name": "NYSE-EME.json",
-      "bytes": 10231,
-      "sha256": "55318e0886874557c97c0e240d102f564376c49cd230515b089be9b5766b69d1"
+      "bytes": 14362,
+      "sha256": "b3f2b2ad324c3bd00309581c0979e0f4f8cf880316dd3e524b53908e59293dc0"
     },
     {
       "name": "NYSE-EMR.json",
-      "bytes": 10186,
-      "sha256": "8762f3d94b70721e0e2f67c439667ed63d2ece2fca955acf04029802e2cb3545"
+      "bytes": 13733,
+      "sha256": "44a7f5d602c67f6626a81bb712803d2c8a8a7967fd5421603945178651d45833"
     },
     {
       "name": "NYSE-EOG.json",
-      "bytes": 10720,
-      "sha256": "95a7b8c25c8ae1be6ee1b661ac9ad46468b71474b188aa3d056c8925fd53f9ea"
+      "bytes": 14303,
+      "sha256": "84bf1b447ec69952e46f0dca42541b4d7ec81969230adaaf8531bf48f33dedb1"
     },
     {
       "name": "NYSE-EQT.json",
-      "bytes": 10848,
-      "sha256": "50e1833550c3a3919b2f5adba0d13ac012580c32182fbb027f3ae037e00d66dd"
+      "bytes": 14991,
+      "sha256": "fb703b30a81e887126c92b2f01c05427ac591e148aabf2e52a87718a5947ace1"
     },
     {
       "name": "NYSE-ES.json",
-      "bytes": 10845,
-      "sha256": "5b7f6b6a1b949e4e41c2d26070d374a476744f7b8be7b2bba4db2ca83ce74d89"
+      "bytes": 14813,
+      "sha256": "a178dd32a74a131728b741281aecdfa696dc3ee84af09c72afa43636aa0e245e"
     },
     {
       "name": "NYSE-ESS.json",
-      "bytes": 10169,
-      "sha256": "7426136c0ae9af2b2140a3567b8ed0c109c256ca8e4c219937e5d93c4b7417ae"
+      "bytes": 13301,
+      "sha256": "09a70eedcad61f865059891728cbb5bf23350add00e8c64e82f65a9bce46b65b"
     },
     {
       "name": "NYSE-ETN.json",
-      "bytes": 14157,
-      "sha256": "518d242ef8cd6675f9a76a5cc8bb800c4aaf50a6e5d0641bbe831c57e9988b4f"
+      "bytes": 19393,
+      "sha256": "e98643664ab4c6f5f385d5c1537b3fa0a3b574d54829280ff5144dbc2bfc9389"
     },
     {
       "name": "NYSE-EW.json",
-      "bytes": 10772,
-      "sha256": "b4325922b6d33f5b4b0f69104d784d2a1cc843adcc01fd616d9d82007a23f153"
+      "bytes": 14626,
+      "sha256": "b7247a23f2e9bb117acac23395cbb1d13dd3f5db2c7481642d2e8bbf3fcabca5"
     },
     {
       "name": "NYSE-EXPD.json",
-      "bytes": 10788,
-      "sha256": "75af3908b4f82db90c36e6ca5b6b34895d13661435a74e58b301bf3510034b93"
+      "bytes": 14923,
+      "sha256": "c9e33f8149824c04d908df1734a4e79ea14b0f67048224d1d5cfdba32301d24c"
     },
     {
       "name": "NYSE-EXR.json",
-      "bytes": 10441,
-      "sha256": "4eba45808ff94997cb13d8a35db8d544daa5528acef93c2386303512e4e0485d"
+      "bytes": 14182,
+      "sha256": "e02362b7fa383a25d8357a963528cc4404e284ce7b4efe191efb88ae4d1dc8dc"
     },
     {
       "name": "NYSE-F.json",
-      "bytes": 10627,
-      "sha256": "32e82011ca1b8539b5d7bdc884f038737dd0b633da60c469dab57958f0447340"
+      "bytes": 14261,
+      "sha256": "534699f4d2d49175f1d557bbffca718b9a43fcd877821bde5c9603310012d6cb"
     },
     {
       "name": "NYSE-FDXF.json",
-      "bytes": 4917,
-      "sha256": "723f8f0df9182775254d506cbb0a134544b845c5f2af85685b356ea3caca10b9"
+      "bytes": 6428,
+      "sha256": "874da84905a6c873e82384ac92fd1169b7d85c149899f03d02199d938d6da216"
     },
     {
       "name": "NYSE-FE.json",
-      "bytes": 10394,
-      "sha256": "bafd3f1e3b4f974d011420812660162a8245faccc3719b901159ac6e5d7386a1"
+      "bytes": 14464,
+      "sha256": "bd47bae2e4a55e079e7848a4e3bd4bbddd7c9f1241ce87e4c64352028c208193"
     },
     {
       "name": "NYSE-FICO.json",
-      "bytes": 10895,
-      "sha256": "c56fcfd63777e7913e4c674c61cbbe2014a35b7c3566730c6d2f432cb0e07388"
+      "bytes": 15019,
+      "sha256": "1b34c4b57aa8cdd95884140eec8e3b787f3f500b76d384a8bfafc9de497de4c3"
     },
     {
       "name": "NYSE-FIS.json",
-      "bytes": 10694,
-      "sha256": "c2472f4b33c60e18cf6175a6aff0c0e0af18641ae616874b54734e3f4c2b45b3"
+      "bytes": 14730,
+      "sha256": "3f80f1e1ec4bfd50d718f76a31d0d375ac24bb6774f853298ca26b8ab559c724"
     },
     {
       "name": "NYSE-FITB.json",
-      "bytes": 10105,
-      "sha256": "ced16df6780b9b828654fada0c05cda1a39a840e5a4799e3a35e536b3df23808"
+      "bytes": 13656,
+      "sha256": "f3f88ff2c646d7963b9ca78dfb6a18cac2ba06fbcd61a0b03d2588f2b1f46cab"
     },
     {
       "name": "NYSE-FIX.json",
-      "bytes": 10837,
-      "sha256": "ac6c115dcc38d9de4feccef0e09e29297665ed94a566cca2928fce6e83f292d8"
+      "bytes": 14900,
+      "sha256": "66788ba162d3dc96d5ea7a2b512b0a5e99b5832a2241df6312bccf0b2c55e762"
     },
     {
       "name": "NYSE-GD.json",
-      "bytes": 10867,
-      "sha256": "4ee832ff66319a35fb427110622e7d5593c91da9b251dbd771cc7e97f681f80b"
+      "bytes": 14968,
+      "sha256": "e978086a345b24da0e67f26108a364620baa2f511607390b2703afdab9045b2d"
     },
     {
       "name": "NYSE-GEV.json",
-      "bytes": 5758,
-      "sha256": "aad3ff2ca76af7e1f83a23784c32e554d1fe5f3e610980e81c699fb84482adc7"
+      "bytes": 7669,
+      "sha256": "783eee92e954b744da0b605181acb838c4a0f30ce0acb5b66d6e85d42ebba506"
     },
     {
       "name": "NYSE-GIS.json",
-      "bytes": 10869,
-      "sha256": "1e39ccad6d236440f04d5ea58959228cdc33c3eff3ae61c97b79fa7e46763ae5"
+      "bytes": 14944,
+      "sha256": "f6adc9bc4d67eb8b0a405a0e8559974f40105c4c3d072694e91b76ae92ff0d3e"
     },
     {
       "name": "NYSE-GL.json",
-      "bytes": 11990,
-      "sha256": "cf721f9283e3d31c5e7b7199b7fbf2aad3490426159434e6601810088db38953"
+      "bytes": 16582,
+      "sha256": "28bb1f8e88d0cafd22189b8f3a141bc39f9cf772e502d09a345819a2efde771f"
     },
     {
       "name": "NYSE-GLW.json",
-      "bytes": 10263,
-      "sha256": "469f0460f2078a2cab902538aa36b0d8966ceb4525ccbb9decd19bab4ba032a2"
+      "bytes": 13769,
+      "sha256": "381ac914a3480385a11b2ba06da442dc4ed367329ae38653f4849289b927e649"
     },
     {
       "name": "NYSE-GNRC.json",
-      "bytes": 10823,
-      "sha256": "b2548a0b2e5b5bbbfdc9389e5f5c599efd9c4488da2519a5a58b09c57dbd01aa"
+      "bytes": 14929,
+      "sha256": "6fa32e8975439e8c705b42b99ea79d3ab6473c86193a59d1a836732c4e3f3d01"
     },
     {
       "name": "NYSE-GPC.json",
-      "bytes": 14676,
-      "sha256": "1ac7b3bb0bef12ebcd912f84383ac76a282beb995f828564c4e8d1a29348224d"
+      "bytes": 20182,
+      "sha256": "1e025dcae550410f9a3987b9d48e9a8b577a04d2ae3bfea241aea67fee32f098"
     },
     {
       "name": "NYSE-GPN.json",
-      "bytes": 10840,
-      "sha256": "ffce44a3d14b812d1775559b0150b3dcdce78fcc6501cf56a6144f1ffa726f1c"
+      "bytes": 14960,
+      "sha256": "352574afa75c70d32f586a22bccca7984bed54904bba720b3c2986ca080a7b66"
     },
     {
       "name": "NYSE-GRMN.json",
-      "bytes": 10775,
-      "sha256": "80e7c83846f827ca562d9c357f16d32cd608b57f1e7180871ae33d5ee928ea35"
+      "bytes": 14894,
+      "sha256": "2101aa9f9ade92ac898cb2b47e85ec18853302b5f27ec1f9afff750642824909"
     },
     {
       "name": "NYSE-GS.json",
-      "bytes": 9619,
-      "sha256": "6f29f6fd129f77d9e890fcd325488f631dee42686c5571035151d9fa06630d00"
+      "bytes": 13253,
+      "sha256": "b92dc281ec89cf99554e3cc04d0260f60bb7ca1d6026351cd29549b7d2c17eb4"
     },
     {
       "name": "NYSE-GWW.json",
-      "bytes": 10866,
-      "sha256": "29e5ac283137cdde6597178b26b0649e0e7462324afeadca926e6124a5221738"
+      "bytes": 15006,
+      "sha256": "8b7ce43e96b0376bc206d99bafdb7e4607f16b22c0f09793018aab3a85ef346b"
     },
     {
       "name": "NYSE-HCA.json",
-      "bytes": 10103,
-      "sha256": "1649f5f290f87c55683cb5d12678059f796af2c1fd2df422883ab46a708e0a2b"
+      "bytes": 13624,
+      "sha256": "82a9c0f781c9a4d08cec4c7bf905c95f19161f2344433e2a51bc0635ce058821"
     },
     {
       "name": "NYSE-HD.json",
-      "bytes": 10846,
-      "sha256": "8cca7a6893f5288e0a1bf55a2ee177e82b148ba052330852284bb2e8e626df32"
+      "bytes": 15042,
+      "sha256": "d8e1f7ba539f563caaf8a97ae7de7ee92796e4cfbfb1bc8225e1d7f371cf6262"
     },
     {
       "name": "NYSE-HIG.json",
-      "bytes": 12156,
-      "sha256": "316bc513dc9a915263bab0e38f89e25170cb80b8aafd4ebfaa2879722ae95dc9"
+      "bytes": 16608,
+      "sha256": "a91a0b792a8031bf557bbf6ec5b737ef8cfe723db6f859fa4052452aa71daf80"
     },
     {
       "name": "NYSE-HPE.json",
-      "bytes": 10859,
-      "sha256": "8e8fbe73da2f53ac717dffc7bec8729c5e27b1644b3e474235895464e6bbc9ef"
+      "bytes": 14933,
+      "sha256": "beb5b24c2717e7ff907479774fc0f8bd0b2137ad52d511dbace70f50d89748cc"
     },
     {
       "name": "NYSE-HPQ.json",
-      "bytes": 10764,
-      "sha256": "645f63ed98d0a190566466d1a82add372975e686a7eccc984adb78fdc9ca8f2a"
+      "bytes": 14890,
+      "sha256": "545b7f377184ede683625c2045bfee6b0255913b39460b9900b38dabde4ebc21"
     },
     {
       "name": "NYSE-HUBB.json",
-      "bytes": 10761,
-      "sha256": "880fb0ab70933b8827daf14217c5f05514ce0740c0feac97fbfb17060b1ad938"
+      "bytes": 14771,
+      "sha256": "e1d7070ac50e59257e59d7edc8ba0602f227b998a456ccdd8d5e034be13b659d"
     },
     {
       "name": "NYSE-HUM.json",
-      "bytes": 10935,
-      "sha256": "46026ea7fd4b0851d7aa7c68191cfd5edeaca23f15d9acef81bc9ebfc2694d1e"
+      "bytes": 15113,
+      "sha256": "657ef91d8d554f191021cbc2a39e18ae55c1e0e3b92c2c64a4f0c24a4c4b420e"
     },
     {
       "name": "NYSE-HWM.json",
-      "bytes": 11344,
-      "sha256": "5d99c02c1851ba83f103c9b5f8fa8ac76d38ffe76e5e398bfc9b2f8dc091b673"
+      "bytes": 15748,
+      "sha256": "e305604daddc3ab87015118ae3f4537d3fc603b12e004e46a26428c76a057bb8"
     },
     {
       "name": "NYSE-IBM.json",
-      "bytes": 10289,
-      "sha256": "6d7bda3261b23aaba96c8d01c82039b0da07f70ba951291d5b417abedef4c212"
+      "bytes": 13798,
+      "sha256": "2495cd7a534df6b9f9792b72a920e7350f5a7feae9d668df3456a6646c49bd1f"
     },
     {
       "name": "NYSE-ICE.json",
-      "bytes": 10876,
-      "sha256": "667803682e6db140b7c7b65387563c2ac3b882b48f7162e7dfe7beedad8ed818"
+      "bytes": 14953,
+      "sha256": "ce5b84741845418a0716bc30c3dde0b7eaffcda5f67b1bb31433375a36b50656"
     },
     {
       "name": "NYSE-IEX.json",
-      "bytes": 10603,
-      "sha256": "d0355bd4e3bbff9d1bba367480ae025e0ea45e61ead57016718433d2690bb3ca"
+      "bytes": 14707,
+      "sha256": "ecc7d1543e2ae1ae6c00409f68140ceccb7a055e0237f3ddecd13cf3727674ba"
     },
     {
       "name": "NYSE-IFF.json",
-      "bytes": 10733,
-      "sha256": "307cc955ffd72f1ed69efb29a5da62ca57ac2c8fcc5186261146f02216a62f14"
+      "bytes": 14490,
+      "sha256": "ce535658704d24ff323afee1953e8fbeeed993d499f112e4bd83c911244f5cb6"
     },
     {
       "name": "NYSE-INVH.json",
-      "bytes": 10423,
-      "sha256": "465565db3c4d6a33ba3336e8ce5e30c3811f099327b0b86666ee7c7b2781c15a"
+      "bytes": 14051,
+      "sha256": "9b384830ac62e437c25e6d6ef2f0085c955050f056d571b2cb0ff2e1dd7045c9"
     },
     {
       "name": "NYSE-IP.json",
-      "bytes": 13842,
-      "sha256": "976330668572d45d98bdfa8357db329fa0781974f43ca2102fe0234be442fd50"
+      "bytes": 19438,
+      "sha256": "07066d2619030569d32c51d80dcb171dc1d0b28b799a39ab79d0073512865c61"
     },
     {
       "name": "NYSE-IQV.json",
-      "bytes": 10810,
-      "sha256": "b35837961897595763a3ef81585accd52c1feb35a0ef973446886169f018935b"
+      "bytes": 14950,
+      "sha256": "a66b598db023e4cf216be6488c51b8c36003dfd20147cf41faad7b9db812d3f4"
     },
     {
       "name": "NYSE-IR.json",
-      "bytes": 10699,
-      "sha256": "ff8a5c3f6045681753b5bdf4dd00edfa822e84ff4499af847ee02429f44244d9"
+      "bytes": 14701,
+      "sha256": "d92db327f3ab731d995fdd171e1590a00844e6277f15448d018f2178b3409266"
     },
     {
       "name": "NYSE-IRM.json",
-      "bytes": 10789,
-      "sha256": "1dfe151d8bd46eea372198cecc04a8819b68a35461d2f161a37a75aaf16836e1"
+      "bytes": 14337,
+      "sha256": "4279a859789040430c510ef8a7c26f8aeb77ba5c7527a4656af3cce360a164bf"
     },
     {
       "name": "NYSE-ITW.json",
-      "bytes": 10858,
-      "sha256": "a719f9cb83bc0ef3cf063e7aedbb95703efc559466165b104bc709d2770c0d93"
+      "bytes": 14993,
+      "sha256": "f7a1751d1b5531febef02c785c24eab42a4c47b6013265c507a67f11d51b2007"
     },
     {
       "name": "NYSE-JBL.json",
-      "bytes": 10784,
-      "sha256": "2c8b36be63d8ce9be38f511ded51e2e4273c511c802c8abc9be87fbabb300ffe"
+      "bytes": 14854,
+      "sha256": "937e021505d6566ac44f7b39b354129e419a0b3bc8ea0fb38eb68bc4ccc21674"
     },
     {
       "name": "NYSE-JCI.json",
-      "bytes": 15568,
-      "sha256": "9f2b27fef32c7229bb1f81ce4c24cfe6038ba222e25a5e6c3e8c6aa7c132542a"
+      "bytes": 21548,
+      "sha256": "42d3d8eeeb602925ff9a4ea33d9fd42ac4eca7c10b81bea099a5eba80e2217b5"
     },
     {
       "name": "NYSE-JNJ.json",
-      "bytes": 13165,
-      "sha256": "d58446a2f9a0da4cd6c96c9797b10aa1f3611e0f9e4538e07058ad01f7db71d4"
+      "bytes": 18243,
+      "sha256": "bfcece9296d2074ce8a2543a26f8ffa98278554a2bc87fb87bb4794ee171e621"
     },
     {
       "name": "NYSE-JPM.json",
-      "bytes": 9574,
-      "sha256": "a179a3a4affa4400843a5efb9788ece5448e2eda062adff759368ad8f85ae4c9"
+      "bytes": 12616,
+      "sha256": "5a70aad3538d22481a0ae8ef18b2701f909e0ecd0a6d2fb836d6503c72d382d0"
     },
     {
       "name": "NYSE-KEY.json",
-      "bytes": 10115,
-      "sha256": "1a9d6738528b8aa620f940179cd60c22800c88279c03979e8e32e410d0a1f5a9"
+      "bytes": 13662,
+      "sha256": "5f45530681841ac4da2087efebbb68b9bbb4e2e66321357aa5afde196e1eb9e4"
     },
     {
       "name": "NYSE-KEYS.json",
-      "bytes": 10801,
-      "sha256": "8ce71a45c1deb3bf8160c351cccfcbab7dae8293a488f94c7b7f5f4962f97045"
+      "bytes": 14536,
+      "sha256": "03d41e482c848e56b4b929b6f4538df8cb8a3e2f42102904a3a7678667bda525"
     },
     {
       "name": "NYSE-KHC.json",
-      "bytes": 10879,
-      "sha256": "f932341ea10588a375ea82b397b2bbbb2ed9a6218ac3eee9fb1bea16fb8efef7"
+      "bytes": 15010,
+      "sha256": "ff776823c8aad2cf2c542138be84e06fa52d9d431a57fb0cf431de972350683b"
     },
     {
       "name": "NYSE-KMI.json",
-      "bytes": 10796,
-      "sha256": "a68660511511c2f61da00e790e3ddda16acb80c1e627f8388ebf3c5157efab06"
+      "bytes": 15152,
+      "sha256": "a41c162e553d710c052d741556ee304931a3d76c6369420f0be8a1c3071dcc4f"
     },
     {
       "name": "NYSE-KO.json",
-      "bytes": 10796,
-      "sha256": "6aefdb7ea0911567cbf5c17124ec09afa4291c591315bf827d9eb80af8f7af43"
+      "bytes": 15018,
+      "sha256": "4005898b7871e43583c594133aa3690f4369b7b60bc10debe9c8d18d533067e2"
     },
     {
       "name": "NYSE-KR.json",
-      "bytes": 10887,
-      "sha256": "6b3832225a075e74484f2f993911169940a48b2d6374a499b4fd5d235f0b3680"
+      "bytes": 15052,
+      "sha256": "3f4597e10a46c55843d85410f08ddeb63d2907048c6d2e5422f0f031123225e9"
     },
     {
       "name": "NYSE-L.json",
-      "bytes": 10146,
-      "sha256": "c6defd5e24c6df31c11f132742e490f6ed5ad8240ffb1a7606046931404a9e15"
+      "bytes": 13696,
+      "sha256": "46f7b3ad304725097e13b6e083a08672782af5cd299ac8995a1487754a5b6eb5"
     },
     {
       "name": "NYSE-LDOS.json",
-      "bytes": 10693,
-      "sha256": "f310a0e4e367f8e1a73ce7a04c199c8ca0dd0295a6776ddeb84197054969cb7d"
+      "bytes": 14545,
+      "sha256": "a9a78ce95c42ba09b0c8e7cb8061a7f5a0f3563af9979d1599369a2344d69b87"
     },
     {
       "name": "NYSE-LH.json",
-      "bytes": 10925,
-      "sha256": "3898a1eb3ebcda88cde7676266826e776363312151cfccb0ceb4bb74fd082a25"
+      "bytes": 15011,
+      "sha256": "188ef0c3cfb839b4aca245af05c126aaea625ab367dba806082b409789ea005d"
     },
     {
       "name": "NYSE-LHX.json",
-      "bytes": 10831,
-      "sha256": "8ba9c1cf96340e88d76343067ed73eee86ac9adf6771227b46e4f85d4a100717"
+      "bytes": 14904,
+      "sha256": "6164aa7c3953afff68600faac8a61cf89c3320d4fffe86aad5880268d3b72f8b"
     },
     {
       "name": "NYSE-LII.json",
-      "bytes": 10879,
-      "sha256": "426df73c4d5b94c0d7fff14c7249b591a3dd87a429c30cae49851fe6c6ca110f"
+      "bytes": 15000,
+      "sha256": "e3410d16d49c8b4c498c1bc01c50c01d3096fd2690c1c695cb75dcaf4eacf955"
     },
     {
       "name": "NYSE-LLY.json",
-      "bytes": 10169,
-      "sha256": "15565dc7edd7077a1c09eba8ef5c3f28679a746033097c3c223d6bb6ea44f673"
+      "bytes": 13810,
+      "sha256": "dce0b2566df69db52df3c229a84abe8ed6a447f23bb6be1a6cfc5759d9e15c9e"
     },
     {
       "name": "NYSE-LMT.json",
-      "bytes": 10843,
-      "sha256": "31ee745feeca2f6f6c9042b9d455f487dd36ef0d9e9c04a769c13df30fa8a7a9"
+      "bytes": 14999,
+      "sha256": "df647544198a17f7c8ba415ef75bb67f6837c3cac01f6c25c71b113cbc93b586"
     },
     {
       "name": "NYSE-LOW.json",
-      "bytes": 10900,
-      "sha256": "bd6b387d6dbd6e461632feb0ce408e5dd19e69b608bf2220ca41c183550e582a"
+      "bytes": 14988,
+      "sha256": "357a49263af9c18aac7dcf7e2534c21a8d114b49c92e41f782563d50c32bace7"
     },
     {
       "name": "NYSE-LUV.json",
-      "bytes": 10844,
-      "sha256": "186c8bda465dc37eeaeb8dc83768ccc479f89ff3cd6aa10a4ec59515f1d353d9"
+      "bytes": 14907,
+      "sha256": "44a19921abc775529411e56bff783a8f99e9c2425ab35305a77e6e0664b112cb"
     },
     {
       "name": "NYSE-LVS.json",
-      "bytes": 10717,
-      "sha256": "168ad9b9bc70b1835834b9f7c376ad24961757365f36413af35d0452c2aa8f5a"
+      "bytes": 14744,
+      "sha256": "8368d966a6d79b53d6e9cff39ba4f77c666f43775cb13e032930ed3b03b022a1"
     },
     {
       "name": "NYSE-LYB.json",
-      "bytes": 10869,
-      "sha256": "a900a33c271564ccf76ee370e01d6a4e98f3018b05e61e5e27b6eafda1edfb00"
+      "bytes": 14684,
+      "sha256": "7c6359a38f707636b4054c9691d56b4f72a9fef36dffa039bacfa5957fcd883d"
     },
     {
       "name": "NYSE-LYV.json",
-      "bytes": 13131,
-      "sha256": "494f42f81db9885165f64f82382041605e51acea6f57989e1996f64b432e4f0e"
+      "bytes": 18379,
+      "sha256": "73cd5e16cf7db5c63bc6145023aac63d6f2589b4f06a4e7a9021da5072b50da6"
     },
     {
       "name": "NYSE-MA.json",
-      "bytes": 11327,
-      "sha256": "9cbbb82655e150d9f7432801db99877234de4639a45a03594792bfd2fa29ee53"
+      "bytes": 15206,
+      "sha256": "b9f3adf76dfa217e866ea554f9cd67d6d83f662ccbdb0f892ac03c506deda5af"
     },
     {
       "name": "NYSE-MAA.json",
-      "bytes": 12685,
-      "sha256": "252409943c45762e8034759aaae412b5062750f22b316abdaebc621667bee85e"
+      "bytes": 17266,
+      "sha256": "c1e4a9e9022fd893ebab269ca65c383f121fb5d34b03c2a0356f5fa21b66da0d"
     },
     {
       "name": "NYSE-MAS.json",
-      "bytes": 10831,
-      "sha256": "200463a1d281966c7954280ee58d2b4742f52100c80070376d31778a886c42b1"
+      "bytes": 14949,
+      "sha256": "3f790c3130b6513743d90ec96be711ec12af456ec813c1f05597a5e702c7356d"
     },
     {
       "name": "NYSE-MCD.json",
-      "bytes": 10791,
-      "sha256": "f2ce6c0f751d98eb3f3c25224b3844f011536ad0a920f3b9a27126f76f8e0ad4"
+      "bytes": 14967,
+      "sha256": "a90b67218f80490c874b5b1df6538eba062427d35ee1bcf2772d28f82579b3f5"
     },
     {
       "name": "NYSE-MCK.json",
-      "bytes": 11015,
-      "sha256": "2c619258bfd1f59ce6e8efd484426f372f8dea8ee7fefcba0a3315b8e5f6368f"
+      "bytes": 15207,
+      "sha256": "7ffd1fd5f7d77feca29d46bf77d37986d1995229738235a10987217a69be34f4"
     },
     {
       "name": "NYSE-MCO.json",
-      "bytes": 10825,
-      "sha256": "dc56edd9573e1bbb4a61e87554012c20666a32ff162b521fc74602250f491d88"
+      "bytes": 14973,
+      "sha256": "bb8428f8813f1ab3f75eb50bc002bbfc3bae300dac5789f04a1b96f5f22fe246"
     },
     {
       "name": "NYSE-MDT.json",
-      "bytes": 10835,
-      "sha256": "dc856f99e94869e6df8a2b08fa566e7662a72e317ede4bdf0f9630acfd0cf1ca"
+      "bytes": 14911,
+      "sha256": "2e08021a8fe7ae295498dad314552769ab097b9f26a67961bf3881b4a46f1895"
     },
     {
       "name": "NYSE-MET.json",
-      "bytes": 9978,
-      "sha256": "161fc046bb08e30caa650cf65189db9855032923c3c1ea976a6d41d550bf2317"
+      "bytes": 13239,
+      "sha256": "8b5cda661aa202778d4d7fd965e28192be4172a595b8bbdc9a8d2ea420c52b8f"
     },
     {
       "name": "NYSE-MKC.json",
-      "bytes": 10573,
-      "sha256": "bad65397c4fd54a3db7763284d6c2eea05b617b7a1651bb38744b013d8bbcc1c"
+      "bytes": 14432,
+      "sha256": "fa2d2f74d058fb15e5e018ebab61ea63a81fa759a69b5984fce4d6e49629a5ee"
     },
     {
       "name": "NYSE-MLM.json",
-      "bytes": 10885,
-      "sha256": "e2aa6eed53ea502380118911da8776642b846999c3fcd53ca9f8297a4445f2da"
+      "bytes": 15024,
+      "sha256": "215dcea1f97e7eb76acc5003b0c741fc7800713a8b02516390e0da81555f5f65"
     },
     {
       "name": "NYSE-MO.json",
-      "bytes": 10235,
-      "sha256": "e70adf89ac30213faa9abe1c538c7fd38b6aa081ac71493a3ba1f026fcfe88f2"
+      "bytes": 14375,
+      "sha256": "7c08aef1ff11add3c8dda68c367cf3dc6d24e289b010bcdd1a30f1aa4eb793d1"
     },
     {
       "name": "NYSE-MPC.json",
-      "bytes": 10820,
-      "sha256": "1abed502526dcd3b054282445719ea33f625a970dc07b2733bafd64bf85ed41d"
+      "bytes": 14922,
+      "sha256": "4b1ec19fdb5d937bfff13f7f27f472d7b7ad74eab44bb02ef580019b10589c7e"
     },
     {
       "name": "NYSE-MRK.json",
-      "bytes": 9830,
-      "sha256": "23fd3cda66f632afec2ad05c568b09a81c15ea009606afa58e57406ce507d338"
+      "bytes": 13180,
+      "sha256": "7df07dabd28cb08fe9daae85acdd1e99a08690d2a9d1027a7060985fa87a65c7"
     },
     {
       "name": "NYSE-MRSH.json",
-      "bytes": 10583,
-      "sha256": "95bf9630af6aa0ffb1b5ac2857a9b02e5201df5b580a19e5edc395d5b9da4527"
+      "bytes": 14736,
+      "sha256": "3596045d5a4362ea1c1cd1afcb1f56544e03818670f8439b9c966d97ec768763"
     },
     {
       "name": "NYSE-MS.json",
-      "bytes": 13907,
-      "sha256": "43ca27a35de14be51178378ad18422e35e7694afcfb8c683622f30683f63bc94"
+      "bytes": 18788,
+      "sha256": "fd15b9189422f900089027e8211403cd3a8ae6d12ef8c22b2560b5e91dda9c5a"
     },
     {
       "name": "NYSE-MSCI.json",
-      "bytes": 10868,
-      "sha256": "953e69bd2d7d4c31e0eda803b5762f4da2b9c969e25a69e4a361654a5b1d365b"
+      "bytes": 14989,
+      "sha256": "d5467cfdc30e07c122e4b7bf9cd387e806b67b3e66b9654f2fa2e1cda44d9989"
     },
     {
       "name": "NYSE-MSI.json",
-      "bytes": 10892,
-      "sha256": "b77dd0f269579467ae9b9278dbc3c20bbdb1345b02ae629010df16e2fc0e8249"
+      "bytes": 15022,
+      "sha256": "5ab1db45f94d311a65075ae064f962e9d5ded2d78353bcb29d9286aa916a262a"
     },
     {
       "name": "NYSE-MTB.json",
-      "bytes": 9466,
-      "sha256": "70f4d596fb5f247dfba1290e5b10aa8d25c75a1832c7673348c2aee2d008b5ef"
+      "bytes": 12876,
+      "sha256": "ab927d0ebbec6461b094504e706551a2645911d73bbd5cd7a673b4211437922b"
     },
     {
       "name": "NYSE-MTD.json",
-      "bytes": 10827,
-      "sha256": "b78b5c9a75cac9e04bad26e61d996c0058e3ff0017aa53646f9c471b1aebee57"
+      "bytes": 14502,
+      "sha256": "e5ccad0a736288bdfa2a87f573256e57633cd49d4586f6f2d37220d12432cd7e"
     },
     {
       "name": "NYSE-NEE.json",
-      "bytes": 10143,
-      "sha256": "8d0273c1d319b53b60cedae66fc3bf4fd75cab2287a57bed2ca41a3945220f78"
+      "bytes": 13660,
+      "sha256": "b7bc7a74dcd2f80d4d16e97be91efa849377f6f5d6066aceb4c9868742d33ea9"
     },
     {
       "name": "NYSE-NEM.json",
-      "bytes": 10217,
-      "sha256": "c52c921dd0754c05c53659fcbf34433af738450ab1a7fbf96c2f759868ffcca5"
+      "bytes": 13705,
+      "sha256": "20be7a7fb726b2c092a07581a9edbd48ed4362830a7fc39fd2bd674ea8f2cb51"
     },
     {
       "name": "NYSE-NI.json",
-      "bytes": 10846,
-      "sha256": "cf7577be1545989eda5673fe913a4fe2f212e2ab02404ac73b9f8e978026d5af"
+      "bytes": 14900,
+      "sha256": "a2d7d7654535555aca86a61f789825c88bd8dd99292cc950524c40071ac39f03"
     },
     {
       "name": "NYSE-NKE.json",
-      "bytes": 9763,
-      "sha256": "cbdeae56d96e7f8f114c84fe103de3c78585c5add9174a4c8d4b22564bc803b1"
+      "bytes": 13337,
+      "sha256": "66fc41ee77d940fbf4f7eee8148850c5d0e75a33a38c6db8befc04fe7d16ddc8"
     },
     {
       "name": "NYSE-NOC.json",
-      "bytes": 10956,
-      "sha256": "3b684aa6cab02ee260f5ef027bdb0d13e14c44a905d6525775ae759dc42c3059"
+      "bytes": 15107,
+      "sha256": "ca2f2bc25c578f14237e0e07796dc802f0844ef4ea728a1faa3a7a20d0dcc501"
     },
     {
       "name": "NYSE-NRG.json",
-      "bytes": 10870,
-      "sha256": "d81c75066cfc30f15cdd0ed90a1a82993278b1b1ebac43467facd100ace95011"
+      "bytes": 14993,
+      "sha256": "655e90be2cc3ff089b5cbcf867c0c976d79dafaac1939d09ee95020efb87fe3d"
     },
     {
       "name": "NYSE-NSC.json",
-      "bytes": 10873,
-      "sha256": "5ec7d7868bc94683cbd5c60089cc3a87adea6407f92cc3fc71a9d123afba3cb2"
+      "bytes": 14912,
+      "sha256": "59fd5f94629d3c902cd6787b488d6d87352d0d7423577fe339557fe67c0105aa"
     },
     {
       "name": "NYSE-NUE.json",
-      "bytes": 10164,
-      "sha256": "b3fef648bd566e0c9dd66b1fedfc0e40fdb7e15c813535d125b8c346bc90ba27"
+      "bytes": 13658,
+      "sha256": "184066aecb9e9a4b12efe1407151554d6a96e48e84a5058484c45d0ba16029bb"
     },
     {
       "name": "NYSE-NVR.json",
-      "bytes": 10319,
-      "sha256": "2b3e26e6c2a689b10cb37f719e90703cead4efee74f9ba487da24d0f10a0dd14"
+      "bytes": 13789,
+      "sha256": "12b6658070fc37a1873b4b254aecc0c99c964e330495983f86efbb6d6770af7b"
     },
     {
       "name": "NYSE-O.json",
-      "bytes": 11268,
-      "sha256": "7d121d462107bead3a9beaf1c30eb02594831ffccacecea2970cbcb8e056aee8"
+      "bytes": 14939,
+      "sha256": "a8fa3e1bca41affc7d64e2fde2efd5ab9a3f44c0169bbfb05a2a6645599aa1f4"
     },
     {
       "name": "NYSE-OMC.json",
-      "bytes": 10881,
-      "sha256": "b74d584761914cf61e41a127f4ee21d009ca00fb13aaf63c00d88c8ce672bf8c"
+      "bytes": 14951,
+      "sha256": "c5d03080faa7d15603f6511bf6c2d0572884a0fa78267ec1d1931f48e1b058fc"
     },
     {
       "name": "NYSE-ORCL.json",
-      "bytes": 10777,
-      "sha256": "5f3b3bf8fd3bdd79257c57d9719cab6f79b8d6a587c040a6bc10f6470df77bd2"
+      "bytes": 14961,
+      "sha256": "e08a9b5d332d2d8195b1786d55a94a69ebe125529df886ad176f7d421788f949"
     },
     {
       "name": "NYSE-OTIS.json",
-      "bytes": 9591,
-      "sha256": "2a60d8c49662ed810f1a7eee8cfb8aab82bd42a09b4c54bd02a21bbaa19e69a6"
+      "bytes": 13119,
+      "sha256": "c56bce6ebad8b9873b0165e8eed6316b760a1a7f05ce103d033801d06702029f"
     },
     {
       "name": "NYSE-OXY.json",
-      "bytes": 10214,
-      "sha256": "91706ed95bf28dbea0625fd779432475515e08626d333703e03836f4bf380af5"
+      "bytes": 13664,
+      "sha256": "797a00b96a7dea86d541e2c0b2886e042f35da89865ecef48378a1a3747d5a94"
     },
     {
       "name": "NYSE-PCG.json",
-      "bytes": 10232,
-      "sha256": "499084aa3a9be43bc56a4cf27fde20aa52d46cca8f3d9cbc949ded13a0a7f87b"
+      "bytes": 13804,
+      "sha256": "09e4930d39ca2f12374fefe14aaf9b9e9ba74c962627405bbf11d35f7eae4386"
     },
     {
       "name": "NYSE-PEG.json",
-      "bytes": 10481,
-      "sha256": "5fa0c4885ad301c190167904addf4fa0d7a29c16cdc68b500692453b2e2ea674"
+      "bytes": 14529,
+      "sha256": "b0caf97f95bc0b9023539c35abe3bafbea03b71c72b154926e7b8b0f3ac9be81"
     },
     {
       "name": "NYSE-PFE.json",
-      "bytes": 9976,
-      "sha256": "25c1c90dd7b9b9437b5a25481bd9385a364557f1d0a52909f399d0d8c4a2b510"
+      "bytes": 13641,
+      "sha256": "5afa1607ce08f4a037e9f47c178ef5f89292cef2f827f7fc5d02524a9f26e20b"
     },
     {
       "name": "NYSE-PG.json",
-      "bytes": 10745,
-      "sha256": "d42065a0adeac896607f789a8157a822c69da627449aab2a1eb496b73a65eb43"
+      "bytes": 14925,
+      "sha256": "996adefba4b82420466611430786d06f1e7545ff7301b60a716bb60d47503ab4"
     },
     {
       "name": "NYSE-PGR.json",
-      "bytes": 9898,
-      "sha256": "30cad12d82984cb0a9688264af9ab2867097b8b28890332666f7766ba3aa1056"
+      "bytes": 13529,
+      "sha256": "2dc88887f370d31288b358a076becb5bd9b3c1900c7b304ace5729995157eda7"
     },
     {
       "name": "NYSE-PH.json",
-      "bytes": 10861,
-      "sha256": "161af6cf6669a81f9b2997f4ffd704486d8d10f413f9365c2d4db4a495c4c712"
+      "bytes": 14905,
+      "sha256": "dc5ae78c743353b97346818376e2b04779e172588aab5a713a62435333109627"
     },
     {
       "name": "NYSE-PHM.json",
-      "bytes": 10214,
-      "sha256": "873f98fffb6dac4133307498002137b7c7ee45aed520f244c9a672dc6c5ac213"
+      "bytes": 13745,
+      "sha256": "9303438358661b9c8b61c28a847e7b82b99ef35782e61dd61a060408ea41d5b8"
     },
     {
       "name": "NYSE-PKG.json",
-      "bytes": 10775,
-      "sha256": "62c309c843f4b0669e280d9c8d24b1b853253e715f354805d130e7532ab2aac3"
+      "bytes": 14917,
+      "sha256": "7cc83a1917df2502b9fe20a30889248ba59a896197da311676be6a11a9314388"
     },
     {
       "name": "NYSE-PLD.json",
-      "bytes": 10249,
-      "sha256": "a450f311da54584ec12bc802f6a3c97a713e93cc15d14df32778f0e5975b7442"
+      "bytes": 13818,
+      "sha256": "767aa04e992390a1f9a774de6529854ff5776a99ba352bf1a3892d8b982cb3c1"
     },
     {
       "name": "NYSE-PM.json",
-      "bytes": 10322,
-      "sha256": "83a10f39636e23223a0c6e6289c8c4a920a886e72b5dfc7e51df8082900c884a"
+      "bytes": 14408,
+      "sha256": "31aae6b4b44a269fe725c0451af707b641f85b31f63f2721ea6f9603e2ce3b14"
     },
     {
       "name": "NYSE-PNC.json",
-      "bytes": 9238,
-      "sha256": "bc23cec3a5de4a2acda8a24fbbe77832b71ac502cf432577329a2bbc7f543419"
+      "bytes": 12226,
+      "sha256": "6fb9ee317f24dd317353a98b4e0b081e0469dd25bc99667e5bd64aa3056e4cfd"
     },
     {
       "name": "NYSE-PNR.json",
-      "bytes": 10801,
-      "sha256": "a6686504fb1e0ba05dbc31cb05da173353092b4c6980fda18575ae1e07589320"
+      "bytes": 14910,
+      "sha256": "450de86721c0ecf794e68f2516a173f99bbe49d654dab5de2dc5a04cbfb874ba"
     },
     {
       "name": "NYSE-PNW.json",
-      "bytes": 10796,
-      "sha256": "ed468ae58ab3669e822e05d8ec4eb822a63a07ec89fc41d6a29f4349246ba535"
+      "bytes": 14378,
+      "sha256": "cc28445e59799cd83504153643df2bbdeef9d89386e27be15c88f6fae0f82a16"
     },
     {
       "name": "NYSE-PPG.json",
-      "bytes": 11962,
-      "sha256": "3bbd89581dea97a96ba05d91ad2a4c51aa4c2d1d3c7d98de50c151178a896c91"
+      "bytes": 16550,
+      "sha256": "daa6b3a587f64da5a3f8e20f8390670e2ae7ffb06b2fd147f652cade832a87d3"
     },
     {
       "name": "NYSE-PPL.json",
-      "bytes": 12481,
-      "sha256": "c144c79dc51eda3689bdba7c2497ad4833a7ad16653d5985e1ca9922296896fe"
+      "bytes": 17460,
+      "sha256": "433d46b185919ca59500bce0f01f67d9abb6af72c689958ee627782e4ef08ecc"
     },
     {
       "name": "NYSE-PRU.json",
-      "bytes": 9621,
-      "sha256": "a05c1766110de4dd9ab92c9edba3ca52071b4ef0e7125da7fe8bf5c0a7ebc8fb"
+      "bytes": 12572,
+      "sha256": "7e77d2d45b957e49e0ea9c8e1ef39f1ee4436f484da9d6fff8dcb3b6fc8d404e"
     },
     {
       "name": "NYSE-PSA.json",
-      "bytes": 13496,
-      "sha256": "6663578d498dbe353146dfc0ab098df7eb4922b96d5fab87e69fe82f4499a8dd"
+      "bytes": 18349,
+      "sha256": "694e94fd58967655aa048e53025f80857193ccf63d66f019c3ad13ad46364aaf"
     },
     {
       "name": "NYSE-PSX.json",
-      "bytes": 9450,
-      "sha256": "2a632c073dd201af7d23b2ffda7c789645b5bbdf09dad1f907de2503140dd212"
+      "bytes": 12452,
+      "sha256": "46f8b67589531cfe94f005160f63298d6f2609afc0855b9f666a4c6212d418af"
     },
     {
       "name": "NYSE-PWR.json",
-      "bytes": 10712,
-      "sha256": "357d5f152b39696a583262992b3c3af2910e4671e55eb46b45f4a4b0d9c18895"
+      "bytes": 14741,
+      "sha256": "a1eeb35fcb7bab6914469e4727ced0712992327803e777bf2efa00462f5f5c89"
     },
     {
       "name": "NYSE-Q.json",
-      "bytes": 4676,
-      "sha256": "a0a3213b719cc3073242f570279a504a8059cbd1014d10e383de319fb5609889"
+      "bytes": 6043,
+      "sha256": "ae678a74e66a6d3fc5a276bd2bede4e6c3a78b0c685ce1bc09ee241c6bfe4987"
     },
     {
       "name": "NYSE-RCL.json",
-      "bytes": 10902,
-      "sha256": "a00b74392c7dc2a567dfadbe065d689967b1924fcb2f28556d22f172a9fdda9b"
+      "bytes": 15066,
+      "sha256": "57d0c85329f99fc0945941da49d88f0d8b97eb8176e41c359c7accf3fec823dd"
     },
     {
       "name": "NYSE-RF.json",
-      "bytes": 9346,
-      "sha256": "8a4e943eff43283ba8e764e7006a69b20c54217059b07e04a92ea794229cf90a"
+      "bytes": 12583,
+      "sha256": "9c219fae275f596856826f481d37a7003cee193655da7be36e245fa26e9ba8c1"
     },
     {
       "name": "NYSE-RJF.json",
-      "bytes": 10236,
-      "sha256": "a726bc3dada3b68fc6b9016ab541d390f49c8042501780c3364c8e429c3e469e"
+      "bytes": 13734,
+      "sha256": "ca5f27a0ec1efe5c06562d2551dc37f7e45380b430ed6c4c0dc6b32a1e83364f"
     },
     {
       "name": "NYSE-RL.json",
-      "bytes": 10797,
-      "sha256": "fe60b9220c51d856f6bb640158dd8babe00d0c0407c7a9fc932c4b44b268af80"
+      "bytes": 14874,
+      "sha256": "ddf31dcfc33c35eb0e6f70eff4487252633ad0b4c80f720f0399cf24e1e06ca8"
     },
     {
       "name": "NYSE-RMD.json",
-      "bytes": 10879,
-      "sha256": "1280017d6868e90228ffec352397f407bc8a5fd6cd5067012020e5c19990566b"
+      "bytes": 15047,
+      "sha256": "a1bffd80a4ff8ceb8601e3c1a10dd7200f9298b92e2eb628d1999490d4a824b4"
     },
     {
       "name": "NYSE-ROK.json",
-      "bytes": 10457,
-      "sha256": "24e4d5c77479ebef8967fcdc17a2abc58a37c15a4c30eba3c2728bddea0cd8d9"
+      "bytes": 14147,
+      "sha256": "f12501ebd9df7626fc82dafe8b9eab98fdfacf8b145c4ddb2e09e8ddf7ff04cf"
     },
     {
       "name": "NYSE-ROL.json",
-      "bytes": 10584,
-      "sha256": "440d8039c4c17deb8ab8c16c400de21f69cf4be7460387d6543e28bc321c105d"
+      "bytes": 14367,
+      "sha256": "33b73b68f17f344e69ee727bda4582c3d629b1fe0a61d1b73e9a28e2eaa01abc"
     },
     {
       "name": "NYSE-RSG.json",
-      "bytes": 10805,
-      "sha256": "8e2bff4ef1b2afea05c9ca2169c8c52b06c4d283460ddbb694cb6028797db3da"
+      "bytes": 14938,
+      "sha256": "254cff335b686534c055f9acf3f33ea41ca477d619037e25b984abbaf22b5621"
     },
     {
       "name": "NYSE-RTX.json",
-      "bytes": 10265,
-      "sha256": "d095c76853e79e089a297ad024f601f1ee8bb6967ae97a5d3ce389f88a01fe27"
+      "bytes": 13870,
+      "sha256": "1dd45028751e881bddcf4c0c3a58df461e7107e42bf191c3c0d5c412fd5b128d"
     },
     {
       "name": "NYSE-RVTY.json",
-      "bytes": 11289,
-      "sha256": "87af4ade081ed5cbb51cc1a78663ce3de0c5c7dfd67575b9c3ad5613882696a8"
+      "bytes": 15683,
+      "sha256": "3baaeddea5a10b1e3500f8e9b1b1b2db71a3188d4970cc32171fff46313874a3"
     },
     {
       "name": "NYSE-SCHW.json",
-      "bytes": 10085,
-      "sha256": "322e2f51f1025be4b40491f8e9acaab555df34aa16a45c86a20206b8d4aec6e7"
+      "bytes": 13636,
+      "sha256": "afca1fa9008e6ab2bd7633e50980e00d47cd74c6b24a20cbfed3353ec18460dc"
     },
     {
       "name": "NYSE-SHW.json",
-      "bytes": 11942,
-      "sha256": "9d1f4c7b126e809cde36e46928168a5cae807f0a80fe9b5e1b07f416016ca44d"
+      "bytes": 16549,
+      "sha256": "a4b5a90ec22e96c20592cd7a734054ed9b7ee503b83f823fed051a32e305e1e0"
     },
     {
       "name": "NYSE-SJM.json",
-      "bytes": 13078,
-      "sha256": "89a87bfef9e5af6d9c9ccca4e4e7cbb4f3c85bd8d94494e108fc237d40950151"
+      "bytes": 18305,
+      "sha256": "1b99888659fdabe48a3ce62db7c6d59688ce70af5ae5fef20a5fdb1b9146d1d9"
     },
     {
       "name": "NYSE-SLB.json",
-      "bytes": 11947,
-      "sha256": "fbe7d4cc9f5f0ac3a59817fc5a1e4751c94bab8e73dbe35cc33a726fb26131d1"
+      "bytes": 16535,
+      "sha256": "77c2ca7fa916f2b608c3314311c5ad2e75285af0d44db69abd5914674a4884ef"
     },
     {
       "name": "NYSE-SNA.json",
-      "bytes": 10235,
-      "sha256": "6059c2a4d84d0a721a85a49942058dbf1677d2071d7acf3cc2154dd862038ea6"
+      "bytes": 13695,
+      "sha256": "0ee7166155df5337cbbd2c92389aa7e43684ac2ece9a3c6c461fdf637182d8d4"
     },
     {
       "name": "NYSE-SO.json",
-      "bytes": 10343,
-      "sha256": "e4ec73946fd716aba3ea27d68a62c43ec9a4d2803edc9cc1ee3ace512117157c"
+      "bytes": 14195,
+      "sha256": "5e0d2b590b4cef787f2835f95cd4bd0a9b746a62e4808dd6feed913be194ee36"
     },
     {
       "name": "NYSE-SPG.json",
-      "bytes": 13111,
-      "sha256": "9e89ee0a230cb87eb6fee872d4b9b53124a88808f3c812f7db00ac1b3516ab88"
+      "bytes": 18627,
+      "sha256": "e566be4ed723c34929668bf60ad29ea0a8016f5dd5a329f2296cd147d176a4fb"
     },
     {
       "name": "NYSE-SRE.json",
-      "bytes": 10214,
-      "sha256": "b1e93a308ef2b8488e6ed0e94aff891b0ee3493529e6167f5e27fcd230b3df7e"
+      "bytes": 13729,
+      "sha256": "106f9789f396679cccc284724f4a36994ac505ea14753a53b89a2dc3f76372ef"
     },
     {
       "name": "NYSE-STE.json",
-      "bytes": 10861,
-      "sha256": "0353b1857f296f2f2989e6020c9877cfaea98730f9da8f527c02cb6a9343e34f"
+      "bytes": 15025,
+      "sha256": "712b1a65349bda65f83e777c7bb5dc4c7c1908b7f35cc70b0328f14489f7d2b5"
     },
     {
       "name": "NYSE-STT.json",
-      "bytes": 9490,
-      "sha256": "e5aefec79f0d3aabfd0c05a27b2f7e36aca9348d05de16cb19af5667f1f0736e"
+      "bytes": 13058,
+      "sha256": "7333a4b2cc75682d15eea58fe6c7e98e987ea1fba09b4af7678073634632c133"
     },
     {
       "name": "NYSE-SW.json",
-      "bytes": 5836,
-      "sha256": "907dfc8325cec5b6ba92f8b9f326d05583510647f511a406223b473b23fc6a09"
+      "bytes": 7739,
+      "sha256": "ecfe2dc2d6efc3d3bb2f8aee58b30a8dcc78261f7409ab806dab678685ab1140"
     },
     {
       "name": "NYSE-SWK.json",
-      "bytes": 13641,
-      "sha256": "1c0a2905e418ee69b776438f3d69f86077a25662bdfc0196d2f33bb406ef4210"
+      "bytes": 18860,
+      "sha256": "07155bb35a7af82066bea85f8a909a24a99edb481137f10ff7f5956670d043a2"
     },
     {
       "name": "NYSE-SYF.json",
-      "bytes": 8484,
-      "sha256": "d4bc2349a08cf5020ff6167d960c7fd077a7acadd180418b41b75997984b351d"
+      "bytes": 11436,
+      "sha256": "7ebfcf8985dc7f3c4a15785d477f2305d7a5f37105e29dec45e37cfde883b0df"
     },
     {
       "name": "NYSE-SYK.json",
-      "bytes": 10776,
-      "sha256": "edca7e299856163f13f6f9824dfa69e82d6098aa72c30c2f78f794ed201c9800"
+      "bytes": 14906,
+      "sha256": "37a2684237b47e20e6f0a6c515f5d4d4a161806d927a2203fa01fb27f0e0201c"
     },
     {
       "name": "NYSE-SYY.json",
-      "bytes": 10836,
-      "sha256": "f1db8335af12b6f5bbd4c7ca5badad7745fc50ec27197b327381ffc4d8eae964"
+      "bytes": 14738,
+      "sha256": "3eee4380f4b72a08487cc9438efc19aa7295bfaaece204e93222ac36c42f04c6"
     },
     {
       "name": "NYSE-T.json",
-      "bytes": 10853,
-      "sha256": "4736d78f40db5d215d8aedd2d9913a2fb305b694bd41d1b6f47c5d704bad41ef"
+      "bytes": 15015,
+      "sha256": "9d8d857fd091512ff57b6155c74aee4f48b26b28e13c35dd95b09f155e20cf87"
     },
     {
       "name": "NYSE-TDG.json",
-      "bytes": 10791,
-      "sha256": "3b73965d05ed716c54893890f1ad0bbf300f955465fb7250073a43391277d0c5"
+      "bytes": 14945,
+      "sha256": "60d86bbfd09db952e048d31222c75254a58da60413dec742858c5724d3eb966d"
     },
     {
       "name": "NYSE-TDY.json",
-      "bytes": 10803,
-      "sha256": "a734eb8fdc36733e6dd253db7fb5b9cb6d01bab19d7e69c127dd83f0ee898264"
+      "bytes": 15210,
+      "sha256": "9a6a17a83f775ba957c0c0736fb9dc3c17ac6a264ff66406946c5edb75a90bad"
     },
     {
       "name": "NYSE-TEL.json",
-      "bytes": 10850,
-      "sha256": "285728b51fb8741e07290ca0403d86c27fc5c359fb63fa739c3976c439163d62"
+      "bytes": 14920,
+      "sha256": "65dc26266461366326537d6f8990b01a9e8875587764d1e7778a21dbaafa3f01"
     },
     {
       "name": "NYSE-TFC.json",
-      "bytes": 8774,
-      "sha256": "dc2cc19d040728560aad1632317ac01b7a2f08ab44c2d8f6e9c07aaa60c262b6"
+      "bytes": 12060,
+      "sha256": "e1233a4de7a68cc3610f5baaacd569f5011d1c287f86abe69cd0562fbaf8c04f"
     },
     {
       "name": "NYSE-TGT.json",
-      "bytes": 10860,
-      "sha256": "0e8067b137cbfa12158052835ec87b553d21065e5a63e5407a703456b8c3630b"
+      "bytes": 14794,
+      "sha256": "ac225984438c9f38da0c3355a3a454ba174d57defe8c8c9d3f4892f2c8709ee3"
     },
     {
       "name": "NYSE-TJX.json",
-      "bytes": 14088,
-      "sha256": "8da1884c5569e9c3c43f30af29acafd3a45fa148609d959319af4dd3fbb2e88a"
+      "bytes": 19375,
+      "sha256": "ef24a8c876728407cc6006b0616af4d9adbf2e638539b957c382051439a8445b"
     },
     {
       "name": "NYSE-TKO.json",
-      "bytes": 5762,
-      "sha256": "5a5188e14f657a9dbe8309e13cf6b81f25749c377cd091480f6014f25cb30b20"
+      "bytes": 7586,
+      "sha256": "d74f55e1cb846d3c111f92c2320ee2a2250339a6581c8a6b860984d70d43ce01"
     },
     {
       "name": "NYSE-TMO.json",
-      "bytes": 10803,
-      "sha256": "da90a67716dbb38b7ffaaf178d9caaf9bd07ed2d693570ac8334daeaa22ce345"
+      "bytes": 14601,
+      "sha256": "6f258d70e1ed7499c28f16f11d019fdd14d12ae7e5b500caef05c59959e344bf"
     },
     {
       "name": "NYSE-TPR.json",
-      "bytes": 10809,
-      "sha256": "997deedfb72656e3be14d07d749b0617e1054eb0322737a82a6f12dc328c9b13"
+      "bytes": 14924,
+      "sha256": "2694deed225f95a341832b8c9bc714c1018bcb5b2c9e84b531e50d08b59f4186"
     },
     {
       "name": "NYSE-TRGP.json",
-      "bytes": 10857,
-      "sha256": "d1a323b71e45f3c3dc46c73270d6615b2b10360721e982593f6113cbf6b2fd5a"
+      "bytes": 14940,
+      "sha256": "e742dee3f18e2008b98a3da82281ced0a85336fe87ba6f66c5284bc3f51b00b4"
     },
     {
       "name": "NYSE-TRV.json",
-      "bytes": 13426,
-      "sha256": "4cbe14da523bea658a52aca386d4c58226a9f4b5fef1b13f503d4fc50d104842"
+      "bytes": 17903,
+      "sha256": "da3ff29b92be87de7052c7800ea3a1cbe3e74904ed1b85f2d78306dff25fff14"
     },
     {
       "name": "NYSE-TSM.json",
-      "bytes": 7837,
-      "sha256": "f829c4460a7d7fee6aa77ce3e23aff0b334f89352586e5007e6affa0e4ecd4de"
+      "bytes": 13223,
+      "sha256": "e97099ec200fd12a53464447145a2efac7f0c526e8d17a48dbe2bc452849ac15"
     },
     {
       "name": "NYSE-TSN.json",
-      "bytes": 10864,
-      "sha256": "a690879233b4064d00dca8fc7eea962ea58289ebb4befd91230b66f0a662228b"
+      "bytes": 14992,
+      "sha256": "e8bfb0d8d9b1c9fa4966513582875ae55170e97e9ca23e187b55fe24d1970d59"
     },
     {
       "name": "NYSE-TT.json",
-      "bytes": 10812,
-      "sha256": "c5efd857856aa56fb5ea079820ad774c7a3377e51ac335fe9665a85a97cac0d0"
+      "bytes": 14954,
+      "sha256": "ce96f34150bc9011ed20e078a73ab14888ca09b85cf89a68fa0953f2506261fe"
     },
     {
       "name": "NYSE-TXT.json",
-      "bytes": 11858,
-      "sha256": "dfa452c67863fb94937b302b77a3b1853c3f46c7c98b4734c017c0b67f034154"
+      "bytes": 16025,
+      "sha256": "189785325f2940b691f7786141890f4a9b561085eb3e637ce57320b1970a9a7b"
     },
     {
       "name": "NYSE-TYL.json",
-      "bytes": 10833,
-      "sha256": "34d032d8760b737615c753f55ed79d776178b73cffd4cee6a32d8fd6bd3af4e1"
+      "bytes": 14892,
+      "sha256": "a859bd9631f7fb0203f80f1ff8b2bf31f9719e9d0ffb9accab886038fc31d58a"
     },
     {
       "name": "NYSE-UBER.json",
-      "bytes": 10431,
-      "sha256": "a3f742aa9d38405d00f87aca620230e1b1ed1df594badd42794f409bca1f2410"
+      "bytes": 14411,
+      "sha256": "7f7c361cff0e916aa8568b3f24597fd2bd9f2ec63f2a8d87c757c056e74211f1"
     },
     {
       "name": "NYSE-UNH.json",
-      "bytes": 10879,
-      "sha256": "1864ed0df2b7eb7e074a7c26284d65ca5e5ed17290a851188b96d69200ecb696"
+      "bytes": 15097,
+      "sha256": "5cdf7785b0257a0a65bb0683d876d505f3f2fb82c6537a38f1ae840163cc8002"
     },
     {
       "name": "NYSE-UNP.json",
-      "bytes": 10347,
-      "sha256": "348d0e956e9e022715168a473bde3fe679643eb22c4db6f141e3c2c0d9eab038"
+      "bytes": 14440,
+      "sha256": "eaab68da7b21cd87bd7b3b766245214022b83e6b8c23211d07b1e9dc4466d8d9"
     },
     {
       "name": "NYSE-UPS.json",
-      "bytes": 10853,
-      "sha256": "21305600f9851b2f2abe4ab73e43cf9a9905202cbbc23830dd109f383122d377"
+      "bytes": 15000,
+      "sha256": "c5ea3c6b32f23ca051596d793c000f16569c9b6d680aaab34f8b0b09648ea8db"
     },
     {
       "name": "NYSE-URI.json",
-      "bytes": 10858,
-      "sha256": "9ccea15bca62ec9ccfac4e187184a86de9005a47ac88a10eb8f15af6614404fe"
+      "bytes": 14918,
+      "sha256": "167f0176028c8aee92b443e9d76d861360ed0496c5377dcb6795091b70f6dd0f"
     },
     {
       "name": "NYSE-USB.json",
-      "bytes": 10729,
-      "sha256": "7c5a25d0864879078c9212c1993d9af7eb1f40eeb89162acf4184b9219b39888"
+      "bytes": 14353,
+      "sha256": "3e2dc61b2374e99920bd837cf7988ae2d6978c40393edbfdb7bf6313cbb142f2"
     },
     {
       "name": "NYSE-V.json",
-      "bytes": 10166,
-      "sha256": "83bbd8db6140eff64ea01f0c2494a573d41abaa071bec94c7fd43dc0ca323c11"
+      "bytes": 14358,
+      "sha256": "3faaa71711b53b1f0a864fde8ba2da3d6f14cd207846559165c38db805a06cbf"
     },
     {
       "name": "NYSE-VEEV.json",
-      "bytes": 10368,
-      "sha256": "b4b6150306b893c334dd47ee3f6242a24f9f5165359759a587cdcef7847621f7"
+      "bytes": 14155,
+      "sha256": "6308b11062112b8334434ca0aab675aae319d345f9a2d23c4d92d0ac77693159"
     },
     {
       "name": "NYSE-VICI.json",
-      "bytes": 9533,
-      "sha256": "e75fce9fda5de434829d67916712faf9d9c2be4531c637788ad7103e22341a0d"
+      "bytes": 12879,
+      "sha256": "12251c73852f27437033e527dc187bd074af161d48aba4645b0cb26ed99e36fd"
     },
     {
       "name": "NYSE-VLO.json",
-      "bytes": 10856,
-      "sha256": "48df62156666beac78d58893bad24d87843c54b6d2eb16c56e64a9319468af8e"
+      "bytes": 14903,
+      "sha256": "12468cd3bdf6e2972358fa06dfb512a8d24a15ca633b78d5ca8aad2899bce556"
     },
     {
       "name": "NYSE-VLTO.json",
-      "bytes": 6104,
-      "sha256": "5f4a2b5454d19baf1c531fb996ada82ba2fd4f75216e0a6c33faa5f5b1c8d603"
+      "bytes": 8280,
+      "sha256": "937e1fbba1bd41493a819804efd7f5e282d5f90b8df00baf16ffff9b0d75e80f"
     },
     {
       "name": "NYSE-VMC.json",
-      "bytes": 10504,
-      "sha256": "6e2d61bc1abff6a708929f225edd3b27b942cda15cd8187f951fe54e27ca3923"
+      "bytes": 14575,
+      "sha256": "526b77af905e522040b64a438b2d603cfebe48ced024f480c046f42e8b62f6c5"
     },
     {
       "name": "NYSE-VMRK.json",
-      "bytes": 13844,
-      "sha256": "b72e6d2810042c11b08ec832eec8d5868cbeb12ebf867586e8b2be1cc48bded8"
+      "bytes": 19501,
+      "sha256": "4182e37f28f7b14c25e222901090c94d7d24fad9b1cb8f44af6f8f828d26fcdd"
     },
     {
       "name": "NYSE-VRT.json",
-      "bytes": 10115,
-      "sha256": "9a18b1efcd250b6099ca696e2b01f97324c31f33fb08eadf4d8a2aa03cd7fc76"
+      "bytes": 13906,
+      "sha256": "36c84539f96a159b11be0169a9895df5a1a5c2dafd5c9c538001648e20d908eb"
     },
     {
       "name": "NYSE-VST.json",
-      "bytes": 10498,
-      "sha256": "eecfe4b5587222eb926e9c21e99da2eb77d1a528f6e2be2d18131ec62c888b87"
+      "bytes": 14363,
+      "sha256": "1c29c3be8cf4de7209d1394ad0cbc33652b758bca0b4c79cd76d24e7ed1a8576"
     },
     {
       "name": "NYSE-VTR.json",
-      "bytes": 10151,
-      "sha256": "8a728ee9dc00af319423a61999f9a632e306f382e65e39300d364bf3744a2d96"
+      "bytes": 13121,
+      "sha256": "d97b91223a17a88b9ab83af58ba75f54b5fe8d2c1009f40bbe43c76bfe5504c3"
     },
     {
       "name": "NYSE-VZ.json",
-      "bytes": 10013,
-      "sha256": "1c6b0f641534191a6ed00ba3b311acaf10161256275206414c6e0ae5270d5fdc"
+      "bytes": 13738,
+      "sha256": "27f04b3c102950c86aee55e28fadd994102dfe6ef98ec1c907bd78452e32d375"
     },
     {
       "name": "NYSE-WAB.json",
-      "bytes": 10867,
-      "sha256": "17d5ab950947ab9fad61b670b6529edf07ec59bf8c737ecd1a28a18ff3266be1"
+      "bytes": 14991,
+      "sha256": "3fe4789fb0bba51475eb53fce50d395c6049fd7a6fa840de22bbcf6bc822e93a"
     },
     {
       "name": "NYSE-WAT.json",
-      "bytes": 10329,
-      "sha256": "b5349072e8a4c8ace1f6f845671afc97368a821c966b6649a4210cf37970b521"
+      "bytes": 13766,
+      "sha256": "8dea396192d6a8f1a28908e993589cc161ed5f24c9acec3f4b66562b6075ad2e"
     },
     {
       "name": "NYSE-WEC.json",
-      "bytes": 10631,
-      "sha256": "12ecb8e20eeec409652cefc00daab60c950df72be7b0d87e760bb65d7f29e899"
+      "bytes": 14134,
+      "sha256": "8e5d4aa344a98810dd86be15b3b0db4620b508109d661c112eee66d27a395911"
     },
     {
       "name": "NYSE-WELL.json",
-      "bytes": 9572,
-      "sha256": "df70b943dce16fa58bedc5ff7df59a99edcbd19b106a6502637703b462b96a63"
+      "bytes": 11928,
+      "sha256": "32a02725704bf03e6eda1286967217393b4361f74d3ec1a29bee56be95e07509"
     },
     {
       "name": "NYSE-WFC.json",
-      "bytes": 9323,
-      "sha256": "7509e872cb36cd53643a89327aa278c2ff1ac13f74f6ff1d7c433b88aae0a8d2"
+      "bytes": 12224,
+      "sha256": "a184e0372a6f37e4d7b9d398012c906195f2b708bf4d9c8a2d26daba9b4b6359"
     },
     {
       "name": "NYSE-WM.json",
-      "bytes": 10801,
-      "sha256": "12efa759fca333bac66e5a9f41dd0a1bc7f98757e680504efe297d3dddb85ce8"
+      "bytes": 14944,
+      "sha256": "b863f43551ae532942969a55c6ba7122cf60d75d3109a440ef02540eff1302f1"
     },
     {
       "name": "NYSE-WMB.json",
-      "bytes": 10827,
-      "sha256": "7e572163e3a3a35e574e8ffd02c82841a00cca3c45a301d0e0d0d3569017715d"
+      "bytes": 14947,
+      "sha256": "b547364a3f00d36e62becbb15cb28cd9cdca8b1e5770a5f11a65dd4a86f082a6"
     },
     {
       "name": "NYSE-WST.json",
-      "bytes": 10657,
-      "sha256": "2e16adefa742ed19cd0fb00530aad9494f4f34d93fb04931e38b0eec815d1893"
+      "bytes": 14660,
+      "sha256": "24a013f51a066a23548e643d05705b52fe5a2bbb3e0631601355381ba21ad8b1"
     },
     {
       "name": "NYSE-WY.json",
-      "bytes": 11571,
-      "sha256": "871020a82379097e89b08a63030be89cbaff6b06abba8870d140eb382f6ecb18"
+      "bytes": 15996,
+      "sha256": "6143429c634c7976986a1585fbbc7c71f6d06ab10ae8307d15180a2b7e844d31"
     },
     {
       "name": "NYSE-XYL.json",
-      "bytes": 10793,
-      "sha256": "cc33ea6deb150f1c69926ff03b2ab5e7e848682846882bd82653103ba53d9fd2"
+      "bytes": 14898,
+      "sha256": "0b92992d207f08fba98372993198391488d5d9b13316ac6cd844ebec6a10c4a9"
     },
     {
       "name": "NYSE-XYZ.json",
-      "bytes": 10868,
-      "sha256": "e8e0e557436b920dacccc3a230046860c58ebfa1ddb6f06411a09dcca0d72e12"
+      "bytes": 15036,
+      "sha256": "965da9d700d3b06e921cd3c4f9bc3676e9e83a1eac6a7b64a5751f1ab9cdf9a7"
     },
     {
       "name": "NYSE-YUM.json",
-      "bytes": 11422,
-      "sha256": "f92ecc8fafa0a0b806a2e88f970920a15cb576b92fe0d1e80e4a766582daf92a"
+      "bytes": 15826,
+      "sha256": "53520fc3a5824d1411f95cfbc092c4e1b3a465e19fce5adbca979a3c47e06372"
     },
     {
       "name": "NYSE-ZBH.json",
-      "bytes": 10783,
-      "sha256": "1d1d56f8236518eada6e07cb181c7a917415d12c76d209c17b67a48795f0c445"
+      "bytes": 14844,
+      "sha256": "e292be28c173fa9944b810d08ec9fe0e6d85cd782de2c4416b7ab15be0bb2f89"
     },
     {
       "name": "NYSE-ZTS.json",
-      "bytes": 10189,
-      "sha256": "56007cdd02abbcbc264c6edcb6d70222d31cc0483a28f33aa633746b0e4953e2"
+      "bytes": 13730,
+      "sha256": "ac0ac923430b89051f6ba90b53d5b7145b3d4fe5eebcc5b31c52d1061f5034db"
     },
     {
       "name": "rates.json",
       "bytes": 192,
-      "sha256": "6f4618fa1a4586671835ce71db3ae5836695dc33ffc562f1d486699e08ce8be8"
+      "sha256": "29301b15723f373356398b162359c913842b957055b4662e1c7ceb51279b3e95"
     },
     {
       "name": "SHSE-600000.json",
-      "bytes": 6083,
-      "sha256": "7687719d20c83e0ef373047bd0dde378e08df2b3b9048f0f29c753fe476e6930"
+      "bytes": 6106,
+      "sha256": "a6e42857728831979e8b7a5fc2dcae5d07674ff1570619246f1f44300a5a7cbd"
     },
     {
       "name": "SHSE-600016.json",
-      "bytes": 6081,
-      "sha256": "1bed56ebd9a956baf252c6c7bc49d23ee8103db5413e21d65ae72fac3df82597"
+      "bytes": 6104,
+      "sha256": "749fd275806e367f49c5563243aef29c1639dbf0ee1341b1b892d750a223c9a7"
     },
     {
       "name": "SHSE-600028.json",
-      "bytes": 7706,
-      "sha256": "8972c6136bbe40673d004a0fb3823cd1c58443e3db93d32bc92e3473b100e8c7"
+      "bytes": 7729,
+      "sha256": "f490a56a1951340433a8eb59fb0e124a684dca9bc6711a077ffac91c5a29ec2c"
     },
     {
       "name": "SHSE-600030.json",
@@ -2316,233 +2316,233 @@
     },
     {
       "name": "SHSE-600036.json",
-      "bytes": 6098,
-      "sha256": "daba0a481b9cd2b1ee13e1b14cdd621860dd2a5b58fa9dc2e9961b17334fb904"
+      "bytes": 6121,
+      "sha256": "613170fb4a5c80e89d8b640baf1c45be3a6ec1568285f72c0658500e3d1694fb"
     },
     {
       "name": "SHSE-600050.json",
-      "bytes": 7738,
-      "sha256": "787ca20554a8b97defe2990c10bbd01778537ae870622e3b5a1505ba29c8966d"
+      "bytes": 7739,
+      "sha256": "7e61abd8da103e591671f2bd21c533e87cb11f306307670ab64f69522498167d"
     },
     {
       "name": "SHSE-600276.json",
-      "bytes": 7704,
-      "sha256": "e6989fe3d34ca8a7debdec717b0153a69d3edee5aca54ec04cc9ecba6e869167"
+      "bytes": 7703,
+      "sha256": "3f29ced671d36e6fb43289c722132f743aff05ccb662eed7ebfdf8221b8788ea"
     },
     {
       "name": "SHSE-600309.json",
       "bytes": 7737,
-      "sha256": "4396999b880cc4069ce9e1e6c39c749e8a1026b30815e7315b1c111ef6721ba4"
+      "sha256": "fd7032cf46f35dc1e197907b108a48e94abd8bd80b7bbd50d562443ba5b33b37"
     },
     {
       "name": "SHSE-600438.json",
-      "bytes": 7748,
-      "sha256": "b41e1b44c1cd5e7c31db0eaca234380420817e9aa15d971752906aae7cd12b62"
+      "bytes": 7771,
+      "sha256": "05e44f411518380d9b25f7abdd28563074c3f8e5aa13aa6ce7f7ef1fb2b60fd0"
     },
     {
       "name": "SHSE-600519.json",
-      "bytes": 7799,
-      "sha256": "0778fd611499a05d223795d99bae1935693092ab7bc5c8f5c73412d28fbf137c"
+      "bytes": 7822,
+      "sha256": "34c87da3af9b98fccba47dfab4b51d44dab78a30a70eb48208e8bfbc0ee10506"
     },
     {
       "name": "SHSE-600585.json",
-      "bytes": 7677,
-      "sha256": "f696005d0e051e71b027635fb2abf43f879fccae6fbf9d1559a53971dc45f034"
+      "bytes": 7700,
+      "sha256": "75eb546ce916ce360b81533b6cfb750a1d37e9d47e9da40954cb84e617a1f5d0"
     },
     {
       "name": "SHSE-600887.json",
-      "bytes": 7684,
-      "sha256": "4853e309beaaadc6e67ea0e81204fe99d40994fba9085c921e2913f8e2208d44"
+      "bytes": 7707,
+      "sha256": "1c9bc3db0d365be3585c5804c9fa0d1fc3fc874310e33bad1bdd5df26e3dc561"
     },
     {
       "name": "SHSE-600900.json",
-      "bytes": 7715,
-      "sha256": "dd2dabed53de33accfdac6e44c5797c1c6e3f23dcd24c0be8e02f397eea06ed5"
+      "bytes": 7738,
+      "sha256": "2ae0c5e0053a3ecb212978ffc0b11bfb4156ce39e86182566df1be1f62ce0ea5"
     },
     {
       "name": "SHSE-601012.json",
-      "bytes": 7702,
-      "sha256": "0f64da19a10d3f6cfca8c3de34e6dc50539c547820449a3be7e1f898cec3ff62"
+      "bytes": 7725,
+      "sha256": "00e8b694ebf0ef91f566e9c410f7dd7a55d1394618b979486b57b3d9b30d6e1c"
     },
     {
       "name": "SHSE-601088.json",
-      "bytes": 7724,
-      "sha256": "32a41802c84dbc31c9357e7da29c7d59b0e0cde1ac619e17b44fd48fe14d0efc"
+      "bytes": 7755,
+      "sha256": "cb69c507403bf506dc7f2662ebb039307986916f8ae56bdfa271780861f3e5da"
     },
     {
       "name": "SHSE-601166.json",
-      "bytes": 6093,
-      "sha256": "5dbb2584cc4222dcf73a75edb0ada5722b1486b2d64dec7027a8ac847dda849a"
+      "bytes": 6124,
+      "sha256": "0b33828e29a0eda97f2b8ac13b34dd0c17ffc8cf6c8c5c927684d5f75b5f8e14"
     },
     {
       "name": "SHSE-601186.json",
-      "bytes": 7702,
-      "sha256": "84d3e1576bdf73d5fd3af1afad251adb71c1dc89dbfd87fdbf9e1449c8ca9d71"
+      "bytes": 7725,
+      "sha256": "4c11fd959ff22f0591613a8df6d37be7f7096529099258d4554503d88e49ef85"
     },
     {
       "name": "SHSE-601225.json",
-      "bytes": 7695,
-      "sha256": "475a538822ce1ff9645ea11b0725e97d3bb32276f80b945c29ae69db0bb77a70"
+      "bytes": 7727,
+      "sha256": "06fa0c5571d95ea2758ced51120971a6a7d8b5302bb00b554f5ac4da1deeff35"
     },
     {
       "name": "SHSE-601288.json",
-      "bytes": 6058,
-      "sha256": "9c49fbad2faccc35be2c83ecd3605fc589963948466a44a6ba9baac905d784de"
+      "bytes": 6090,
+      "sha256": "9419ebcf8e98e6b2809c0df688b3ce0c8d5264ddaf28c21991569fb0fe7179e9"
     },
     {
       "name": "SHSE-601318.json",
-      "bytes": 6106,
-      "sha256": "b18e69adbfceae5a4572d30f39d7bdd3e4f70411377b43cc242e61cb9de0a899"
+      "bytes": 6137,
+      "sha256": "72f57d7fa5b7931fcbc323ff31f03523bf9d7a3d2cbddedc8cee3d2814a6f3dc"
     },
     {
       "name": "SHSE-601328.json",
-      "bytes": 6072,
-      "sha256": "220d5dc7fce5b71d68848fb2c4bab8d0b60a05b941ef5e3d37d9047e45423309"
+      "bytes": 6103,
+      "sha256": "05f69b19d1ca2c3a828d1d4de779b534de62a6187f914f3ade3053acf8a8739a"
     },
     {
       "name": "SHSE-601390.json",
-      "bytes": 7715,
-      "sha256": "2b41b5607e7efd268dc22c910a654ad96a94eb29a30650d83dc2315d8049b868"
+      "bytes": 7746,
+      "sha256": "c9bb938e203afd1b2a28e7a10aef1cfed18198f4bf0afbedf9adaf701053fa23"
     },
     {
       "name": "SHSE-601398.json",
-      "bytes": 6068,
-      "sha256": "244c72b3f48f5571dfa614714969bfd751af98c963746d29b1af68f84d43ddc6"
+      "bytes": 6098,
+      "sha256": "280bc8a04af76bde3f6def3ead6b2b0416f89562b09fa816f1e98c825665f32c"
     },
     {
       "name": "SHSE-601601.json",
-      "bytes": 6104,
-      "sha256": "8c7a5306234a6d60d6e34dc1165de5fcbbefa586ac5605b808ab70b210a92e64"
+      "bytes": 6136,
+      "sha256": "7fe4416bca56881de79c02abc03d66e12d10225ee054dc22104d1f793f3ac846"
     },
     {
       "name": "SHSE-601628.json",
-      "bytes": 6113,
-      "sha256": "83ad194e98d2ce06c4ac6e8c2a2bd55fe0815594dc7af19f1325d948807b5639"
+      "bytes": 6144,
+      "sha256": "b688a7197a39f49a4508b1349e68cfd23f3939b76c3317ca6f21c07dff4ae7c8"
     },
     {
       "name": "SHSE-601668.json",
       "bytes": 7694,
-      "sha256": "df2427004c5738cbc9f4eeec1a764602c21bfbb6f78137dae299fbd7d352d461"
+      "sha256": "23019a02142b250e74136d6cf2c7ee062fb1e45149152b8e9db964bc7d4deecd"
     },
     {
       "name": "SHSE-601728.json",
       "bytes": 7700,
-      "sha256": "439965f78bde513a9329699927bb62a923a2decabcaef0f8b4803887026e0390"
+      "sha256": "db305623d16add636e9423b5f04e7f609422b52dfe6d83debdc590faa93594fb"
     },
     {
       "name": "SHSE-601800.json",
-      "bytes": 7756,
-      "sha256": "bc896f6b5f436b2d898ea2973a2bc347c046d092ba32ee14e3628311f8e72b14"
+      "bytes": 7757,
+      "sha256": "cf518abfe4e379deb5ac0c04ef9384fe666a22ee903d533d961df1a8e5da4baf"
     },
     {
       "name": "SHSE-601857.json",
-      "bytes": 7720,
-      "sha256": "856ab305f3b408386605c90cc556ac1caf5eb5dc560ba7538bae052e9ecf8ee9"
+      "bytes": 7719,
+      "sha256": "12fd9606379df5376b2124b0fe606c0a45d277333ead42f9810e86d63d0ea94d"
     },
     {
       "name": "SHSE-601899.json",
       "bytes": 7664,
-      "sha256": "23d449563ee2f570babbdfcf240708cb527bc312b1861caa8c7fe1364694c76d"
+      "sha256": "11d31e735170aa3221d23563949e992dc51fa2921e318f2e7a5184b701405d56"
     },
     {
       "name": "SHSE-601939.json",
       "bytes": 6104,
-      "sha256": "e1f368870eb882c0f261ee75aefb929a209565493e82ce8c5a4cf3e279d3b513"
+      "sha256": "7891133be01245fa42b1492380a4e2d8a64250c1791225f4db8ffa9647fbbdd5"
     },
     {
       "name": "SHSE-601988.json",
-      "bytes": 6068,
-      "sha256": "80021ed7e62bce5606a13246a78adde21ee6c436671a6aaaaaa3353c8d28605d"
+      "bytes": 6098,
+      "sha256": "35af8104846155be7526ae95c692d091d6e95d27efe4879d04b1f1396aedefad"
     },
     {
       "name": "SHSE-603259.json",
-      "bytes": 7701,
-      "sha256": "3b63f21a39393d664fcef9a545c55ed6cee58470b56916fbb3ddfb8a571325e0"
+      "bytes": 7732,
+      "sha256": "5f23f00bf9e5e4de70ab3e6caca4f6c1041d6ed4957fa2150626bfe3629f7721"
     },
     {
       "name": "SHSE-688111.json",
-      "bytes": 7698,
-      "sha256": "aa5e02ebd0b6e240b00ccd1c1eeecd981fb600921e7b8ab07da7b9c875a1b453"
+      "bytes": 7727,
+      "sha256": "0616ecbb4c2606de4fdad25bf1e5ae370c5080432bb9a464eb0ad57caecdd739"
     },
     {
       "name": "SHSE-688981.json",
-      "bytes": 7643,
-      "sha256": "186229a274dce8457fa1e7e23276295cba6d8de26eb2ff13b85e77f6043392a1"
+      "bytes": 7671,
+      "sha256": "b0ac4992ef02555d9f706b25217161c05d65f8d16e4eea06f4d5cf2f64a435e2"
     },
     {
       "name": "SZSE-000001.json",
-      "bytes": 6081,
-      "sha256": "755c11f764a5963317089ee5f576cb563adc6fd6f83d07e3b6fdc53a22ccf60c"
+      "bytes": 6111,
+      "sha256": "a563c0ea599453fc028f786f05e68d5a0bf7cc3ac54348f63d57fb0139045a3f"
     },
     {
       "name": "SZSE-000333.json",
-      "bytes": 7721,
-      "sha256": "7cf202f581845304e947c663ca8fded6d3fcfba564e19fa35957145193e9b502"
+      "bytes": 7752,
+      "sha256": "2b2ecd36c38219810dd60674e202297ab4dc20d3991f5b748ee6c4958b3f557d"
     },
     {
       "name": "SZSE-000568.json",
-      "bytes": 7720,
-      "sha256": "d94e6deeda4d02d13744c3a5a2c430b3ca8e51a29f66a8ec58e4b9fc40eaac33"
+      "bytes": 7751,
+      "sha256": "ce6bf7dc0d8d221741a93d42d5ab03e126564fb314e0999cbf8458180d0c5b5f"
     },
     {
       "name": "SZSE-000651.json",
-      "bytes": 7709,
-      "sha256": "9f88470388b88242566b6590759b290d1f3667a134a16d8e394221a22cfe87a5"
+      "bytes": 7740,
+      "sha256": "cb36aad722ce8b92cff46bc9fe32c10129ddf98234cfd146bafb4f7f63fce9dc"
     },
     {
       "name": "SZSE-000725.json",
-      "bytes": 7687,
-      "sha256": "d88ea0d8e52356941fd5220a83b2e8305eeb0f81269b8f5c2f26f688c0b01452"
+      "bytes": 7718,
+      "sha256": "eb8c382b695b6241a637a7ebed04034f2f4ef662a3948e1da87b7cea52c553ea"
     },
     {
       "name": "SZSE-000858.json",
-      "bytes": 7740,
-      "sha256": "1b60fa26eae3a504a05f68b45406d32409e7cc0d9cd4bd879d0581787782ac12"
+      "bytes": 7771,
+      "sha256": "06545c696f2e366ca0968abe4b4383bdc3259ad0d6f3799af4a78e15bcc67f98"
     },
     {
       "name": "SZSE-002230.json",
-      "bytes": 7697,
-      "sha256": "7904e88b0c326f48dce52bd84a7f9bf18ae7738a3e9e688b35c6328aaf3b27b4"
+      "bytes": 7720,
+      "sha256": "cf15d347a9b1e0f0ecbad7fabbabd1c1dc3c032fb549d04573ba4f4817ffdfe4"
     },
     {
       "name": "SZSE-002304.json",
-      "bytes": 7751,
-      "sha256": "5ba3cd1be78098a38f58a05d14046753d0e3ce10f71573a6b88a232469d188d0"
+      "bytes": 7774,
+      "sha256": "49e6f2a7032c004d5e4a468a457f0eab5b3269d8b455cd5349a07fd0c71608da"
     },
     {
       "name": "SZSE-002415.json",
-      "bytes": 7709,
-      "sha256": "8c2941449f5555d598944579dfac4cdbd4e7ca583210bfb5941a673da126ac6f"
+      "bytes": 7740,
+      "sha256": "55952b9c77b9d0d8eeea737fc98552ffe95cc84941f03f88b22eaba85d8808e4"
     },
     {
       "name": "SZSE-002475.json",
-      "bytes": 7713,
-      "sha256": "417e634861c054dcf3033b24ac5d3fc6794c55f9c5606598db7ebdd05d9a5897"
+      "bytes": 7744,
+      "sha256": "948397afb53e40f11aa644fe4f16175fcfa16ab73ab01d2a6fa9e23163df73fe"
     },
     {
       "name": "SZSE-002594.json",
-      "bytes": 7720,
-      "sha256": "cb2cf1a1456fd90a43d58d2cb1be4225d1e3ba58b1c6b3172011986ec17babda"
+      "bytes": 7743,
+      "sha256": "6570562859fad3c343d30087bbb2a29d18c2d0fc116cae54c4ffbe9b0df0373c"
     },
     {
       "name": "SZSE-300059.json",
-      "bytes": 7710,
-      "sha256": "17c5f8978046cf18c49d0736dedf42dde43df7567db59f689c333ce8b9770774"
+      "bytes": 7733,
+      "sha256": "dcadde608f7688d1c0bde5619555d5d274eabef372f3aa45eb153a7e1e930cbf"
     },
     {
       "name": "SZSE-300124.json",
-      "bytes": 7684,
-      "sha256": "0e05e31b94c599edf118c99efcbbdeb2f084eab9de7320a90ccaa1cba20f1b9c"
+      "bytes": 7707,
+      "sha256": "a8002c76b81ffe734e25fe4c19cd63bc794f120e7a87eb6613ba8dd2e082f01e"
     },
     {
       "name": "SZSE-300750.json",
-      "bytes": 7777,
-      "sha256": "ea1df33279a4a522092a3766a7c425c30886550d44c908b1fdb5de13ea16a203"
+      "bytes": 7800,
+      "sha256": "df21a2bc4fd8c336c94cf48ce142e7bc842eddf594a4df703fc6feba80b5995a"
     },
     {
       "name": "SZSE-300760.json",
-      "bytes": 7758,
-      "sha256": "c6ca94582488d6160a203ca8259a3d697aee7e9d6356d900846ee906f3fa164a"
+      "bytes": 7781,
+      "sha256": "36b8e9954dd78b61e81d376dbc1b206176d3a0d3c5fde1716acd79033b10f166"
     }
   ]
 }

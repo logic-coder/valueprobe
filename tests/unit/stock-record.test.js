@@ -37,7 +37,7 @@ describe('official growth is recomputed from annual series', () => {
     expect(beer.earning_growth_10y).toBeCloseTo((Math.pow(1.2241 / 0.2589, 1 / 9) - 1) * 100, 2)
     expect(beer.earning_growth_10y).not.toBe(-4.29)
     const lining = toStock(read('HKSE:02331'))
-    expect(lining.earning_growth_10y).toBeCloseTo((Math.pow(1.3362 / 0.3407, 1 / 9) - 1) * 100, 2)
+    expect(lining.earning_growth_10y).toBeCloseTo((Math.pow(1.3359 / 0.3407, 1 / 9) - 1) * 100, 2)
     expect(lining.earning_growth_10y).not.toBe(7.6)
     expect(policyGrowth(beer.earning_growth_10y).adopted).toBe(15)
     expect(policyGrowth(lining.earning_growth_10y).adopted).toBe(15)

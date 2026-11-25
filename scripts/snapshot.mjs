@@ -317,6 +317,13 @@ async function refresh (existing, baseline) {
     ...(quote.source ? { quote_source: quote.source } : {}),
       ttm_eps: fields.ttm_eps ?? null,
       ttm_eps_nri: fields.ttm_eps_nri ?? fields.ttm_eps ?? null,
+      ...(fields.ttm_quality_facts_searched ? {
+        ttm_nonoperating_gain: fields.ttm_nonoperating_gain ?? null,
+        ttm_net_income: fields.ttm_net_income ?? null,
+        ttm_operating_income: fields.ttm_operating_income ?? null,
+        ttm_quality_as_of: fields.ttm_quality_as_of ?? null,
+        ttm_quality_facts_searched: true,
+      } : {}),
       free_cash_flow_per_share: fields.free_cash_flow_per_share ?? null,
       tangible_book: fields.tangible_book ?? null,
       earning_growth_10y: fields.earning_growth_10y ?? null,

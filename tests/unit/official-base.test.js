@@ -132,18 +132,18 @@ describe('named companies follow the stacked official rules', () => {
     expect(value.inputs.growth).toBeCloseTo(7.89, 2)
     expect(value.inputs.baseUpshift).toBe(false)
     expect(value.warnings).toContain(WARNING.CASH_MIDPOINT)
-    expect(value.value).toBeCloseTo(313.71, 2)
+    expect(value.value).toBeCloseTo(314.46, 2)
     expect(value.band.mid).toBe(value.value)
     expect(value.band.low).toBeLessThanOrEqual(Math.min(value.cash.value, value.value))
     expect(value.band.high).toBeGreaterThanOrEqual(Math.max(value.cash.value, value.value))
-    const earn = presentValue(value.inputs.tangibleBook, 10, value.inputs.discountRate, 7.89, 23.4949, 4, 10, false).fairValue
-    const cash = presentValue(value.inputs.tangibleBook, 10, value.inputs.discountRate, 7.89, 12.5752, 4, 10, false).fairValue
+    const earn = presentValue(value.inputs.tangibleBook, 10, value.inputs.discountRate, 7.89, 23.5509, 4, 10, false).fairValue
+    const cash = presentValue(value.inputs.tangibleBook, 10, value.inputs.discountRate, 7.89, 12.6052, 4, 10, false).fairValue
     expect(value.value).toBeCloseTo((earn + cash) / 2, 2)
     expect(value.band.low).toBeLessThan(Math.min(earn, cash))
     expect(value.band.high).toBeGreaterThan(Math.max(earn, cash))
-    const seed = buildDefaults(4.92, stockOf('HKSE:00700'), 12.5752)
+    const seed = buildDefaults(4.92, stockOf('HKSE:00700'), 12.6052)
     expect(seed.dcfForm.growthRate).toBeCloseTo(7.89, 2)
-    expect(seed.dcfForm.eps).toBeCloseTo((23.4949 + 12.5752) / 2, 4)
+    expect(seed.dcfForm.eps).toBeCloseTo((23.5509 + 12.6052) / 2, 4)
   })
 
   it('still refuses Visa without inventing EPS, and does not use Meituan’s negative TTM as the base', () => {

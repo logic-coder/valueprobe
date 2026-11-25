@@ -98,7 +98,7 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
 test('adds tangible book value to the fair value', async ({ page }) => {
   await openAdvanced(page)
   await page.getByRole('button', { name: '每股折现' }).click()
-  await expect(page.getByTestId('long-run-pe')).toContainText('12.00')
+  await expect(page.getByTestId('long-run-pe')).toContainText('11.75')
   await expect(page.getByTestId('long-run-note')).toContainText('不是内在价值')
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)

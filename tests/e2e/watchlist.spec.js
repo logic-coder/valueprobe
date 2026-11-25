@@ -21,7 +21,7 @@ test('stars a stock, lists it, keeps it across a reload and removes it', async (
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)
   await expect(page.locator('.wl__table tbody tr')).toContainText('SHSE:601398')
   await expect(page.locator('.wl__table tbody tr')).toContainText('¥ 10.68')
-  await expect(page.locator('.wl__table tbody tr')).toContainText('16.08%')
+  await expect(page.locator('.wl__table tbody tr')).toContainText('13.86%')
 
   await page.reload()
   await expect(page.locator('.wl__table tbody tr')).toHaveCount(1)

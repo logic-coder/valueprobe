@@ -1,14 +1,18 @@
 {
-  "as_of": "2026-11-23",
+  "as_of": "2026-11-25",
   "symbol": "APD",
   "exchange_": "NYSE",
   "company": "Air Products & Chemicals, Inc.",
   "currency": "$",
-  "price": "$308.11",
-  "quote_as_of": "2026-11-18",
-  "quote_source": "https://finance.yahoo.com/quote/",
+  "price": "$308.58",
+  "quote_as_of": "2026-11-24",
   "ttm_eps": 2.39,
   "ttm_eps_nri": 2.39,
+  "ttm_nonoperating_gain": 0,
+  "ttm_net_income": 532100000,
+  "ttm_operating_income": 23300000,
+  "ttm_quality_as_of": "2026-09-30",
+  "ttm_quality_facts_searched": true,
   "free_cash_flow_per_share": 2.1391,
   "tangible_book": 58.6339,
   "earning_growth_10y": -17.6,
@@ -41,7 +45,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 3000400000,
-        "operating_income": 1440000000
+        "operating_income": 1440000000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 4.7302
       },
       {
         "date": "2018-09",
@@ -57,7 +63,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 1497800000,
-        "operating_income": 1965600000
+        "operating_income": 1965600000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 7.1033
       },
       {
         "date": "2019-09",
@@ -73,7 +81,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 1760000000,
-        "operating_income": 2144400000
+        "operating_income": 2144400000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 8.9788
       },
       {
         "date": "2020-09",
@@ -89,7 +99,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 1886700000,
-        "operating_income": 2237600000
+        "operating_income": 2237600000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 11.2865
       },
       {
         "date": "2021-09",
@@ -105,7 +117,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 2099100000,
-        "operating_income": 2281400000
+        "operating_income": 2281400000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 11.0751
       },
       {
         "date": "2022-09",
@@ -121,7 +135,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 2256100000,
-        "operating_income": 2338800000
+        "operating_income": 2338800000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 13.1528
       },
       {
         "date": "2023-09",
@@ -137,7 +153,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 2300200000,
-        "operating_income": 2494600000
+        "operating_income": 2494600000,
+        "operating_cash_flow_per_share": null,
+        "capex_per_share": 20.7741
       },
       {
         "date": "2024-09",
@@ -153,7 +171,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 3828200000,
-        "operating_income": 4466100000
+        "operating_income": 4466100000,
+        "operating_cash_flow_per_share": 16.3676,
+        "capex_per_share": 30.5058
       },
       {
         "date": "2025-09",
@@ -169,7 +189,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": -394500000,
-        "operating_income": -877000000
+        "operating_income": -877000000,
+        "operating_cash_flow_per_share": 14.6242,
+        "capex_per_share": 31.5339
       },
       {
         "date": "2026-09",
@@ -185,7 +207,9 @@
         "quality_facts_searched": true,
         "equity_securities_fv_ni_gain_loss": 0,
         "net_income": 532100000,
-        "operating_income": 23300000
+        "operating_income": 23300000,
+        "operating_cash_flow_per_share": 20.9991,
+        "capex_per_share": 18.86
       }
     ],
     "ttm": [
@@ -451,6 +475,216 @@
         58.6339
       ]
     ],
+    "quality_facts_searched": [
+      [
+        "2017-09",
+        true
+      ],
+      [
+        "2018-09",
+        true
+      ],
+      [
+        "2019-09",
+        true
+      ],
+      [
+        "2020-09",
+        true
+      ],
+      [
+        "2021-09",
+        true
+      ],
+      [
+        "2022-09",
+        true
+      ],
+      [
+        "2023-09",
+        true
+      ],
+      [
+        "2024-09",
+        true
+      ],
+      [
+        "2025-09",
+        true
+      ],
+      [
+        "2026-09",
+        true
+      ]
+    ],
+    "equity_securities_fv_ni_gain_loss": [
+      [
+        "2017-09",
+        0
+      ],
+      [
+        "2018-09",
+        0
+      ],
+      [
+        "2019-09",
+        0
+      ],
+      [
+        "2020-09",
+        0
+      ],
+      [
+        "2021-09",
+        0
+      ],
+      [
+        "2022-09",
+        0
+      ],
+      [
+        "2023-09",
+        0
+      ],
+      [
+        "2024-09",
+        0
+      ],
+      [
+        "2025-09",
+        0
+      ],
+      [
+        "2026-09",
+        0
+      ]
+    ],
+    "net_income": [
+      [
+        "2017-09",
+        3000400000
+      ],
+      [
+        "2018-09",
+        1497800000
+      ],
+      [
+        "2019-09",
+        1760000000
+      ],
+      [
+        "2020-09",
+        1886700000
+      ],
+      [
+        "2021-09",
+        2099100000
+      ],
+      [
+        "2022-09",
+        2256100000
+      ],
+      [
+        "2023-09",
+        2300200000
+      ],
+      [
+        "2024-09",
+        3828200000
+      ],
+      [
+        "2025-09",
+        -394500000
+      ],
+      [
+        "2026-09",
+        532100000
+      ]
+    ],
+    "operating_income": [
+      [
+        "2017-09",
+        1440000000
+      ],
+      [
+        "2018-09",
+        1965600000
+      ],
+      [
+        "2019-09",
+        2144400000
+      ],
+      [
+        "2020-09",
+        2237600000
+      ],
+      [
+        "2021-09",
+        2281400000
+      ],
+      [
+        "2022-09",
+        2338800000
+      ],
+      [
+        "2023-09",
+        2494600000
+      ],
+      [
+        "2024-09",
+        4466100000
+      ],
+      [
+        "2025-09",
+        -877000000
+      ],
+      [
+        "2026-09",
+        23300000
+      ]
+    ],
+    "capex_per_share": [
+      [
+        "2017-09",
+        4.7302
+      ],
+      [
+        "2018-09",
+        7.1033
+      ],
+      [
+        "2019-09",
+        8.9788
+      ],
+      [
+        "2020-09",
+        11.2865
+      ],
+      [
+        "2021-09",
+        11.0751
+      ],
+      [
+        "2022-09",
+        13.1528
+      ],
+      [
+        "2023-09",
+        20.7741
+      ],
+      [
+        "2024-09",
+        30.5058
+      ],
+      [
+        "2025-09",
+        31.5339
+      ],
+      [
+        "2026-09",
+        18.86
+      ]
+    ],
     "free_cash_flow_per_share": [
       [
         "2024-09",
@@ -464,11 +698,20 @@
         "2026-09",
         2.1391
       ]
+    ],
+    "operating_cash_flow_per_share": [
+      [
+        "2024-09",
+        16.3676
+      ],
+      [
+        "2025-09",
+        14.6242
+      ],
+      [
+        "2026-09",
+        20.9991
+      ]
     ]
-  },
-  "ttm_nonoperating_gain": 0,
-  "ttm_net_income": 532100000,
-  "ttm_operating_income": 23300000,
-  "ttm_quality_as_of": "2026-09-30",
-  "ttm_quality_facts_searched": true
+  }
 }
