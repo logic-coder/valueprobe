@@ -192,7 +192,7 @@ describe('cross-listing report', () => {
   })
 
   it('records about a one-point A/H required-return gap at current yields, not a fixed policy gap', () => {
-    // USD 10y 4.92 asOf 2026-11-20 -> ceil(4.92)+6 = 11. H listings still lack a
+    // USD 10y 4.85 asOf 2026-11-25 -> ceil(4.85)+6 = 11. H listings still lack a
     // verified reporting_currency and fall back to the HKD quote, which proxies USD.
     // The 1pp gap is the current yield plus that data gap, not a feature to preserve.
     const valued = artifact.crossListing.filter((row) => row.valueA != null && row.valueH != null)
