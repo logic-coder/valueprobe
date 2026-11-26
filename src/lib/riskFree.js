@@ -6,6 +6,11 @@
 const CODE_BY_SYMBOL = { '¥': 'CNY', '￥': 'CNY', '$': 'USD', 'HK$': 'HKD', '€': 'EUR', '£': 'GBP' }
 const A_SHARE_MARKETS = new Set(['SHSE', 'SZSE'])
 const US_MARKETS = new Set(['NYSE', 'NASDAQ', 'AMEX', 'NYSEARCA', 'BATS'])
+
+/** Listing venues treated as US-listed for quality-search evidence. */
+export function isUsListedMarket (market) {
+  return US_MARKETS.has(market)
+}
 const codeOf = (currency) => CODE_BY_SYMBOL[currency] || (/^[A-Z]{3}$/.test(currency || '') ? currency : null)
 
 export const EQUITY_PREMIUM = 6

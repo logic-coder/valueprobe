@@ -1,3 +1,5 @@
+import { isUsListedMarket } from './riskFree'
+
 // Official v3 earnings-base selection. Pure functions only: the same public
 // inputs must produce the same published base in the browser, tests and the
 // artifact build. This module replaces the 40% latest-vs-median cliff and the
@@ -13,8 +15,10 @@
 //   once there is nothing for the 10% gate to test).
 // - When operating income is negative, the 10% gate uses abs(OI).
 // - After the whitelist was searched and no such facts exist, N = 0 for that
-//   period. unknown is reserved for a period that will not align or a required
-//   denominator that is missing.
+//   period. unknown is reserved for a period that will not align, a required
+//   denominator that is missing, or a US-listed year without explicit search
+//   evidence. Policy (C) is the explicit non-US exception: an unsearched or
+//   unlabeled whitelist may still default N = 0 and be clean.
 // First release does not apply IQR / quartile trimming (the window is at most
 // five years). n >= 3, including a confirmed-step three-year window, always
 // uses the recency-weighted formula; never a three-year median shortcut.
@@ -313,24 +317,54 @@ export function datedAnnual (annual) {
 }
 
 /**
- * Quality facts on a row, or the v1 default when the source has no whitelist
- * concepts: treat N as 0 after a search, then classify with NI / OI.
- * Totals are preferred (the materiality gates do not need per-share figures).
- * When only per-share figures exist, the same ratios are used.
+ * Policy (C): non-US listings may treat an unsearched or unlabeled whitelist
+ * as N = 0 and clean, and may confirm a step. US listings (NYSE, NASDAQ,
+ * AMEX, NYSEARCA, BATS) may not. A missing exchange does not receive the
+ * exception.
  */
-export function qualityInputsFromRow (row, { sourceSearched = null } = {}) {
+export function allowsUnsearchedQualityDefault (stock) {
+  const market = typeof stock === 'string' ? stock : stock?.exchange_
+  if (!market) return false
+  return !isUsListedMarket(market)
+}
+
+/**
+ * Quality facts on a row. Totals are preferred (the materiality gates do not
+ * need per-share figures). When only per-share figures exist, the same
+ * ratios are used.
+ *
+ * On US listings, only explicit positive search evidence — quality_facts_searched
+ * === true, or the whitelist field present — can yield N = 0 and a clean year.
+ * A missing, null, or explicitly unsearched mark is unknown. sourceSearched:
+ * null on the official path is not evidence; sourceSearched: true from a
+ * caller still counts.
+ *
+ * On non-US listings, policy (C) keeps the previous default: an unsearched or
+ * unlabeled whitelist may still treat N as 0 after the v1 fallback, then
+ * classify with NI / OI.
+ */
+export function qualityInputsFromRow (row, { sourceSearched = null, allowUnsearchedClean = false } = {}) {
   if (!row) return { searched: false, periodAligned: false, n: null, ni: null, oi: null }
   const searchedFlag = row.quality_facts_searched
-  const hasFacts = searchedFlag === true
-    || row.equity_securities_fv_ni_gain_loss !== undefined
-    || row.net_income !== undefined
-    || row.operating_income !== undefined
-  const searched = searchedFlag === false ? false : (hasFacts || sourceSearched !== false)
-  const periodAligned = searchedFlag !== false
-  const n = hasFacts ? (num(row.equity_securities_fv_ni_gain_loss) ?? (searched ? 0 : null)) : (searched ? 0 : null)
+  const hasWhitelistField = row.equity_securities_fv_ni_gain_loss !== undefined
   const ni = num(row.net_income) ?? metric(row, 'eps_without_nri')
   const oi = num(row.operating_income) ?? metric(row, 'operating_income_per_share')
-  return { searched, periodAligned, n, ni, oi }
+  if (allowUnsearchedClean) {
+    const hasFacts = searchedFlag === true
+      || hasWhitelistField
+      || row.net_income !== undefined
+      || row.operating_income !== undefined
+    const searched = searchedFlag === false ? false : (hasFacts || sourceSearched !== false)
+    const periodAligned = searchedFlag !== false
+    const n = hasFacts ? (num(row.equity_securities_fv_ni_gain_loss) ?? (searched ? 0 : null)) : (searched ? 0 : null)
+    return { searched, periodAligned, n, ni, oi }
+  }
+  const explicitSearch = searchedFlag === true || hasWhitelistField
+  const searched = searchedFlag === false ? false : (explicitSearch || sourceSearched === true)
+  const n = explicitSearch
+    ? (num(row.equity_securities_fv_ni_gain_loss) ?? (searched ? 0 : null))
+    : (searched ? 0 : null)
+  return { searched, periodAligned: searched, n, ni, oi }
 }
 
 export function classifyAnnualRow (row, options) {
@@ -510,14 +544,15 @@ function refusalOf ({ hasAnnualEps, hasCleanPositive, knownNonPositive }) {
  */
 export function selectOfficialBase (stock, { financial = false } = {}) {
   const annual = stock?.financials?.annual
-  const longWindow = earningsWindow(annual, { sourceSearched: null, years: THROUGH_CYCLE_MAX_YEARS })
+  const qualityOptions = { sourceSearched: null, allowUnsearchedClean: allowsUnsearchedQualityDefault(stock) }
+  const longWindow = earningsWindow(annual, { ...qualityOptions, years: THROUGH_CYCLE_MAX_YEARS })
   const observations = longWindow.slice(-EARNINGS_WINDOW)
   const allDated = datedAnnual(annual)
   const hasAnnualEps = allDated.some((entry) => metric(entry.row, 'eps_without_nri') != null)
   const knownNonPositive = allDated.some((entry) => {
     const eps = metric(entry.row, 'eps_without_nri')
     if (eps == null) return false
-    const quality = classifyAnnualRow(entry.row)
+    const quality = classifyAnnualRow(entry.row, qualityOptions)
     return quality !== QUALITY.UNKNOWN && !(eps > 0)
   }) && observations.every((row) => !(row.quality === QUALITY.CLEAN && row.eps > 0))
     && observations.some((row) => row.quality !== QUALITY.UNKNOWN && !(row.eps > 0))
@@ -594,12 +629,17 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
   })
   // A missing quality label is a data gap, not evidence that the business has
   // no earning power. When the latest complete year is merely unknown and
-  // same-period cash is positive, the lower of that year's EPS and cash bounds
-  // the base. A confirmed non-operating year and financial residual paths keep
-  // the refusal: cash cannot clean a polluted year, and for a bank or insurer
-  // free cash flow is not owner earnings.
+  // same-fiscal-year cash is positive with explicit dates on both sides, the
+  // lower of that year's EPS and the cash median bounds the base. Prior-year
+  // cash, or cash/earnings without a confirmable date, cannot clear the
+  // refusal. Ordinary cash midpoint and lag rules are unchanged and are not
+  // used to clear a quality refusal. A confirmed non-operating year and
+  // financial residual paths keep the refusal: cash cannot clean a polluted
+  // year, and for a bank or insurer free cash flow is not owner earnings.
+  const sameYearDatedCash = latest != null && periodEndDate(latest.date) != null && latest.fcf > 0
   if (refusal === 'BASE_QUALITY_INSUFFICIENT' && !financial && cashBase > 0
-    && latest?.quality === QUALITY.UNKNOWN && latest.eps > 0 && !normalized.hasCleanPositive) {
+    && latest?.quality === QUALITY.UNKNOWN && latest.eps > 0 && !normalized.hasCleanPositive
+    && sameYearDatedCash) {
     earningsBase = Math.min(latest.eps, cashBase)
     method = BASE_METHOD.CASH_CONFIRMED_FALLBACK
     warnings.push('BASE_CASH_CONFIRMED')

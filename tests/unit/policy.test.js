@@ -214,7 +214,7 @@ describe('classification evidence is disclosed, never a silent guess', () => {
     const raw = {
       exchange_: 'NYSE', symbol: 'X', company: 'Acme', price: '$50', ttm_eps: 1,
       tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
-      financials: { annual: [{ date: '2025-12', book_value_per_share: 100, eps_without_nri: 1 }] },
+      financials: { annual: [{ date: '2025-12', book_value_per_share: 100, eps_without_nri: 1, quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0 }] },
     }
     const value = policyValue(stockOf(raw), { rates: rateRows, generatedAt: artifact.generatedAt })
     expect(value.status).toBe('ok')
@@ -410,7 +410,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.68 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(150.47)
-    expect(entry('NYSE:TSM')).toMatchObject({ value: 125.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 5.4265 } })
+    expect(entry('NYSE:TSM')).toMatchObject({ value: 113.23, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 4.90815 } })
     expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 314.46, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NASDAQ:INTC').reasons).toEqual(expect.arrayContaining(['NON_POSITIVE_EPS', 'NO_GROWTH']))

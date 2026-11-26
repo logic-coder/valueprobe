@@ -5,8 +5,10 @@ import {
   detectThroughCycle,
   deductNonoperatingEps,
   QUALITY,
+  classifyAnnualRow,
   classifyEarningsQuality,
   detectPersistentStep,
+  qualityInputsFromRow,
   selectOfficialBase,
   weightedNormalizedBase,
 } from '../../src/lib/valuationBase'
@@ -405,5 +407,87 @@ describe('through-cycle diagnostic and non-operating helper', () => {
     const stepped = [0.85, 3.4, 3.2]
     const weighted = (1 * stepped[0] + 2 * stepped[1] + 3 * stepped[2]) / 6
     expect(result.earningsBase).toBeCloseTo(weighted, 4)
+  })
+})
+
+
+describe('US quality-search evidence vs non-US exception (C)', () => {
+  const niRow = (year, eps, extras = {}) => yearRow(year, eps, {
+    net_income: eps * 10,
+    operating_income: eps * 10,
+    ...extras,
+  })
+  const usStock = (extras = {}) => stockOf([
+    niRow(2023, 4, extras),
+    niRow(2024, 5, extras),
+    niRow(2025, 6, extras),
+  ], { exchange_: 'NYSE', symbol: 'EXAM' })
+  const qualities = (stock) => selectOfficialBase(stock).observations.map((row) => row.quality)
+
+  it('treats a missing, null, or unsearched US mark as unknown, and a searched zero total as clean', () => {
+    expect(qualities(usStock({}))).toEqual([QUALITY.UNKNOWN, QUALITY.UNKNOWN, QUALITY.UNKNOWN])
+    expect(qualities(usStock({ quality_facts_searched: null }))).toEqual([QUALITY.UNKNOWN, QUALITY.UNKNOWN, QUALITY.UNKNOWN])
+    expect(qualities(usStock({ quality_facts_searched: false }))).toEqual([QUALITY.UNKNOWN, QUALITY.UNKNOWN, QUALITY.UNKNOWN])
+    expect(qualities(usStock({ quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0 }))).toEqual([QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN])
+    expect(selectOfficialBase(usStock({})).refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+
+    const missing = qualityInputsFromRow(niRow(2025, 6), { sourceSearched: null })
+    expect(missing).toMatchObject({ searched: false, n: null })
+    expect(classifyAnnualRow(niRow(2025, 6), { sourceSearched: null })).toBe(QUALITY.UNKNOWN)
+    expect(classifyAnnualRow(niRow(2025, 6, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0 }))).toBe(QUALITY.CLEAN)
+  })
+
+  it('keeps a missing non-US quality mark clean so a step can still confirm (policy C)', () => {
+    const rows = [
+      yearRow(2021, 1, { operating_income_per_share: 1, free_cash_flow_per_share: 1, net_income: 10, operating_income: 10 }),
+      yearRow(2022, 1.1, { operating_income_per_share: 1.1, free_cash_flow_per_share: 1.1, net_income: 11, operating_income: 11 }),
+      yearRow(2023, 1.2, { operating_income_per_share: 1.2, free_cash_flow_per_share: 1.2, net_income: 12, operating_income: 12 }),
+      yearRow(2024, 4, { operating_income_per_share: 4, free_cash_flow_per_share: 4, net_income: 40, operating_income: 40 }),
+      yearRow(2025, 5, { operating_income_per_share: 5, free_cash_flow_per_share: 5, net_income: 50, operating_income: 50 }),
+    ]
+    const result = selectOfficialBase(stockOf(rows, { exchange_: 'HKSE', symbol: '00001' }))
+    expect(result.observations.every((row) => row.quality === QUALITY.CLEAN)).toBe(true)
+    expect(result.step.hit).toBe(true)
+    expect(result.method).toBe(BASE_METHOD.PERSISTENT_STEP)
+    expect(result.refusal).toBeNull()
+  })
+})
+
+describe('cash used to clear a quality refusal must be same-year and dated', () => {
+  it('does not clear with prior-year cash when the latest EPS year has none', () => {
+    const raw = stockOf([
+      yearRow(2022, 3, { quality_facts_searched: false, free_cash_flow_per_share: 4 }),
+      yearRow(2023, 4, { quality_facts_searched: false, free_cash_flow_per_share: 5 }),
+      yearRow(2024, 5, { quality_facts_searched: false, free_cash_flow_per_share: 6 }),
+      yearRow(2025, 8, { quality_facts_searched: false }),
+    ])
+    const result = selectOfficialBase(raw)
+    expect(result.refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+    expect(result.warnings).not.toContain('BASE_CASH_CONFIRMED')
+    expect(result.earningsBase).toBeNull()
+  })
+
+  it('does not clear when earnings and cash dates are both missing', () => {
+    const raw = stockOf([
+      { eps_without_nri: 4, quality_facts_searched: false, free_cash_flow_per_share: 5 },
+      { eps_without_nri: 5, quality_facts_searched: false, free_cash_flow_per_share: 6 },
+      { eps_without_nri: 8, quality_facts_searched: false, free_cash_flow_per_share: 7 },
+    ])
+    const result = selectOfficialBase(raw)
+    expect(result.refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+    expect(result.warnings).not.toContain('BASE_CASH_CONFIRMED')
+    expect(result.earningsBase).toBeNull()
+  })
+
+  it('does not clear when the latest year date cannot be confirmed, even with positive cash', () => {
+    const raw = stockOf([
+      yearRow(2023, 4, { quality_facts_searched: false, free_cash_flow_per_share: 5 }),
+      yearRow(2024, 5, { quality_facts_searched: false, free_cash_flow_per_share: 6 }),
+      { date: '2025', eps_without_nri: 8, quality_facts_searched: false, free_cash_flow_per_share: 7 },
+    ])
+    const result = selectOfficialBase(raw)
+    expect(result.refusal).toBe('BASE_QUALITY_INSUFFICIENT')
+    expect(result.warnings).not.toContain('BASE_CASH_CONFIRMED')
+    expect(result.earningsBase).toBeNull()
   })
 })

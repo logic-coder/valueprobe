@@ -89,7 +89,7 @@ describe('forecast-validation harness', () => {
 
     const intc = report.debugSet.rows.find((row) => row.ticker === 'INTC')
     expect(intc.blend).toBe('earnings')
-    expect(intc.bases.earnings).toBe(1.02)
+    expect(intc.bases.earnings).toBe(1.4)
     expect(intc.bases.cash).toBe(1.4284)
     expect(intc.growths.slower).toBe(0)
     expect(intc.growths.five).toBe(0)
@@ -117,10 +117,10 @@ describe('forecast-validation harness', () => {
     // Fixed five-year earnings median: long window vs slower window.
     expect(legacy.medians.fiveMedTen).toBe(57.3822)
     expect(legacy.medians.fiveMedSlower).toBe(76.6889)
-    // Official selected base (including the INTC midpoint) with the old scorer.
-    expect(legacy.medians.officialSelectedTen).toBe(62.2006)
-    expect(legacy.medians.officialSelectedSlower).toBe(60.6202)
-    expect(legacy.medians.officialSelectedZero).toBe(60.6202)
+    // Official selected base (including INTC on the official path) with the old scorer.
+    expect(legacy.medians.officialSelectedTen).toBe(55.4493)
+    expect(legacy.medians.officialSelectedSlower).toBe(51.642)
+    expect(legacy.medians.officialSelectedZero).toBe(43.9698)
     expect(legacy.officialMixedBeatsFlatCashZero).toBe(2)
     const frozen = JSON.parse(readFileSync(LEGACY_GORDON_OUT, 'utf8'))
     expect(frozen.medians.official).toBe(76.6889)

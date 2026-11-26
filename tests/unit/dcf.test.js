@@ -247,7 +247,8 @@ describe('buildDefaults', () => {
 
 
 describe('normalized earnings base', () => {
-  const annual = (rows) => ({ financials: { annual: rows }, ttm_eps: rows.at(-1)?.eps_without_nri ?? null })
+  const searched = (row) => ({ quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0, ...row })
+  const annual = (rows) => ({ financials: { annual: rows.map(searched) }, ttm_eps: rows.at(-1)?.eps_without_nri ?? null })
   const weighted = (values) => values.reduce((sum, value, index) => sum + value * (index + 1), 0)
     / (values.length * (values.length + 1) / 2)
 

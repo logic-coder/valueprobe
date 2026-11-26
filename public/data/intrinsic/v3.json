@@ -28,14 +28,14 @@
     "missing": []
   },
   "coverage": {
-    "valued": 911,
-    "refused": 208,
+    "valued": 912,
+    "refused": 207,
     "reasons": {
       "NO_EPS": 56,
       "NON_POSITIVE_EPS": 76,
       "NO_GROWTH": 127,
       "INDUSTRY_MODEL_PENDING": 3,
-      "CASH_UNRECONCILED": 47,
+      "CASH_UNRECONCILED": 46,
       "UNSTABLE_BASE_REGIME": 13,
       "BASE_QUALITY_INSUFFICIENT": 13
     },
@@ -50,7 +50,7 @@
       "MODEL_CAVEAT": 3,
       "CASH_DIVERGENCE": 118,
       "CASH_MIDPOINT": 131,
-      "NORMALIZED_EPS": 498,
+      "NORMALIZED_EPS": 499,
       "LIFE_BOOK_QUALITY": 3,
       "OWNER_BASE_GAP": 24,
       "REGIME_UNCERTAIN": 200,
@@ -60,8 +60,8 @@
       "TTM_QUALITY_UNKNOWN": 18,
       "CASH_PERIOD_LAG": 753,
       "BASE_HISTORY_SHORT": 4,
-      "BASE_QUALITY_REDUCED": 73,
-      "BASE_CASH_CONFIRMED": 6
+      "BASE_QUALITY_REDUCED": 75,
+      "BASE_CASH_CONFIRMED": 7
     },
     "models": {
       "owner": 1032,
@@ -39353,37 +39353,42 @@
     "NYSE:BRK.B": {
       "symbol": "NYSE:BRK.B",
       "name": "BERKSHIRE HATHAWAY INC",
-      "status": "refused",
-      "value": null,
-      "band": null,
+      "status": "ok",
+      "value": 117.98,
+      "band": {
+        "low": 83.97,
+        "mid": 117.98,
+        "high": 167.36
+      },
       "terminalShare": 0.5489,
       "cash": {
         "value": 117.98,
         "base": 5.8039,
-        "gapPct": -83.0445
+        "gapPct": 0
       },
       "price": 579.32,
       "priceDate": "2026-11-25",
-      "marginOfSafety": null,
-      "reasons": [
-        "CASH_UNRECONCILED"
-      ],
+      "marginOfSafety": -391.03,
+      "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "STALE_DATA",
-        "OWNER_BASE_GAP"
+        "NORMALIZED_EPS",
+        "OWNER_BASE_GAP",
+        "BASE_QUALITY_REDUCED",
+        "BASE_CASH_CONFIRMED"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": 34.23,
+        "eps": 5.8039,
         "epsLatest": 31.04,
-        "epsNormalized": 34.23,
+        "epsNormalized": null,
         "cashMedian": 5.8039,
         "latestFyEps": 31.04,
         "latestFyFcf": 5.8039,
         "baseUpshift": false,
-        "baseMethod": "weighted",
+        "baseMethod": "cash-confirmed-fallback",
         "baseAsOf": "2025-12-31",
         "cashAsOf": "2025-12-31",
         "ttmAsOf": "2025-12-31",
@@ -39395,7 +39400,7 @@
         "maintenanceCapexProxy": null,
         "sbcPerShare": null,
         "ownerBaseGap": true,
-        "baseKind": "normalized",
+        "baseKind": "cash-confirmed-fallback",
         "growth": 11.79,
         "growthWindow": "5y",
         "growthCap": 15,
@@ -78599,35 +78604,36 @@
       "symbol": "NYSE:TSM",
       "name": "Taiwan Semiconductor Manufacturing Company Limited",
       "status": "ok",
-      "value": 125.19,
+      "value": 113.23,
       "band": {
         "low": 54.2,
-        "mid": 125.19,
-        "high": 247.95
+        "mid": 113.23,
+        "high": 213.86
       },
       "terminalShare": 0.5592,
       "cash": {
         "value": 76.43,
         "base": 3.313,
-        "gapPct": -56.0621
+        "gapPct": -49.0569
       },
       "price": 349.2,
       "priceDate": "2026-11-24",
-      "marginOfSafety": -178.94,
+      "marginOfSafety": -208.4,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
         "STALE_DATA",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
-        "CASH_PERIOD_LAG"
+        "CASH_PERIOD_LAG",
+        "BASE_QUALITY_REDUCED"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": 5.4265,
+        "eps": 4.90815,
         "epsLatest": 10.65,
-        "epsNormalized": 7.54,
+        "epsNormalized": 6.5033,
         "cashMedian": 3.313,
         "latestFyEps": 10.65,
         "latestFyFcf": 5.1175,
@@ -78650,7 +78656,7 @@
         "growthCap": 15,
         "growth10": 21.45,
         "growth5": 24.93,
-        "sustainableGrowth": 21.8749,
+        "sustainableGrowth": 19.7853,
         "payoutRatio": null,
         "retentionBound": false,
         "regimeUncertain": false,
