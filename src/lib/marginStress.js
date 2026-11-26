@@ -10,8 +10,9 @@ export function marginStress (entry, price) {
   const fairAt = (rate, growth) => bank
     ? residualIncomeValue(p.tangibleBook, earnings, rate, growth, p.terminalGrowthRate, p.years)?.fairValue
     : presentValue(0, p.years, rate, growth, earnings, p.terminalGrowthRate, p.yearsOfTerminalGrowth, false).fairValue
+  const tighterGrowth = bank ? p.growth : Math.max(0, Number(p.growth) - 3)
   const values = [entry.value, fairAt(p.discountRate, p.growth),
-    fairAt(p.discountRate + 1, bank ? p.growth : p.growth - 3)]
+    fairAt(p.discountRate + 1, tighterGrowth)]
   const rows = values.map(value => ({ value, margin: Number(marginOfSafety(price, value)) }))
   return rows.every(row => Number.isFinite(row.margin)) ? rows : null
 }

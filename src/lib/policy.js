@@ -5,7 +5,7 @@
 //
 // Editing POLICY_V1 or the policy functions changes every published number. Bump POLICY_VERSION and
 // update POLICY_V1_HASH in the same change; verify-data fails otherwise.
-import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, REGIME_GAP_PP } from './assumptions'
+import { adoptGrowth, officialGrowth, retentionCap, MAX_UNDERWRITTEN_GROWTH, MIN_CLEAN_YEARS, REGIME_GAP_PP, BAND_GROWTH_SPREAD } from './assumptions'
 import { cashflowCurrency, reportingCurrency, reportingCurrencySource, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
 import { blendOfficialBase, DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
@@ -26,11 +26,11 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'disclosed-window-and-cash-earnings-envelope',
+    band: 'official-path-plus-minus-2pp',
     cashCrossCheck: 'midpoint-when-gap-50-to-200',
-    earningsBase: 'weighted-or-persistent-step-cash-bounded-fallback',
+    earningsBase: 'weighted-step-or-through-cycle-cash-bounded-fallback',
     publicationGate: 'cash-unreconciled-over-3x',
-    officialGrowth: 'slower-of-two-clipped-windows',
+    officialGrowth: 'slower-window-15-and-retention',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
@@ -48,15 +48,27 @@ export const POLICY_V1 = deepFreeze({
   growth: {
     windowYears: 10,
     cap: MAX_UNDERWRITTEN_GROWTH,
-    shortHistory: 'wider-band',
+    shortHistory: 'disclose-only',
     cleanYears: MIN_CLEAN_YEARS,
     regimeGapPp: REGIME_GAP_PP,
+    retention: 'hard-cap-rr-roe',
+    throughCycle: {
+      minYears: 8,
+      maxYears: 10,
+      troughRatio: 0.20,
+      logResidual: 0.50,
+      minPositive: 4,
+      mean: 'arithmetic',
+    },
     // When both windows exist, each is floored at 0% and capped at 15%, and
-    // the slower is the official mid; the faster only widens the high end.
-    // Negative history starts at 0%, fades to the default terminal, and
-    // carries REGIME_UNCERTAIN. Opposite-sign windows also carry
-    // REGIME_UNCERTAIN. Missing windows with a positive repeatable base
-    // start at 0% and still fade to the default terminal.
+    // the slower is the official start; that start is also capped at g*,
+    // the retained-return ceiling, when book and the official base can
+    // support one. Negative history starts at 0%, fades to the default
+    // terminal, and carries REGIME_UNCERTAIN. Opposite-sign windows also
+    // carry REGIME_UNCERTAIN. Missing windows with a positive repeatable
+    // base start at 0% and still fade to the default terminal. The published
+    // range moves growth ±2 points around this already-constrained start
+    // and does not reopen the 15% cap.
     negative: 'zero-start-default-terminal',
     missingWindow: 'zero-start',
   },
@@ -87,13 +99,13 @@ export const POLICY_V1 = deepFreeze({
     fundamentalsDays: 120,
     ratesDays: 10,
   },
-  band: { discountSpread: 2, growthEnvelope: 'scenario' },
+  band: { discountSpread: 2, growthSpread: BAND_GROWTH_SPREAD, growthEnvelope: 'official-path' },
   terminalShareDisclosed: true,
 })
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = 'c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5'
+export const POLICY_V1_HASH = '99311fea69fa31c0ff9be1b01c008a03b9b5b838535d12c8595573ca116432b0'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -133,6 +145,7 @@ const close4 = (left, right) => left != null && right != null && Math.abs(left -
 function describeBaseKind (eps, latest, normalized, cash, financial, { upshift = false, blend = null, method = null } = {}) {
   if (eps == null) return null
   if (blend === 'midpoint') return 'midpoint'
+  if (method === 'through-cycle') return 'through-cycle'
   if (method === 'persistent-step') return 'persistent-step'
   if (method === 'short-history') return 'short-history'
   if (method === 'median-fallback') return 'median-fallback'
@@ -212,6 +225,9 @@ const emptyInputs = () => ({
   growthCap: null,
   growth10: null,
   growth5: null,
+  sustainableGrowth: null,
+  payoutRatio: null,
+  retentionBound: false,
   regimeUncertain: false,
   discountRate: null,
   reportingCurrency: null,
@@ -364,10 +380,18 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
 
   // ---- growth -------------------------------------------------------------
   // A cash-only base without a reported EPS (Visa) is not enough to assume 0%.
+  const sustainableGrowth = retentionCap({
+    financial: stock.financial_institution === true,
+    base: eps,
+    tangibleBook: num(stock.tangible_book),
+    payoutRatio: stock.payout_ratio,
+  })
   const official = officialGrowth({
     growth10: stock.earning_growth_10y,
     growth5: stock.earning_growth_5y,
     hasPositiveBase: earningsSide > 0 && latestEps != null,
+    sustainableGrowth,
+    financial: stock.financial_institution === true,
   })
   const growth = official.adopted
   const terminalGrowthRate = POLICY_V1.horizon.terminalGrowthRate
@@ -376,6 +400,9 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.growthCap = official.cap
   inputs.growth10 = official.historical10
   inputs.growth5 = official.historical5
+  inputs.sustainableGrowth = official.sustainableGrowth
+  inputs.payoutRatio = stock.payout_ratio ?? null
+  inputs.retentionBound = official.retentionBound === true
   inputs.regimeUncertain = official.regimeUncertain === true
   inputs.terminalGrowthRate = terminalGrowthRate
   if (growth === null) reasons.push(REASON.NO_GROWTH)
@@ -454,9 +481,6 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
       const alternate = valueFor(model === POLICY_V1.model.financialInstitution ? POLICY_V1.model.nonFinancial : POLICY_V1.model.financialInstitution).value
       if (alternate !== null && Math.abs(alternate / value - 1) >= 0.25) warnings.push(WARNING.CLASSIFICATION_UNVERIFIED)
     }
-    if (model !== POLICY_V1.model.financialInstitution && tangibleBook > 0 && eps > 0 && growth / 100 > eps / tangibleBook) {
-      warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
-    }
   }
   if (reasons.includes(REASON.CASH_UNRECONCILED)) {
     return finish({ ...base, value: null, band: null, terminalShare, cash, marginOfSafety: null }, reasons, warnings)
@@ -479,6 +503,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     growth10: official.historical10,
     growth5: official.historical5,
     highGrowth: official.highGrowth,
+    lowGrowth: official.lowGrowth,
+    sustainableGrowth: official.sustainableGrowth,
     growthCap: official.cap,
     window: official.window,
     regimeUncertain: official.regimeUncertain === true,

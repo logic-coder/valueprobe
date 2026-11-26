@@ -72,49 +72,52 @@ describe('NASDAQ:NVDA is published on a confirmed persistent step, not the singl
   })
 })
 
-describe('an unknown latest year with positive cash is bounded, not refused', () => {
-  it('publishes NYSE:PFE on the lower of the latest EPS and same-period cash', () => {
+describe('an unknown latest year with a volatile long window uses through-cycle, not cash fallback', () => {
+  it('publishes NYSE:PFE on the through-cycle mean when that path triggers', () => {
     const value = valueOf('NYSE:PFE')
-    const stock = stockOf('NYSE:PFE')
     expect(value.status).toBe('ok')
     expect(value.reasons).not.toContain(REASON.BASE_QUALITY_INSUFFICIENT)
-    expect(value.warnings).toContain(WARNING.BASE_CASH_CONFIRMED)
-    expect(value.inputs.baseKind).toBe('cash-confirmed-fallback')
-    expect(value.inputs.eps).toBeCloseTo(Math.min(stock.latest_fy_eps, stock.cash_base), 4)
+    expect(value.warnings).toContain(WARNING.THROUGH_CYCLE_BASE)
+    expect(value.warnings).not.toContain(WARNING.BASE_CASH_CONFIRMED)
+    expect(value.inputs.baseKind).toBe('through-cycle')
+    expect(value.value).toBe(28.61)
     expect(value.value).toBe(published('NYSE:PFE').value)
     expect(published('NYSE:PFE').status).toBe('ok')
   })
 })
 
 describe('NYSE:PGR - an underwriting insurer uses residual income', () => {
-  it('refuses Progressive when no complete fiscal year is clean, and does not invent a cash veto', () => {
+  it('publishes Progressive on residual income once identifiable marks are deducted, and does not invent a cash veto', () => {
     const value = valueOf('NYSE:PGR')
-    expect(value.status).toBe('refused')
+    expect(value.status).toBe('ok')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
-    expect(value.reasons).toContain(REASON.BASE_QUALITY_INSUFFICIENT)
+    expect(value.reasons).not.toContain(REASON.BASE_QUALITY_INSUFFICIENT)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)
-    expect(value.value).toBeNull()
+    expect(value.value).toBe(80.02)
     expect(value.value).toBe(published('NYSE:PGR').value)
-    expect(published('NYSE:PGR').status).toBe('refused')
+    expect(published('NYSE:PGR').status).toBe('ok')
   })
 
-  it('keeps Assurant on residual income instead of cash-bounding an unknown year', () => {
+  it('keeps Assurant on residual income after identifiable items are deducted, and does not cash-bound it', () => {
     const value = valueOf('NYSE:AIZ')
     expect(value.inputs.model).toBe(POLICY_V1.model.financialInstitution)
-    expect(value.status).toBe('refused')
-    expect(value.reasons).toContain(REASON.BASE_QUALITY_INSUFFICIENT)
+    expect(value.status).toBe('ok')
     expect(value.warnings).not.toContain(WARNING.BASE_CASH_CONFIRMED)
-    expect(published('NYSE:AIZ').status).toBe('refused')
+    expect(value.value).toBe(86.67)
+    expect(value.value).toBe(published('NYSE:AIZ').value)
+    expect(published('NYSE:AIZ').status).toBe('ok')
   })
 })
 describe('refusals name the missing fact instead of inventing one', () => {
-  it('NASDAQ:INTC is refused for non-positive EPS and no historical growth', () => {
+  it('NASDAQ:INTC publishes a through-cycle base when the long window is still positive', () => {
     const value = valueOf('NASDAQ:INTC')
-    expect(value.status).toBe('refused')
-    expect(value.value).toBeNull()
-    expect(value.reasons).toContain(REASON.NON_POSITIVE_EPS)
-    expect(value.reasons).toContain(REASON.NO_GROWTH)
-    expect(value.reasons).toEqual(published('NASDAQ:INTC').reasons)
+    expect(value.status).toBe('ok')
+    expect(value.value).toBe(23.46)
+    expect(value.inputs.eps).toBeCloseTo(1.8612, 4)
+    expect(value.inputs.growth).toBe(0)
+    expect(value.warnings).toContain(WARNING.THROUGH_CYCLE_BASE)
+    expect(value.value).toBe(published('NASDAQ:INTC').value)
+    expect(published('NASDAQ:INTC').status).toBe('ok')
   })
 
   it('NYSE:V is refused after the EPS parser cannot recover a growth history', () => {

@@ -13,6 +13,9 @@ export const SHORT_HISTORY_GROWTH_CAP = 10
 // window in the value range, but no longer marks REGIME_UNCERTAIN. Opposite
 // signs, or a negative window, are what mark a regime.
 export const REGIME_GAP_PP = 8
+// Optimistic and pessimistic growth move this many points around the already
+// constrained official start, then the same hard envelope clips them again.
+export const BAND_GROWTH_SPREAD = 2
 
 // A year-to-year drop below this share of the prior positive value is a split
 // candidate (a split cuts per-share figures to 1/2, 1/4, 1/5, 1/10 or 1/20).
@@ -58,36 +61,89 @@ export function windowsConflict (ten, five) {
 }
 
 /**
+ * Sustainable starting growth g* in percent: max(0, RR × ROE).
+ * ROE uses the official earnings base over latest tangible book, the same
+ * ratio the former warning compared against. A missing payout is not invented:
+ * RR is treated as 1 (all earnings potentially reinvestable), which is the
+ * loosest cap the book can support. A payout at or above earnings binds g* to 0.
+ * Financial / residual-income names skip this cap. Missing, non-positive or
+ * near-zero book leaves g* unavailable so the 15% underwriting cap remains.
+ */
+export function retentionCap ({ financial = false, base, tangibleBook, payoutRatio } = {}) {
+  if (financial === true) return null
+  const book = parseRate(tangibleBook)
+  const earnings = parseRate(base)
+  if (!(book > 0) || book < 1e-6 || !(earnings > 0)) return null
+  const payout = parseRate(payoutRatio)
+  const retained = payout == null ? 1 : Math.max(0, 1 - payout)
+  const rate = retained * (earnings / book) * 100
+  if (!Number.isFinite(rate)) return null
+  return Number(Math.max(0, rate).toFixed(4))
+}
+
+/**
+ * Growth envelope around an already-constrained official start.
+ * High and low move BAND_GROWTH_SPREAD points, then clip to [0, min(15%, g*)].
+ * When the official start is already at that upper bound, the high stays there
+ * and width comes from the discount-rate spread.
+ */
+export function envelopeGrowth (official, { cap = MAX_UNDERWRITTEN_GROWTH, sustainableGrowth = null, spread = BAND_GROWTH_SPREAD } = {}) {
+  const mid = parseRate(official)
+  const rawCap = parseRate(cap)
+  const upperCap = rawCap == null ? MAX_UNDERWRITTEN_GROWTH : rawCap
+  const gStar = parseRate(sustainableGrowth)
+  const upper = gStar == null ? upperCap : Math.min(upperCap, Math.max(0, gStar))
+  if (mid == null) return { low: null, mid: null, high: null, cap: upper }
+  const atUpper = mid + 1e-12 >= upper
+  if (mid === 0 || atUpper) {
+    return { low: mid === 0 ? 0 : Math.max(0, mid - spread), mid, high: mid, cap: upper }
+  }
+  return {
+    low: Math.max(0, mid - spread),
+    mid,
+    high: Math.min(mid + spread, upper),
+    cap: upper,
+  }
+}
+
+/**
  * Official starting growth. Shared by policyValue() and buildDefaults(), so the
  * calculator seed equals the published value. When both clean windows exist,
  * each is floored at 0% and capped at 15%, and the slower of the two is the
- * centered official rate; the faster window only widens the high end of the
- * range. A single window (including a five-year-only SHORT_HISTORY case) is
- * used as official. A five-year-only history keeps the 15% cap, carries
- * SHORT_HISTORY, and widens the value range rather than applying a tighter
- * 10% cap. Negative history floors the starting rate to 0% and keeps the
- * default terminal, and marks REGIME_UNCERTAIN. Opposite-sign windows also
- * mark REGIME_UNCERTAIN and still widen the range; a same-sign gap does not.
- * A positive repeatable base with no window starts at 0% (terminal stays the
- * policy default). zeroTerminal remains on the return object for compatibility
- * and is always false under this policy.
+ * official start; that start is then also capped at sustainable growth g*
+ * when g* can be observed. A single window (including a five-year-only
+ * SHORT_HISTORY case) is used as official, still under the 15% and g* caps.
+ * A five-year-only history keeps the 15% cap and carries SHORT_HISTORY; the
+ * value range no longer widens toward 15% just because the official window is
+ * the five-year one. Negative history floors the starting rate to 0% and keeps
+ * the default terminal, and marks REGIME_UNCERTAIN. Opposite-sign windows also
+ * mark REGIME_UNCERTAIN. A positive repeatable base with no window starts at
+ * 0% (terminal stays the policy default). Optimistic and pessimistic growth
+ * used in the published range move two points around this already-constrained
+ * start and are clipped by the same envelope; they do not put a faster window
+ * or the 15% cap back in when the official start is already below that bound.
+ * zeroTerminal remains on the return object for compatibility and is always
+ * false under this policy. Financial names skip the g* cap.
  *
- * @param {{ growth10?: unknown, growth5?: unknown, hasPositiveBase?: boolean }} input
+ * @param {{ growth10?: unknown, growth5?: unknown, hasPositiveBase?: boolean, sustainableGrowth?: unknown, financial?: boolean }} input
  * @returns {{
  *   historical10: number|null,
  *   historical5: number|null,
  *   adopted: number|null,
  *   window: '10y'|'5y'|'none'|null,
  *   cap: number|null,
- *   reason: 'historical'|'capped'|'zeroed'|'no-window'|'missing',
+ *   reason: 'historical'|'capped'|'zeroed'|'retention'|'no-window'|'missing',
  *   highGrowth: number|null,
+ *   lowGrowth: number|null,
+ *   sustainableGrowth: number|null,
+ *   retentionBound: boolean,
  *   zeroTerminal: boolean,
  *   regimeUncertain: boolean,
  *   windowConflict: boolean,
  *   warnings: string[],
  * }}
  */
-export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } = {}) {
+export function officialGrowth ({ growth10, growth5, hasPositiveBase = false, sustainableGrowth, financial = false } = {}) {
   const ten = parseRate(growth10)
   const five = parseRate(growth5)
   const warnings = []
@@ -95,6 +151,7 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
   const negativeWindow = (ten != null && ten < 0) || (five != null && five < 0)
   const tenC = ten != null ? clipWindow(ten, MAX_UNDERWRITTEN_GROWTH) : null
   const fiveC = five != null ? clipWindow(five, MAX_UNDERWRITTEN_GROWTH) : null
+  const gStar = financial === true ? null : parseRate(sustainableGrowth)
   const base = {
     historical10: ten,
     historical5: five,
@@ -103,32 +160,55 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
     cap: null,
     reason: 'missing',
     highGrowth: null,
+    lowGrowth: null,
+    sustainableGrowth: gStar,
+    retentionBound: false,
     zeroTerminal: false,
     regimeUncertain: false,
     windowConflict: conflict,
     warnings,
   }
-  const finish = (row) => ({ ...base, ...row, warnings })
+  const applyEnvelope = (row) => {
+    if (row.adopted == null) return { ...base, ...row, warnings }
+    let adopted = row.adopted
+    let reason = row.reason
+    let retentionBound = false
+    if (gStar != null && adopted > gStar) {
+      adopted = Math.max(0, gStar)
+      reason = 'retention'
+      retentionBound = true
+      warnings.push(WARNING.GROWTH_ABOVE_RETENTION)
+    }
+    const envelope = envelopeGrowth(adopted, { cap: MAX_UNDERWRITTEN_GROWTH, sustainableGrowth: gStar })
+    // CAPPED_GROWTH refers to the published start, not the pre-retention window.
+    if (adopted + 1e-12 >= MAX_UNDERWRITTEN_GROWTH) warnings.push(WARNING.CAPPED_GROWTH)
+    return {
+      ...base,
+      ...row,
+      adopted,
+      reason,
+      retentionBound,
+      highGrowth: envelope.high,
+      lowGrowth: envelope.low,
+      cap: row.cap === undefined ? MAX_UNDERWRITTEN_GROWTH : row.cap,
+      warnings,
+    }
+  }
+
   const markRegime = (uncertain) => {
     if (uncertain) warnings.push(WARNING.REGIME_UNCERTAIN)
     return uncertain
-  }
-  const highOf = (...windows) => {
-    const rates = windows.filter((row) => row != null).map((row) => row.adopted)
-    return rates.length ? Math.max(...rates) : null
   }
 
   if (tenC && fiveC) {
     const slowerIsFive = fiveC.adopted < tenC.adopted
     const chosen = slowerIsFive ? fiveC : tenC
     const regime = markRegime(negativeWindow || conflict)
-    if (chosen.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
-    return finish({
+    return applyEnvelope({
       adopted: chosen.adopted,
       window: slowerIsFive ? '5y' : '10y',
       cap: MAX_UNDERWRITTEN_GROWTH,
       reason: chosen.negative ? 'zeroed' : chosen.hitCap ? 'capped' : 'historical',
-      highGrowth: highOf(tenC, fiveC),
       regimeUncertain: regime,
     })
   }
@@ -136,22 +216,19 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
   if (tenC) {
     const regime = markRegime(negativeWindow || conflict)
     if (tenC.negative) {
-      return finish({
+      return applyEnvelope({
         adopted: 0,
         window: '10y',
         cap: MAX_UNDERWRITTEN_GROWTH,
         reason: 'zeroed',
-        highGrowth: 0,
         regimeUncertain: regime,
       })
     }
-    if (tenC.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
-    return finish({
+    return applyEnvelope({
       adopted: tenC.adopted,
       window: '10y',
       cap: MAX_UNDERWRITTEN_GROWTH,
       reason: tenC.hitCap ? 'capped' : 'historical',
-      highGrowth: tenC.adopted,
       regimeUncertain: regime,
     })
   }
@@ -160,30 +237,27 @@ export function officialGrowth ({ growth10, growth5, hasPositiveBase = false } =
     warnings.push(WARNING.SHORT_HISTORY)
     if (fiveC.negative) {
       markRegime(true)
-      return finish({
+      return applyEnvelope({
         adopted: 0,
         window: '5y',
         cap: MAX_UNDERWRITTEN_GROWTH,
         reason: 'zeroed',
-        highGrowth: 0,
         regimeUncertain: true,
       })
     }
-    if (fiveC.hitCap) warnings.push(WARNING.CAPPED_GROWTH)
-    return finish({
+    return applyEnvelope({
       adopted: fiveC.adopted,
       window: '5y',
       cap: MAX_UNDERWRITTEN_GROWTH,
       reason: fiveC.hitCap ? 'capped' : 'historical',
-      highGrowth: fiveC.adopted,
     })
   }
 
   if (hasPositiveBase) {
     warnings.push(WARNING.SHORT_HISTORY, WARNING.NO_WINDOW_ZERO_START)
-    return finish({ adopted: 0, window: 'none', cap: null, reason: 'no-window', highGrowth: 0 })
+    return applyEnvelope({ adopted: 0, window: 'none', cap: null, reason: 'no-window' })
   }
-  return finish({ reason: 'missing' })
+  return applyEnvelope({ reason: 'missing' })
 }
 
 /**

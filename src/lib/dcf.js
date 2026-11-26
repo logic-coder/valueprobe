@@ -1,6 +1,6 @@
 // `calGr2fv` is the frozen two-stage finite annuity. `presentValue`, what the page
 // shows, adds a continuing value after the second stage.
-import { adoptGrowth, officialGrowth } from './assumptions'
+import { adoptGrowth, officialGrowth, retentionCap, envelopeGrowth, BAND_GROWTH_SPREAD } from './assumptions'
 import { defaultDiscountRate } from './riskFree'
 import { selectOfficialBase } from './valuationBase'
 
@@ -221,49 +221,41 @@ export function residualIncomeValue (tbv, eps, discountRate, growthRate, termina
 
 /**
  * Disclosed growth and discount scenarios around a centered point estimate.
- * Mid is always the official assumptions. Low and high are the more adverse
- * and more favourable already-disclosed cases: discount ±2 points, and a
- * lower or higher disclosed starting rate. A 0% growth low is used only when
- * the official start is already 0%, history is negative, or the regime is
- * uncertain (opposite signs or a negative window). A 0% terminal is included
- * on the low side only when the regime is uncertain. A positive five-year
- * official window may widen the high end toward the 15% cap; a zeroed
- * short history does not invent 15%. A missing window does not invent a
- * 15% high. The official mid is never replaced by the arithmetic middle of
- * an asymmetric envelope.
+ * Mid is always the official assumptions. The range moves the discount rate
+ * by ±2 points and moves starting growth by ±2 points around the already
+ * constrained official start, then clips growth to [0, min(15%, g*)]. When
+ * the official start is already at that upper bound, optimistic growth stays
+ * there and width comes from the discount-rate spread. A 0% terminal is
+ * included on the low side only when the regime is uncertain. The official
+ * mid is never replaced by the arithmetic middle of an asymmetric envelope.
  */
 export function envelopeScenarios (input) {
   const spread = Number(input.bandSpread ?? 2)
   const cap = Number.isFinite(Number(input.growthCap)) ? Number(input.growthCap) : 15
   const officialG = Number(input.growthRate)
   const officialT = Number(input.terminalGrowthRate)
-  const adopt = (raw) => {
-    if (raw == null || raw === '') return null
-    const parsed = Number(raw)
-    return Number.isFinite(parsed) ? Math.min(Math.max(parsed, 0), cap) : null
-  }
-  const fiveAdopted = adopt(input.growth5)
-  const tenAdopted = adopt(input.growth10)
-  const short = input.window === '5y'
-  const noWindow = input.window === 'none'
   const regime = input.regimeUncertain === true
   const lowDiscount = Number(input.discountRate) + spread
   const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
-  let highGrowth = officialG
-  if (fiveAdopted != null && fiveAdopted > officialG) highGrowth = fiveAdopted
-  if (tenAdopted != null && tenAdopted > officialG) highGrowth = Math.max(highGrowth, tenAdopted)
-  if (Number.isFinite(Number(input.highGrowth)) && Number(input.highGrowth) > highGrowth) {
-    highGrowth = Math.min(Number(input.highGrowth), cap)
-  }
-  if (short && officialG > 0) highGrowth = cap
+  const sustainable = Number.isFinite(Number(input.sustainableGrowth)) ? Number(input.sustainableGrowth) : null
+  const growth = envelopeGrowth(officialG, {
+    cap,
+    sustainableGrowth: sustainable,
+    spread: Number.isFinite(Number(input.growthSpread)) ? Number(input.growthSpread) : BAND_GROWTH_SPREAD,
+  })
+  const highGrowth = Number.isFinite(Number(input.highGrowth))
+    ? Math.min(Number(input.highGrowth), growth.cap)
+    : growth.high
+  const lowGrowth = Number.isFinite(Number(input.lowGrowth))
+    ? Math.max(Number(input.lowGrowth), 0)
+    : growth.low
 
   const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }
   const low = [
     { discount: lowDiscount, growth: officialG, terminal: officialT },
   ]
-  const slower = [fiveAdopted, tenAdopted].filter((rate) => rate != null && rate < officialG)
-  if (slower.length) {
-    low.push({ discount: lowDiscount, growth: Math.min(...slower), terminal: officialT })
+  if (lowGrowth < officialG) {
+    low.push({ discount: lowDiscount, growth: lowGrowth, terminal: officialT })
   }
   if (regime && officialG !== 0) {
     low.push({ discount: lowDiscount, growth: 0, terminal: officialT })
@@ -271,14 +263,14 @@ export function envelopeScenarios (input) {
   if (regime) {
     low.push({ discount: lowDiscount, growth: officialG, terminal: 0 })
     low.push({ discount: lowDiscount, growth: 0, terminal: 0 })
-    if (fiveAdopted != null) low.push({ discount: lowDiscount, growth: fiveAdopted, terminal: 0 })
+    if (lowGrowth < officialG) low.push({ discount: lowDiscount, growth: lowGrowth, terminal: 0 })
   }
-  const high = noWindow
-    ? [{ discount: highDiscount, growth: officialG, terminal: officialT }]
-    : [
-        { discount: highDiscount, growth: officialG, terminal: officialT },
-        { discount: highDiscount, growth: highGrowth, terminal: officialT },
-      ]
+  const high = [
+    { discount: highDiscount, growth: officialG, terminal: officialT },
+  ]
+  if (highGrowth > officialG) {
+    high.push({ discount: highDiscount, growth: highGrowth, terminal: officialT })
+  }
   return { mid, low, high }
 }
 
@@ -534,6 +526,13 @@ export function buildDefaults (indicator, stock, freeCashFlow) {
     growth10: stock.earning_growth_10y,
     growth5: stock.earning_growth_5y,
     hasPositiveBase: earnings > 0 && latestEps != null,
+    sustainableGrowth: retentionCap({
+      financial: stock.financial_institution === true,
+      base: eps,
+      tangibleBook: stock.tangible_book,
+      payoutRatio: stock.payout_ratio,
+    }),
+    financial: stock.financial_institution === true,
   })
   const cash = adoptGrowth(stock.cashflow_growth_10y)
   return {

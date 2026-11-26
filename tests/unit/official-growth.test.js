@@ -5,11 +5,12 @@ import { policyValue } from '../../src/lib/policy'
 import { WARNING } from '../../src/lib/reasons'
 
 describe('officialGrowth window rules', () => {
-  it('uses the slower of two already-clipped windows as the official mid, and keeps the faster for the high end', () => {
+  it('uses the slower of two already-clipped windows as the official mid, and keeps the high end within two points', () => {
     const info = officialGrowth({ growth10: 15, growth5: 14, hasPositiveBase: true })
     expect(info.adopted).toBe(14)
     expect(info.window).toBe('5y')
     expect(info.highGrowth).toBe(15)
+    expect(info.lowGrowth).toBe(12)
     expect(info.cap).toBe(MAX_UNDERWRITTEN_GROWTH)
     expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.warnings).not.toContain(WARNING.SHORT_HISTORY)
@@ -21,7 +22,8 @@ describe('officialGrowth window rules', () => {
     const info = officialGrowth({ growth10: 16.4, growth5: 10.92, hasPositiveBase: true })
     expect(info.adopted).toBe(10.92)
     expect(info.window).toBe('5y')
-    expect(info.highGrowth).toBe(15)
+    expect(info.highGrowth).toBeCloseTo(12.92, 6)
+    expect(info.lowGrowth).toBeCloseTo(8.92, 6)
     expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
     expect(info.regimeUncertain).toBe(false)
   })
@@ -48,7 +50,8 @@ describe('officialGrowth window rules', () => {
     expect(info.adopted).toBe(0)
     expect(info.historical5).toBe(12)
     expect(info.window).toBe('10y')
-    expect(info.highGrowth).toBe(12)
+    expect(info.highGrowth).toBe(0)
+    expect(info.lowGrowth).toBe(0)
     expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
@@ -72,7 +75,8 @@ describe('officialGrowth window rules', () => {
     expect(windowsConflict(10.73, -1.5)).toBe(true)
     expect(info.adopted).toBe(0)
     expect(info.window).toBe('5y')
-    expect(info.highGrowth).toBe(10.73)
+    expect(info.highGrowth).toBe(0)
+    expect(info.lowGrowth).toBe(0)
     expect(info.reason).toBe('zeroed')
     expect(info.zeroTerminal).toBe(false)
     expect(info.regimeUncertain).toBe(true)
@@ -86,6 +90,7 @@ describe('officialGrowth window rules', () => {
     expect(info.adopted).toBe(13.18)
     expect(info.window).toBe('10y')
     expect(info.highGrowth).toBe(15)
+    expect(info.lowGrowth).toBeCloseTo(11.18, 6)
     expect(info.regimeUncertain).toBe(false)
     expect(info.windowConflict).toBe(false)
     expect(info.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
@@ -164,5 +169,50 @@ describe('policyValue and buildDefaults share officialGrowth', () => {
 describe('residual income still accepts a zero terminal input', () => {
   it('computes a finite value when official growth and terminal are both zero', () => {
     expect(residualIncomeValue(50, 5, 12, 0, 0, 10).fairValue).toBeGreaterThan(0)
+  })
+})
+
+describe('officialGrowth retention cap and envelope', () => {
+  it('binds the official start to g* and keeps optimistic growth at that bound', () => {
+    const info = officialGrowth({ growth10: 16.4, growth5: 18, hasPositiveBase: true, sustainableGrowth: 8 })
+    expect(info.adopted).toBe(8)
+    expect(info.reason).toBe('retention')
+    expect(info.retentionBound).toBe(true)
+    expect(info.highGrowth).toBe(8)
+    expect(info.lowGrowth).toBe(6)
+    expect(info.warnings).not.toContain(WARNING.CAPPED_GROWTH)
+    expect(info.warnings).toContain(WARNING.GROWTH_ABOVE_RETENTION)
+  })
+
+  it('still marks CAPPED_GROWTH when the published start remains at the 15% cap', () => {
+    const info = officialGrowth({ growth10: 16, growth5: 18, hasPositiveBase: true, sustainableGrowth: 20 })
+    expect(info.adopted).toBe(15)
+    expect(info.retentionBound).toBe(false)
+    expect(info.warnings).toContain(WARNING.CAPPED_GROWTH)
+    expect(info.highGrowth).toBe(15)
+  })
+
+  it('binds official growth to 0% when g* is 0, and still keeps the default terminal outside this function', () => {
+    const info = officialGrowth({ growth10: 15, growth5: 12, hasPositiveBase: true, sustainableGrowth: 0 })
+    expect(info.adopted).toBe(0)
+    expect(info.highGrowth).toBe(0)
+    expect(info.lowGrowth).toBe(0)
+    expect(info.retentionBound).toBe(true)
+    expect(info.zeroTerminal).toBe(false)
+    expect(info.warnings).toContain(WARNING.GROWTH_ABOVE_RETENTION)
+  })
+
+  it('does not apply a retention cap to a financial / residual-income path', () => {
+    const info = officialGrowth({ growth10: 15, growth5: 14, hasPositiveBase: true, sustainableGrowth: 4, financial: true })
+    expect(info.adopted).toBe(14)
+    expect(info.retentionBound).toBe(false)
+    expect(info.warnings).not.toContain(WARNING.GROWTH_ABOVE_RETENTION)
+  })
+
+  it('leaves g* unused when the book cannot support a cap', () => {
+    const info = officialGrowth({ growth10: 10, growth5: 9, hasPositiveBase: true, sustainableGrowth: null })
+    expect(info.adopted).toBe(9)
+    expect(info.highGrowth).toBe(11)
+    expect(info.retentionBound).toBe(false)
   })
 })

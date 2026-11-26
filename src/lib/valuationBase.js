@@ -28,6 +28,7 @@ export const QUALITY = Object.freeze({
 export const BASE_METHOD = Object.freeze({
   WEIGHTED: 'weighted',
   PERSISTENT_STEP: 'persistent-step',
+  THROUGH_CYCLE: 'through-cycle',
   SHORT_HISTORY: 'short-history',
   MEDIAN_FALLBACK: 'median-fallback',
   CASH_CONFIRMED_FALLBACK: 'cash-confirmed-fallback',
@@ -50,6 +51,20 @@ export const FCF_CONFIRM_RATIO = 1
 export const CASH_PERIOD_LAG_DAYS = 180
 export const CASH_BEHIND_FY_DAYS = 450
 export const EARNINGS_WINDOW = 5
+// Through-cycle uses up to ten complete fiscal years; fewer than eight is too
+// short to treat a name as cyclical, and a shorter listing is not refused.
+export const THROUGH_CYCLE_MAX_YEARS = 10
+export const THROUGH_CYCLE_MIN_YEARS = 8
+// Trigger when any complete-year EPS is non-positive, or the lowest year in
+// the long window is at most this share of the median. Raw CV of EPS levels
+// mislabels stable compounders, so the rule is a trough-to-median ratio.
+export const THROUGH_CYCLE_TROUGH_RATIO = 0.20
+// Second gate: residual volatility after a log-linear trend is removed.
+// A single loss year in an otherwise steady compounder is not enough.
+export const THROUGH_CYCLE_LOG_RESIDUAL = 0.50
+export const THROUGH_CYCLE_MIN_POSITIVE = 4
+export const PAYOUT_WINDOW = 8
+export const PAYOUT_MIN_YEARS = 3
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -67,6 +82,100 @@ export function medianOf (values) {
 export function madOf (values, center = medianOf(values)) {
   if (center == null) return null
   return medianOf(values.filter(Number.isFinite).map((value) => Math.abs(value - center)))
+}
+
+/**
+ * Remove a quantified whitelist non-operating total from EPS. The N/NI ratio
+ * is scale-free, so it works for totals or per-share figures. If N cannot be
+ * mapped onto EPS, the year is left unchanged — no invented residual.
+ */
+export function deductNonoperatingEps (eps, { n, ni } = {}) {
+  const reported = num(eps)
+  const gain = num(n)
+  const income = num(ni)
+  if (reported == null) return { eps: null, deducted: false, complete: false }
+  if (gain == null) return { eps: reported, deducted: false, complete: false }
+  if (gain === 0) return { eps: reported, deducted: false, complete: true, residualNi: income }
+  if (income == null || income === 0) return { eps: reported, deducted: false, complete: false }
+  const adjusted = reported * (1 - gain / income)
+  if (!Number.isFinite(adjusted)) return { eps: reported, deducted: false, complete: false }
+  return { eps: adjusted, deducted: true, complete: true, residualNi: income - gain }
+}
+
+/** Multi-year average payout (DPS / positive EPS). Missing dividends are skipped, not treated as zero. */
+export function averagePayoutRatio (annual) {
+  const ratios = []
+  for (const entry of datedAnnual(annual).slice(-PAYOUT_WINDOW)) {
+    const eps = metric(entry.row, 'eps_without_nri')
+    const dps = metric(entry.row, 'dividends_per_share')
+    if (!(eps > 0) || dps == null) continue
+    ratios.push(dps / eps)
+  }
+  if (ratios.length < PAYOUT_MIN_YEARS) return null
+  const mean = ratios.reduce((sum, value) => sum + value, 0) / ratios.length
+  return Number.isFinite(mean) ? Number(mean.toFixed(4)) : null
+}
+
+/**
+ * Population standard deviation of log residuals around a log-linear trend
+ * fitted to positive years. A smooth compounder has a low figure even if the
+ * raw level rose several times; a cyclical series does not.
+ */
+export function logResidualStd (values) {
+  const points = (values || [])
+    .map((value, index) => (Number.isFinite(value) && value > 0 ? [index, Math.log(value)] : null))
+    .filter(Boolean)
+  if (points.length < THROUGH_CYCLE_MIN_POSITIVE) return null
+  const n = points.length
+  const xs = points.map((point) => point[0])
+  const ys = points.map((point) => point[1])
+  const meanX = xs.reduce((sum, value) => sum + value, 0) / n
+  const meanY = ys.reduce((sum, value) => sum + value, 0) / n
+  const denom = xs.reduce((sum, value) => sum + (value - meanX) ** 2, 0)
+  if (denom === 0) return null
+  const slope = xs.reduce((sum, value, index) => sum + (value - meanX) * (ys[index] - meanY), 0) / denom
+  const intercept = meanY - slope * meanX
+  const residuals = xs.map((value, index) => ys[index] - (intercept + slope * value))
+  const meanR = residuals.reduce((sum, value) => sum + value, 0) / residuals.length
+  const variance = residuals.reduce((sum, value) => sum + (value - meanR) ** 2, 0) / residuals.length
+  return Math.sqrt(variance)
+}
+
+/**
+ * High-volatility / through-cycle test for non-financials. Requires at least
+ * eight complete fiscal years of EPS after any non-operating deduction.
+ * Two uniform gates must both fire: a deep trough (the lowest year is not
+ * positive, or is at most 20% of the median) and a large residual after the
+ * long-run trend is removed. A confirmed persistent step does not block the
+ * trigger: if the long window is cyclical, the through-cycle mean takes
+ * priority so a boom year is not locked in as a new platform.
+ */
+export function detectThroughCycle (observations, { financial = false } = {}) {
+  const empty = { hit: false, years: 0, mean: null, median: null, troughRatio: null, logResidual: null, values: [] }
+  if (financial) return { ...empty, reason: 'financial' }
+  const window = (observations || []).filter((row) => Number.isFinite(row?.eps)).slice(-THROUGH_CYCLE_MAX_YEARS)
+  if (window.length < THROUGH_CYCLE_MIN_YEARS) {
+    return { ...empty, years: window.length, reason: 'short-history' }
+  }
+  const values = window.map((row) => row.eps)
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length
+  const mid = medianOf(values)
+  const trough = Math.min(...values)
+  const troughRatio = mid > 0 ? trough / mid : (mid < 0 ? trough / mid : null)
+  const deepTrough = trough <= 0 || (mid > 0 && trough / mid <= THROUGH_CYCLE_TROUGH_RATIO)
+  const logResidual = logResidualStd(values)
+  const residualHigh = logResidual != null && logResidual >= THROUGH_CYCLE_LOG_RESIDUAL
+  const hit = deepTrough && residualHigh && mean > 0
+  return {
+    hit,
+    years: window.length,
+    mean: Number.isFinite(mean) ? mean : null,
+    median: mid,
+    troughRatio,
+    logResidual,
+    values,
+    reason: hit ? null : 'stable',
+  }
 }
 
 /** Last calendar day of a YYYY-MM or YYYY-MM-DD period, or null. */
@@ -222,15 +331,32 @@ export function classifyAnnualRow (row, options) {
   return classifyEarningsQuality(qualityInputsFromRow(row, options))
 }
 
+function perShareFromTotals (row, totalField, eps) {
+  const total = num(row?.[totalField])
+  const income = num(row?.net_income)
+  if (eps == null || total == null || income == null || income === 0) return null
+  const perShare = total * eps / income
+  return Number.isFinite(perShare) ? perShare : null
+}
+
 function observationFromEntry (entry, options) {
-  const eps = metric(entry.row, 'eps_without_nri')
-  if (eps == null) return null
+  const reported = metric(entry.row, 'eps_without_nri')
+  if (reported == null) return null
+  const inputs = qualityInputsFromRow(entry.row, options)
+  const rawQuality = classifyEarningsQuality(inputs)
+  const deducted = deductNonoperatingEps(reported, inputs)
+  const eps = deducted.complete ? deducted.eps : reported
+  const quality = deducted.complete
+    ? classifyEarningsQuality({ ...inputs, n: 0, ni: deducted.residualNi ?? inputs.ni })
+    : rawQuality
   return {
     year: entry.year,
     date: entry.row.date,
     eps,
-    quality: classifyAnnualRow(entry.row, options),
-    operatingIncome: metric(entry.row, 'operating_income_per_share'),
+    reportedEps: reported,
+    deducted: deducted.deducted === true,
+    quality,
+    operatingIncome: metric(entry.row, 'operating_income_per_share') ?? perShareFromTotals(entry.row, 'operating_income', reported),
     fcf: metric(entry.row, 'free_cash_flow_per_share'),
     ocf: metric(entry.row, 'operating_cash_flow_per_share'),
     capex: metric(entry.row, 'capex_per_share'),
@@ -239,14 +365,15 @@ function observationFromEntry (entry, options) {
   }
 }
 
-/** Up to five latest complete fiscal years that actually report EPS, oldest first. */
-export function earningsWindow (annual, options) {
+/** Latest complete fiscal years that actually report EPS, oldest first. */
+export function earningsWindow (annual, options = {}) {
   const observations = []
   for (const entry of datedAnnual(annual)) {
     const observation = observationFromEntry(entry, options)
     if (observation) observations.push(observation)
   }
-  return observations.slice(-EARNINGS_WINDOW)
+  const years = Number.isFinite(Number(options.years)) ? Number(options.years) : EARNINGS_WINDOW
+  return observations.slice(-years)
 }
 
 function consecutive (observations) {
@@ -382,7 +509,8 @@ function refusalOf ({ hasAnnualEps, hasCleanPositive, knownNonPositive }) {
  */
 export function selectOfficialBase (stock, { financial = false } = {}) {
   const annual = stock?.financials?.annual
-  const observations = earningsWindow(annual, { sourceSearched: null })
+  const longWindow = earningsWindow(annual, { sourceSearched: null, years: THROUGH_CYCLE_MAX_YEARS })
+  const observations = longWindow.slice(-EARNINGS_WINDOW)
   const allDated = datedAnnual(annual)
   const hasAnnualEps = allDated.some((entry) => metric(entry.row, 'eps_without_nri') != null)
   const knownNonPositive = allDated.some((entry) => {
@@ -395,7 +523,8 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
 
   const normalized = weightedNormalizedBase(observations)
   const step = detectPersistentStep(observations, { financial })
-  const latest = observations.at(-1) || null
+  const throughCycle = detectThroughCycle(longWindow, { financial })
+  const latest = observations.at(-1) || longWindow.at(-1) || null
   const baseAsOf = periodEndDate(latest?.date) || periodEndDate(stock?.eps_as_of && stock?.eps_period === 'FY' ? stock.eps_as_of : null)
   const ttm = classifyTtmQuality(stock)
   const ttmAsOf = periodEndDate(stock?.ttm_quality_as_of || (stock?.eps_period === 'TTM' ? stock.eps_as_of : null) || stock?.eps_as_of)
@@ -413,7 +542,14 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
   let cashBase = cashWindowMedian(observations, 3)
   let cashAsOf = periodEndDate(observations.length >= 3 ? observations.at(-1)?.date : null)
 
-  if (step.hit) {
+  // Through-cycle wins over a confirmed step so a cyclical peak is not locked
+  // in as a new earnings platform. Weighted five-year and short-history paths
+  // are also replaced when the long window triggers.
+  if (throughCycle.hit) {
+    earningsBase = throughCycle.mean
+    method = BASE_METHOD.THROUGH_CYCLE
+    warnings.push('THROUGH_CYCLE_BASE')
+  } else if (step.hit) {
     const recent = observations.slice(-3)
     const stepped = weightedNormalizedBase(recent)
     earningsBase = stepped.base
@@ -458,6 +594,12 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
     hasCleanPositive: normalized.hasCleanPositive,
     knownNonPositive,
   })
+  // A through-cycle mean is already a published base. Do not overwrite it
+  // with the cash-confirmed fallback, and do not refuse solely because the
+  // short window has no clean year.
+  if (throughCycle.hit && Number.isFinite(earningsBase) && earningsBase > 0) {
+    refusal = null
+  }
   // A missing quality label is a data gap, not evidence that the business has
   // no earning power. When the latest complete year is merely unknown and
   // same-period cash is positive, the lower of that year's EPS and cash bounds
@@ -489,7 +631,9 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
     ttmNonoperatingGain: ttm.gain,
     ttmQualityAsOf: ttm.asOf,
     step,
+    throughCycle,
     observations,
+    payoutRatio: averagePayoutRatio(annual),
     warnings,
     refusal,
     ...capexDiagnostics(latest),

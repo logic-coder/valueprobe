@@ -86,21 +86,25 @@ describe('named companies follow the stacked official rules', () => {
     expect(seed.dcfForm.eps).toBeCloseTo(3.6283, 4)
   })
 
-  it('keeps Google on the five-year weighted base near 7.01 and does not use TTM 19.15 or a 9.05 step window', () => {
+  it('values Google on a deducted three-year weighted step above the old 7.009 base, and still ignores TTM 19.15', () => {
     const stock = stockOf('NASDAQ:GOOGL')
     const value = at('NASDAQ:GOOGL')
-    expect(stock.persistent_step).toBe(false)
-    expect(stock.earnings_base).toBeCloseTo(7.01, 2)
+    expect(stock.persistent_step).toBe(true)
+    expect(stock.through_cycle).toBe(false)
+    expect(stock.earnings_base).toBeCloseTo(7.9624, 4)
     expect(value.status).toBe('ok')
     expect(value.inputs.baseUpshift).toBe(false)
-    expect(value.inputs.eps).toBeCloseTo(7.009, 3)
+    expect(value.inputs.eps).toBeCloseTo(7.9624, 4)
+    expect(value.inputs.eps).toBeGreaterThan(7.009)
     expect(value.inputs.epsLatest).toBeCloseTo(19.15, 2)
-    expect(value.value).toBeCloseTo(161.7, 2)
+    expect(value.value).toBeCloseTo(183.69, 2)
     expect(value.warnings).toContain(WARNING.TTM_NONOPERATING)
-    expect(value.warnings).toContain(WARNING.BASE_QUALITY_REDUCED)
-    expect(value.warnings).not.toContain(WARNING.PERSISTENT_STEP_BASE)
+    expect(value.warnings).toContain(WARNING.PERSISTENT_STEP_BASE)
+    expect(value.warnings).not.toContain(WARNING.BASE_QUALITY_REDUCED)
     expect(value.warnings).not.toContain(WARNING.LATEST_FY_BASE)
     expect(value.warnings).not.toContain(WARNING.CASH_MIDPOINT)
+    expect(value.inputs.eps).not.toBeCloseTo(19.15, 2)
+    expect(value.inputs.eps).not.toBeCloseTo(9.05, 2)
   })
 
   it('values Apple on the three-year weighted step near 7.99, not 6.13, 8.98 or 7.46', () => {

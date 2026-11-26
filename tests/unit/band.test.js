@@ -54,7 +54,7 @@ describe('policy publishes the residual band without moving the headline', () =>
     expect(value.value).toBe(artifact.entries['SHSE:601398'].value)
   })
 
-  it('keeps the ICBC headline inside a residual envelope that can also include the faster window', () => {
+  it('keeps the ICBC headline inside a residual envelope around the official path', () => {
     const stock = toStock(read('public/data/SHSE-601398.json'))
     const value = policyValue(stock, { rates: cnyRate, generatedAt: artifact.generatedAt })
     const inputs = value.inputs
@@ -104,36 +104,47 @@ describe('scenario envelope around a centered mid', () => {
     expect(valueBand(input).low).toBe(decline)
   })
 
-  it('uses a disclosed lower five-year window on the low side, not a 0% growth stress, for steady positive history', () => {
+  it('uses official growth minus two points on the low side, not a 0% growth stress, for steady positive history', () => {
     const input = { ...base, growthRate: 15, window: '10y', growth5: 9.87, regimeUncertain: false }
     const scenes = envelopeScenarios(input)
     expect(scenes.low.every((scene) => scene.growth !== 0)).toBe(true)
-    expect(scenes.low.some((scene) => scene.growth === 9.87 && scene.discount === 14 && scene.terminal === 4)).toBe(true)
-    const low = presentValue(10, 10, 14, 9.87, 5, 4, 10, false).fairValue
+    expect(scenes.low.some((scene) => scene.growth === 13 && scene.discount === 14 && scene.terminal === 4)).toBe(true)
+    const low = presentValue(10, 10, 14, 13, 5, 4, 10, false).fairValue
     const zeroed = presentValue(10, 10, 14, 0, 5, 4, 10, false).fairValue
     expect(valueBand(input).low).toBe(low)
     expect(valueBand(input).low).toBeGreaterThan(zeroed)
   })
 
-  it('moves only the discount rate on the low side when the five-year window is not lower than official growth', () => {
+  it('still trims official growth by two points on the low side when the official start is at the 15% cap', () => {
     const input = { ...base, growthRate: 15, window: '10y', growth5: 17.4, regimeUncertain: false }
     const scenes = envelopeScenarios(input)
-    expect(scenes.low).toEqual([{ discount: 14, growth: 15, terminal: 4 }])
-    const low = presentValue(10, 10, 14, 15, 5, 4, 10, false).fairValue
+    expect(scenes.high.every((scene) => scene.growth === 15)).toBe(true)
+    expect(scenes.low.some((scene) => scene.growth === 13 && scene.discount === 14)).toBe(true)
+    const low = presentValue(10, 10, 14, 13, 5, 4, 10, false).fairValue
     expect(valueBand(input).low).toBe(low)
   })
 
-  it('widens a positive five-year-only history toward the 15% cap instead of cutting the point estimate', () => {
+  it('keeps a positive five-year-only history on a ±2-point envelope around the official start, not a jump back to an unused 15% path', () => {
     const input = { ...base, growthRate: 13.45, window: '5y', growth5: 13.45, regimeUncertain: false }
     const mid = presentValue(10, 10, 12, 13.45, 5, 4, 10, false).fairValue
     const band = valueBand(input)
     expect(band.mid).toBe(mid)
     const high = presentValue(10, 10, Math.max(10, 4 + 2), 15, 5, 4, 10, false).fairValue
     expect(band.high).toBe(high)
-    const low = presentValue(10, 10, 14, 13.45, 5, 4, 10, false).fairValue
+    const low = presentValue(10, 10, 14, 11.45, 5, 4, 10, false).fairValue
     expect(band.low).toBe(low)
-    const narrow = valueBand({ ...input, window: '10y', growthRate: 13.45, growth5: 13.45 })
-    expect(band.high).toBeGreaterThan(narrow.high)
+    const same = valueBand({ ...input, window: '10y', growthRate: 13.45, growth5: 13.45 })
+    expect(band.high).toBe(same.high)
+  })
+
+  it('does not reopen a 15% high when official growth is already well below the cap', () => {
+    const input = { ...base, growthRate: 2.99, window: '5y', growth5: 2.99, growth10: 3.85, regimeUncertain: false }
+    const scenes = envelopeScenarios(input)
+    expect(scenes.high.every((scene) => scene.growth <= 4.99 + 1e-9)).toBe(true)
+    expect(scenes.high.some((scene) => scene.growth === 4.99)).toBe(true)
+    const invented = presentValue(10, 10, Math.max(10, 4 + 2), 15, 5, 4, 10, false).fairValue
+    expect(valueBand(input).high).toBeLessThan(invented)
+    expect(valueBand(input).mid).toBe(presentValue(10, 10, 12, 2.99, 5, 4, 10, false).fairValue)
   })
 
   it('does not invent a 15% high when a five-year-only history has already been zeroed', () => {

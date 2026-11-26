@@ -44,7 +44,7 @@ describe('official growth is recomputed from annual series', () => {
     const official = officialGrowth({ growth10: lining.earning_growth_10y, growth5: lining.earning_growth_5y, hasPositiveBase: true })
     expect(official.adopted).toBeCloseTo(10.92, 2)
     expect(official.window).toBe('5y')
-    expect(official.highGrowth).toBe(15)
+    expect(official.highGrowth).toBeCloseTo(12.92, 2)
     expect(lining.earning_growth_5y).toBeCloseTo(10.92, 2)
     const value = policyValue(lining, { rate: 5.07 })
     expect(value.inputs.growth).toBeCloseTo(10.92, 2)

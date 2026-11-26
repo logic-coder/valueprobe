@@ -135,6 +135,8 @@ export function toStock (raw) {
   stock.base_warnings = official.warnings
   stock.base_refusal = official.refusal
   stock.persistent_step = official.step?.hit === true
+  stock.through_cycle = official.throughCycle?.hit === true
+  stock.payout_ratio = official.payoutRatio
   stock.earnings_base = official.earningsBase
   stock.cash_base = official.cashBase
   stock.da_per_share = da

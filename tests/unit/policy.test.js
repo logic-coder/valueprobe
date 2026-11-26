@@ -35,9 +35,9 @@ describe('public policy is frozen', () => {
     expect(POLICY_V1.discount.fallback).toBe(10)
     expect(POLICY_V1.discount.floor).toBe(10)
     expect(POLICY_V1.growth.cap).toBe(15)
-    expect(POLICY_V1.growth.shortHistory).toBe('wider-band')
+    expect(POLICY_V1.growth.shortHistory).toBe('disclose-only')
     expect(POLICY_V1.growth.negative).toBe('zero-start-default-terminal')
-    expect(POLICY_V1.band.growthEnvelope).toBe('scenario')
+    expect(POLICY_V1.band.growthEnvelope).toBe('official-path')
     expect(POLICY_V1.growth.missingWindow).toBe('zero-start')
     expect(POLICY_V1.horizon).toEqual({ years: 10, terminalGrowthRate: 4, yearsOfTerminalGrowth: 10 })
     expect(POLICY_V1.discount.rule).toBe('max(floor, local-10y-ceil+6)')
@@ -139,9 +139,18 @@ describe('policyValue semantics', () => {
     expect(teslaValue.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     const loss = stockOf(snapshots.find((row) => row.symbol === 'NASDAQ:INTC').raw)
     const value = policyValue(loss, { rates: rateRows, generatedAt: artifact.generatedAt })
-    expect(value.reasons).toContain(REASON.NON_POSITIVE_EPS)
-    expect(value.reasons).toContain(REASON.NO_GROWTH)
-    expect(value.value).toBeNull()
+    // Recent years include losses, but the longer window is cyclical and still
+    // has a positive through-cycle mean. The published path may therefore
+    // return a value; TTM or latest-year losses are not a fallback base.
+    expect(value.inputs.epsLatest).toBeLessThanOrEqual(0)
+    if (value.status === 'ok') {
+      expect(value.warnings).toContain(WARNING.THROUGH_CYCLE_BASE)
+      expect(value.inputs.eps).toBeGreaterThan(0)
+      expect(value.inputs.eps).not.toBeCloseTo(value.inputs.epsLatest, 2)
+    } else {
+      expect(value.reasons).toEqual(expect.arrayContaining([REASON.NON_POSITIVE_EPS, REASON.NO_GROWTH]))
+      expect(value.value).toBeNull()
+    }
   })
 
   it('refuses a residual-income record without tangible book', () => {
@@ -311,30 +320,36 @@ describe('centered envelope and regime rules', () => {
     expect(policyValue(stock, { rate: 5.07 }).inputs.baseKind).toBe('normalized')
   })
 
-  it('uses the slower five-year window as Apple’s official mid, with 15% only on the high side', () => {
+  it('uses the slower five-year window as Apple’s official mid, with the high end two points above that start', () => {
     const { value } = at('NASDAQ:AAPL')
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBeCloseTo(9.87, 2)
     expect(value.inputs.growth5).toBeCloseTo(9.87, 2)
     expect(value.inputs.growth10).toBeGreaterThan(15)
     expect(value.warnings).not.toContain(WARNING.REGIME_UNCERTAIN)
-    const low = owner(value, value.inputs.discountRate + 2, value.inputs.growth)
+    const lowGrowth = Math.max(0, value.inputs.growth - 2)
+    const highGrowth = Math.min(15, value.inputs.sustainableGrowth ?? 15, value.inputs.growth + 2)
+    const low = owner(value, value.inputs.discountRate + 2, lowGrowth)
     const zeroed = owner(value, value.inputs.discountRate + 2, 0)
     expect(value.band.low).toBe(low)
     expect(value.band.low).toBeGreaterThan(zeroed)
-    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), highGrowth)
     expect(value.band.high).toBe(high)
+    expect(highGrowth).toBeLessThan(15)
   })
 
-  it('moves only the discount rate on the low side when Microsoft-style five-year growth is not lower', () => {
+  it('keeps Microsoft-style official growth at the 15% cap on the high side, and trims two points on the low side', () => {
     const { value } = at('NASDAQ:MSFT')
     expect(value.inputs.growth).toBe(15)
     expect(value.inputs.growth5).toBeGreaterThan(15)
-    const lowMid = owner(value, value.inputs.discountRate + 2, 15)
+    expect(value.band.mid).toBe(value.value)
+    const highAtOfficial = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    expect(value.band.high).toBeGreaterThanOrEqual(highAtOfficial)
+    const lowAtTrimmed = owner(value, value.inputs.discountRate + 2, 13)
     const lowCash = value.cash?.base != null
-      ? presentValue(value.inputs.tangibleBook, value.inputs.years, value.inputs.discountRate + 2, 15, value.cash.base, value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
-      : lowMid
-    expect(value.band.low).toBe(Math.min(lowMid, lowCash))
+      ? presentValue(value.inputs.tangibleBook, value.inputs.years, value.inputs.discountRate + 2, 13, value.cash.base, value.inputs.terminalGrowthRate, value.inputs.yearsOfTerminalGrowth, false).fairValue
+      : lowAtTrimmed
+    expect(value.band.low).toBe(Math.min(lowAtTrimmed, lowCash))
   })
 
   it('does not invent a 15% high for Tesla-style zeroed five-year history', () => {
@@ -349,12 +364,18 @@ describe('centered envelope and regime rules', () => {
     expect(value.band.high).toBeLessThan(invented)
   })
 
-  it('still widens a positive five-year-only history toward the 15% cap', () => {
+  it('keeps a positive five-year-only history on the official-path envelope rather than inventing a 15% high', () => {
     const { value } = at('HKSE:01810')
     expect(value.inputs.growthWindow).toBe('5y')
     expect(value.inputs.growth).toBeGreaterThan(0)
-    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+    const cap = Math.min(15, value.inputs.sustainableGrowth ?? 15)
+    const highGrowth = value.inputs.growth + 1e-12 >= cap ? value.inputs.growth : Math.min(value.inputs.growth + 2, cap)
+    const high = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), highGrowth)
     expect(value.band.high).toBe(high)
+    if (value.inputs.growth < 13) {
+      const invented = owner(value, Math.max(value.inputs.discountRate - 2, value.inputs.terminalGrowthRate + 2), 15)
+      expect(value.band.high).toBeLessThan(invented)
+    }
   })
 
   it('keeps an opposite-sign window as a regime, including Alibaba, and uses the slower 0% mid', () => {
@@ -396,21 +417,22 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('NASDAQ:AAPL').value).toBe(150.47)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 125.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 5.4265 } })
     expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 314.46, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
-    expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
+    expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'ok', value: 23.46 })
+    expect(entry('NASDAQ:INTC').warnings).toContain('THROUGH_CYCLE_BASE')
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
-    expect(entry('NYSE:GPC').value).toBe(66.44)
+    expect(entry('NYSE:GPC').value).toBe(61.91)
     expect(entry('NYSE:GPC').warnings).toContain(WARNING.REGIME_UNCERTAIN)
     expect(entry('NYSE:GPC')).toMatchObject({
       inputs: expect.objectContaining({
         epsLatest: expect.any(Number),
         epsNormalized: expect.any(Number),
         cashMedian: expect.any(Number),
-        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable|persistent-step|short-history|median-fallback|cash-confirmed-fallback)$/),
+        baseKind: expect.stringMatching(/^(midpoint|normalized|cash|latest|latest-fiscal|repeatable|persistent-step|through-cycle|short-history|median-fallback|cash-confirmed-fallback)$/),
       }),
     })
     expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('persistent-step')
-    expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
+    expect(entry('NYSE:GPC').inputs.baseKind).toBe('through-cycle')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').value).toBe(10.68)
     expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 139.91 })
@@ -435,7 +457,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeCloseTo(-53.36, 2)
+    expect(byd.valueDiffPct).toBeCloseTo(-5.82, 2)
   })
 })
 

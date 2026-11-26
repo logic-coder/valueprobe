@@ -2,6 +2,8 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   BASE_METHOD,
+  detectThroughCycle,
+  deductNonoperatingEps,
   QUALITY,
   classifyEarningsQuality,
   detectPersistentStep,
@@ -241,7 +243,7 @@ describe('selectOfficialBase official path', () => {
     expect(result.refusal).toBeNull()
   })
 
-  it('does not adopt GOOGL’s TTM 19.15 or the forbidden 9.05 step window, and downweights 2021 and 2025', () => {
+  it('deducts quantified non-operating items, treats those years as clean, and may confirm a step without using TTM 19.15', () => {
     const raw = stockOf([
       yearRow(2021, 5.61, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 123.80, net_income: 760.33, operating_income: 787.14 }),
       yearRow(2022, 4.56, { operating_income_per_share: 5.6875, free_cash_flow_per_share: 4.5604, quality_facts_searched: true, equity_securities_fv_ni_gain_loss: -34.55, net_income: 599.72, operating_income: 748.42 }),
@@ -260,22 +262,22 @@ describe('selectOfficialBase official path', () => {
     })
     const result = selectOfficialBase(raw)
     expect(result.observations.map((row) => row.quality)).toEqual([
-      QUALITY.NONOPERATING, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.NONOPERATING,
+      QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN,
     ])
-    expect(result.step.hit).toBe(false)
-    expect(result.method).toBe(BASE_METHOD.WEIGHTED)
-    expect(result.earningsBase).toBeCloseTo(7.01, 2)
-    expect(result.earningsBase).not.toBeCloseTo(6.92, 2)
-    expect(result.earningsBase).not.toBeCloseTo(7.89, 2)
+    expect(result.observations.at(-1).eps).toBeCloseTo(10.81 * (1 - 240.80 / 1321.70), 4)
+    expect(result.step.hit).toBe(true)
+    expect(result.method).toBe(BASE_METHOD.PERSISTENT_STEP)
+    expect(result.earningsBase).toBeCloseTo(7.9624, 2)
+    expect(result.earningsBase).toBeGreaterThan(7.009)
     expect(result.earningsBase).not.toBeCloseTo(9.05, 2)
     expect(result.earningsBase).not.toBeCloseTo(19.15, 2)
     expect(result.ttmQuality).toBe(QUALITY.NONOPERATING)
     expect(result.warnings).toContain('TTM_NONOPERATING')
-    expect(result.warnings).toContain('CASH_PERIOD_LAG')
-    expect(result.warnings).toContain('BASE_QUALITY_REDUCED')
-    expect(result.warnings).not.toContain('PERSISTENT_STEP_BASE')
-    // 273 days of TTM lag is only a hint: annual cash still participates.
-    expect(result.cashBase).toBeCloseTo(5.8459, 4)
+    expect(result.warnings).toContain('PERSISTENT_STEP_BASE')
+    expect(result.warnings).not.toContain('BASE_QUALITY_REDUCED')
+    expect(result.warnings).not.toContain('THROUGH_CYCLE_BASE')
+    // The step is confirmed on operating income; 2021 cash is missing, so cash is withdrawn.
+    expect(result.cashBase).toBeNull()
   })
 
   it('has no company-name or symbol branch', () => {
@@ -359,5 +361,46 @@ describe('selectOfficialBase official path', () => {
     const result = selectOfficialBase(raw, { financial: true })
     expect(result.step.hit).toBe(false)
     expect(result.method).toBe(BASE_METHOD.WEIGHTED)
+  })
+})
+
+describe('through-cycle base and non-operating deduction', () => {
+  it('deducts a quantified whitelist item and then treats the year as clean', () => {
+    expect(deductNonoperatingEps(10.81, { n: 240.80, ni: 1321.70 })).toMatchObject({ deducted: true, complete: true })
+    expect(deductNonoperatingEps(10.81, { n: 240.80, ni: 1321.70 }).eps).toBeCloseTo(10.81 * (1 - 240.80 / 1321.70), 6)
+    expect(deductNonoperatingEps(5, { n: 50, ni: null })).toEqual({ eps: 5, deducted: false, complete: false })
+  })
+
+  it('triggers a through-cycle mean for a boom-and-bust series and not for a compounding series', () => {
+    const cyclical = [0.01, 0.65, 1.39, 1.61, 0.66, 1.85, 3.57, 3.06, 3.41, 3.02].map((eps, i) => ({ year: 2016 + i, eps, quality: QUALITY.CLEAN }))
+    const growth = [1.39, 0.90, 2.19, 2.46, 2.93, 5.61, 4.56, 5.80, 8.04, 10.81].map((eps, i) => ({ year: 2016 + i, eps, quality: QUALITY.CLEAN }))
+    const stepUp = [0.064, 0.12, 0.166, 0.113, 0.173, 0.385, 0.17, 1.19, 2.94, 4.90].map((eps, i) => ({ year: 2016 + i, eps, quality: QUALITY.CLEAN }))
+    const cycle = detectThroughCycle(cyclical)
+    const stable = detectThroughCycle(growth)
+    const platform = detectThroughCycle(stepUp)
+    expect(cycle.hit).toBe(true)
+    expect(cycle.mean).toBeCloseTo(1.923, 2)
+    expect(cycle.logResidual).toBeGreaterThan(0.50)
+    expect(stable.hit).toBe(false)
+    expect(platform.hit).toBe(false)
+    expect(detectThroughCycle(cyclical, { financial: true }).hit).toBe(false)
+    expect(detectThroughCycle(cyclical.slice(-7)).hit).toBe(false)
+    const oneLoss = [2, 2.2, 2.5, -0.3, 2.8, 3.1, 3.4, 3.7, 4.0, 4.4].map((eps, i) => ({ year: 2016 + i, eps, quality: QUALITY.CLEAN }))
+    expect(detectThroughCycle(oneLoss).hit).toBe(false)
+  })
+
+  it('gives a through-cycle trigger priority over a confirmed late step', () => {
+    const series = { 2016: 0.02, 2017: 0.8, 2018: 0.9, 2019: 0.7, 2020: 0.85, 2021: 0.8, 2022: 0.9, 2023: 0.85, 2024: 3.4, 2025: 3.2 }
+    const rows = Object.entries(series).map(([year, eps]) => yearRow(Number(year), eps, {
+      operating_income_per_share: eps, free_cash_flow_per_share: eps, quality_facts_searched: true,
+      equity_securities_fv_ni_gain_loss: 0, net_income: eps * 10, operating_income: eps * 10,
+    }))
+    const result = selectOfficialBase(stockOf(rows))
+    expect(result.throughCycle.hit).toBe(true)
+    expect(result.step.hit).toBe(true)
+    expect(result.method).toBe(BASE_METHOD.THROUGH_CYCLE)
+    expect(result.warnings).toContain('THROUGH_CYCLE_BASE')
+    expect(result.warnings).not.toContain('PERSISTENT_STEP_BASE')
+    expect(result.earningsBase).toBeCloseTo(result.throughCycle.mean, 4)
   })
 })

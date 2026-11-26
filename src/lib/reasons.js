@@ -66,6 +66,8 @@ export const WARNING = Object.freeze({
   SHARE_BASIS_UNVERIFIED: 'SHARE_BASIS_UNVERIFIED',
   // Latest two clean years confirm a new earnings platform; the base uses the last three weighted years.
   PERSISTENT_STEP_BASE: 'PERSISTENT_STEP_BASE',
+  // Complete-year earnings are too volatile for a short weighted window or a step; the base uses a longer through-cycle average.
+  THROUGH_CYCLE_BASE: 'THROUGH_CYCLE_BASE',
   // TTM includes a material non-operating gain and is not used as the official base.
   TTM_NONOPERATING: 'TTM_NONOPERATING',
   // TTM non-operating quality could not be confirmed; TTM is not used as the official base.
