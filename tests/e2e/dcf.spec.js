@@ -20,15 +20,17 @@ test('shows the published value by default and only edits this page', async ({ p
   const [resultBox, stressBox, formBox] = await Promise.all([
     page.getByTestId('dcf-result').boundingBox(),
     stress.boundingBox(),
-    page.locator('.dcf__form').boundingBox(),
+    page.locator('.dcf__work').boundingBox(),
   ])
-  expect(stressBox.x).toBeGreaterThan(resultBox.x + resultBox.width)
-  expect(formBox.y).toBeGreaterThan(stressBox.y + stressBox.height)
+  expect(formBox.y).toBeGreaterThan(resultBox.y + resultBox.height - 2)
+  expect(stressBox.y).toBeGreaterThan(formBox.y)
+  expect(stressBox.y).toBeGreaterThan(resultBox.y + resultBox.height - 2)
 
   await page.locator('.input-section').first().fill('12')
-  await expect(page.getByTestId('value-title')).toContainText('试算')
-  await expect(page.getByTestId('value-context')).toContainText('参考口径 v3')
-  await expect(page.locator(FAIR)).not.toContainText('10.68')
+  await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
+  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).toBeVisible()
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
 
   // Reset returns to the published inputs; the artifact itself is untouched.
   await page.locator('.q-btn:has-text("more_vert")').first().click()
@@ -48,7 +50,8 @@ test('renders the calculator with the live defaults', async ({ page }) => {
 test('recalculates when the discount rate changes', async ({ page }) => {
   await page.locator('.input-section').first().fill('12')
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
   await page.locator('.q-btn:has(i:has-text("add"))').first().click()
   await page.waitForTimeout(300)
   await expect(page.locator('.input-section').first()).toHaveValue('13')
@@ -57,30 +60,30 @@ test('recalculates when the discount rate changes', async ({ page }) => {
 test('marks a manual dial change as custom and always rebases presets', async ({ page }) => {
   const discount = page.getByTestId('field-discount')
   const preset = (name) => page.locator('.dcf__scenario-btns').getByRole('button', { name })
-  await preset('牛市').click()
+  await preset('更乐观').click()
   await expect(discount).toHaveValue('9')
-  await expect(preset('牛市')).toHaveClass(/is-active/)
+  await expect(preset('更乐观')).toHaveClass(/is-active/)
   await discount.fill('20')
   await expect(discount).toHaveValue('20')
-  await expect(preset('牛市')).not.toHaveClass(/is-active/)
+  await expect(preset('更乐观')).not.toHaveClass(/is-active/)
   await expect(page.locator('.dcf__scenario-custom')).toBeVisible()
   // The bear preset applies to the saved baseline (10), not the edited 20.
-  await preset('熊市').click()
+  await preset('更谨慎').click()
   await expect(discount).toHaveValue('11')
-  await preset('牛市').click()
-  await preset('熊市').click()
+  await preset('更乐观').click()
+  await preset('更谨慎').click()
   await expect(discount).toHaveValue('11')
-  await preset('基准').click()
+  await preset('默认').click()
   await expect(discount).toHaveValue('10')
   await expect(page.locator('.dcf__scenario-custom')).toHaveCount(0)
 })
 
 test('keeps the current preset when only the quote changes', async ({ page }) => {
-  await page.locator('.dcf__scenario-btns').getByRole('button', { name: '牛市' }).click()
+  await page.locator('.dcf__scenario-btns').getByRole('button', { name: '更乐观' }).click()
   await page.getByRole('button', { name: /^参考报价/ }).click()
   await page.getByRole('spinbutton', { name: /参考报价/ }).fill('7')
   await page.keyboard.press('Enter')
-  await expect(page.locator('.dcf__scenario-btns').getByRole('button', { name: '牛市' })).toHaveClass(/is-active/)
+  await expect(page.locator('.dcf__scenario-btns').getByRole('button', { name: '更乐观' })).toHaveClass(/is-active/)
 })
 
 test('switches between eps and free cash flow bases', async ({ page }) => {
@@ -89,7 +92,7 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
   // free-cash-flow basis correctly has no value and says so.
   await page.locator('.q-radio').nth(1).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('n/a')
+  await expect(page.getByTestId('dcf-trial-value')).toContainText('n/a')
   await page.locator('.q-radio').nth(0).click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('10.68')
@@ -102,7 +105,7 @@ test('adds tangible book value to the fair value', async ({ page }) => {
   await expect(page.getByTestId('long-run-note')).toContainText('不是内在价值')
   await page.locator('.q-checkbox').click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('27.56')
+  await expect(page.getByTestId('dcf-trial-value')).toContainText('27.56')
 })
 
 test('shows the reverse DCF expectation', async ({ page }) => {
@@ -124,10 +127,10 @@ test('reset restores the defaults from the menu', async ({ page }) => {
 
 test('mobile trials preserve the published stress comparison and let readers reach the controls', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  const jump = page.getByRole('button', { name: '调整估值假设' })
+  const jump = page.getByRole('button', { name: '调整假设' })
   await expect(jump).toBeInViewport()
   await jump.click()
-  await expect(page.getByRole('heading', { name: '参数与假设' })).toBeFocused()
+  await expect(page.getByRole('heading', { name: '调整假设' })).toBeFocused()
   await expect(page.getByRole('button', { name: /每股收益.*点击修改/ })).toBeInViewport()
   await expect(page.getByTestId('advanced-assumptions')).not.toHaveAttribute('open', '')
   const comparison = page.getByTestId('margin-stress')
@@ -137,7 +140,7 @@ test('mobile trials preserve the published stress comparison and let readers rea
   await page.getByTestId('field-discount').press('Tab')
   await expect(comparison).toContainText('按公开估值假设测算')
   expect(await comparison.locator('strong').allTextContents()).toEqual(original)
-  await expect(page.locator('.dcf__strip-col')).toHaveCSS('position', 'static')
+  await expect(page.locator('.dcf__band-col')).toHaveCSS('position', 'static')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 })
 
@@ -152,7 +155,7 @@ test('shows field help in a popover', async ({ page }) => {
 })
 
 test('the result labels open their help', async ({ page }) => {
-  for (const [label, text] of [['内在价值', '不是目标价'], ['安全边际', '负值表示']]) {
+  for (const [label, text] of [['默认价', '不是目标价'], ['安全边际', '负值表示']]) {
     await page.locator(STOCK.result + ' .a-popover', { hasText: label }).dispatchEvent('mouseenter')
     await expect(page.locator('.a-popover__card', { hasText: text })).toBeVisible()
     await page.keyboard.press('Escape')
@@ -210,8 +213,9 @@ test('editing earnings starts a trial and restores the original value on reset',
   await page.getByRole('button', { name: /每股收益.*点击修改/ }).click()
   await page.getByRole('spinbutton', { name: /每股收益/ }).fill('0.8')
   await page.keyboard.press('Enter')
-  await expect(page.getByTestId('value-title')).toContainText('试算')
-  await expect(page.locator(FAIR)).not.toContainText('10.68')
+  await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
+  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
   await page.locator('.q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
   await expect(page.locator(FAIR)).toContainText('10.68')
@@ -220,7 +224,7 @@ test('editing earnings starts a trial and restores the original value on reset',
 test('switches the interface language', async ({ page }) => {
   await page.locator('.header-actions a', { hasText: 'EN' }).click()
   await page.waitForTimeout(500)
-  await expect(page.locator('h3:has-text("Intrinsic value")')).toBeVisible()
+  await expect(page.locator('h3:has-text("Default price")')).toBeVisible()
   // Banner copy, panel titles and the About page are translated too.
   await expect(page.locator('.dcf__head-hint')).toHaveText('Results update as inputs change')
   await expect(page.locator('.dcf__form')).toContainText('Edit the reference price beside the company name')
@@ -238,15 +242,15 @@ test('switches the interface language', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
   await page.locator('.header-actions a', { hasText: '中文' }).click()
   await page.waitForTimeout(500)
-  await expect(page.locator('h3:has-text("内在价值")')).toBeVisible()
+  await expect(page.locator('h3:has-text("默认价")')).toBeVisible()
 })
 
 test('keeps the card rows in a fixed order', async ({ page }) => {
   const order = await page.evaluate(() => {
-    const rows = [...document.querySelectorAll('.dcf__strip > div, .dcf__form > div')]
-    return rows.map((row) => row.innerText.replace(/\s+/g, ' ').trim().slice(0, 24))
+    const labels = [...document.querySelectorAll('.dcf__field-label, .dcf__scenario-label, [data-testid="dcf-result"] h3')]
+    return labels.map((row) => row.innerText.replace(/\s+/g, ' ').trim())
   })
-  const expected = ['内在价值', '安全边际', '每股收益', '折现率', '首年增长率', '情景']
+  const expected = ['默认价', '安全边际', '正常化每股盈利', '要求回报率', '起始增速', '情景']
   const indexes = expected.map((label) => order.findIndex((row) => row.startsWith(label)))
   expect(indexes.every((index) => index >= 0)).toBe(true)
   expect([...indexes].sort((a, b) => a - b)).toEqual(indexes)
@@ -301,12 +305,14 @@ test('builds the discount rate from its parts', async ({ page }) => {
 })
 
 test('scenario presets move the assumptions and restore the base', async ({ page }) => {
-  await page.locator('.dcf__scenario-btns button', { hasText: '牛市' }).click()
-  await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).not.toContainText('10.68')
-  await page.locator('.dcf__scenario-btns button', { hasText: '基准' }).click()
+  await page.locator('.dcf__scenario-btns button', { hasText: '更乐观' }).click()
   await page.waitForTimeout(400)
   await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
+  await page.locator('.dcf__scenario-btns button', { hasText: '默认' }).click()
+  await page.waitForTimeout(400)
+  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).toContainText('10.68')
   await expect(page.locator('.input-section').first()).toHaveValue('10')
 })
 

@@ -2,7 +2,7 @@
   <div class="dcf" data-testid="dcf">
     <q-card flat class="dcf__card panel">
       <div>
-          <div class="dcf__strip-col">
+          <div class="dcf__band-col">
           <div v-if="!resultLoading && publicationNotice" class="dcf__official-note" data-testid="official-unavailable">
             {{ publicationNotice }}
             <button v-if="industryTrialOnly && !trialActive && basisReady" type="button" class="wl__tool" @click="markAssumptionsEdited">
@@ -12,103 +12,132 @@
           <dcf-result-bar
             :loading="resultLoading"
             :stock="stock"
-            :result="headline"
+            :official-present="Boolean(publishedOfficial)"
+            :official-result="publishedOfficial || {}"
+            :trial-active="trialActive"
+            :trial-result="result"
             :live-summary="liveSummary"
-            :basis-line="showPublished ? basisLine : ''"
+            :basis-line="publishedOfficial ? basisLine : ''"
             :show-implied="!residualIncome"
-            :official="showPublished"
             :official-context="officialContext"
             :trial-context="trialContext"
-            :unavailable="!trialActive && !showPublished"
+            :unavailable="!trialActive && !publishedOfficial"
             :margin-label="marginLabel"
             :reverse-state="reverseState"
-            :cash="showPublished ? policyEntry?.cash : null"
-            :cash-unchecked="showPublished && policyEntry?.inputs?.model === 'owner' && !(Number(policyEntry?.inputs?.cashMedian) > 0)"
+            :cash="publishedOfficial ? policyEntry?.cash : null"
+            :cash-unchecked="Boolean(publishedOfficial) && policyEntry?.inputs?.model === 'owner' && !(Number(policyEntry?.inputs?.cashMedian) > 0)"
+            @reset="resetToDefaults"
           />
           <button class="dcf__jump" type="button" :disabled="resultLoading" @click="focusAssumptions">
             {{ t('adjust_assumptions') }}
           </button>
-          <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
-            :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited" :currency="stock.currency || '¥'"
-            :expectation="priceExpectation" />
-          <policy-provenance
-            v-if="!resultLoading && policyEntry && !isManual"
-            :entry="policyEntry"
-            :currency="stock.currency || '¥'"
-            :earnings-label="earningsDateLabel"
-            :quote-label="quoteDateLabel"
-            :show-explanation="showPublished"
-          />
           </div>
 
-        <q-card-section ref="assumptionsHead" class="dcf__head">
+        <q-card-section ref="assumptionsHead" class="dcf__work">
+          <div class="dcf__work-head">
           <dcf-header
             :providers="providers"
             :pinned-source="pinnedSource || ''"
             @reset="resetToDefaults"
             @pin="pinSource"
           />
-        </q-card-section>
+            <span v-if="!resultLoading" class="dcf__pill" :class="assumptionsEdited ? 'dcf__pill--custom' : 'dcf__pill--default'">
+              {{ t(assumptionsEdited ? 'scenario_custom' : 'default_assumptions') }}
+            </span>
+          </div>
+          <p class="dcf__work-lead">{{ t('work_lead') }}</p>
 
           <div class="line-height-2 dcf__form">
-            <div class="dcf__row">
-              <span>{{ t(baseField === 'eps' ? 'earnings_per_share' : 'cash_per_share') }}</span>
-              <span v-if="baseField === 'eps' && stock.eps_period === 'FY'" class="faint">{{ t('eps_period_fy') }}</span>
-              <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-              <div v-else class="dcf__value">
-                <editable-value v-model="form[baseField]" :display="money(stock.currency, form[baseField])"
-                  :native="currencyCode" :label="t(baseField === 'eps' ? 'earnings_per_share' : 'cash_per_share')" :currency="currencyCode" />
+            <div class="dcf__fields">
+              <div class="dcf__field">
+                <div class="dcf__field-head">
+                  <div class="dcf__field-label">{{ t(baseField === 'eps' ? 'work_eps' : 'work_cash') }}</div>
+                  <div v-if="baseField === 'eps' && stock.eps_period === 'FY'" class="dcf__field-hint">{{ t('eps_period_fy') }}</div>
+                  <div v-else-if="baseField === 'eps'" class="dcf__field-hint">{{ t('work_eps_hint') }}</div>
+                </div>
+                <div class="dcf__field-control">
+                  <q-skeleton v-if="loading" type="rect" height="28px" width="80px" />
+                  <div v-else class="dcf__value dcf__value--eps">
+                    <editable-value v-model="form[baseField]" :display="money(stock.currency, form[baseField])"
+                      :native="currencyCode" :label="t(baseField === 'eps' ? 'earnings_per_share' : 'cash_per_share')" :currency="currencyCode" />
+                  </div>
+                </div>
               </div>
-            </div>
-            <q-separator />
-            <!-- discount rate -->
-            <div class="dcf__row">
-              <div class="text-left text-subtitle2">
-                <a-popover placement="top">
-                  <font>{{ t('discount_rate') }} <q-icon class="text-grey-7" name="help" /></font>
-                  <template #content>{{ t('discount_rate_desc') }}</template>
-                </a-popover>
-              </div>
-              <div class="stepper">
-                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.discountRate--" />
-                <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                <input v-else v-model.number="form.discountRate" class="input-section" data-testid="field-discount" :aria-label="t('discount_rate')" type="number" @change="clampDiscount" />
-                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.discountRate++" />
-              </div>
-            </div>
-            <div v-if="!loading && rateNote" class="dcf__rate-note" data-testid="discount-currency-note">
-              <q-icon name="info" size="14px" />
-              {{ t(rateNote) }}
-            </div>
-            <div v-if="!loading && !basisReady" class="dcf__rate-note">{{ t('basis_unavailable') }}</div>
-            <q-separator />
 
-            <div class="dcf__row">
-              <span>{{ t('initial_growth') }}</span>
-              <div class="stepper">
-                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decGrowthRate" />
-                <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                <input
-                  v-else-if="dcfBasedOn === 'eps'"
-                  v-model="form.growthRate"
-                  class="input-section"
-                  data-testid="field-growth"
-                  :aria-label="t('growth_rate')"
-                  type="number"
-                  outlined
+              <div class="dcf__field">
+                <div class="dcf__field-head">
+                  <div class="dcf__field-label">
+                    <a-popover placement="top">
+                      <font>{{ t('work_discount') }} <q-icon class="text-grey-7" name="help" /></font>
+                      <template #content>{{ t('discount_rate_desc') }}</template>
+                    </a-popover>
+                  </div>
+                </div>
+                <div class="dcf__field-control">
+                  <div class="stepper">
+                    <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="form.discountRate--" />
+                    <q-skeleton v-if="loading" type="rect" height="28px" width="80px" />
+                    <input v-else v-model.number="form.discountRate" class="input-section" data-testid="field-discount" :aria-label="t('discount_rate')" type="number" @change="clampDiscount" />
+                    <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.discountRate++" />
+                    <span class="stepper__unit">%</span>
+                  </div>
+                </div>
+                <assumption-track
+                  :current="Number(form.discountRate)"
+                  :origin="defaultDiscount"
+                  :min="6"
+                  :max="16"
+                  :label="t('track_default')"
+                  testid="track-discount"
                 />
-                <input
-                  v-else-if="dcfBasedOn === 'freecashflow'"
-                  v-model="form.freecashflowGrowthRate"
-                  class="input-section"
-                  :aria-label="t('growth_rate')"
-                  type="number"
-                  outlined
+                <div v-if="!loading && rateNote" class="dcf__field-note dcf__rate-note" data-testid="discount-currency-note">
+                  <q-icon name="info" size="14px" />
+                  {{ t(rateNote) }}
+                </div>
+                <div v-if="!loading && !basisReady" class="dcf__field-note dcf__rate-note">{{ t('basis_unavailable') }}</div>
+              </div>
+
+              <div class="dcf__field">
+                <div class="dcf__field-head">
+                  <div class="dcf__field-label">{{ t('initial_growth') }}</div>
+                </div>
+                <div class="dcf__field-control">
+                  <div class="stepper" :class="{ 'stepper--custom': growthOffDefault }">
+                    <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="decGrowthRate" />
+                    <q-skeleton v-if="loading" type="rect" height="28px" width="80px" />
+                    <input
+                      v-else-if="dcfBasedOn === 'eps'"
+                      v-model="form.growthRate"
+                      class="input-section"
+                      data-testid="field-growth"
+                      :aria-label="t('growth_rate')"
+                      type="number"
+                      outlined
+                    />
+                    <input
+                      v-else-if="dcfBasedOn === 'freecashflow'"
+                      v-model="form.freecashflowGrowthRate"
+                      class="input-section"
+                      :aria-label="t('growth_rate')"
+                      type="number"
+                      outlined
+                    />
+                    <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="incGrowthRate" />
+                    <span class="stepper__unit">%</span>
+                  </div>
+                </div>
+                <assumption-track
+                  :current="currentGrowth"
+                  :origin="defaultGrowth"
+                  :min="0"
+                  :max="growthCeiling"
+                  :label="t('track_default')"
+                  testid="track-growth"
                 />
-                <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="incGrowthRate" />
+                <p class="dcf__field-note">{{ t('growth_cap_note') }} {{ growthCapDetail }}</p>
               </div>
             </div>
-            <q-separator />
+
 
             <scenario-bar :keys="scenarioKeys" :active="activeScenario" @pick="setScenario" @reset="resetScenario" />
             <div v-if="!loading && stock.predictability != null && stock.predictability <= 1" class="dcf__warn">
@@ -117,7 +146,21 @@
             </div>
             <q-separator />
             <details class="dcf__advanced" data-testid="advanced-assumptions">
-              <summary>{{ t('advanced_assumptions') }}</summary>
+              <summary>
+                {{ t('advanced_assumptions') }}
+                <span v-if="defaultTerminalGrowth != null" class="dcf__advanced-hint">{{ t('advanced_terminal_hint', { rate: percent(defaultTerminalGrowth) }) }}</span>
+              </summary>
+              <div class="dcf__terminal-row">
+                <span class="dcf__field-label">{{ t('terminal_growth_short') }}</span>
+                <div class="stepper stepper--sm">
+                  <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
+                  <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
+                  <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_rate')" outlined />
+                  <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
+                  <span class="stepper__unit">%</span>
+                </div>
+              </div>
+              <p v-if="defaultTerminalGrowth != null" class="dcf__field-note">{{ t('default_terminal_growth_note', { rate: percent(defaultTerminalGrowth) }) }}</p>
               <div class="dcf__scenario">
                 <a-popover placement="top">
                   <span class="dcf__scenario-label">{{ t('model') }} <q-icon class="text-grey-7" name="help" size="14px" /></span>
@@ -223,10 +266,10 @@
                   <div class="stage-row">
                     <span>{{ t('dcf_years') }}</span>
                     <div class="stepper">
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.years > 0 ? form.years-- : (form.years = 0)" />
+                      <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="form.years > 0 ? form.years-- : (form.years = 0)" />
                       <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
                       <input v-else v-model="form.years" class="input-section" data-testid="field-growth-years" :aria-label="t('growth_year_in_the_next')" type="number" outlined />
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.years++" />
+                      <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.years++" />
                     </div>
                   </div>
                   <p v-if="!loading && growthNote" class="stage-panel__note">{{ growthNote }}</p>
@@ -250,19 +293,10 @@
                   <div class="stage-row">
                     <span>{{ t('dcf_years') }}</span>
                     <div class="stepper">
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="decTerminalYears" />
+                      <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="decTerminalYears" />
                       <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
                       <input v-else v-model="form.yearsOfTerminalGrowth" class="input-section" :aria-label="t('years_of_terminal_growth')" type="number" outlined />
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.yearsOfTerminalGrowth++" />
-                    </div>
-                  </div>
-                  <div class="stage-row">
-                    <span>{{ t('growth_rate') }}</span>
-                    <div class="stepper">
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="remove" style="border-radius: 0" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
-                      <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                      <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_rate')" outlined />
-                      <q-btn class="bg-indigo-1" square size="sm" flat dense icon="add" style="border-radius: 0" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
+                      <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.yearsOfTerminalGrowth++" />
                     </div>
                   </div>
                   <p v-if="!loading" class="stage-panel__note">{{ stageNote }}</p>
@@ -312,6 +346,19 @@
               {{ t('converted_note', { currency: display.currency, native: stock.currency || '' }) }}
             </div>
           </div>
+        </q-card-section>
+
+          <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
+            :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited" :currency="stock.currency || '¥'"
+            :expectation="priceExpectation" />
+          <policy-provenance
+            v-if="!resultLoading && policyEntry && !isManual"
+            :entry="policyEntry"
+            :currency="stock.currency || '¥'"
+            :earnings-label="earningsDateLabel"
+            :quote-label="quoteDateLabel"
+            :show-explanation="showPublished"
+          />
 
           <sensitivity-panel
             v-if="!loading && sensitivityGrid"
@@ -361,11 +408,12 @@ import { useDcfStore } from '../store/dcf'
 import { usePolicyStore } from '../store/policy'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
-import { adoptGrowth, officialGrowth } from '../lib/assumptions'
+import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
 import { REASON } from '../lib/reasons'
 import { marginStress as calculateMarginStress } from '../lib/marginStress'
 import MarginStress from './dcf/MarginStress.vue'
+import AssumptionTrack from './dcf/AssumptionTrack.vue'
 import { firmFreeCashFlow, suggestedModel, VALUATION_MODELS } from '../lib/valuationModel'
 import { clamp, money, percent } from '../lib/format'
 import { useMoney } from '../composables/useMoney'
@@ -561,6 +609,17 @@ const result = reactive({
   tbv: null, stockPrice: null, growthValue: null, terminalValue: null, finiteTerminalValue: null, continuationValue: null, reverseGrowthRate: null,
   marginOfSafety: null, addToFairValue: false, fairValue: null, fairLow: null, fairHigh: null,
 })
+const publishedOfficial = computed(() => {
+  const entry = policyEntry.value
+  if (entry?.status !== 'ok') return null
+  return {
+    fairValue: entry.value,
+    marginOfSafety: quoteEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
+    fairLow: entry.band?.low ?? null,
+    fairHigh: entry.band?.high ?? null,
+    reverseGrowthRate: showPublished.value ? result.reverseGrowthRate : null,
+  }
+})
 const headline = computed(() => {
   if (showPublished.value) {
     const entry = policyEntry.value
@@ -574,6 +633,34 @@ const headline = computed(() => {
   }
   if (trialActive.value) return result
   return { fairValue: null, marginOfSafety: null, fairLow: null, fairHigh: null, reverseGrowthRate: null }
+})
+const defaultDiscount = computed(() => {
+  const n = Number(policyEntry.value?.inputs?.discountRate ?? baseAssumptions.value?.discountRate)
+  return Number.isFinite(n) ? n : null
+})
+const defaultGrowth = computed(() => {
+  const published = policyEntry.value?.inputs?.growth
+  const n = Number(published ?? baseAssumptions.value?.growthRate)
+  return Number.isFinite(n) ? n : null
+})
+const currentGrowth = computed(() => finiteOrNull(dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate))
+const growthOffDefault = computed(() => currentGrowth.value != null && defaultGrowth.value != null && Math.abs(currentGrowth.value - defaultGrowth.value) > 1e-9)
+const growthCeiling = computed(() => {
+  const gStar = Number(policyEntry.value?.inputs?.sustainableGrowth)
+  if (Number.isFinite(gStar)) return Math.min(MAX_UNDERWRITTEN_GROWTH, Math.max(0, gStar))
+  return MAX_UNDERWRITTEN_GROWTH
+})
+const growthCapDetail = computed(() => {
+  const gStar = Number(policyEntry.value?.inputs?.sustainableGrowth)
+  if (Number.isFinite(gStar)) {
+    const capped = Math.min(MAX_UNDERWRITTEN_GROWTH, Math.max(0, gStar))
+    return t('growth_cap_company', { cap: percent(capped) })
+  }
+  return t('growth_cap_fifteen')
+})
+const defaultTerminalGrowth = computed(() => {
+  const n = Number(policyEntry.value?.inputs?.terminalGrowthRate ?? baseAssumptions.value?.terminalGrowthRate)
+  return Number.isFinite(n) ? n : null
 })
 const stressQuote = computed(() => result.stockPrice)
 const stressRows = computed(() => {
@@ -759,7 +846,7 @@ const pinSource = (id) => {
 }
 
 // Scenarios: a fixed preset over the three dials, restored from a base snapshot.
-const scenarioKeys = ['base', 'bull', 'bear']
+const scenarioKeys = ['bear', 'base', 'bull']
 const activeScenario = ref('base')
 const baseAssumptions = ref(null)
 // Assignments made by a preset must not look like a manual edit: the watcher
