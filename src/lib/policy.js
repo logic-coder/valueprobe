@@ -307,6 +307,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   if (price === null) warnings.push(WARNING.PRICE_MISSING)
   // A kept snapshot took a fresh quote: a split since the last filing cannot be ruled out.
   if (stock.split_unverified === true) warnings.push(WARNING.SPLIT_UNVERIFIED)
+  if (stock.share_basis_unverified === true) warnings.push(WARNING.SHARE_BASIS_UNVERIFIED)
 
   // ---- earnings base ------------------------------------------------------
   // Official earnings_base is already chosen from complete fiscal years.

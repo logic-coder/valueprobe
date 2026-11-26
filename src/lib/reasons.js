@@ -61,6 +61,9 @@ export const WARNING = Object.freeze({
   // A kept snapshot took a fresh quote after a failed filings refresh: a split
   // since the last filing cannot be ruled out, so the two sides may not share a basis.
   SPLIT_UNVERIFIED: 'SPLIT_UNVERIFIED',
+  // A new listing whose quote feed has no market cap cannot be cross-checked
+  // against the filing share count; the per-share basis is disclosed, not guessed.
+  SHARE_BASIS_UNVERIFIED: 'SHARE_BASIS_UNVERIFIED',
   // Latest two clean years confirm a new earnings platform; the base uses the last three weighted years.
   PERSISTENT_STEP_BASE: 'PERSISTENT_STEP_BASE',
   // TTM includes a material non-operating gain and is not used as the official base.

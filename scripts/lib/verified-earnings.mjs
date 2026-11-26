@@ -9,11 +9,30 @@ const verified = {
     source: 'https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf',
     ordinarySharesPerAdr: 5,
   },
+  // Class B EPS is read directly from the 10-K's Equivalent Class B column;
+  // ratio 1 records that no ADR-style scaling is needed for the quote.
+  'NYSE:BRK.B': {
+    date: '2025-12-31',
+    eps: 31.04,
+    source: 'https://www.sec.gov/Archives/edgar/data/1067983/000119312526083899/brka-20251231.htm',
+    ordinarySharesPerAdr: 1,
+  },
 }
+
+// Ordinary shares quoted in the same class as the SEC per-share facts. The
+// quote fallback does not carry market cap, so without this the share-basis
+// gate rejects a valid listing as "unknown" instead of accepting its 1:1 basis.
+// These are not ADRs and none has a share-class multiplier.
+const shareBasisVerified = new Set([
+  'NASDAQ:WMT', 'NYSE:GE', 'NASDAQ:HON', 'NYSE:FDX', 'NASDAQ:AAL', 'NYSE:CMG',
+  'NASDAQ:DPZ', 'NYSE:PAYC', 'NYSE:NOW', 'NYSE:SNOW', 'NYSE:NET', 'NASDAQ:CRWD',
+  'NASDAQ:PANW', 'NASDAQ:ZS', 'NASDAQ:MDB', 'NASDAQ:TEAM',
+])
 
 export const verifiedQuoteFactor = (symbol) => {
   const ratio = verified[symbol]?.ordinarySharesPerAdr
-  return ratio ? 1 / ratio : null
+  if (ratio) return 1 / ratio
+  return shareBasisVerified.has(symbol) ? 1 : null
 }
 
 /** Refresh from a checked filing when the machine-readable feed is behind. */

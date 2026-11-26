@@ -71,6 +71,13 @@ describe('publish gate', () => {
     expect(assessPublish({ mode: 'quotes', scope: 'all', outcomes: rows(['SHSE:600001']), previous, current: eleven }).blocked.join(' '))
       .toContain('refused count rose by 11')
   })
+  it('allows newly declared listings to be refused without treating expansion as a loss', () => {
+    const previous = release({ refused: 10 })
+    previous.universe.declared = 500
+    const grown = release({ refused: 30 })
+    grown.universe.declared = 520
+    expect(assessPublish({ mode: 'quotes', scope: 'all', outcomes: rows(['SHSE:600001']), previous, current: grown }).blocked).toEqual([])
+  })
   it('blocks a market that lost every value', () => {
     const previous = release({ markets: ['SHSE', 'HKSE'] })
     expect(assessPublish({ mode: 'quotes', scope: 'all', outcomes: rows(['SHSE:600001']), previous,

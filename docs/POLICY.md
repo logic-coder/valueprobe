@@ -79,6 +79,7 @@
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
 | `SPLIT_UNVERIFIED` | 沿用上次每股数据、只更新了报价；其间若发生拆股，两个数字可能不在同一口径。 |
+| `SHARE_BASIS_UNVERIFIED` | 报价源没有市值，申报股数无法与报价单位交叉核对；按申报每股口径披露，待有市值源时复核。 |
 | `STALE_DATA` | 估值采用较早的盈利期间。 |
 | `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |
@@ -186,13 +187,13 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-26；`rates.asOf` 2026-11-26。政策哈希为 `c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5`（2026-11-25 现金兜底与 Assurant 行业证据修订，本次扩容与报价回补未改规则）。`upstreamCheckedAt` 为 2026-11-26T01:47:24.572Z（真实上游核验时间，台北时间 09:47:24）。发布状态 `ok`，最新为 `scope=targeted`、`mode=quotes` 的过期报价回补；上一批为 `scope=candidates`、`mode=all` 的新增覆盖，均无 `partial` / `blocked`。
+- `generatedAt` 2026-11-26；`rates.asOf` 2026-11-26。政策哈希为 `c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5`（2026-11-25 现金兜底与 Assurant 行业证据修订，本次扩容未改规则）。`upstreamCheckedAt` 为 2026-11-26T04:09:35.563Z（真实上游核验时间，台北时间 12:09:35）。发布状态 `ok`，最新为 `scope=candidates`、`mode=all` 的 1119 条扩容；上一批为 `scope=targeted`、`mode=quotes` 的过期报价回补，均无 `partial` / `blocked`。
 - 利率：CNY 1.5914（asOf 2026-11-25，snapshot）、USD 4.85（asOf 2026-11-25，snapshot）、HKD 4.85（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币仍为 11%（ceil(4.85)+6；上一批 USD 4.91 时同为 11%；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
-- 声明、快照与估值条目各 502 条，有值 457 条，拒绝 45 条（上一版 500 / 455 / 45；冻结 v2：407 / 93；现金兜底前：452 / 48）。新增 `NASDAQ:GOOG`、`NASDAQ:SMCI` 已经暂存核验后正式安装；`GOOG` 与 `GOOGL` 同一发行人、同一经济口径。`CASH_UNRECONCILED` 14 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 53 条；`BASE_CASH_CONFIRMED` 3 条（BIIB、默克、辉瑞）。`BASE_QUALITY_INSUFFICIENT` 6 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 仍为 2 条（`NASDAQ:TROW`、`NYSE:PCG`）。
-- 拒绝原因出现次数，`NO_GROWTH` 15、`CASH_UNRECONCILED` 14、`NO_EPS` 11、`BASE_QUALITY_INSUFFICIENT` 6、`UNSTABLE_BASE_REGIME` 6、`NON_POSITIVE_EPS` 5、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 68 条。`NORMALIZED_EPS` 225 条，`CASH_DIVERGENCE`（25–49%）57 条，`CASH_MIDPOINT` 53 条，`PERSISTENT_STEP_BASE` 134 条，`CASH_PERIOD_LAG` 376 条，`BASE_QUALITY_REDUCED` 39 条，`TTM_NONOPERATING` 8 条，`TTM_QUALITY_UNKNOWN` 7 条。`OWNER_BASE_GAP` 2 条，`REGIME_UNCERTAIN` 111 条，`SHORT_HISTORY` 64 条，`NO_WINDOW_ZERO_START` 42 条，`CAPPED_GROWTH` 91 条，`GROWTH_ABOVE_RETENTION` 18 条，`LIFE_BOOK_QUALITY` 3 条。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 452 条、`residual` 50 条（`NYSE:AIZ` 按 SEC SIC 6399 归入保险）。
-- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 1 条（`NYSE:BAC`）。此前报价 213 条带日期更新、287 条失败后保留既有报价，`QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条；随后对这 75 条用不复权日 K 回退补刷。日历推进又使 183 条 2026-11-18 报价跨过 7 天阈值，已用定向 `--mode=quotes` 刷回。当前 502 条快照全部有交易日，`QUOTE_DATE_UNKNOWN` 0、`STALE_PRICE` 0，不编造缺失的报价日期，发布状态 `ok`。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
-- 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 401 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；经营现金流每股 397 条、资本开支每股 369 条（主要用于美国年报，工件中 342 条带 capex/OCF 诊断）。显式 `reporting_currency` 仍为 0，读时派生。
+- 声明、快照与估值条目各 1119 条，有值 911 条，拒绝 208 条（上一版 523 / 466 / 57；冻结 v2：407 / 93；现金兜底前：452 / 48）。本批新增 `NYSE:BRK.B`、20 只热门代码与 596 只高市值候选；`GOOG` 与 `GOOGL` 同一发行人、同一经济口径。`CASH_UNRECONCILED` 47 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 131 条；`BASE_CASH_CONFIRMED` 6 条。`BASE_QUALITY_INSUFFICIENT` 13 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 24 条。
+- 拒绝原因出现次数，`NO_GROWTH` 127、`NON_POSITIVE_EPS` 76、`NO_EPS` 56、`CASH_UNRECONCILED` 47、`UNSTABLE_BASE_REGIME` 13、`BASE_QUALITY_INSUFFICIENT` 13、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 201 条。`NORMALIZED_EPS` 499 条，`CASH_DIVERGENCE`（25–49%）118 条，`CASH_MIDPOINT` 131 条，`PERSISTENT_STEP_BASE` 289 条，`CASH_PERIOD_LAG` 754 条，`BASE_QUALITY_REDUCED` 73 条，`TTM_NONOPERATING` 14 条，`TTM_QUALITY_UNKNOWN` 18 条。`OWNER_BASE_GAP` 24 条，`REGIME_UNCERTAIN` 200 条，`SHORT_HISTORY` 219 条，`NO_WINDOW_ZERO_START` 151 条，`CAPPED_GROWTH` 191 条，`GROWTH_ABOVE_RETENTION` 53 条，`LIFE_BOOK_QUALITY` 3 条，`BASE_HISTORY_SHORT` 4 条。`SHARE_BASIS_UNVERIFIED` 596 条：报价源无市值，SEC 申报股数未能与报价单位交叉核对，按申报每股口径发布并披露。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 1032 条、`residual` 87 条（`NYSE:AIZ` 按 SEC SIC 6399 归入保险）。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 25 条。此前报价 213 条带日期更新、287 条失败后保留既有报价，`QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条；随后对这 75 条用不复权日 K 回退补刷。日历推进又使 183 条 2026-11-18 报价跨过 7 天阈值，已用定向 `--mode=quotes` 刷回。当前 1119 条快照全部有交易日，`QUOTE_DATE_UNKNOWN` 0、`STALE_PRICE` 0，不编造缺失的报价日期，发布状态 `ok`。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
+- 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 1018 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；经营现金流每股 397 条、资本开支每股 369 条（主要用于美国年报，工件中 342 条带 capex/OCF 诊断）。显式 `reporting_currency` 仍为 0，读时派生。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)
 

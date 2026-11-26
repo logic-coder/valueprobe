@@ -1,0 +1,775 @@
+{
+  "as_of": "2026-11-26",
+  "symbol": "SNAP",
+  "exchange_": "NYSE",
+  "company": "SNAP INC",
+  "currency": "$",
+  "price": "$5.04",
+  "quote_as_of": "2026-11-25",
+  "quote_source": "tencent-kline",
+  "ttm_eps": -0.09,
+  "ttm_eps_nri": -0.09,
+  "ttm_nonoperating_gain": null,
+  "ttm_net_income": -151204000,
+  "ttm_operating_income": -118737000,
+  "ttm_quality_as_of": "2026-09-30",
+  "ttm_quality_facts_searched": true,
+  "free_cash_flow_per_share": 0.258,
+  "tangible_book": 0.2916,
+  "earning_growth_10y": null,
+  "earning_growth_5y": null,
+  "earning_growth_1y": null,
+  "cashflow_growth_10y": null,
+  "cashflow_growth_5y": 15.9,
+  "cashflow_growth_1y": 95.75,
+  "book_growth_10y": null,
+  "rvn_growth_10y": null,
+  "ebit_growth_10y": null,
+  "cashflow_basis": null,
+  "eps_period": "TTM",
+  "eps_as_of": "2026-09-30",
+  "eps_source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001564408.json",
+  "predictability": 1,
+  "financials": {
+    "annual": [
+      {
+        "date": "2016-12",
+        "eps_without_nri": -0.64,
+        "revenue_per_share": 0.5007,
+        "operating_income_per_share": -0.6441,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": -0.8389,
+        "depreciation_amortization_per_share": 0.036,
+        "share_based_comp_per_share": 0.0394,
+        "dividends_per_share": null,
+        "book_value_per_share": 1.3911,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -514643000,
+        "operating_income": -520385000,
+        "operating_cash_flow_per_share": -0.7566,
+        "capex_per_share": 0.0822
+      },
+      {
+        "date": "2017-12",
+        "eps_without_nri": -2.95,
+        "revenue_per_share": 0.7075,
+        "operating_income_per_share": -2.9891,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": -0.7025,
+        "depreciation_amortization_per_share": 0.0526,
+        "share_based_comp_per_share": 2.2639,
+        "dividends_per_share": null,
+        "book_value_per_share": 1.8746,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -3445066000,
+        "operating_income": -3485576000,
+        "operating_cash_flow_per_share": -0.63,
+        "capex_per_share": 0.0725
+      },
+      {
+        "date": "2018-12",
+        "eps_without_nri": -0.97,
+        "revenue_per_share": 0.9076,
+        "operating_income_per_share": -0.9753,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": -0.6229,
+        "depreciation_amortization_per_share": 0.0705,
+        "share_based_comp_per_share": 0.4138,
+        "dividends_per_share": null,
+        "book_value_per_share": 1.1938,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -1255911000,
+        "operating_income": -1268450000,
+        "operating_cash_flow_per_share": -0.5305,
+        "capex_per_share": 0.0925
+      },
+      {
+        "date": "2019-12",
+        "eps_without_nri": -0.75,
+        "revenue_per_share": 1.2472,
+        "operating_income_per_share": -0.8022,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": -0.2482,
+        "depreciation_amortization_per_share": 0.0634,
+        "share_based_comp_per_share": 0.4988,
+        "dividends_per_share": null,
+        "book_value_per_share": 1.0227,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -1033660000,
+        "operating_income": -1103328000,
+        "operating_cash_flow_per_share": -0.2217,
+        "capex_per_share": 0.0265
+      },
+      {
+        "date": "2020-12",
+        "eps_without_nri": -0.65,
+        "revenue_per_share": 1.7219,
+        "operating_income_per_share": -0.5922,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": -0.1549,
+        "depreciation_amortization_per_share": 0.0596,
+        "share_based_comp_per_share": 0.5291,
+        "dividends_per_share": null,
+        "book_value_per_share": 0.8826,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 0,
+        "net_income": -944839000,
+        "operating_income": -862072000,
+        "operating_cash_flow_per_share": -0.1152,
+        "capex_per_share": 0.0397
+      },
+      {
+        "date": "2021-12",
+        "eps_without_nri": -0.31,
+        "revenue_per_share": 2.6408,
+        "operating_income_per_share": -0.4503,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": 0.143,
+        "depreciation_amortization_per_share": 0.0764,
+        "share_based_comp_per_share": 0.7005,
+        "dividends_per_share": null,
+        "book_value_per_share": 1.2342,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": 122064000,
+        "net_income": -487955000,
+        "operating_income": -702069000,
+        "operating_cash_flow_per_share": 0.1879,
+        "capex_per_share": 0.0448
+      },
+      {
+        "date": "2022-12",
+        "eps_without_nri": -0.89,
+        "revenue_per_share": 2.8613,
+        "operating_income_per_share": -0.8676,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": 0.0344,
+        "depreciation_amortization_per_share": 0.1257,
+        "share_based_comp_per_share": 0.8629,
+        "dividends_per_share": null,
+        "book_value_per_share": 0.454,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": -101309000,
+        "net_income": -1429653000,
+        "operating_income": -1395306000,
+        "operating_cash_flow_per_share": 0.1148,
+        "capex_per_share": 0.0804
+      },
+      {
+        "date": "2023-12",
+        "eps_without_nri": -0.82,
+        "revenue_per_share": 2.8565,
+        "operating_income_per_share": -0.8672,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": 0.0216,
+        "depreciation_amortization_per_share": 0.1045,
+        "share_based_comp_per_share": 0.8211,
+        "dividends_per_share": null,
+        "book_value_per_share": 0.3572,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": -6685000,
+        "net_income": -1322485000,
+        "operating_income": -1398379000,
+        "operating_cash_flow_per_share": 0.1529,
+        "capex_per_share": 0.1313
+      },
+      {
+        "date": "2024-12",
+        "eps_without_nri": -0.42,
+        "revenue_per_share": 3.2314,
+        "operating_income_per_share": -0.4745,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": 0.1318,
+        "depreciation_amortization_per_share": 0.0953,
+        "share_based_comp_per_share": 0.6274,
+        "dividends_per_share": null,
+        "book_value_per_share": 0.4066,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": -1185000,
+        "net_income": -697856000,
+        "operating_income": -787294000,
+        "operating_cash_flow_per_share": 0.2492,
+        "capex_per_share": 0.1174
+      },
+      {
+        "date": "2025-12",
+        "eps_without_nri": -0.27,
+        "revenue_per_share": 3.5002,
+        "operating_income_per_share": -0.314,
+        "ebitda_per_share": null,
+        "free_cash_flow_per_share": 0.258,
+        "depreciation_amortization_per_share": 0.0966,
+        "share_based_comp_per_share": 0.6,
+        "dividends_per_share": null,
+        "book_value_per_share": 0.2916,
+        "quality_facts_searched": true,
+        "equity_securities_fv_ni_gain_loss": -5636000,
+        "net_income": -460489000,
+        "operating_income": -532167000,
+        "operating_cash_flow_per_share": 0.3872,
+        "capex_per_share": 0.1292
+      }
+    ],
+    "ttm": [
+      {
+        "date": "2025-12",
+        "eps_without_nri": -0.27,
+        "free_cash_flow_per_share": 0.258,
+        "book_value_per_share": 0.2916
+      }
+    ],
+    "quarter": []
+  },
+  "share_basis_unverified": true,
+  "history": {
+    "eps_without_nri": [
+      [
+        "2016-12",
+        -0.64
+      ],
+      [
+        "2017-12",
+        -2.95
+      ],
+      [
+        "2018-12",
+        -0.97
+      ],
+      [
+        "2019-12",
+        -0.75
+      ],
+      [
+        "2020-12",
+        -0.65
+      ],
+      [
+        "2021-12",
+        -0.31
+      ],
+      [
+        "2022-12",
+        -0.89
+      ],
+      [
+        "2023-12",
+        -0.82
+      ],
+      [
+        "2024-12",
+        -0.42
+      ],
+      [
+        "2025-12",
+        -0.27
+      ]
+    ],
+    "revenue_per_share": [
+      [
+        "2016-12",
+        0.5007
+      ],
+      [
+        "2017-12",
+        0.7075
+      ],
+      [
+        "2018-12",
+        0.9076
+      ],
+      [
+        "2019-12",
+        1.2472
+      ],
+      [
+        "2020-12",
+        1.7219
+      ],
+      [
+        "2021-12",
+        2.6408
+      ],
+      [
+        "2022-12",
+        2.8613
+      ],
+      [
+        "2023-12",
+        2.8565
+      ],
+      [
+        "2024-12",
+        3.2314
+      ],
+      [
+        "2025-12",
+        3.5002
+      ]
+    ],
+    "operating_income_per_share": [
+      [
+        "2016-12",
+        -0.6441
+      ],
+      [
+        "2017-12",
+        -2.9891
+      ],
+      [
+        "2018-12",
+        -0.9753
+      ],
+      [
+        "2019-12",
+        -0.8022
+      ],
+      [
+        "2020-12",
+        -0.5922
+      ],
+      [
+        "2021-12",
+        -0.4503
+      ],
+      [
+        "2022-12",
+        -0.8676
+      ],
+      [
+        "2023-12",
+        -0.8672
+      ],
+      [
+        "2024-12",
+        -0.4745
+      ],
+      [
+        "2025-12",
+        -0.314
+      ]
+    ],
+    "free_cash_flow_per_share": [
+      [
+        "2016-12",
+        -0.8389
+      ],
+      [
+        "2017-12",
+        -0.7025
+      ],
+      [
+        "2018-12",
+        -0.6229
+      ],
+      [
+        "2019-12",
+        -0.2482
+      ],
+      [
+        "2020-12",
+        -0.1549
+      ],
+      [
+        "2021-12",
+        0.143
+      ],
+      [
+        "2022-12",
+        0.0344
+      ],
+      [
+        "2023-12",
+        0.0216
+      ],
+      [
+        "2024-12",
+        0.1318
+      ],
+      [
+        "2025-12",
+        0.258
+      ]
+    ],
+    "depreciation_amortization_per_share": [
+      [
+        "2016-12",
+        0.036
+      ],
+      [
+        "2017-12",
+        0.0526
+      ],
+      [
+        "2018-12",
+        0.0705
+      ],
+      [
+        "2019-12",
+        0.0634
+      ],
+      [
+        "2020-12",
+        0.0596
+      ],
+      [
+        "2021-12",
+        0.0764
+      ],
+      [
+        "2022-12",
+        0.1257
+      ],
+      [
+        "2023-12",
+        0.1045
+      ],
+      [
+        "2024-12",
+        0.0953
+      ],
+      [
+        "2025-12",
+        0.0966
+      ]
+    ],
+    "share_based_comp_per_share": [
+      [
+        "2016-12",
+        0.0394
+      ],
+      [
+        "2017-12",
+        2.2639
+      ],
+      [
+        "2018-12",
+        0.4138
+      ],
+      [
+        "2019-12",
+        0.4988
+      ],
+      [
+        "2020-12",
+        0.5291
+      ],
+      [
+        "2021-12",
+        0.7005
+      ],
+      [
+        "2022-12",
+        0.8629
+      ],
+      [
+        "2023-12",
+        0.8211
+      ],
+      [
+        "2024-12",
+        0.6274
+      ],
+      [
+        "2025-12",
+        0.6
+      ]
+    ],
+    "book_value_per_share": [
+      [
+        "2016-12",
+        1.3911
+      ],
+      [
+        "2017-12",
+        1.8746
+      ],
+      [
+        "2018-12",
+        1.1938
+      ],
+      [
+        "2019-12",
+        1.0227
+      ],
+      [
+        "2020-12",
+        0.8826
+      ],
+      [
+        "2021-12",
+        1.2342
+      ],
+      [
+        "2022-12",
+        0.454
+      ],
+      [
+        "2023-12",
+        0.3572
+      ],
+      [
+        "2024-12",
+        0.4066
+      ],
+      [
+        "2025-12",
+        0.2916
+      ]
+    ],
+    "quality_facts_searched": [
+      [
+        "2016-12",
+        true
+      ],
+      [
+        "2017-12",
+        true
+      ],
+      [
+        "2018-12",
+        true
+      ],
+      [
+        "2019-12",
+        true
+      ],
+      [
+        "2020-12",
+        true
+      ],
+      [
+        "2021-12",
+        true
+      ],
+      [
+        "2022-12",
+        true
+      ],
+      [
+        "2023-12",
+        true
+      ],
+      [
+        "2024-12",
+        true
+      ],
+      [
+        "2025-12",
+        true
+      ]
+    ],
+    "equity_securities_fv_ni_gain_loss": [
+      [
+        "2016-12",
+        0
+      ],
+      [
+        "2017-12",
+        0
+      ],
+      [
+        "2018-12",
+        0
+      ],
+      [
+        "2019-12",
+        0
+      ],
+      [
+        "2020-12",
+        0
+      ],
+      [
+        "2021-12",
+        122064000
+      ],
+      [
+        "2022-12",
+        -101309000
+      ],
+      [
+        "2023-12",
+        -6685000
+      ],
+      [
+        "2024-12",
+        -1185000
+      ],
+      [
+        "2025-12",
+        -5636000
+      ]
+    ],
+    "net_income": [
+      [
+        "2016-12",
+        -514643000
+      ],
+      [
+        "2017-12",
+        -3445066000
+      ],
+      [
+        "2018-12",
+        -1255911000
+      ],
+      [
+        "2019-12",
+        -1033660000
+      ],
+      [
+        "2020-12",
+        -944839000
+      ],
+      [
+        "2021-12",
+        -487955000
+      ],
+      [
+        "2022-12",
+        -1429653000
+      ],
+      [
+        "2023-12",
+        -1322485000
+      ],
+      [
+        "2024-12",
+        -697856000
+      ],
+      [
+        "2025-12",
+        -460489000
+      ]
+    ],
+    "operating_income": [
+      [
+        "2016-12",
+        -520385000
+      ],
+      [
+        "2017-12",
+        -3485576000
+      ],
+      [
+        "2018-12",
+        -1268450000
+      ],
+      [
+        "2019-12",
+        -1103328000
+      ],
+      [
+        "2020-12",
+        -862072000
+      ],
+      [
+        "2021-12",
+        -702069000
+      ],
+      [
+        "2022-12",
+        -1395306000
+      ],
+      [
+        "2023-12",
+        -1398379000
+      ],
+      [
+        "2024-12",
+        -787294000
+      ],
+      [
+        "2025-12",
+        -532167000
+      ]
+    ],
+    "operating_cash_flow_per_share": [
+      [
+        "2016-12",
+        -0.7566
+      ],
+      [
+        "2017-12",
+        -0.63
+      ],
+      [
+        "2018-12",
+        -0.5305
+      ],
+      [
+        "2019-12",
+        -0.2217
+      ],
+      [
+        "2020-12",
+        -0.1152
+      ],
+      [
+        "2021-12",
+        0.1879
+      ],
+      [
+        "2022-12",
+        0.1148
+      ],
+      [
+        "2023-12",
+        0.1529
+      ],
+      [
+        "2024-12",
+        0.2492
+      ],
+      [
+        "2025-12",
+        0.3872
+      ]
+    ],
+    "capex_per_share": [
+      [
+        "2016-12",
+        0.0822
+      ],
+      [
+        "2017-12",
+        0.0725
+      ],
+      [
+        "2018-12",
+        0.0925
+      ],
+      [
+        "2019-12",
+        0.0265
+      ],
+      [
+        "2020-12",
+        0.0397
+      ],
+      [
+        "2021-12",
+        0.0448
+      ],
+      [
+        "2022-12",
+        0.0804
+      ],
+      [
+        "2023-12",
+        0.1313
+      ],
+      [
+        "2024-12",
+        0.1174
+      ],
+      [
+        "2025-12",
+        0.1292
+      ]
+    ]
+  }
+}

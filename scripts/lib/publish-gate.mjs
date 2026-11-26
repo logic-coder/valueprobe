@@ -81,7 +81,11 @@ export function assessPublish ({ mode, scope, outcomes, previous, current, rates
       blocked.push('valued count fell from ' + before.valued + ' to ' + now.valued + ' (over 10%)')
     }
     const extraRefused = now.refused - before.refused
-    const allowed = Math.max(5, Math.ceil((previous.universe?.declared || 0) * 0.02))
+    // New listings that cannot be valued are not a coverage loss. Allow every
+    // added symbol to be refused, plus the normal 2% tolerance for the existing
+    // universe; shrinking/changing coverage still trips the same gate.
+    const added = Math.max(0, (current.universe?.declared || 0) - (previous.universe?.declared || 0))
+    const allowed = Math.max(5, Math.ceil((previous.universe?.declared || 0) * 0.02)) + added
     if (extraRefused > allowed) blocked.push('refused count rose by ' + extraRefused + ' (allowed ' + allowed + ')')
     const oldMarkets = valuedByMarket(previous)
     const newMarkets = valuedByMarket(current)

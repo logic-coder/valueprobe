@@ -41,6 +41,7 @@ describe('searchStocks restores names lost to SEC display names', () => {
     { symbol: 'NASDAQ:SMCI', name: 'Super Micro Computer, Inc.' },
     { symbol: 'NYSE:TSM', name: 'TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD' },
     { symbol: 'NYSE:JPM', name: 'JPMORGAN CHASE & CO' },
+    { symbol: 'NYSE:BRK.B', name: 'BERKSHIRE HATHAWAY INC' },
   ]
 
   it('finds the companies readers previously searched by Chinese name', () => {
@@ -53,6 +54,8 @@ describe('searchStocks restores names lost to SEC display names', () => {
       ['超微电脑', ['NASDAQ:SMCI']],
       ['台积电', ['NYSE:TSM']],
       ['摩根大通', ['NYSE:JPM']],
+      ['伯克希尔', ['NYSE:BRK.B']],
+      ['Berkshire', ['NYSE:BRK.B']],
     ]
     for (const [query, symbols] of cases) {
       expect(searchStocks(catalog, query).map(match => match.stock.symbol)).toEqual(symbols)

@@ -20,6 +20,7 @@ import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earni
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
 import { tencentKlineQuote, tencentKlineSymbol } from './lib/snapshot-quotes.mjs'
+import { filingFactsFor } from './lib/sec-filing-fallback.mjs'
 import { PUBLISH_PATH, assessPublish, classifyOutcome, committedPublish, previousRelease, publishState, refreshVerification } from './lib/publish-gate.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -95,6 +96,7 @@ async function refresh (existing, baseline) {
   const getJson = transport({ headers: HEADERS, cacheDir })
   const secJson = transport({ headers: { 'User-Agent': UA, Accept: 'application/json' }, cacheDir, onFetched,
     valid: body => body?.facts || Object.values(body ?? {}).some(entry => entry?.cik_str && entry.ticker) })
+  const secPlainJson = transport({ headers: { 'User-Agent': UA, Accept: 'application/json' }, cacheDir, onFetched })
   const reportsJson = transport({ headers: HEADERS, cacheDir, onFetched,
     valid: body => Array.isArray(body?.data) || Array.isArray(body?.result?.data) })
   const statement = url => reportsJson(url, day + ':statement:' + url)
@@ -302,14 +304,37 @@ async function refresh (existing, baseline) {
         .then(body => Object.fromEntries(Object.values(body).map(entry => [String(entry.ticker).toUpperCase(), entry])))
         .catch(error => { tickerMap = null; throw error })
     }
-    const entry = (await tickerMap)[code]
+    // SEC uses BRK-B / BRK-A while the quote feed uses BRK.B / BRK.A.
+    const secTicker = code.includes('.') ? code.replace('.', '-') : code
+    const entry = (await tickerMap)[secTicker]
     if (!entry) throw new Error('unknown US ticker')
     if (expectedIssuer && Number(entry.cik_str) !== expectedIssuer) throw new Error('listing issuer identity changed')
     const cik = String(entry.cik_str).padStart(10, '0')
     const url = 'https://data.sec.gov/api/xbrl/companyfacts/CIK' + cik + '.json'
     const facts = await secJson(url, day + ':cik:' + cik)
     if (Number(facts.cik) !== Number(entry.cik_str)) throw new Error('SEC issuer mismatch')
-    return { ...fundamentalsFromFacts(market + ':' + code, facts), earningsSource: url, upstreamFetched: fetched.has(facts) }
+    let built
+    // Berkshire's Company Facts has recent totals but EPS only to 2013 and tags
+    // newer EPS by share class. Its per-share figures must come from the 10-K.
+    if (code === 'BRK.B') {
+      const submissionsUrl = 'https://data.sec.gov/submissions/CIK' + cik + '.json'
+      const submissions = await secPlainJson(submissionsUrl, day + ':submissions:' + cik)
+      built = await filingFactsFor({ symbol: market + ':' + code, cik: entry.cik_str, submissions, shareClass: 'B' })
+      if (!built) throw new Error('SEC 10-K fallback produced no fundamentals')
+    } else {
+      try {
+        built = fundamentalsFromFacts(market + ':' + code, facts)
+      } catch (error) {
+        // Some issuers tag EPS dimensionally or stop updating Company Facts.
+        // Use their own 10-K statements before giving up on the listing.
+        const submissionsUrl = 'https://data.sec.gov/submissions/CIK' + cik + '.json'
+        const submissions = await secPlainJson(submissionsUrl, day + ':submissions:' + cik)
+        const fallback = await filingFactsFor({ symbol: market + ':' + code, cik: entry.cik_str, submissions })
+        if (!fallback) throw error
+        built = fallback
+      }
+    }
+    return { ...built, earningsSource: built.earningsSource || url, upstreamFetched: true }
   }
 
   function historyFrom (financials) {
@@ -437,7 +462,11 @@ async function refresh (existing, baseline) {
               const checkedOrdinaryShare = /^\d{4}-\d{2}-\d{2}$/.test(seed.checkedSince) && pack.filingShares > 0 &&
                 pack.fields.eps_as_of && pack.fields.eps_as_of >= seed.checkedSince && pack.fields.eps_as_of <= seed.asOf
               if (!baseline.has(symbol) && !verified && !checkedOrdinaryShare && classifyShareBasis(shareRatio, factor) !== 'comparable') {
-                throw new Error('share basis needs verification')
+                // A dated fallback quote has no market cap, so the ratio cannot be
+                // computed. Keep the filed per-share basis and disclose that gap
+                // instead of silently dropping an otherwise verified listing.
+                if (!(Number(seed.marketCap) > 0) && pack.filingShares > 0) note.share_basis_unverified = true
+                else throw new Error('share basis needs verification')
               }
               if (factor !== 1) {
                 pack = scalePerShare(pack, factor)
