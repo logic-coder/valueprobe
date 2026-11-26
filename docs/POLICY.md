@@ -8,7 +8,7 @@
 
 | 参数 | 现行值（官方 v3） | 代码常量 |
 | --- | --- | --- |
-| 估值基数 | `repeatable-earnings`：可量化的白名单非经营项目先从该年盈利中扣除；扣除后若质量过关，该年权重 1.0，否则仍按 0.25 降权，且不得用于确认台阶。默认用最多五年完整财年近因加权。非金融企业若完整财年盈利波动同时满足低谷（最低年非正，或不超过中位数的 20%）与去趋势对数残差标准差 ≥ 0.50，且至少有 8 个完整财年，改用最多 10 年简单平均（`THROUGH_CYCLE_BASE`），并优先于五年加权和持续台阶。未触发跨周期、但确认持续盈利台阶时，改用最近三年加权（`PERSISTENT_STEP_BASE`）。没有干净正年份、但最新年度只是质量未知且同期间现金为正时，非金融企业取该年每股收益与现金中位数的较低者（`BASE_CASH_CONFIRMED`），不再向上取中点；已确认非经营或金融机构仍拒绝。近十二个月盈利只展示，不作为正式基数。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点，也不走跨周期硬触发 | `POLICY_V1.basis` / `revision.earningsBase` / `growth.throughCycle` / `revision.cashCrossCheck` |
+| 估值基数 | `repeatable-earnings`：官方观察使用原始年度每股收益，不构造调整后每股收益。含重大非经营项目或质量未知的年份只按 0.25 降权，且不得用于确认台阶。默认用最多五年完整财年近因加权。最近两年都必须是干净年份并确认持续盈利台阶时，改用最近三年加权（`PERSISTENT_STEP_BASE`）。跨周期均值只作为研究诊断，不再作为正式基数，新工件也不再发出 `THROUGH_CYCLE_BASE`。没有干净正年份、但最新年度只是质量未知且同期间现金为正时，非金融企业取该年每股收益与现金中位数的较低者（`BASE_CASH_CONFIRMED`），不再向上取中点；已确认非经营或金融机构仍拒绝。近十二个月盈利只展示，不作为正式基数。维护性资本开支按折旧摊销计（M≈D）。两边都能形成正估值且对称差距 50%–200% 时，公开值取两套估值的中点；金融机构仍只用盈利侧剩余收益，不用现金流中点 | `POLICY_V1.basis` / `revision.earningsBase` / `revision.cashCrossCheck` |
 | 一般公司模型 | `owner`：两期折现（`presentValue`） | `POLICY_V1.model.nonFinancial` |
 | 金融机构模型 | `residual`：剩余收益（`residualIncomeValue`） | `POLICY_V1.model.financialInstitution` |
 | 第一阶段年数 | `DCF_DEFAULTS.years` = 10 | `POLICY_V1.horizon.years` |
@@ -88,13 +88,13 @@
 | `CASH_DIVERGENCE` | 现金核对与盈利估值相差 25–49%，只披露仍发布。 |
 | `CASH_MIDPOINT` | 两边都能形成正估值且对称差距 50%–200%，公开值取中点；区间覆盖这两套估值。 |
 | `LATEST_FY_BASE` | 历史工件用语：盈利与现金流同步抬升时两边曾改用最近完整财年。新政策不再发出此码，改为 `PERSISTENT_STEP_BASE`。定义保留以便读取旧工件。 |
-| `PERSISTENT_STEP_BASE` | 最近两年确认新盈利平台，且未触发跨周期，基数改用最近三年加权正常化盈利。 |
-| `THROUGH_CYCLE_BASE` | 非金融企业完整财年盈利波动超过统一门槛，发布基数改用最多 10 年完整财年（扣除后）的简单平均，并优先于五年加权和持续台阶。 |
+| `PERSISTENT_STEP_BASE` | 最近两年均为干净年份并确认新盈利平台，基数改用最近三年加权正常化盈利。 |
+| `THROUGH_CYCLE_BASE` | 历史工件用语：曾把高波动完整财年改用最多 10 年简单平均作为正式基数。新政策不再发出此码；检测函数仍保留作研究诊断。定义保留以便读取旧工件。 |
 | `TTM_NONOPERATING` | 近十二个月盈利含重大非经营收益，未用于正式基数。 |
 | `TTM_QUALITY_UNKNOWN` | 近十二个月盈利的非经营质量无法确认，未用于正式基数。 |
 | `CASH_PERIOD_LAG` | 近十二个月盈利比年度现金截止日晚 180 天以上；仅提示，同期间年度现金仍可参与核对。 |
 | `BASE_HISTORY_SHORT` | 完整财年不足三年，按短历史正常化。 |
-| `BASE_QUALITY_REDUCED` | 部分完整财年的非经营项无法完整扣除，或质量仍不足，已降低权重，且不得用于确认台阶。 |
+| `BASE_QUALITY_REDUCED` | 部分完整财年被标为非经营或质量未知，已按 0.25 降低权重，且不得用于确认台阶。 |
 | `BASE_CASH_CONFIRMED` | 没有干净正年份，但最新年度只是质量未知且同期间现金为正；基数取该年每股收益与现金中位数的较低者，不向上取中点。 |
 | `CLASSIFICATION_UNVERIFIED` | 仅因缺列归入某一模型，且另一模型结果差异较大。 |
 | `NORMALIZED_EPS` | 发布基数是可重复盈利，与最近一期报告每股收益相差 25% 或以上。 |
@@ -188,12 +188,12 @@ CI（`.github/workflows/pages.yml`）与本地 `npm run verify` 跑同一链；�
 
 以下数字随 `npm run refresh` 变化，**以 `public/data/intrinsic/v3.json` 为准**：
 
-- `generatedAt` 2026-11-26；`rates.asOf` 2026-11-26。政策哈希现为 `99311fea69fa31c0ff9be1b01c008a03b9b5b838535d12c8595573ca116432b0`（2026-11-26 合入官方路径约束，并保留现金兜底与 1119 条扩容）。本轮用同一份已扩容基本面离线重算官方值，没有新的网络刷新；`upstreamCheckedAt` 仍为 2026-11-26T04:09:35.563Z（真实上游核验时间，台北时间 12:09:35）。发布状态 `ok`，`scope=candidates`、`mode=all`，无 `partial` / `blocked`。
+- `generatedAt` 2026-11-26；`rates.asOf` 2026-11-26。政策哈希现为 `0617829e85bd3688712568b8c4b7ec193f9d7ff0a69034ae560eb2a781c2f51f`（2026-11-26 恢复质量门，并将跨周期退出官方默认；区间跟随已约束起点与留存硬上限仍保留）。本轮用同一份已扩容基本面离线重算官方值，没有新的网络刷新；`upstreamCheckedAt` 仍为 2026-11-26T04:09:35.563Z（真实上游核验时间，台北时间 12:09:35）。发布状态 `ok`，`scope=candidates`、`mode=all`，无 `partial` / `blocked`。
 - 利率：CNY 1.5914（asOf 2026-11-25，snapshot）、USD 4.85（asOf 2026-11-25，snapshot）、HKD 4.85（`usd_proxy` → USD）。要求回报仍是 `max(10%, ceil(报告币种十年期)+6)`，缺失回退 10%。因此人民币官方折现率仍是 10%，美元与港币仍为 11%（ceil(4.85)+6；上一批 USD 4.91 时同为 11%；此前美元十年期 5.07 时为 12%）。这是公式在现行收益率下的结果，不是改公式。当前已提交快照仍没有经核验的 `reporting_currency` 字段，因此读时派生：A 股人民币 10%，美国上市美元 11%，港股回退报价港币并代理美元，同为 11%。已对齐 A/H 组大约差 1 个百分点。这是数据缺口，不是给某对 A/H 写了不同公式，也不应把这 1 个百分点当成要保留的政策特征。
-- 声明、快照与估值条目各 1119 条，有值 908 条，拒绝 211 条（合入路径约束前：911 / 208；上一版 523 / 466 / 57；冻结 v2：407 / 93）。覆盖范围未改：仍含 `NYSE:BRK.B`、20 只热门代码与 596 只高市值候选；`GOOG` 与 `GOOGL` 同一发行人、同一经济口径。`CASH_UNRECONCILED` 71 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 166 条；`THROUGH_CYCLE_BASE` 194 条；留存绑定 74 条。`BASE_CASH_CONFIRMED` 现为 0 条（规则仍在，本批原走现金兜底且触发跨周期的公司改用跨周期基数）。`BASE_QUALITY_INSUFFICIENT` 现为 0 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 24 条。
-- 拒绝原因出现次数，`NO_GROWTH` 118、`CASH_UNRECONCILED` 71、`NON_POSITIVE_EPS` 68、`NO_EPS` 56、`UNSTABLE_BASE_REGIME` 13、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
-- 过期基本面标记 `STALE_DATA` 201 条。`NORMALIZED_EPS` 545 条，`CASH_DIVERGENCE`（25–49%）112 条，`CASH_MIDPOINT` 166 条，`PERSISTENT_STEP_BASE` 248 条，`THROUGH_CYCLE_BASE` 194 条，`CASH_PERIOD_LAG` 763 条，`BASE_QUALITY_REDUCED` 1 条，`TTM_NONOPERATING` 14 条，`TTM_QUALITY_UNKNOWN` 18 条。`OWNER_BASE_GAP` 24 条，`REGIME_UNCERTAIN` 200 条，`SHORT_HISTORY` 228 条，`NO_WINDOW_ZERO_START` 160 条，`CAPPED_GROWTH` 140 条，`GROWTH_ABOVE_RETENTION` 74 条，`LIFE_BOOK_QUALITY` 3 条，`BASE_HISTORY_SHORT` 4 条。`SHARE_BASIS_UNVERIFIED` 596 条：报价源无市值，SEC 申报股数未能与报价单位交叉核对，按申报每股口径发布并披露。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH` 或 `LATEST_FY_BASE`。模型为 `owner` 1032 条、`residual` 87 条（`NYSE:AIZ` 按 SEC SIC 6399 归入保险，扣除后现已出价）。
-- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 28 条。此前报价 213 条带日期更新、287 条失败后保留既有报价，`QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条；随后对这 75 条用不复权日 K 回退补刷。日历推进又使 183 条 2026-11-18 报价跨过 7 天阈值，已用定向 `--mode=quotes` 刷回。当前 1119 条快照全部有交易日，`QUOTE_DATE_UNKNOWN` 0、`STALE_PRICE` 0，不编造缺失的报价日期，发布状态 `ok`。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
+- 声明、快照与估值条目各 1119 条，有值 911 条，拒绝 208 条（上一轮路径约束重算：908 / 211；合入路径约束前：911 / 208；上一版 523 / 466 / 57；冻结 v2：407 / 93）。覆盖范围未改：仍含 `NYSE:BRK.B`、20 只热门代码与 596 只高市值候选；`GOOG` 与 `GOOGL` 同一发行人、同一经济口径。`CASH_UNRECONCILED` 47 条（仅对称差距大于 200% 时拒绝）；`CASH_MIDPOINT` 131 条。`THROUGH_CYCLE_BASE` 现为 0 条（检测仍保留作研究，官方不再采用、也不再发出）。留存绑定 53 条。`BASE_CASH_CONFIRMED` 6 条。`BASE_QUALITY_INSUFFICIENT` 13 条。新政策不再发出 `LATEST_FY_BASE`。`OWNER_BASE_GAP` 24 条。
+- 拒绝原因出现次数，`NO_GROWTH` 127、`NON_POSITIVE_EPS` 76、`NO_EPS` 56、`CASH_UNRECONCILED` 47、`UNSTABLE_BASE_REGIME` 13、`BASE_QUALITY_INSUFFICIENT` 13、`INDUSTRY_MODEL_PENDING` 3。同一证券可能有多个原因。
+- 过期基本面标记 `STALE_DATA` 201 条。`NORMALIZED_EPS` 498 条，`CASH_DIVERGENCE`（25–49%）118 条，`CASH_MIDPOINT` 131 条，`PERSISTENT_STEP_BASE` 290 条，`THROUGH_CYCLE_BASE` 0 条，`CASH_PERIOD_LAG` 753 条，`BASE_QUALITY_REDUCED` 73 条，`TTM_NONOPERATING` 14 条，`TTM_QUALITY_UNKNOWN` 18 条。`OWNER_BASE_GAP` 24 条，`REGIME_UNCERTAIN` 200 条，`SHORT_HISTORY` 219 条，`NO_WINDOW_ZERO_START` 151 条，`CAPPED_GROWTH` 153 条，`GROWTH_ABOVE_RETENTION` 53 条，`LIFE_BOOK_QUALITY` 3 条，`BASE_HISTORY_SHORT` 4 条，`BASE_CASH_CONFIRMED` 6 条。`SHARE_BASIS_UNVERIFIED` 596 条：报价源无市值，SEC 申报股数未能与报价单位交叉核对，按申报每股口径发布并披露。现行工件不再发出 `NEGATIVE_HISTORY_ZEROED`、`NEGATIVE_HISTORY_GROWTH`、`LATEST_FY_BASE` 或 `THROUGH_CYCLE_BASE`。模型为 `owner` 1032 条、`residual` 87 条（`NYSE:AIZ` 按 SEC SIC 6399 归入保险；因质量门恢复，与 `NYSE:PGR` 一同再次拒绝 `BASE_QUALITY_INSUFFICIENT`）。
+- REIT/炼化仅试算的三条记录带 `INDUSTRY_MODEL_PENDING` 和 `MODEL_CAVEAT`。`CLASSIFICATION_UNVERIFIED` 为 25 条。此前报价 213 条带日期更新、287 条失败后保留既有报价，`QUOTE_DATE_UNKNOWN` 由 140 条降至 75 条；随后对这 75 条用不复权日 K 回退补刷。日历推进又使 183 条 2026-11-18 报价跨过 7 天阈值，已用定向 `--mode=quotes` 刷回。当前 1119 条快照全部有交易日，`QUOTE_DATE_UNKNOWN` 0、`STALE_PRICE` 0，不编造缺失的报价日期，发布状态 `ok`。前后差异见 [RELEASE_V3.md](RELEASE_V3.md)。
 - 工件记录的币种覆盖仍是报价侧：CNY 50 条、USD 1018 条、HKD 51 条。已提交年报中折旧摊销每股字段覆盖 478 条，股份支付每股 383 条；经营现金流每股 397 条、资本开支每股 369 条（主要用于美国年报，工件中 342 条带 capex/OCF 诊断）。显式 `reporting_currency` 仍为 0，读时派生。
 
 本批扩容保留了原有 150 只的快照及默认估值，用同一份利率计算新增 350 只美国上市证券。新增名单以 2026 年 6 月底 Vanguard 500 Index Fund 权重排序，通过 2026 年 11 月 18 日 SPY 持仓的 CUSIP 与代码核对；收盘价使用 11 月 18 日的公开历史行情，财报按 SEC CIK 核验。存在未核实股本事件或无法对齐证券与财报的候选留在暂存报告中。[权重原表](https://www.sec.gov/Archives/edgar/data/36405/000003640526000473/0000036405-26-000473-index.htm) · [SPY 官方持仓](https://www.ssga.com/us/en/intermediary/etfs/state-street-spdr-sp-500-etf-trust-spy)

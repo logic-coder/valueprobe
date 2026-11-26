@@ -243,7 +243,7 @@ describe('selectOfficialBase official path', () => {
     expect(result.refusal).toBeNull()
   })
 
-  it('deducts quantified non-operating items, treats those years as clean, and may confirm a step without using TTM 19.15', () => {
+  it('keeps reported EPS, downweights polluted years, and does not confirm a step or use TTM 19.15', () => {
     const raw = stockOf([
       yearRow(2021, 5.61, { quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 123.80, net_income: 760.33, operating_income: 787.14 }),
       yearRow(2022, 4.56, { operating_income_per_share: 5.6875, free_cash_flow_per_share: 4.5604, quality_facts_searched: true, equity_securities_fv_ni_gain_loss: -34.55, net_income: 599.72, operating_income: 748.42 }),
@@ -262,22 +262,22 @@ describe('selectOfficialBase official path', () => {
     })
     const result = selectOfficialBase(raw)
     expect(result.observations.map((row) => row.quality)).toEqual([
-      QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN,
+      QUALITY.NONOPERATING, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.CLEAN, QUALITY.NONOPERATING,
     ])
-    expect(result.observations.at(-1).eps).toBeCloseTo(10.81 * (1 - 240.80 / 1321.70), 4)
-    expect(result.step.hit).toBe(true)
-    expect(result.method).toBe(BASE_METHOD.PERSISTENT_STEP)
-    expect(result.earningsBase).toBeCloseTo(7.9624, 2)
-    expect(result.earningsBase).toBeGreaterThan(7.009)
+    expect(result.observations.at(-1).eps).toBeCloseTo(10.81, 4)
+    expect(result.observations.at(-1).eps).not.toBeCloseTo(10.81 * (1 - 240.80 / 1321.70), 4)
+    expect(result.step.hit).toBe(false)
+    expect(result.step.reason).toBe('quality')
+    expect(result.method).toBe(BASE_METHOD.WEIGHTED)
+    expect(result.earningsBase).toBeCloseTo(7.009, 3)
+    expect(result.earningsBase).not.toBeCloseTo(7.9624, 2)
     expect(result.earningsBase).not.toBeCloseTo(9.05, 2)
     expect(result.earningsBase).not.toBeCloseTo(19.15, 2)
     expect(result.ttmQuality).toBe(QUALITY.NONOPERATING)
     expect(result.warnings).toContain('TTM_NONOPERATING')
-    expect(result.warnings).toContain('PERSISTENT_STEP_BASE')
-    expect(result.warnings).not.toContain('BASE_QUALITY_REDUCED')
+    expect(result.warnings).toContain('BASE_QUALITY_REDUCED')
+    expect(result.warnings).not.toContain('PERSISTENT_STEP_BASE')
     expect(result.warnings).not.toContain('THROUGH_CYCLE_BASE')
-    // The step is confirmed on operating income; 2021 cash is missing, so cash is withdrawn.
-    expect(result.cashBase).toBeNull()
   })
 
   it('has no company-name or symbol branch', () => {
@@ -364,8 +364,8 @@ describe('selectOfficialBase official path', () => {
   })
 })
 
-describe('through-cycle base and non-operating deduction', () => {
-  it('deducts a quantified whitelist item and then treats the year as clean', () => {
+describe('through-cycle diagnostic and non-operating helper', () => {
+  it('exposes a quantified deduction helper that the official base does not use', () => {
     expect(deductNonoperatingEps(10.81, { n: 240.80, ni: 1321.70 })).toMatchObject({ deducted: true, complete: true })
     expect(deductNonoperatingEps(10.81, { n: 240.80, ni: 1321.70 }).eps).toBeCloseTo(10.81 * (1 - 240.80 / 1321.70), 6)
     expect(deductNonoperatingEps(5, { n: 50, ni: null })).toEqual({ eps: 5, deducted: false, complete: false })
@@ -389,7 +389,7 @@ describe('through-cycle base and non-operating deduction', () => {
     expect(detectThroughCycle(oneLoss).hit).toBe(false)
   })
 
-  it('gives a through-cycle trigger priority over a confirmed late step', () => {
+  it('keeps a confirmed late step as the official base when the through-cycle diagnostic also hits', () => {
     const series = { 2016: 0.02, 2017: 0.8, 2018: 0.9, 2019: 0.7, 2020: 0.85, 2021: 0.8, 2022: 0.9, 2023: 0.85, 2024: 3.4, 2025: 3.2 }
     const rows = Object.entries(series).map(([year, eps]) => yearRow(Number(year), eps, {
       operating_income_per_share: eps, free_cash_flow_per_share: eps, quality_facts_searched: true,
@@ -398,9 +398,12 @@ describe('through-cycle base and non-operating deduction', () => {
     const result = selectOfficialBase(stockOf(rows))
     expect(result.throughCycle.hit).toBe(true)
     expect(result.step.hit).toBe(true)
-    expect(result.method).toBe(BASE_METHOD.THROUGH_CYCLE)
-    expect(result.warnings).toContain('THROUGH_CYCLE_BASE')
-    expect(result.warnings).not.toContain('PERSISTENT_STEP_BASE')
-    expect(result.earningsBase).toBeCloseTo(result.throughCycle.mean, 4)
+    expect(result.method).toBe(BASE_METHOD.PERSISTENT_STEP)
+    expect(result.warnings).toContain('PERSISTENT_STEP_BASE')
+    expect(result.warnings).not.toContain('THROUGH_CYCLE_BASE')
+    expect(result.earningsBase).not.toBeCloseTo(result.throughCycle.mean, 4)
+    const stepped = [0.85, 3.4, 3.2]
+    const weighted = (1 * stepped[0] + 2 * stepped[1] + 3 * stepped[2]) / 6
+    expect(result.earningsBase).toBeCloseTo(weighted, 4)
   })
 })

@@ -28,7 +28,7 @@ export const POLICY_V1 = deepFreeze({
     terminalBoundary: 'shared-effective-growth',
     band: 'official-path-plus-minus-2pp',
     cashCrossCheck: 'midpoint-when-gap-50-to-200',
-    earningsBase: 'weighted-step-or-through-cycle-cash-bounded-fallback',
+    earningsBase: 'weighted-step-or-cash-bounded-fallback',
     publicationGate: 'cash-unreconciled-over-3x',
     officialGrowth: 'slower-window-15-and-retention',
     insuranceEvidence: 'underwriting-insurers',
@@ -52,14 +52,8 @@ export const POLICY_V1 = deepFreeze({
     cleanYears: MIN_CLEAN_YEARS,
     regimeGapPp: REGIME_GAP_PP,
     retention: 'hard-cap-rr-roe',
-    throughCycle: {
-      minYears: 8,
-      maxYears: 10,
-      troughRatio: 0.20,
-      logResidual: 0.50,
-      minPositive: 4,
-      mean: 'arithmetic',
-    },
+    // Through-cycle detection stays in valuationBase as a research diagnostic.
+    // It is not an official earnings-base rule.
     // When both windows exist, each is floored at 0% and capped at 15%, and
     // the slower is the official start; that start is also capped at g*,
     // the retained-return ceiling, when book and the official base can
@@ -105,7 +99,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '99311fea69fa31c0ff9be1b01c008a03b9b5b838535d12c8595573ca116432b0'
+export const POLICY_V1_HASH = '0617829e85bd3688712568b8c4b7ec193f9d7ff0a69034ae560eb2a781c2f51f'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null

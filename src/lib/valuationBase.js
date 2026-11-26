@@ -18,6 +18,12 @@
 // First release does not apply IQR / quartile trimming (the window is at most
 // five years). n >= 3, including a confirmed-step three-year window, always
 // uses the recency-weighted formula; never a three-year median shortcut.
+// Official observations keep the reported annual EPS. Identified non-operating
+// items change only the quality label and therefore the 0.25 weight; they do
+// not produce an adjusted EPS, and a deducted year is not re-labelled clean.
+// detectThroughCycle remains available as a research diagnostic. It does not
+// select the official base, override a confirmed step or the five-year
+// weighted path, or clear a quality refusal.
 
 export const QUALITY = Object.freeze({
   CLEAN: 'clean',
@@ -85,9 +91,9 @@ export function madOf (values, center = medianOf(values)) {
 }
 
 /**
- * Remove a quantified whitelist non-operating total from EPS. The N/NI ratio
- * is scale-free, so it works for totals or per-share figures. If N cannot be
- * mapped onto EPS, the year is left unchanged — no invented residual.
+ * Research helper: a quantified whitelist non-operating total as a share of
+ * net income, mapped onto EPS. The official base does not use this figure.
+ * Official observations keep the reported EPS and only downweight the year.
  */
 export function deductNonoperatingEps (eps, { n, ni } = {}) {
   const reported = num(eps)
@@ -146,9 +152,9 @@ export function logResidualStd (values) {
  * eight complete fiscal years of EPS after any non-operating deduction.
  * Two uniform gates must both fire: a deep trough (the lowest year is not
  * positive, or is at most 20% of the median) and a large residual after the
- * long-run trend is removed. A confirmed persistent step does not block the
- * trigger: if the long window is cyclical, the through-cycle mean takes
- * priority so a boom year is not locked in as a new platform.
+ * long-run trend is removed. This is a research diagnostic only. A confirmed
+ * persistent step or the five-year weighted official base is not replaced
+ * when the long window would have triggered.
  */
 export function detectThroughCycle (observations, { financial = false } = {}) {
   const empty = { hit: false, years: 0, mean: null, median: null, troughRatio: null, logResidual: null, values: [] }
@@ -343,18 +349,13 @@ function observationFromEntry (entry, options) {
   const reported = metric(entry.row, 'eps_without_nri')
   if (reported == null) return null
   const inputs = qualityInputsFromRow(entry.row, options)
-  const rawQuality = classifyEarningsQuality(inputs)
-  const deducted = deductNonoperatingEps(reported, inputs)
-  const eps = deducted.complete ? deducted.eps : reported
-  const quality = deducted.complete
-    ? classifyEarningsQuality({ ...inputs, n: 0, ni: deducted.residualNi ?? inputs.ni })
-    : rawQuality
+  const quality = classifyEarningsQuality(inputs)
   return {
     year: entry.year,
     date: entry.row.date,
-    eps,
+    eps: reported,
     reportedEps: reported,
-    deducted: deducted.deducted === true,
+    deducted: false,
     quality,
     operatingIncome: metric(entry.row, 'operating_income_per_share') ?? perShareFromTotals(entry.row, 'operating_income', reported),
     fcf: metric(entry.row, 'free_cash_flow_per_share'),
@@ -542,14 +543,11 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
   let cashBase = cashWindowMedian(observations, 3)
   let cashAsOf = periodEndDate(observations.length >= 3 ? observations.at(-1)?.date : null)
 
-  // Through-cycle wins over a confirmed step so a cyclical peak is not locked
-  // in as a new earnings platform. Weighted five-year and short-history paths
-  // are also replaced when the long window triggers.
-  if (throughCycle.hit) {
-    earningsBase = throughCycle.mean
-    method = BASE_METHOD.THROUGH_CYCLE
-    warnings.push('THROUGH_CYCLE_BASE')
-  } else if (step.hit) {
+  // Through-cycle is computed for research and disclosure of the diagnostic
+  // hit only. It does not become the official method, does not override a
+  // confirmed step or the five-year weighted path, and does not emit
+  // THROUGH_CYCLE_BASE on the official record.
+  if (step.hit) {
     const recent = observations.slice(-3)
     const stepped = weightedNormalizedBase(recent)
     earningsBase = stepped.base
@@ -594,12 +592,6 @@ export function selectOfficialBase (stock, { financial = false } = {}) {
     hasCleanPositive: normalized.hasCleanPositive,
     knownNonPositive,
   })
-  // A through-cycle mean is already a published base. Do not overwrite it
-  // with the cash-confirmed fallback, and do not refuse solely because the
-  // short window has no clean year.
-  if (throughCycle.hit && Number.isFinite(earningsBase) && earningsBase > 0) {
-    refusal = null
-  }
   // A missing quality label is a data gap, not evidence that the business has
   // no earning power. When the latest complete year is merely unknown and
   // same-period cash is positive, the lower of that year's EPS and cash bounds

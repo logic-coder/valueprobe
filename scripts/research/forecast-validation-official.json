@@ -1,7 +1,7 @@
 {
   "kind": "official-policy-factor-run",
   "policyVersion": "v3",
-  "policyHash": "99311fea69fa31c0ff9be1b01c008a03b9b5b838535d12c8595573ca116432b0",
+  "policyHash": "0617829e85bd3688712568b8c4b7ec193f9d7ff0a69034ae560eb2a781c2f51f",
   "growthRule": "slower-window-15-and-retention",
   "discountRule": "max(floor, local-10y-ceil+6)",
   "asOf": "2006-03-15",
@@ -206,14 +206,14 @@
       {
         "ticker": "BA",
         "excludedAfterSplit": false,
-        "blend": "midpoint",
-        "blendGap": 0.5294,
+        "blend": "earnings",
+        "blendGap": 0.2819,
         "upshift": false,
         "bases": {
-          "earnings": 1.816,
+          "earnings": 2.1667,
           "cash": 2.7774,
-          "midpoint": 2.2967,
-          "officialSelected": 2.2967,
+          "midpoint": 2.4721,
+          "officialSelected": 2.1667,
           "earningsFiveMedian": 2.3
         },
         "growths": {
@@ -226,19 +226,19 @@
           "historical5": 5.57,
           "historical10": 6.28
         },
-        "publishedValue": 36.37,
-        "publishedBaseKind": "midpoint",
+        "publishedValue": 34.32,
+        "publishedBaseKind": "normalized",
         "publishedGrowth": 5.57,
-        "predictedOfficial": 36.37,
+        "predictedOfficial": 34.32,
         "realisedCash": 86.17,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
         "cashCells": {
           "earnings": {
-            "zero": 116.0462,
-            "five": 99.9043,
-            "ten": 97.7283,
-            "slower": 99.9043
+            "zero": 103.7363,
+            "five": 86.0652,
+            "ten": 83.7106,
+            "slower": 86.0652
           },
           "cash": {
             "zero": 84.4364,
@@ -247,16 +247,16 @@
             "slower": 64.8125
           },
           "midpoint": {
-            "zero": 99.4093,
-            "five": 81.2796,
-            "ten": 78.8448,
-            "slower": 81.2796
+            "zero": 93.7697,
+            "five": 75.0399,
+            "ten": 72.5605,
+            "slower": 75.0399
           },
           "officialSelected": {
-            "zero": 99.4093,
-            "five": 81.2796,
-            "ten": 78.8448,
-            "slower": 81.2796
+            "zero": 103.7363,
+            "five": 86.0652,
+            "ten": 83.7106,
+            "slower": 86.0652
           }
         },
         "ownerEarningsCells": null
@@ -446,9 +446,9 @@
         "fiveMedTen": 72.3677,
         "fiveMedSlower": 76.852,
         "fiveMedZero": 108.4404,
-        "officialSelectedTen": 72.4925,
-        "officialSelectedSlower": 76.9743,
-        "officialSelectedZero": 108.5417,
+        "officialSelectedTen": 77.4995,
+        "officialSelectedSlower": 81.8816,
+        "officialSelectedZero": 112.5872,
         "officialGrowth": 5.57,
         "officialWindow": "5y",
         "growth10": 6.28,

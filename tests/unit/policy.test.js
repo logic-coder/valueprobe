@@ -139,18 +139,13 @@ describe('policyValue semantics', () => {
     expect(teslaValue.warnings).not.toContain(WARNING.NEGATIVE_HISTORY_ZEROED)
     const loss = stockOf(snapshots.find((row) => row.symbol === 'NASDAQ:INTC').raw)
     const value = policyValue(loss, { rates: rateRows, generatedAt: artifact.generatedAt })
-    // Recent years include losses, but the longer window is cyclical and still
-    // has a positive through-cycle mean. The published path may therefore
-    // return a value; TTM or latest-year losses are not a fallback base.
+    // Recent years include losses. Through-cycle is only a diagnostic and
+    // must not clear this refusal or become the official base.
     expect(value.inputs.epsLatest).toBeLessThanOrEqual(0)
-    if (value.status === 'ok') {
-      expect(value.warnings).toContain(WARNING.THROUGH_CYCLE_BASE)
-      expect(value.inputs.eps).toBeGreaterThan(0)
-      expect(value.inputs.eps).not.toBeCloseTo(value.inputs.epsLatest, 2)
-    } else {
-      expect(value.reasons).toEqual(expect.arrayContaining([REASON.NON_POSITIVE_EPS, REASON.NO_GROWTH]))
-      expect(value.value).toBeNull()
-    }
+    expect(value.status).toBe('refused')
+    expect(value.warnings).not.toContain(WARNING.THROUGH_CYCLE_BASE)
+    expect(value.reasons).toEqual(expect.arrayContaining([REASON.NON_POSITIVE_EPS, REASON.NO_GROWTH]))
+    expect(value.value).toBeNull()
   })
 
   it('refuses a residual-income record without tangible book', () => {
@@ -417,12 +412,14 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('NASDAQ:AAPL').value).toBe(150.47)
     expect(entry('NYSE:TSM')).toMatchObject({ value: 125.19, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 5.4265 } })
     expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 314.46, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
-    expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'ok', value: 23.46 })
-    expect(entry('NASDAQ:INTC').warnings).toContain('THROUGH_CYCLE_BASE')
+    expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
+    expect(entry('NASDAQ:INTC').reasons).toEqual(expect.arrayContaining(['NON_POSITIVE_EPS', 'NO_GROWTH']))
+    expect(entry('NASDAQ:INTC').warnings).not.toContain('THROUGH_CYCLE_BASE')
     expect(entry('NYSE:GPC')).toMatchObject({ status: 'ok' })
     expect(entry('NYSE:GPC').value).not.toBe(1.13)
-    expect(entry('NYSE:GPC').value).toBe(61.91)
+    expect(entry('NYSE:GPC').value).toBe(66.44)
     expect(entry('NYSE:GPC').warnings).toContain(WARNING.REGIME_UNCERTAIN)
+    expect(entry('NYSE:GPC').warnings).not.toContain(WARNING.THROUGH_CYCLE_BASE)
     expect(entry('NYSE:GPC')).toMatchObject({
       inputs: expect.objectContaining({
         epsLatest: expect.any(Number),
@@ -432,7 +429,7 @@ describe('the committed artifact is what the policy produces', () => {
       }),
     })
     expect(entry('NASDAQ:AAPL').inputs.baseKind).toBe('persistent-step')
-    expect(entry('NYSE:GPC').inputs.baseKind).toBe('through-cycle')
+    expect(entry('NYSE:GPC').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').inputs.baseKind).toBe('normalized')
     expect(entry('SHSE:601398').value).toBe(10.68)
     expect(entry('NASDAQ:FISV')).toMatchObject({ status: 'ok', value: 139.91 })
@@ -457,7 +454,7 @@ describe('the committed artifact is what the policy produces', () => {
     expect(artifact.crossListing).toHaveLength(9)
     const byd = artifact.crossListing.find((row) => row.id === 'BYD')
     expect(byd.status).toBe('input-mismatch')
-    expect(byd.valueDiffPct).toBeCloseTo(-5.82, 2)
+    expect(byd.valueDiffPct).toBeCloseTo(-53.36, 2)
   })
 })
 

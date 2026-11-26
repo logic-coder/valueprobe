@@ -111,7 +111,8 @@ export function toStock (raw) {
   const sbc = latestPerShare(annual, 'share_based_comp_per_share')
   // Official sides come from valuationBase: recency-weighted fiscal-year
   // earnings, a persistent step when it is confirmed, and same-period cash.
-  // TTM is classified for display and never becomes the official base.
+  // Through-cycle remains a diagnostic flag only. TTM is classified for
+  // display and never becomes the official base.
   const official = selectOfficialBase(raw, { financial: classification.financial === true })
   stock.eps_normalized = official.epsNormalized
   stock.latest_fy_eps = latestFiscalValue(annual, 'eps_without_nri')
