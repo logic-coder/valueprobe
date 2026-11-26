@@ -72,7 +72,7 @@ npm run snapshot -- --stage=tmp-snapshot-pilot --universe=tmp-candidates.json --
 - `--reference=tmp-reference.json` 用于试点。提供统一交易日、公开出处，以及逐证券的收盘价、CIK 和已核对拆股的起始日期。参考文件只用于暂存。新证券需通过财报主体和每股口径检查。
 - 财报按供应商及 SEC CIK 缓存，默认存入 `tmp-snapshot-cache`，当日续跑复用。请求按供应商节流，并对临时错误重试。失败保留已验证记录和其日期并记为 partial；定向代码失败或缺失的新增证券会让暂存验收失败。
 - 暂存目录的 `outcomes/` 保留各证券最后一次处理结果，`report.json` 报告各市场的声明、快照、可估值、拒绝、基本面过期数量，以及报价/财报结果和 publish 判定。候选批次摘要写入 `publish.json`，全失败时旧发布保持原字节。正式刷新先核验暂存数据，再写入发生变化的发布文件。写入前在 `tmp-snapshot-previous` 保存上一套数据及恢复记录。写入失败时回退。若进程异常停止，确认没有其他刷新进程后，可移除空的 `tmp-snapshot-lock` 再运行。刷新会根据恢复记录还原上一套数据，再开始新一轮采集。
-- 当前示例：`NASDAQ:GOOG`、`NASDAQ:SMCI` 按此流程暂存核验后正式安装。`BRK.B` 未加入：SEC Company Facts 的每股与股本事实停在 2013 / 2011 年，缺近年可核验每股口径；不能用 B 类行情价反推 A 类每股，需先补有出处的多年每股票据。
+- 当前示例：`NASDAQ:GOOG`、`NASDAQ:SMCI` 按此流程暂存核验后正式安装。`BRK.B` 未加入：SEC Company Facts 的每股与股本事实停在 2013 / 2011 年，缺近年可核验每股口径；不能用 B 类行情价反推 A 类每股，需先补有出处的多年每股票据。`NASDAQ:SPCX` 虽有 SEC 主体（CIK 1181412，2026-10-22 已交 10-Q）与报价，但 IPO 后还没有 10-K 年度每股事实，标准流程同样不放行；不得用行情价反推每股。
 
 ## 排序
 

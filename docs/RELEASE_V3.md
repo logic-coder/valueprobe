@@ -2,13 +2,15 @@
 
 本文件记录的是本仓库尚未推送的官方 v3。线上 GitHub Pages 在推送并完成部署前继续交付冻结的 v2。D50–D52 是研究实验，不是本口径。
 
-## 当前工件：补入 GOOG 与 SMCI（2026-11-26）
+## 当前工件：GOOG/SMCI 覆盖与过期报价回补（2026-11-26）
 
-这是当前 `public/data/` 的状态；下方各节是历史记录。政策哈希仍为 `c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5`，工件文件 SHA-256 `87df05797767e40c88284939d2e31a44d8b449ad7b671d01121194b771a1b357`，`generatedAt` 2026-11-26，`upstreamCheckedAt` 2026-11-26T01:16:32.865Z，发布状态 `ok`（scope `candidates`，无 `partial` / `blocked`）。覆盖 502 条，有值 457 / 拒绝 45（上一版 500 / 455 / 45；冻结 v2 407 / 93）。
+这是当前 `public/data/` 的状态；下方各节是历史记录。政策哈希仍为 `c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5`，工件文件 SHA-256 `717a5c4a2e88fb7e7b4700d271051be041d51a37b8b128beb3f509014ba5f180`，`generatedAt` 2026-11-26，`upstreamCheckedAt` 2026-11-26T01:47:24.572Z，发布状态 `ok`（最新为定向报价刷新，scope `targeted`，无 `partial` / `blocked`）。覆盖 502 条，有值 457 / 拒绝 45（上一版 500 / 455 / 45；冻结 v2 407 / 93）。
 
 按 `npm run snapshot -- --stage=... --universe=... --candidates=missing --rates=keep` 暂存、核验 outcomes 后再正式安装：`NASDAQ:GOOG` 报价 270.98（2026-11-25）、SEC 每股口径比 1.005、发布值 161.70；`NASDAQ:SMCI` 报价 23.31（2026-11-25）、每股口径比 0.945、发布值 48.59。两条都拿到真实交易日与核验过的 SEC 公司事实，没有使用本地代理。`GOOG` 与 `GOOGL` 同属 `Alphabet Inc.`、同一经济口径，发布值相同，差异只在报价；`SMCI` 无正现金基数，页面显示「未做现金口径核对」，其 15% 承保增速与无现金对账请自行判断，不是工具代为保守。
 
-`BRK.B` 本次未加入：SEC Company Facts 的每股与股本事实分别停在 2013 年与 2011 年，标准流程拿不到近年可核验的每股口径；不能用 B 类行情价反推 A 类每股，也不能把旧事实当现值。要纳入必须先补有出处的多年每股票据（类似 TSM 的 verified earnings）。中国/港股覆盖未变。日历推进使 183 条 2026-11-18 报价跨过 7 天阈值，`STALE_PRICE` 从 0 变为 183，`QUOTE_DATE_UNKNOWN` 仍为 0。这不是投资建议。
+`BRK.B` 与 `SPCX` 本次未加入，原因不同：`BRK.B` 的 SEC Company Facts 每股/股本事实停在 2013 / 2011 年；`SPCX` 虽已上市（CIK 1181412、Nasdaq、2026-10-22 已交 10-Q），但 IPO 后尚无 10-K 年度每股事实，二者都过不了基本面核验，不能用行情价反推每股口径。中国/港股覆盖未变。
+
+日历推进曾使 183 条 2026-11-18 报价跨过 7 天阈值，`STALE_PRICE` 一度变为 183；随后用 `--mode=quotes` 定向刷回，`STALE_PRICE` 已归 0，`QUOTE_DATE_UNKNOWN` 仍为 0，502 条全部有交易日。利率行更新为 CNY 1.5914（asOf 2026-11-25）、USD 4.85（asOf 2026-11-25）、HKD 4.85（`usd_proxy`）；向上取整后人民币仍 10%、美元与港币仍 11%，所以没有改折现率，也没有重算政策规则。`SPCX` 的标准流程、无现金核对与已知披露边界见 [DATA_SOURCES.md](DATA_SOURCES.md) 与 [POLICY.md](POLICY.md)。这不是投资建议。
 
 ## 上一版工件：报价交易日补齐（2026-11-25 18:54）
 
