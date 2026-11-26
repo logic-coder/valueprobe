@@ -12,6 +12,8 @@ const COMMON_NAMES = {
   'NASDAQ:AAPL': withLegacy('NASDAQ:AAPL', 'Apple'),
   'NASDAQ:MSFT': withLegacy('NASDAQ:MSFT', 'Microsoft'),
   'NASDAQ:GOOGL': withLegacy('NASDAQ:GOOGL', 'Google', 'Alphabet', '谷歌A'),
+  'NASDAQ:GOOG': ['谷歌C', '谷歌C类', 'Alphabet C'],
+  'NASDAQ:SMCI': ['超微电脑', 'Super Micro'],
   'NASDAQ:META': withLegacy('NASDAQ:META', 'Facebook', '脸书'),
   'HKSE:00700': ['Tencent', '腾讯'],
   'SHSE:600519': ['Moutai', '茅台'],

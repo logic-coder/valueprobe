@@ -2,7 +2,7 @@
   "schema": 1,
   "policyVersion": "v3",
   "policyHash": "c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5",
-  "generatedAt": "2026-11-25",
+  "generatedAt": "2026-11-26",
   "rates": {
     "asOf": "2026-11-25",
     "CNY": {
@@ -23,12 +23,12 @@
     }
   },
   "universe": {
-    "declared": 500,
-    "snapshots": 500,
+    "declared": 502,
+    "snapshots": 502,
     "missing": []
   },
   "coverage": {
-    "valued": 455,
+    "valued": 457,
     "refused": 45,
     "reasons": {
       "NO_EPS": 11,
@@ -40,34 +40,35 @@
       "BASE_QUALITY_INSUFFICIENT": 6
     },
     "warnings": {
-      "CAPPED_GROWTH": 89,
+      "CAPPED_GROWTH": 91,
       "SHORT_HISTORY": 64,
       "NO_WINDOW_ZERO_START": 42,
-      "GROWTH_ABOVE_RETENTION": 17,
+      "GROWTH_ABOVE_RETENTION": 18,
+      "STALE_PRICE": 183,
       "STALE_DATA": 68,
       "EARNINGS_DATE_UNKNOWN": 1,
       "CLASSIFICATION_UNVERIFIED": 1,
       "MODEL_CAVEAT": 3,
       "CASH_DIVERGENCE": 57,
       "CASH_MIDPOINT": 53,
-      "NORMALIZED_EPS": 223,
+      "NORMALIZED_EPS": 225,
       "LIFE_BOOK_QUALITY": 3,
       "OWNER_BASE_GAP": 2,
       "REGIME_UNCERTAIN": 111,
       "PERSISTENT_STEP_BASE": 134,
-      "TTM_NONOPERATING": 7,
+      "TTM_NONOPERATING": 8,
       "TTM_QUALITY_UNKNOWN": 7,
-      "CASH_PERIOD_LAG": 375,
-      "BASE_QUALITY_REDUCED": 38,
+      "CASH_PERIOD_LAG": 376,
+      "BASE_QUALITY_REDUCED": 39,
       "BASE_CASH_CONFIRMED": 3
     },
     "models": {
-      "owner": 450,
+      "owner": 452,
       "residual": 50
     },
     "currencies": {
       "CNY": 50,
-      "USD": 399,
+      "USD": 401,
       "HKD": 51
     }
   },
@@ -4332,6 +4333,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -4640,6 +4642,7 @@
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -4716,6 +4719,7 @@
       "marginOfSafety": -20.1,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "PERSISTENT_STEP_BASE"
       ],
@@ -4793,6 +4797,7 @@
       "marginOfSafety": -43.04,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -5337,6 +5342,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -5414,6 +5420,7 @@
       "marginOfSafety": -126.92,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -5642,6 +5649,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -5718,6 +5726,7 @@
       "marginOfSafety": -495.44,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -6022,6 +6031,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -6096,6 +6106,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -6173,6 +6184,7 @@
       "marginOfSafety": -56.03,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -6554,6 +6566,7 @@
       "marginOfSafety": -91.6,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -6630,6 +6643,7 @@
       "marginOfSafety": 20.88,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -6706,6 +6720,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -6784,6 +6799,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -6858,6 +6874,7 @@
       "marginOfSafety": -79.85,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -7014,6 +7031,7 @@
       "marginOfSafety": -115.55,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "REGIME_UNCERTAIN",
         "BASE_QUALITY_REDUCED"
@@ -7393,6 +7411,7 @@
       "marginOfSafety": -1.57,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -7548,6 +7567,7 @@
       "marginOfSafety": 56.77,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -7778,6 +7798,7 @@
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -7855,6 +7876,7 @@
       "marginOfSafety": -25.39,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "REGIME_UNCERTAIN"
       ],
@@ -8006,6 +8028,7 @@
       "marginOfSafety": -18.12,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -8061,6 +8084,86 @@
       "earningsDate": "2026-09-30",
       "earningsPeriod": "TTM",
       "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001467858.json",
+      "ratesAsOf": "2026-11-24"
+    },
+    "NASDAQ:GOOG": {
+      "symbol": "NASDAQ:GOOG",
+      "name": "Alphabet Inc.",
+      "status": "ok",
+      "value": 161.7,
+      "band": {
+        "low": 123.7,
+        "mid": 161.7,
+        "high": 230.49
+      },
+      "terminalShare": 0.5592,
+      "cash": {
+        "value": 134.87,
+        "base": 5.8459,
+        "gapPct": -16.5925
+      },
+      "price": 270.98,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": -67.58,
+      "reasons": [],
+      "warnings": [
+        "CAPPED_GROWTH",
+        "NORMALIZED_EPS",
+        "TTM_NONOPERATING",
+        "CASH_PERIOD_LAG",
+        "BASE_QUALITY_REDUCED"
+      ],
+      "inputs": {
+        "model": "owner",
+        "basis": "repeatable-earnings",
+        "eps": 7.009,
+        "epsLatest": 19.15,
+        "epsNormalized": 7.009,
+        "cashMedian": 5.8459,
+        "latestFyEps": 10.81,
+        "latestFyFcf": 5.9907,
+        "baseUpshift": false,
+        "baseMethod": "weighted",
+        "baseAsOf": "2025-12-31",
+        "cashAsOf": "2025-12-31",
+        "ttmAsOf": "2026-09-30",
+        "ttmQuality": "nonoperating",
+        "capexToOcf": 0.5551942025111561,
+        "capexToRevenue": 0.22700928706095944,
+        "maintenanceCapexMethod": "da-proxy",
+        "daPerShare": 1.7282,
+        "maintenanceCapexProxy": 1.7282,
+        "sbcPerShare": 2.0403,
+        "ownerBaseGap": false,
+        "baseKind": "normalized",
+        "growth": 15,
+        "growthWindow": "10y",
+        "growthCap": 15,
+        "growth10": 25.57,
+        "growth5": 29.83,
+        "regimeUncertain": false,
+        "discountRate": 11,
+        "reportingCurrency": "USD",
+        "reportingCurrencySource": "market",
+        "terminalGrowthRate": 4,
+        "years": 10,
+        "yearsOfTerminalGrowth": 10,
+        "tangibleBook": 31.2253,
+        "addToFairValue": false,
+        "currency": "USD",
+        "rate": {
+          "value": 4.91,
+          "asOf": "2026-11-24",
+          "source": "snapshot",
+          "proxy": null
+        },
+        "classification": "none",
+        "industry": null
+      },
+      "asOf": "2026-11-26",
+      "earningsDate": "2026-09-30",
+      "earningsPeriod": "TTM",
+      "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
       "ratesAsOf": "2026-11-24"
     },
     "NASDAQ:GOOGL": {
@@ -8164,6 +8267,7 @@
       "marginOfSafety": 33.51,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -8241,6 +8345,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -8390,6 +8495,7 @@
       "marginOfSafety": -103.45,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -8540,6 +8646,7 @@
       "marginOfSafety": -40.69,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -8845,6 +8952,7 @@
       "marginOfSafety": -119.8,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -8921,6 +9029,7 @@
       "marginOfSafety": -36.01,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -9071,6 +9180,7 @@
       "marginOfSafety": -78.2,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -9141,7 +9251,9 @@
         "NO_EPS",
         "NO_GROWTH"
       ],
-      "warnings": [],
+      "warnings": [
+        "STALE_PRICE"
+      ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
@@ -9289,6 +9401,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -9365,6 +9478,7 @@
       "marginOfSafety": -115.37,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -9441,6 +9555,7 @@
       "marginOfSafety": -225.53,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -9518,6 +9633,7 @@
       "marginOfSafety": -105.27,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -9825,6 +9941,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -10056,6 +10173,7 @@
       "marginOfSafety": -130.18,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -10357,6 +10475,7 @@
       "marginOfSafety": -24.72,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -10513,6 +10632,7 @@
       "marginOfSafety": -93.63,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -10742,6 +10862,7 @@
       "marginOfSafety": 22.08,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -10818,6 +10939,7 @@
       "marginOfSafety": -54.34,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -11050,6 +11172,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -11352,6 +11475,7 @@
       "marginOfSafety": -46.49,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -11507,6 +11631,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -11638,6 +11763,80 @@
       "earningsDate": "2026-09-27",
       "earningsPeriod": "FY",
       "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000829224.json",
+      "ratesAsOf": "2026-11-24"
+    },
+    "NASDAQ:SMCI": {
+      "symbol": "NASDAQ:SMCI",
+      "name": "Super Micro Computer, Inc.",
+      "status": "ok",
+      "value": 48.59,
+      "band": {
+        "low": 37.17,
+        "mid": 48.59,
+        "high": 69.26
+      },
+      "terminalShare": 0.5592,
+      "cash": null,
+      "price": 23.31,
+      "priceDate": "2026-11-25",
+      "marginOfSafety": 52.03,
+      "reasons": [],
+      "warnings": [
+        "CAPPED_GROWTH",
+        "GROWTH_ABOVE_RETENTION",
+        "NORMALIZED_EPS"
+      ],
+      "inputs": {
+        "model": "owner",
+        "basis": "repeatable-earnings",
+        "eps": 2.106,
+        "epsLatest": 4.75,
+        "epsNormalized": 2.106,
+        "cashMedian": null,
+        "latestFyEps": 3.26,
+        "latestFyFcf": -9.9977,
+        "baseUpshift": false,
+        "baseMethod": "weighted",
+        "baseAsOf": "2026-06-30",
+        "cashAsOf": "2026-06-30",
+        "ttmAsOf": "2026-09-30",
+        "ttmQuality": "clean",
+        "capexToOcf": -0.023788068077088498,
+        "capexToRevenue": 0.004146985000874741,
+        "maintenanceCapexMethod": "da-proxy",
+        "daPerShare": 0.076,
+        "maintenanceCapexProxy": 0.076,
+        "sbcPerShare": 0.591,
+        "ownerBaseGap": false,
+        "baseKind": "normalized",
+        "growth": 15,
+        "growthWindow": "10y",
+        "growthCap": 15,
+        "growth10": 43.17,
+        "growth5": 73.23,
+        "regimeUncertain": false,
+        "discountRate": 11,
+        "reportingCurrency": "USD",
+        "reportingCurrencySource": "market",
+        "terminalGrowthRate": 4,
+        "years": 10,
+        "yearsOfTerminalGrowth": 10,
+        "tangibleBook": 20.7636,
+        "addToFairValue": false,
+        "currency": "USD",
+        "rate": {
+          "value": 4.91,
+          "asOf": "2026-11-24",
+          "source": "snapshot",
+          "proxy": null
+        },
+        "classification": "none",
+        "industry": null
+      },
+      "asOf": "2026-11-26",
+      "earningsDate": "2026-09-30",
+      "earningsPeriod": "TTM",
+      "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001375365.json",
       "ratesAsOf": "2026-11-24"
     },
     "NASDAQ:SNDK": {
@@ -11808,6 +12007,7 @@
       "marginOfSafety": 7.75,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -11885,6 +12085,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS"
       ],
@@ -11962,6 +12163,7 @@
       "marginOfSafety": -430.23,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -12112,6 +12314,7 @@
         "UNSTABLE_BASE_REGIME"
       ],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -12345,6 +12548,7 @@
         "NO_GROWTH"
       ],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -12492,6 +12696,7 @@
       "marginOfSafety": 4.63,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -12645,6 +12850,7 @@
       "marginOfSafety": -93.38,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -12790,6 +12996,7 @@
         "NO_GROWTH"
       ],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -12945,6 +13152,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -13090,6 +13298,7 @@
       "marginOfSafety": -188.38,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -13320,6 +13529,7 @@
       "marginOfSafety": -25.5,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -13547,6 +13757,7 @@
       "marginOfSafety": -39.1,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "CASH_PERIOD_LAG"
       ],
@@ -13620,6 +13831,7 @@
       "marginOfSafety": -105.87,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "LIFE_BOOK_QUALITY",
         "CASH_PERIOD_LAG"
       ],
@@ -13692,6 +13904,7 @@
         "NO_GROWTH"
       ],
       "warnings": [
+        "STALE_PRICE",
         "TTM_NONOPERATING",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -13764,6 +13977,7 @@
         "BASE_QUALITY_INSUFFICIENT"
       ],
       "warnings": [
+        "STALE_PRICE",
         "TTM_QUALITY_UNKNOWN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -14064,6 +14278,7 @@
       "marginOfSafety": -22.6,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -14218,6 +14433,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -14296,6 +14512,7 @@
       "marginOfSafety": -77.37,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -14374,6 +14591,7 @@
       "marginOfSafety": -10.28,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -14519,6 +14737,7 @@
       ],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -14673,6 +14892,7 @@
       "reasons": [],
       "warnings": [
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -14822,6 +15042,7 @@
       "marginOfSafety": -61.12,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -14976,6 +15197,7 @@
       "marginOfSafety": -21.2,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE"
       ],
       "inputs": {
@@ -15192,6 +15414,7 @@
       "marginOfSafety": 45.43,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -15343,6 +15566,7 @@
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -15423,6 +15647,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -15571,6 +15796,7 @@
       "marginOfSafety": -253.08,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -15649,6 +15875,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -15881,6 +16108,7 @@
       "marginOfSafety": -71.35,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -15954,6 +16182,7 @@
       "marginOfSafety": -22.42,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -16030,6 +16259,7 @@
       "marginOfSafety": -72.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
@@ -16329,6 +16559,7 @@
       "marginOfSafety": -90.37,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -16405,6 +16636,7 @@
       "marginOfSafety": -46.21,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -16480,6 +16712,7 @@
       "marginOfSafety": -55.34,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "PERSISTENT_STEP_BASE"
@@ -16558,6 +16791,7 @@
       "marginOfSafety": 36.47,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -16632,6 +16866,7 @@
       "marginOfSafety": 0.74,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -16939,6 +17174,7 @@
       "marginOfSafety": -120.06,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -17014,6 +17250,7 @@
       "marginOfSafety": -6.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -17161,6 +17398,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -17233,6 +17471,7 @@
       "marginOfSafety": -103.78,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "REGIME_UNCERTAIN",
         "BASE_QUALITY_REDUCED"
@@ -17994,6 +18233,7 @@
         "BASE_QUALITY_INSUFFICIENT"
       ],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "REGIME_UNCERTAIN",
         "TTM_NONOPERATING",
@@ -18462,6 +18702,7 @@
       "marginOfSafety": 6.61,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN"
       ],
       "inputs": {
@@ -18683,6 +18924,7 @@
       "marginOfSafety": -310.66,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "NORMALIZED_EPS"
       ],
@@ -18760,6 +19002,7 @@
       "marginOfSafety": -260.15,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -19051,6 +19294,7 @@
       "marginOfSafety": -65.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "REGIME_UNCERTAIN"
       ],
@@ -19201,6 +19445,7 @@
       "marginOfSafety": 36.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -19351,6 +19596,7 @@
       "marginOfSafety": -46.07,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -19572,6 +19818,7 @@
       "marginOfSafety": 59.42,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -19724,6 +19971,7 @@
       "marginOfSafety": 5.16,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -19881,6 +20129,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS"
       ],
       "inputs": {
@@ -19957,6 +20206,7 @@
       "marginOfSafety": 5.42,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -20034,6 +20284,7 @@
       "marginOfSafety": -66.52,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -20260,6 +20511,7 @@
       "marginOfSafety": -78.95,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -20335,6 +20587,7 @@
         "CASH_UNRECONCILED"
       ],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -20791,6 +21044,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -20941,6 +21195,7 @@
       "marginOfSafety": 33.27,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "TTM_QUALITY_UNKNOWN",
@@ -21100,6 +21355,7 @@
       "marginOfSafety": -52.93,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -21334,6 +21590,7 @@
       "marginOfSafety": 43.87,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -21485,6 +21742,7 @@
       "marginOfSafety": -282.3,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -21563,6 +21821,7 @@
       "marginOfSafety": -86.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -21642,6 +21901,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
@@ -21721,6 +21981,7 @@
       "marginOfSafety": -83.08,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -21872,6 +22133,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -22097,6 +22359,7 @@
       "marginOfSafety": -83.57,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -22325,6 +22588,7 @@
       "marginOfSafety": -26.88,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -22401,6 +22665,7 @@
       "marginOfSafety": -119.23,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -22715,6 +22980,7 @@
       "marginOfSafety": -115.33,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -22859,6 +23125,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "TTM_QUALITY_UNKNOWN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -23091,6 +23358,7 @@
       "marginOfSafety": -156.76,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -23167,6 +23435,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -23244,6 +23513,7 @@
       "marginOfSafety": -61.11,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -23393,6 +23663,7 @@
       "marginOfSafety": -73.81,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -23777,6 +24048,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -24011,6 +24283,7 @@
       "marginOfSafety": -66.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -24170,6 +24443,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -24406,6 +24680,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "STALE_DATA",
         "PERSISTENT_STEP_BASE"
       ],
@@ -24787,6 +25062,7 @@
       "marginOfSafety": -59.25,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -24866,6 +25142,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -24943,6 +25220,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -25172,6 +25450,7 @@
       "marginOfSafety": -81.55,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -25325,6 +25604,7 @@
       "marginOfSafety": -88.93,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "CASH_PERIOD_LAG"
       ],
@@ -25632,6 +25912,7 @@
       "marginOfSafety": -23.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -25710,6 +25991,7 @@
       "marginOfSafety": -44.95,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
@@ -26025,6 +26307,7 @@
       "marginOfSafety": -28.8,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -26176,6 +26459,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -26254,6 +26538,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -26781,6 +27066,7 @@
       "marginOfSafety": -33.94,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -26856,6 +27142,7 @@
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -27153,6 +27440,7 @@
         "INDUSTRY_MODEL_PENDING"
       ],
       "warnings": [
+        "STALE_PRICE",
         "MODEL_CAVEAT",
         "CASH_PERIOD_LAG"
       ],
@@ -27382,6 +27670,7 @@
       "marginOfSafety": -34.45,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -27459,6 +27748,7 @@
       "marginOfSafety": -14.48,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -27534,6 +27824,7 @@
       "marginOfSafety": -6.78,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "NORMALIZED_EPS",
         "OWNER_BASE_GAP",
@@ -27836,6 +28127,7 @@
         "BASE_QUALITY_INSUFFICIENT"
       ],
       "warnings": [
+        "STALE_PRICE",
         "TTM_QUALITY_UNKNOWN",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -27992,6 +28284,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -28142,6 +28435,7 @@
       "marginOfSafety": -115.04,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -28290,6 +28584,7 @@
       "marginOfSafety": -73.12,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -28367,6 +28662,7 @@
       "marginOfSafety": -26.7,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -28439,6 +28735,7 @@
       "marginOfSafety": -64.37,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -28515,6 +28812,7 @@
       "marginOfSafety": -21.34,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -28736,6 +29034,7 @@
       "marginOfSafety": -94.67,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -28807,6 +29106,7 @@
       ],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "MODEL_CAVEAT",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -28968,6 +29268,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -29041,6 +29342,7 @@
       "marginOfSafety": -28.38,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -29261,6 +29563,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -29339,6 +29642,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -29489,6 +29793,7 @@
       "marginOfSafety": -106.12,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -29567,6 +29872,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -29720,6 +30026,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -29798,6 +30105,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -29876,6 +30184,7 @@
       "marginOfSafety": -103.79,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -29948,6 +30257,7 @@
         "NO_GROWTH"
       ],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -30024,6 +30334,7 @@
       "marginOfSafety": -13.99,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -30397,6 +30708,7 @@
       "marginOfSafety": -94.84,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "PERSISTENT_STEP_BASE"
       ],
@@ -30470,6 +30782,7 @@
       "marginOfSafety": -23.24,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -30627,6 +30940,7 @@
       "marginOfSafety": -138.81,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
@@ -30929,6 +31243,7 @@
       "marginOfSafety": 15.25,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -31008,6 +31323,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -31084,6 +31400,7 @@
       "marginOfSafety": -50.04,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -31231,6 +31548,7 @@
       "marginOfSafety": -50.88,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -31308,6 +31626,7 @@
       "marginOfSafety": -53.11,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -31460,6 +31779,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -31613,6 +31933,7 @@
       "marginOfSafety": -37.48,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS"
       ],
       "inputs": {
@@ -31917,6 +32238,7 @@
       "marginOfSafety": -79.72,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN"
@@ -32072,6 +32394,7 @@
       "marginOfSafety": -37.87,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -32380,6 +32703,7 @@
       "marginOfSafety": -49.29,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -32456,6 +32780,7 @@
       "marginOfSafety": 17.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
@@ -32748,6 +33073,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -32982,6 +33308,7 @@
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -33131,6 +33458,7 @@
       "marginOfSafety": -62.96,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "CASH_PERIOD_LAG"
       ],
@@ -33206,6 +33534,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE"
       ],
@@ -33355,6 +33684,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -33505,6 +33835,7 @@
       "marginOfSafety": -166.07,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -33951,6 +34282,7 @@
       "marginOfSafety": -163.54,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -34029,6 +34361,7 @@
       "marginOfSafety": -216.68,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -34101,6 +34434,7 @@
       "marginOfSafety": -45.61,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -34179,6 +34513,7 @@
       "marginOfSafety": -29.15,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -34254,6 +34589,7 @@
       "warnings": [
         "CAPPED_GROWTH",
         "SHORT_HISTORY",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
@@ -34332,6 +34668,7 @@
       "marginOfSafety": -108.45,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -34405,6 +34742,7 @@
       "marginOfSafety": -34.48,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -34481,6 +34819,7 @@
       "marginOfSafety": 26.39,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "PERSISTENT_STEP_BASE"
       ],

@@ -2,16 +2,16 @@
   "schema": 1,
   "policyVersion": "v3",
   "policyHash": "c90b9e0ca92ddb829de9b5e91cba99928f5da874786f54e3936fcb6d30035ac5",
-  "generatedAt": "2026-11-25",
+  "generatedAt": "2026-11-26",
   "dataAsOf": "2026-11-25",
   "universe": {
-    "declared": 500,
-    "snapshots": 500,
+    "declared": 502,
+    "snapshots": 502,
     "missing": []
   },
   "counts": {
-    "snapshots": 500,
-    "valued": 455,
+    "snapshots": 502,
+    "valued": 457,
     "refused": 45
   },
   "rates": {
@@ -36,8 +36,8 @@
   "files": [
     {
       "name": "catalog.json",
-      "bytes": 46101,
-      "sha256": "028529d3d0fa9f829d0724df362cc7fba80295351bef6ebfd99654b8b050dc47"
+      "bytes": 46294,
+      "sha256": "8e8e7cc6eb1d3d35e8dfff629f199168ae425783f8acfa791a409acc9d83d715"
     },
     {
       "name": "HKSE-00001.json",
@@ -545,6 +545,11 @@
       "sha256": "5a72ecc097dc0ee6aa6e0c087aa650aa97b6a1542aa0d59598552e995e40f016"
     },
     {
+      "name": "NASDAQ-GOOG.json",
+      "bytes": 13409,
+      "sha256": "4d2a42e3d0a421bd6fd8ea269cbbe5a711ee80a91729da0cf40f4fba599d3651"
+    },
+    {
       "name": "NASDAQ-GOOGL.json",
       "bytes": 13445,
       "sha256": "f105fc5e70f8772e8607b6b76ee8f8247f4610358750c6222c31c818c11596ca"
@@ -778,6 +783,11 @@
       "name": "NASDAQ-SBUX.json",
       "bytes": 14914,
       "sha256": "7ad2888a68b72e98dd8476a36d066c7e45ba74fc3918c2a03b059669e5ba3f9a"
+    },
+    {
+      "name": "NASDAQ-SMCI.json",
+      "bytes": 14889,
+      "sha256": "83b0a00cc93ed23ba75b04547850cb146354228eff3903934b548fcf0604c884"
     },
     {
       "name": "NASDAQ-SNDK.json",

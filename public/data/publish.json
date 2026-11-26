@@ -3,20 +3,17 @@
   "status": "ok",
   "blocked": [],
   "partial": [],
-  "mode": "quotes",
-  "scope": "targeted",
+  "mode": "all",
+  "scope": "candidates",
   "rates": {
-    "requested": true,
-    "live": [
-      "USD",
-      "CNY"
-    ],
+    "requested": false,
+    "live": [],
     "kept": [],
     "failed": []
   },
-  "generatedAt": "2026-11-25",
-  "upstreamCheckedAt": "2026-11-25T10:54:05.691Z",
+  "generatedAt": "2026-11-26",
+  "upstreamCheckedAt": "2026-11-26T01:16:32.865Z",
   "latestPeriod": "2026-11-01",
-  "batch": "f57dab0e4ccdced07b3992783d471851842335a66654228409bb2d5ce9eb77bd",
-  "previousBatch": "985c35091aa80b6823d613d0c6ded2125c2acf5f864c91caad944654fad4da4d"
+  "batch": "d156044d1afa8beb1ab7bf7a0a7650b7522e8c0d3f800731791e1aa0d542d0d3",
+  "previousBatch": "f57dab0e4ccdced07b3992783d471851842335a66654228409bb2d5ce9eb77bd"
 }

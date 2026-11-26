@@ -36,15 +36,26 @@ describe('searchStocks keeps a recognisable alias beside a legal entity name', (
 describe('searchStocks restores names lost to SEC display names', () => {
   const catalog = [
     { symbol: 'NASDAQ:GOOGL', name: 'Alphabet Inc.' },
+    { symbol: 'NASDAQ:GOOG', name: 'Alphabet Inc.' },
     { symbol: 'NASDAQ:NVDA', name: 'NVIDIA CORP' },
+    { symbol: 'NASDAQ:SMCI', name: 'Super Micro Computer, Inc.' },
     { symbol: 'NYSE:TSM', name: 'TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD' },
     { symbol: 'NYSE:JPM', name: 'JPMORGAN CHASE & CO' },
   ]
 
   it('finds the companies readers previously searched by Chinese name', () => {
-    for (const [query, symbol] of [['谷歌', 'NASDAQ:GOOGL'], ['Google', 'NASDAQ:GOOGL'],
-      ['英伟达', 'NASDAQ:NVDA'], ['台积电', 'NYSE:TSM'], ['摩根大通', 'NYSE:JPM']]) {
-      expect(searchStocks(catalog, query).map(match => match.stock.symbol)).toEqual([symbol])
+    const cases = [
+      ['谷歌', ['NASDAQ:GOOGL', 'NASDAQ:GOOG']],
+      ['谷歌A', ['NASDAQ:GOOGL']],
+      ['谷歌C', ['NASDAQ:GOOG']],
+      ['Google', ['NASDAQ:GOOGL']],
+      ['英伟达', ['NASDAQ:NVDA']],
+      ['超微电脑', ['NASDAQ:SMCI']],
+      ['台积电', ['NYSE:TSM']],
+      ['摩根大通', ['NYSE:JPM']],
+    ]
+    for (const [query, symbols] of cases) {
+      expect(searchStocks(catalog, query).map(match => match.stock.symbol)).toEqual(symbols)
     }
   })
 })
