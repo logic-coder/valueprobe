@@ -32,10 +32,11 @@ test('retry returns to live', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
   await expect(page.locator('.data-banner--stale')).toBeVisible({ timeout: 20000 })
   // The first load is not over when the stale banner appears: the financial and
-  // chart legs still run, and the first one to succeed after the mock is revived
-  // marks the symbol live on its own. Let the cycle settle first, or the banner
-  // can unmount between the click and its actionability check.
+  // chart legs still run in the background after the published headline renders.
+  // The first one to succeed after the mock is revived marks the symbol live on
+  // its own, so wait for those legs to settle before clicking retry.
   await page.locator('.dcf').waitFor({ timeout: 20000 })
+  await page.waitForLoadState('networkidle')
   api.fail = false
   const retry = page.locator('.data-banner button', { hasText: '重试' })
   await expect(retry).toBeEnabled()

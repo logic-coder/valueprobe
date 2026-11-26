@@ -81,7 +81,11 @@ const load = async () => {
     await Promise.all([stockStore.loadStock(target), policyStore.load(target)])
     if (symbol.value !== target) return
     if (!stockStore.stock && !isManual.value) sourceStore.setMode(symbol.value, 'error')
-    else await dcfStore.preFetch(target)
+    else {
+      // Financials and view are not needed for the published headline, which is
+      // already in the local release file. Let the page render, then fill them in.
+      dcfStore.preFetch(target).catch(() => {})
+    }
     if (symbol.value !== target) return
     if (stockStore.stock) addRecent(symbol.value, stockStore.stock.company)
     settled.value = true
