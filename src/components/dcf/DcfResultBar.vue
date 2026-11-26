@@ -18,7 +18,7 @@
           </div>
           <q-skeleton v-if="loading" type="rect" height="30px" width="80px" />
           <div v-else class="dcf__fair-figures">
-            <div class="dcf__fair-value text-h6 button-font-weight" data-testid="dcf-fair-value">
+            <div class="dcf__fair-value button-font-weight" data-testid="dcf-fair-value">
               <animated-amount :value="officialResult.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
             </div>
           </div>
@@ -155,7 +155,7 @@
       </div>
       <q-skeleton v-if="loading" type="rect" height="30px" width="80px" />
       <div v-else class="dcf__fair-figures">
-        <div class="dcf__fair-value text-h6 button-font-weight" data-testid="dcf-fair-value">
+        <div class="dcf__fair-value button-font-weight" data-testid="dcf-fair-value">
           <animated-amount :value="trialResult.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
         </div>
       </div>

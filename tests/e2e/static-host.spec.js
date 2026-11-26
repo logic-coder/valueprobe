@@ -27,7 +27,7 @@ test('the build degrades through its sources with the snapshot ' + snapshot, asy
     await expect(banner).toContainText('暂时无法获取估值数据')
     await expect(banner).not.toContainText('季度快照')
   } else {
-    await expect(page.locator('.text-h6.button-font-weight')).toContainText('¥')
+    await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('¥')
     await expect(banner).toContainText('季度快照')
     await expect(banner).toContainText('采集日')
   }

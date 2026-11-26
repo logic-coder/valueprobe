@@ -37,7 +37,7 @@
 .dcf__price-echo { align-items: baseline; }
 .dcf__price-hint { font-size: 11px; line-height: 1.4; color: var(--text-muted); margin: -2px 0 0; padding-left: 2px; }
 .dcf__strip-title { font-size: 14px; font-weight: 700; color: var(--accent-strong); margin-bottom: 2px; }
-.dcf__strip-context { font-size: 11px; line-height: 1.4; color: var(--text-muted); }
+.dcf__strip-context { font-size: 12px; line-height: 18px; color: var(--text-muted); }
 /* Key assumptions live next to the headline, not behind help icons. */
 .dcf__basis-line { margin-top: 6px; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text-muted); font-size: 12px; line-height: 1.5; }
 .dcf__provenance { display: grid; gap: 3px; padding: 8px 4px 0; color: var(--text-muted); font-size: 13px; }
@@ -105,7 +105,16 @@
 .dcf__fair { padding-top: 2px; }
 .dcf__fair-figures { margin-left: auto; text-align: right; }
 .dcf__range { margin-top: 2px; font-size: 13px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.dcf__fair .text-h6 { font-size: 36px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.dcf__fair-value,
+.dcf__trial-value {
+  font-family: var(--display);
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
 .dcf__cash { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 13px; line-height: 1.4; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .dcf__cash-label { border-bottom: 1px dashed var(--border-strong); cursor: help; }
 .dcf__cash-value { color: var(--text); font-weight: 600; }
@@ -267,20 +276,19 @@
 @media (min-width: 1024px) {
   .dcf__strip { padding: 18px 18px 18px 22px; }
   .dcf__strip-head { margin-bottom: 6px; }
-  .dcf__fair-value, .dcf__fair .text-h6 { font-size: 42px; }
 }
 
 @media (max-width: 1023px) {
   .dcf__head { scroll-margin-top: 124px; }
   .dcf__jump { display: block; width: 100%; min-height: 42px; margin-top: 10px; border: 1px solid var(--accent); border-radius: var(--radius-sm); background: var(--accent-soft); color: var(--accent-strong); font: inherit; font-weight: 650; cursor: pointer; }
   .dcf__evidence { grid-template-columns: minmax(0, 1fr); }
-  .dcf__fair .text-h6 { font-size: 34px; }
+  .dcf__fair-value, .dcf__trial-value { font-size: 42px; }
   .dcf__implied-value { font-size: 18px; }
 }
 
 @media (max-width: 640px) {
   .stage-grid { grid-template-columns: minmax(0, 1fr); }
-  .dcf__fair .text-h6 { font-size: 30px; }
+  .dcf__fair-value, .dcf__trial-value { font-size: 36px; }
   .dcf__implied-value { font-size: 18px; }
   .dcf__mos .button-font-weight { font-size: 22px; }
   .dcf__card > div { padding: 14px 14px 16px; gap: 14px; }
@@ -339,9 +347,6 @@
 .dcf__band-hero { flex: none; min-width: 0; }
 .dcf__band-hero .dcf__label { margin-bottom: 4px; }
 .dcf__fair-figures { margin-left: 0; text-align: left; }
-.dcf__fair-value, .dcf__strip .dcf__fair .text-h6, .dcf__strip .text-h6 {
-  font-variant-numeric: tabular-nums;
-}
 .dcf__band-meta { flex: 0 1 auto; min-width: 0; padding-bottom: 4px; }
 .dcf__band-stay, .dcf__trial-note {
   margin: 8px 0 0;
@@ -352,15 +357,7 @@
 
 .dcf__trial-note { font-size: 12px; line-height: 18px; color: var(--text-faint, var(--text-muted)); }
 .dcf__trial-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 24px; }
-.dcf__trial-value {
-  margin-top: 8px;
-  font-size: 28px;
-  line-height: 1.1;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-}
+.dcf__trial-value { margin-top: 8px; }
 .dcf__restore {
   margin-top: 12px;
   display: inline-flex;
@@ -396,12 +393,17 @@
 .dcf__field-control { display: flex; align-items: center; min-height: 36px; margin-top: 8px; }
 .dcf__field-note { margin: 20px 0 0; font-size: 12px; line-height: 18px; color: var(--text-muted); text-wrap: pretty; }
 .dcf__value--eps { margin-left: 0; }
-.dcf__value--eps .edit-value__text {
+.dcf__value--eps .edit-value {
   font-size: 28px;
   line-height: 1;
   font-weight: 650;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+}
+
+.dcf__value--eps .edit-value__text {
+  font-size: inherit;
+  line-height: inherit;
 }
 .dcf__fields .stepper { margin-left: 0; gap: 6px; }
 
@@ -435,6 +437,8 @@
 .dcf .input-section {
   width: 80px;
   height: 36px;
+  font-size: 18px;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 .stepper--custom .input-section {

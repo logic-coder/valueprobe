@@ -18,7 +18,7 @@ const PORT = CONTRAST_PORT
 const ORIGIN = 'http://127.0.0.1:' + PORT
 const PAGES = [
   { path: '/#/', wait: '.home__hero', selectors: ['.home__lead', '.home .faint', '.home__examples'] },
-  { path: '/#/stock/SHSE:601398/dcf', wait: '.text-h6.button-font-weight', selectors: ['.faint', '.muted', '.dcf__price-echo', '.panel__title', '.dcf__head-hint', 'thead th', 'tbody td', '.dcf__mos .dcf__label-text'] },
+  { path: '/#/stock/SHSE:601398/dcf', wait: '[data-testid="dcf-fair-value"]', selectors: ['.faint', '.muted', '.dcf__price-echo', '.panel__title', '.dcf__head-hint', 'thead th', 'tbody td', '.dcf__mos .dcf__label-text'] },
   { path: '/#/about', wait: '.about__title', selectors: ['.about p', '.about .panel__title'] },
   { path: '/#/compare?s=SHSE:601398,NASDAQ:AAPL', wait: '.cmp__table', selectors: ['.cmp__note', '.cmp__table thead th', '.compare .faint'] },
   { path: '/#/watchlist', wait: '.watchlist .muted', selectors: ['.watchlist .muted'] },

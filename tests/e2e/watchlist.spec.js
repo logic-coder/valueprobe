@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { mockApi } from './support/api-mock'
 
-const FAIR = '.text-h6.button-font-weight'
+const FAIR = '[data-testid="dcf-fair-value"]'
 
 test.beforeEach(async ({ page }) => {
   await mockApi(page)

@@ -124,7 +124,7 @@ h6 { font-size: 13px; }
 /* Display face is Latin-only. Chinese glyphs resolve to the system sans stack,
    so headings keep one voice across platforms; the serif character shows up on
    tickers, prices and figures where Latin is the actual content. */
-h1, h2, .ticker__name, .dcf__fair .text-h6, .brand__name { font-family: var(--display); font-weight: 600; }
+h1, h2, .ticker__name, .brand__name { font-family: var(--display); font-weight: 600; }
 
 code, .num { font-variant-numeric: tabular-nums; font-family: var(--mono); }
 

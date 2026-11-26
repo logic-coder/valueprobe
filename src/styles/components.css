@@ -179,9 +179,9 @@
 /* Zero specificity so a host class such as .ticker__quote keeps its own size. */
 :where(.edit-value) { font: inherit; }
 .edit-value:hover { border-color: var(--accent); }
-.edit-value__icon { font-size: 0.75em; color: var(--accent-strong); }
-.edit-value__code { margin-left: 4px; font-size: 0.72em; color: var(--text-muted); letter-spacing: 0.02em; }
-.edit-value__converted { margin-left: 6px; font-size: 0.78em; color: var(--text-muted); }
+.edit-value__icon { font-size: 0.5em; flex: none; color: var(--accent-strong); }
+.edit-value__code { margin-left: 4px; font-size: 0.46em; line-height: 1; color: var(--text-muted); letter-spacing: 0.02em; }
+.edit-value__converted { margin-left: 6px; font-size: 0.5em; color: var(--text-muted); }
 .ticker__quote.edit-value { padding: 2px 10px; }
 
 /* dialogs & menus */

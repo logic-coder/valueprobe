@@ -4,7 +4,7 @@ import { mockApi } from './support/api-mock'
 
 const PAGES = [
   { path: '/#/', wait: '.home__hero' },
-  { path: '/#/stock/SHSE:601398/dcf', wait: '.text-h6.button-font-weight' },
+  { path: '/#/stock/SHSE:601398/dcf', wait: '[data-testid="dcf-fair-value"]' },
   { path: '/#/watchlist', wait: '.watchlist' },
   { path: '/#/compare?s=SHSE:601398,NASDAQ:AAPL', wait: '.cmp__table, .compare .muted' },
   { path: '/#/about', wait: '.about__title' },
@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 test('no serious axe violations on the stock page in dark', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem('fv-theme', 'dark'))
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await page.locator('.text-h6.button-font-weight').waitFor({ timeout: 20000 })
+  await page.locator('[data-testid="dcf-fair-value"]').waitFor({ timeout: 20000 })
   await page.waitForTimeout(800)
   const result = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
   const bad = result.violations.filter((item) => ['serious', 'critical'].includes(item.impact))

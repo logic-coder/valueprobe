@@ -13,7 +13,7 @@ const seed = (page) => page.addInitScript(({ sym, stockData }) => {
 test('a quarterly file shows its as-of date', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.68', { timeout: 20000 })
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('10.68', { timeout: 20000 })
   await expect(page.locator('.data-banner--published')).toContainText('采集日')
 })
 
@@ -23,7 +23,7 @@ test('falls back to a stale snapshot and offers recovery', async ({ page }) => {
   await page.goto('/#/stock/SHSE:601398/dcf')
   await expect(page.locator('.data-banner--stale')).toBeVisible({ timeout: 20000 })
   await expect(page.locator('.data-banner')).toContainText('离线快照')
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.68')
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('10.68')
 })
 
 test('retry returns to live', async ({ page }) => {
@@ -42,7 +42,7 @@ test('retry returns to live', async ({ page }) => {
   await expect(retry).toBeEnabled()
   await retry.click()
   await expect(page.locator('.data-banner--published')).toBeVisible({ timeout: 20000 })
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('10.68')
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('10.68')
 })
 
 test('manual mode stops fetching and keeps the numbers editable', async ({ page }) => {

@@ -10,7 +10,7 @@ const open = async (viewport) => {
   return page
 }
 const ready = async (p) => p.waitForFunction(() => {
-  const el = document.querySelector('.dcf__fair .text-h6')
+  const el = document.querySelector('[data-testid="dcf-fair-value"]')
   return el && /[0-9]/.test(el.textContent || '')
 }, null, { timeout: 30000 })
 const hp = await open({ width: 1440, height: 1200 })

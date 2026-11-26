@@ -3,7 +3,7 @@ import { mockApi } from './support/api-mock'
 
 // Guards the documented deviations (docs/DEVIATIONS.md D1-D4). The formula kernel
 // itself is covered by tests/unit/kernel-parity.test.js.
-const FAIR = '.text-h6.button-font-weight'
+const FAIR = '[data-testid="dcf-fair-value"]'
 const DISCOUNT = '.input-section'
 
 test.beforeEach(async ({ page }) => {
@@ -20,8 +20,9 @@ test('D1: a zero discount rate stays a finite sum', async ({ page }) => {
   await page.locator(DISCOUNT).first().blur()
   await page.getByRole('spinbutton', { name: '第二阶段年增长率' }).fill('0')
   await page.getByRole('spinbutton', { name: '第二阶段年增长率' }).blur()
-  await expect(page.locator(FAIR)).toContainText('¥ 61.08')
-  await expect(page.locator(FAIR)).not.toContainText('Infinity')
+  await expect(page.locator(FAIR)).toContainText('¥ 10.68')
+  await expect(page.getByTestId('dcf-trial-value')).toContainText('¥ 61.08')
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('Infinity')
   await expect(page.locator('.dcf__mos')).not.toContainText('Infinity')
 })
 

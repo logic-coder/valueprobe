@@ -31,7 +31,7 @@ test('lists a recently viewed symbol and clears it', async ({ page }) => {
   await page.goto('/#/stock/NYSE:KO/dcf')
   await expect(page).toHaveURL(/#\/stock\/NYSE:KO\/dcf$/)
   await expect(page.locator('.ticker__code')).toContainText('NYSE', { timeout: 20000 })
-  await expect(page.locator('.text-h6.button-font-weight')).toContainText('33.82', { timeout: 20000 })
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('33.82', { timeout: 20000 })
   await page.goto('/#/')
   const recent = page.locator('.home__recent')
   await expect(recent).toContainText('接着看')
@@ -60,7 +60,7 @@ test('opens an example from the hero', async ({ page }) => {
   const symbol = await links.first().getAttribute('data-symbol')
   await links.first().click()
   await expect(page).toHaveURL(new RegExp('#/stock/' + symbol + '/dcf$'))
-  await expect(page.locator('.text-h6.button-font-weight')).toHaveText(/(?:HK|US)?\$ ?[\d.,]+|¥ ?[\d.,]+/, { timeout: 20000 })
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toHaveText(/(?:HK|US)?\$ ?[\d.,]+|¥ ?[\d.,]+/, { timeout: 20000 })
   await expect(page.locator('.stock-head h1')).toBeVisible()
 })
 

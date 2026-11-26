@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { mockApi } from './support/api-mock'
 
 // The stock page is the valuation calculator. Older tab URLs land on the same screen.
-const FAIR = '.text-h6.button-font-weight'
+const FAIR = '[data-testid="dcf-fair-value"]'
 
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
