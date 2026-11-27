@@ -107,6 +107,31 @@ export function envelopeGrowth (official, { cap = MAX_UNDERWRITTEN_GROWTH, susta
 }
 
 /**
+ * Interactive starting-growth ceiling in percent. Observed g* is clipped
+ * to [0, 15]; a missing g* (null, blank, or non-numeric) — including
+ * financial names that skip the retention cap — falls back to the 15%
+ * underwriting cap. A true 0% g* stays 0 and is not treated as missing.
+ */
+export function growthInputCeiling (sustainableGrowth) {
+  const gStar = parseRate(sustainableGrowth)
+  if (gStar == null) return MAX_UNDERWRITTEN_GROWTH
+  return Math.min(MAX_UNDERWRITTEN_GROWTH, Math.max(0, gStar))
+}
+
+/**
+ * Clamp a trial starting-growth entry to a ceiling. Missing or invalid
+ * values stay missing. No floor is applied: a negative trial rate is left
+ * as entered.
+ */
+export function clampGrowthInput (value, ceiling) {
+  const parsed = parseRate(value)
+  if (parsed == null) return null
+  const cap = parseRate(ceiling)
+  if (cap == null) return parsed
+  return parsed > cap ? cap : parsed
+}
+
+/**
  * Official starting growth. Shared by policyValue() and buildDefaults(), so the
  * calculator seed equals the published value. When both clean windows exist,
  * each is floored at 0% and capped at 15%, and the slower of the two is the

@@ -112,7 +112,9 @@
                       data-testid="field-growth"
                       :aria-label="t('growth_rate')"
                       type="number"
+                      :max="growthCeiling"
                       outlined
+                      @change="clampGrowth"
                     />
                     <input
                       v-else-if="dcfBasedOn === 'freecashflow'"
@@ -120,7 +122,9 @@
                       class="input-section"
                       :aria-label="t('growth_rate')"
                       type="number"
+                      :max="growthCeiling"
                       outlined
+                      @change="clampGrowth"
                     />
                     <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="incGrowthRate" />
                     <span class="stepper__unit">%</span>
@@ -155,7 +159,7 @@
                 <div class="stepper stepper--sm">
                   <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
                   <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                  <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_rate')" outlined />
+                  <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_short')" outlined />
                   <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
                   <span class="stepper__unit">%</span>
                 </div>
@@ -408,7 +412,7 @@ import { useDcfStore } from '../store/dcf'
 import { usePolicyStore } from '../store/policy'
 import { useDataStateStore } from '../store/dataState'
 import { readManual, writeManual } from '../lib/manual'
-import { adoptGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH } from '../lib/assumptions'
+import { adoptGrowth, officialGrowth, growthInputCeiling, clampGrowthInput } from '../lib/assumptions'
 import { buildDefaults, impliedGrowth, marginOfSafety, presentValue, residualIncomeValue, valueBand } from '../lib/dcf'
 import { REASON } from '../lib/reasons'
 import { marginStress as calculateMarginStress } from '../lib/marginStress'
@@ -645,17 +649,10 @@ const defaultGrowth = computed(() => {
 })
 const currentGrowth = computed(() => finiteOrNull(dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate))
 const growthOffDefault = computed(() => currentGrowth.value != null && defaultGrowth.value != null && Math.abs(currentGrowth.value - defaultGrowth.value) > 1e-9)
-const growthCeiling = computed(() => {
-  const gStar = Number(policyEntry.value?.inputs?.sustainableGrowth)
-  if (Number.isFinite(gStar)) return Math.min(MAX_UNDERWRITTEN_GROWTH, Math.max(0, gStar))
-  return MAX_UNDERWRITTEN_GROWTH
-})
+const growthCeiling = computed(() => growthInputCeiling(policyEntry.value?.inputs?.sustainableGrowth))
 const growthCapDetail = computed(() => {
-  const gStar = Number(policyEntry.value?.inputs?.sustainableGrowth)
-  if (Number.isFinite(gStar)) {
-    const capped = Math.min(MAX_UNDERWRITTEN_GROWTH, Math.max(0, gStar))
-    return t('growth_cap_company', { cap: percent(capped) })
-  }
+  const gStar = finiteOrNull(policyEntry.value?.inputs?.sustainableGrowth)
+  if (gStar != null) return t('growth_cap_company', { cap: percent(growthInputCeiling(gStar)) })
   return t('growth_cap_fifteen')
 })
 const defaultTerminalGrowth = computed(() => {
@@ -916,11 +913,21 @@ const applyWacc = () => {
   waccVisible.value = false
 }
 
+const applyGrowth = (value) => {
+  const field = dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate'
+  const next = clampGrowthInput(value, growthCeiling.value)
+  if (next === null) return
+  if (finiteOrNull(form[field]) !== next) form[field] = next
+}
 const stepGrowth = (delta) => {
   const field = dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate'
   const current = finiteOrNull(form[field])
   if (current === null) return
-  form[field] = current + delta
+  applyGrowth(current + delta)
+}
+const clampGrowth = () => {
+  const field = dcfBasedOn.value === 'eps' ? 'growthRate' : 'freecashflowGrowthRate'
+  applyGrowth(form[field])
 }
 const incGrowthRate = () => stepGrowth(1)
 const decGrowthRate = () => stepGrowth(-1)
