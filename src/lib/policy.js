@@ -9,6 +9,7 @@ import { adoptGrowth, officialGrowth, retentionCap, MAX_UNDERWRITTEN_GROWTH, MIN
 import { cashflowCurrency, reportingCurrency, reportingCurrencySource, rateForCurrency, EQUITY_PREMIUM, FALLBACK_DISCOUNT_RATE, REQUIRED_RETURN_FLOOR } from './riskFree'
 import { blendOfficialBase, DCF_DEFAULTS, marginOfSafety, preferredEps, presentValue, residualIncomeValue, round2, valueBand } from './dcf'
 import { orderBy, REASON, REASON_ORDER, WARNING, WARNING_ORDER } from './reasons'
+import { quoteUnitUnreconciled } from './unreconciledUnits'
 
 export const POLICY_VERSION = 'v3'
 
@@ -362,7 +363,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.baseKind = describeBaseKind(eps, latestEps, epsNormalized, cashSide, stock.financial_institution === true, {
     upshift, blend: blended.action, method: stock.base_method || null,
   })
-  if (stock.base_refusal && REASON[stock.base_refusal]) reasons.push(REASON[stock.base_refusal])
+  if (quoteUnitUnreconciled(stock)) reasons.push(REASON.UNIT_UNRECONCILED)
+  else if (stock.base_refusal && REASON[stock.base_refusal]) reasons.push(REASON[stock.base_refusal])
   else if (earningsSide === null) reasons.push(REASON.NO_EPS)
   else if (earningsSide <= 0) reasons.push(REASON.NON_POSITIVE_EPS)
   else if (latestEps !== null && Math.abs(eps / latestEps - 1) >= 0.25) warnings.push(WARNING.NORMALIZED_EPS)

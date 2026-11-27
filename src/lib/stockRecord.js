@@ -4,6 +4,7 @@
 import { cleanGrowth, windowGrowth } from './assumptions'
 import { latestFiscalValue } from './dcf'
 import { BASE_METHOD, selectOfficialBase } from './valuationBase'
+import { quoteUnitUnreconciled } from './unreconciledUnits'
 import { classify, dataGaps } from './financialInstitution'
 
 /** One slot per fiscal year, oldest first, null where the year is missing. */
@@ -135,6 +136,7 @@ export function toStock (raw) {
   stock.maintenance_capex_method = official.maintenanceCapexMethod
   stock.base_warnings = official.warnings
   stock.base_refusal = official.refusal
+  if (quoteUnitUnreconciled(raw)) stock.base_refusal = 'UNIT_UNRECONCILED'
   stock.persistent_step = official.step?.hit === true
   stock.through_cycle = official.throughCycle?.hit === true
   stock.payout_ratio = official.payoutRatio

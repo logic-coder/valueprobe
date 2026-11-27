@@ -16,6 +16,9 @@ export const REASON = Object.freeze({
   UNSTABLE_BASE_REGIME: 'UNSTABLE_BASE_REGIME',
   // No clean complete fiscal year can form a positive official base. TTM is display-only.
   BASE_QUALITY_INSUFFICIENT: 'BASE_QUALITY_INSUFFICIENT',
+  // Checked per-share figures are not in the quoted unit and cannot be converted.
+  // Applied only to an explicit confirmed list, not as a general currency gate.
+  UNIT_UNRECONCILED: 'UNIT_UNRECONCILED',
 })
 
 export const WARNING = Object.freeze({

@@ -28,8 +28,8 @@
     "missing": []
   },
   "coverage": {
-    "valued": 912,
-    "refused": 207,
+    "valued": 909,
+    "refused": 210,
     "reasons": {
       "NO_EPS": 56,
       "NON_POSITIVE_EPS": 76,
@@ -37,7 +37,8 @@
       "INDUSTRY_MODEL_PENDING": 3,
       "CASH_UNRECONCILED": 46,
       "UNSTABLE_BASE_REGIME": 13,
-      "BASE_QUALITY_INSUFFICIENT": 13
+      "BASE_QUALITY_INSUFFICIENT": 13,
+      "UNIT_UNRECONCILED": 3
     },
     "warnings": {
       "CAPPED_GROWTH": 153,
@@ -50,7 +51,7 @@
       "MODEL_CAVEAT": 3,
       "CASH_DIVERGENCE": 118,
       "CASH_MIDPOINT": 131,
-      "NORMALIZED_EPS": 499,
+      "NORMALIZED_EPS": 497,
       "LIFE_BOOK_QUALITY": 3,
       "OWNER_BASE_GAP": 24,
       "REGIME_UNCERTAIN": 200,
@@ -37866,24 +37867,21 @@
     "NYSE:BCH": {
       "symbol": "NYSE:BCH",
       "name": "Bank of Chile",
-      "status": "ok",
-      "value": 347809.13,
-      "band": {
-        "low": 116947.31,
-        "mid": 347809.13,
-        "high": 1306194.9
-      },
+      "status": "refused",
+      "value": null,
+      "band": null,
       "terminalShare": null,
       "cash": null,
       "price": 36.67,
       "priceDate": "2026-11-25",
-      "marginOfSafety": 99.99,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "UNIT_UNRECONCILED"
+      ],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
         "STALE_DATA",
-        "NORMALIZED_EPS",
         "SHARE_BASIS_UNVERIFIED"
       ],
       "inputs": {
@@ -69394,23 +69392,20 @@
     "NYSE:PKX": {
       "symbol": "NYSE:PKX",
       "name": "POSCO HOLDINGS INC.",
-      "status": "ok",
-      "value": 493923.55,
-      "band": {
-        "low": 301440,
-        "mid": 493923.55,
-        "high": 686261.52
-      },
-      "terminalShare": 0.5057,
+      "status": "refused",
+      "value": null,
+      "band": null,
+      "terminalShare": null,
       "cash": null,
       "price": 46.96,
       "priceDate": "2026-11-25",
-      "marginOfSafety": 99.99,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "UNIT_UNRECONCILED"
+      ],
       "warnings": [
         "SHORT_HISTORY",
         "STALE_DATA",
-        "NORMALIZED_EPS",
         "OWNER_BASE_GAP",
         "REGIME_UNCERTAIN",
         "SHARE_BASIS_UNVERIFIED"
@@ -82785,19 +82780,17 @@
     "NYSE:WF": {
       "symbol": "NYSE:WF",
       "name": "Woori Financial Group Inc.",
-      "status": "ok",
-      "value": 32613.38,
-      "band": {
-        "low": 25540.81,
-        "mid": 32613.38,
-        "high": 45313.31
-      },
-      "terminalShare": 0.5057,
+      "status": "refused",
+      "value": null,
+      "band": null,
+      "terminalShare": null,
       "cash": null,
       "price": 70.88,
       "priceDate": "2026-11-25",
-      "marginOfSafety": 99.78,
-      "reasons": [],
+      "marginOfSafety": null,
+      "reasons": [
+        "UNIT_UNRECONCILED"
+      ],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
