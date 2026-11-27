@@ -24,7 +24,10 @@
           </div>
         </div>
         <div class="dcf__band-meta">
-          <div v-if="officialHasBand" class="dcf__range" data-testid="dcf-fair-range">{{ officialBandText }}</div>
+          <div v-if="officialHasBand" class="dcf__range" data-testid="dcf-fair-range">
+            <span class="dcf__range-label">{{ t('value_range_label') }}</span>
+            <b class="dcf__range-values">{{ officialBandText }}</b>
+          </div>
           <div v-if="!trialActive && basisLine" class="dcf__basis-line" data-testid="value-basis-line">{{ basisLine }}</div>
           <p v-if="trialActive" class="dcf__band-stay">{{ t('default_price_unchanged') }}</p>
         </div>
@@ -56,7 +59,7 @@
             <animated-amount :value="officialResult.marginOfSafety" :format="percent" />
           </div>
         </div>
-        <div v-if="showImplied && !trialActive" class="dcf__block dcf__implied">
+        <div v-if="showImplied" class="dcf__block dcf__implied">
           <div class="dcf__label">
             <a-popover placement="top">
               <h3 class="dcf__label-text">
@@ -88,15 +91,20 @@
         <span class="dcf__pill dcf__pill--custom">{{ t('scenario_custom') }}</span>
       </div>
       <div v-if="!officialPresent" class="dcf__strip-context" data-testid="value-context">{{ trialContext }}</div>
-      <q-skeleton v-if="loading" type="rect" height="30px" width="80px" />
-      <div v-else class="dcf__trial-figures">
-        <div
-          class="dcf__trial-value button-font-weight"
-          :data-testid="officialPresent ? 'dcf-trial-value' : 'dcf-fair-value'"
-        >
-          <animated-amount :value="trialResult.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
+      <div class="dcf__trial-hero">
+        <div v-if="officialPresent" class="dcf__label dcf__trial-spacer" aria-hidden="true">
+          <div class="dcf__label-text">&nbsp;</div>
         </div>
-        <div v-if="trialHasBand" class="dcf__range">{{ trialBandText }}</div>
+        <q-skeleton v-if="loading" type="rect" height="30px" width="80px" />
+        <div v-else class="dcf__trial-figures">
+          <div
+            class="dcf__trial-value button-font-weight"
+            :data-testid="officialPresent ? 'dcf-trial-value' : 'dcf-fair-value'"
+          >
+            <animated-amount :value="trialResult.fairValue" :format="(amount) => moneyIn(stock.currency, amount)" />
+          </div>
+          <div v-if="trialHasBand && !officialPresent" class="dcf__range">{{ trialBandText }}</div>
+        </div>
       </div>
       <p v-if="officialPresent" class="dcf__trial-note">{{ t('trial_not_default_price') }}</p>
       <button
@@ -108,7 +116,7 @@
       >
         {{ t('restore_default_assumptions') }}
       </button>
-      <div v-if="showImplied || !officialPresent" class="dcf__band-metrics">
+      <div v-if="!officialPresent" class="dcf__band-metrics">
         <div v-if="!officialPresent" class="dcf__block dcf__mos">
           <div class="dcf__label">
             <a-popover placement="top">

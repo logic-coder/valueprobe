@@ -11,6 +11,10 @@ const VIEWPORTS = [
   { width: 390, height: 844, fair: 36, mos: 22, quote: 22 },
 ]
 
+async function overflowX (locator) {
+  return locator.evaluate((element) => element.scrollWidth - element.clientWidth)
+}
+
 function typography (locator) {
   return locator.evaluate((element) => {
     const style = getComputedStyle(element)
@@ -104,6 +108,30 @@ test('keeps the default price as the typographic anchor at each viewport', async
     expect(fair.fontSize).toBeGreaterThan(eps.fontSize)
     expect(fair.fontSize).toBeGreaterThan(mos.fontSize)
 
+    const strip = page.getByTestId('dcf-result')
+    expect(await overflowX(strip)).toBeLessThanOrEqual(1)
+    await expect(page.getByTestId('dcf-fair-range')).toContainText('区间')
+    const fairBox = await page.locator(FAIR).boundingBox()
+    const rangeBox = await page.getByTestId('dcf-fair-range').boundingBox()
+    const mosBox = await page.getByTestId('dcf-margin-of-safety').boundingBox()
+    const titleBox = await page.getByTestId('value-title').boundingBox()
+    const contextBox = await page.getByTestId('value-context').boundingBox()
+    const basisBox = await page.getByTestId('value-basis-line').boundingBox()
+    expect(fairBox).toBeTruthy()
+    expect(rangeBox).toBeTruthy()
+    expect(mosBox).toBeTruthy()
+    expect(mosBox.y).toBeGreaterThan(fairBox.y + fairBox.height - 2)
+    if (viewport.width >= 900) {
+      expect(contextBox.x).toBeGreaterThan(titleBox.x + titleBox.width - 2)
+      expect(contextBox.y).toBeLessThan(titleBox.y + titleBox.height)
+      expect(contextBox.y + contextBox.height).toBeGreaterThan(titleBox.y)
+      expect(rangeBox.x).toBeGreaterThan(fairBox.x + fairBox.width - 2)
+      expect(basisBox.x).toBeGreaterThan(fairBox.x + fairBox.width - 2)
+      expect(Math.abs((basisBox.y + basisBox.height) - (fairBox.y + fairBox.height))).toBeLessThan(10)
+    } else {
+      expect(rangeBox.y).toBeGreaterThan(fairBox.y + fairBox.height - 4)
+    }
+
     await page.evaluate(() => window.scrollTo(0, 0))
     await page.screenshot({ path: path.join(out, `default-${viewport.width}.png`) })
 
@@ -116,6 +144,20 @@ test('keeps the default price as the typographic anchor at each viewport', async
     expect(trial.fontSize).toBe(fairAfter.fontSize)
     expect(trial.fontWeight).toBe('700')
     expect(trial.lineHeightPx).toBeCloseTo(fairAfter.lineHeightPx, 1)
+
+    await expect(page.getByTestId('dcf-trial').locator('.dcf__range')).toHaveCount(0)
+    await expect(page.getByTestId('dcf-fair-range')).toBeVisible()
+    const fairAfterBox = await page.locator(FAIR).boundingBox()
+    const trialBox = await page.getByTestId('dcf-trial-value').boundingBox()
+    const rangeAfter = await page.getByTestId('dcf-fair-range').boundingBox()
+    const mosAfter = await page.getByTestId('dcf-margin-of-safety').boundingBox()
+    expect(rangeAfter.y).toBeGreaterThan(fairAfterBox.y + fairAfterBox.height - 4)
+    expect(mosAfter.y).toBeGreaterThan(rangeAfter.y + rangeAfter.height - 2)
+    if (viewport.width >= 900) {
+      expect(Math.abs(trialBox.y - fairAfterBox.y)).toBeLessThan(4)
+      expect(Math.abs((trialBox.y + trialBox.height) - (fairAfterBox.y + fairAfterBox.height))).toBeLessThan(4)
+    }
+    expect(await overflowX(strip)).toBeLessThanOrEqual(1)
 
     await page.evaluate(() => window.scrollTo(0, 0))
     await page.screenshot({ path: path.join(out, `trial-${viewport.width}.png`) })
