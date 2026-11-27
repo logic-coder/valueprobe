@@ -45,10 +45,10 @@ describe('calculator growth controls', () => {
   it('derives the visible ceiling without coercing a missing g* to 0', () => {
     expect(source).toContain('growthInputCeiling')
     expect(source).toContain('clampGrowthInput')
-    expect(source).toContain('finiteOrNull(policyEntry.value?.inputs?.sustainableGrowth)')
+    expect(source).toContain('finiteOrNull(policyInputs.value?.sustainableGrowth)')
     expect(source).toContain("t('growth_cap_fifteen')")
     expect(source).toContain("t('growth_cap_company'")
-    expect(source).not.toMatch(/Number\(policyEntry\.value\?\.inputs\?\.sustainableGrowth\)/)
+    expect(source).not.toMatch(/Number\(policyInputs\.value\?\.sustainableGrowth\)/)
   })
 
   it('binds starting-growth typing and stepping to the same ceiling', () => {

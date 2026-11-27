@@ -1,20 +1,22 @@
 import { expect, test } from '@playwright/test'
-import { mockApi } from './support/api-mock'
+import { mockApi, publishedEntry } from './support/api-mock'
 import { STOCK } from './support/pages/stock'
 
+const ICBC = publishedEntry('SHSE:601398')
+const ICBC_VALUE = ICBC.value.toFixed(2)
 const FAIR = STOCK.fairValue
 const openAdvanced = page => page.getByTestId('advanced-assumptions').locator('summary').click()
 
 test.beforeEach(async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator(FAIR)).toContainText('10.68', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE, { timeout: 20000 })
 })
 
 test('shows the published value by default and only edits this page', async ({ page }) => {
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
   await expect(page.getByTestId('value-context')).toContainText('v3')
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
   const stress = page.getByTestId('margin-stress')
   await expect(stress.locator('.stress__headline-value')).toHaveText(await stress.locator('.stress__row .stress__value').last().innerText())
   const [resultBox, stressBox, formBox] = await Promise.all([
@@ -28,19 +30,19 @@ test('shows the published value by default and only edits this page', async ({ p
 
   await page.locator('.input-section').first().fill('12')
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
   await expect(page.getByTestId('dcf-trial-value')).toBeVisible()
-  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText(ICBC_VALUE)
 
   // Reset returns to the published inputs; the artifact itself is untouched.
   await page.locator('.q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
 })
 
 test('renders the calculator with the live defaults', async ({ page }) => {
-  await expect(page.locator(FAIR)).toContainText('¥ 10.68')
+  await expect(page.locator(FAIR)).toContainText(`¥ ${ICBC_VALUE}`)
   await expect(page.getByTestId('long-run-pe')).toHaveCount(0)
   await expect(page.locator('.input-section').first()).toHaveValue('10')
   await expect(page.locator('text=多数年份没有盈利')).toBeVisible()
@@ -50,8 +52,8 @@ test('renders the calculator with the live defaults', async ({ page }) => {
 test('recalculates when the discount rate changes', async ({ page }) => {
   await page.locator('.input-section').first().fill('12')
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.68')
-  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText(ICBC_VALUE)
   await page.locator('.q-btn:has(i:has-text("add"))').first().click()
   await page.waitForTimeout(300)
   await expect(page.locator('.input-section').first()).toHaveValue('13')
@@ -95,7 +97,7 @@ test('switches between eps and free cash flow bases', async ({ page }) => {
   await expect(page.getByTestId('dcf-trial-value')).toContainText('n/a')
   await page.locator('.q-radio').nth(0).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
 })
 
 test('adds tangible book value to the fair value', async ({ page }) => {
@@ -185,7 +187,7 @@ test('the header price is the working price', async ({ page }) => {
   await page.keyboard.press('Enter')
   await expect(page.locator(STOCK.margin)).toContainText('n/a')
   await expect(stress).toHaveCount(0)
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
 })
 
@@ -214,11 +216,11 @@ test('editing earnings starts a trial and restores the original value on reset',
   await page.getByRole('spinbutton', { name: /每股收益/ }).fill('0.8')
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
-  await expect(page.locator(FAIR)).toContainText('10.68')
-  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText(ICBC_VALUE)
   await page.locator('.q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
 })
 
 test('switches the interface language', async ({ page }) => {
@@ -264,7 +266,7 @@ test('keeps the console clean', async ({ page }) => {
   const errors = []
   page.on('pageerror', (error) => errors.push(error.message))
   await page.reload()
-  await expect(page.locator(FAIR)).toContainText('10.68', { timeout: 20000 })
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE, { timeout: 20000 })
   await page.waitForTimeout(1200)
   expect(errors).toEqual([])
 })
@@ -307,12 +309,12 @@ test('builds the discount rate from its parts', async ({ page }) => {
 test('scenario presets move the assumptions and restore the base', async ({ page }) => {
   await page.locator('.dcf__scenario-btns button', { hasText: '更乐观' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.68')
-  await expect(page.getByTestId('dcf-trial-value')).not.toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
+  await expect(page.getByTestId('dcf-trial-value')).not.toContainText(ICBC_VALUE)
   await page.locator('.dcf__scenario-btns button', { hasText: '默认' }).click()
   await page.waitForTimeout(400)
-  await expect(page.locator(FAIR)).toContainText('10.68')
-  await expect(page.getByTestId('dcf-trial-value')).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
+  await expect(page.getByTestId('dcf-trial-value')).toContainText(ICBC_VALUE)
   await expect(page.locator('.input-section').first()).toHaveValue('10')
 })
 
@@ -325,7 +327,7 @@ test('pins a source for the symbol and releases it again', async ({ page }) => {
   await page.locator('.dcf .q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item', { hasText: '自动选择' }).click()
   await expect(page.locator('.data-banner--published')).toContainText('季度快照', { timeout: 20000 })
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
 })
 
 test('cross-checks the price against peer multiples', async ({ page }) => {
@@ -346,7 +348,7 @@ test('has no share surface and ignores valuation query parameters', async ({ pag
   // old query strings no longer seed the form; the page opens on its own defaults.
   await page.goto('/#/stock/SHSE:601398/dcf?r=15&g=7&tbv1=1')
   await expect(page.locator('.input-section').first()).toHaveValue('10', { timeout: 20000 })
-  await expect(page.locator(FAIR)).toContainText('10.68')
+  await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
   await expect(page.locator('.dcf__share-btn')).toHaveCount(0)
 })
 

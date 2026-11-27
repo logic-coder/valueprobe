@@ -112,7 +112,10 @@ export function useQuote (record, quote) {
 export function recoverRecord (record, quote, { market, fundamentalError, us }) {
   if (!record) return record
   const next = useQuote(record, quote)
-  return fundamentalError && us.has(market) ? { ...next, split_unverified: true } : next
+  const basisFailed = /share basis/.test(fundamentalError || '')
+  return fundamentalError && us.has(market)
+    ? { ...next, split_unverified: true, ...(basisFailed ? { unit_unreconciled: true } : {}) }
+    : next
 }
 
 export function classifyShareBasis (ratio, factor) {

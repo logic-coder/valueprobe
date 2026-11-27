@@ -1,10 +1,13 @@
 <template>
-  <div>
-    <date-selector :value="date" :range="props.range" :dates="annualRanges" @on-change="onDateChange" />
-    <div v-if="!loading && chartOptions" ref="chartEl" style="width: 100%; height: 280px" />
-    <div v-else-if="!loading" class="chart-empty faint">{{ t('chart_empty') }}</div>
-    <p v-if="!loading && trend" class="chart-fit-note muted">{{ t('chart_fit_note', { correlation: trend.r }) }}</p>
-    <q-skeleton v-if="loading" type="rect" height="280px" />
+  <div data-testid="financial-chart" :data-unit-state="unitOk ? 'reconciled' : 'unreconciled'">
+    <div v-if="!unitOk" class="chart-empty faint">{{ t('chart_units_unreconciled') }}</div>
+    <template v-else>
+      <date-selector :value="date" :range="props.range" :dates="annualRanges" @on-change="onDateChange" />
+      <div v-if="!loading && chartOptions" ref="chartEl" style="width: 100%; height: 280px" />
+      <div v-else-if="!loading" class="chart-empty faint">{{ t('chart_empty') }}</div>
+      <p v-if="!loading && trend" class="chart-fit-note muted">{{ t('chart_fit_note', { correlation: trend.r }) }}</p>
+      <q-skeleton v-if="loading" type="rect" height="280px" />
+    </template>
   </div>
 </template>
 
@@ -21,6 +24,7 @@ import { useStockStore } from '../store/stock'
 import { useDcfStore } from '../store/dcf'
 import { axisExtent } from '../lib/axis'
 import { buildTrend } from '../lib/trend'
+import { quoteUnitReconciliation } from '../lib/unreconciledUnits'
 import DateSelector from './DateSelector.vue'
 import { RANGE_KEYS, rangeDate } from '../lib/ranges'
 
@@ -55,6 +59,7 @@ const readInk = () => {
 }
 
 const stock = computed(() => stockStore.stock || {})
+const unitOk = computed(() => !stock.value.symbol || quoteUnitReconciliation(stock.value).ok)
 const data = computed(() => dcfStore.indicator.data || [])
 const loading = computed(() => dcfStore.indicator.dataLoading)
 
@@ -118,7 +123,7 @@ const chartOptions = computed(() => {
 })
 
 const getData = async () => {
-  if (!props.indicator) return
+  if (!props.indicator || !unitOk.value) return
   await dcfStore.loadIndicatorData(props.symbol || stock.value.stockid, props.indicator, { type: 'annual', get_ratio: false })
 }
 

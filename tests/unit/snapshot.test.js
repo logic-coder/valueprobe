@@ -79,4 +79,24 @@ describe('snapshot provider', () => {
     expect(quote.provider).toBe('snapshot')
     expect(quote.timestamp).toBe(Date.parse('2026-09-30'))
   })
+
+  it('withholds historical per-share data when quote units are unreconciled', async () => {
+    get.mockResolvedValue({ data: {
+      price: '$10', currency: '$', reporting_currency: 'BRL', per_share_currency: 'BRL',
+      history: { revenue_per_share: [['2025-12', 20]] },
+      financials: { annual: [{ date: '2025-12', revenue_per_share: 20 }] },
+    } })
+    await expect(snapshot.fetchHistory('NYSE:SBS', 'revenue_per_share')).rejects.toThrow(/unreconciled per-share units/)
+    await expect(snapshot.fetchFinancials('NYSE:SBS')).rejects.toThrow(/unreconciled per-share units/)
+  })
+
+  it('serves historical per-share data after the currencies reconcile', async () => {
+    get.mockResolvedValue({ data: {
+      price: '$10', currency: '$', reporting_currency: 'USD', per_share_currency: 'USD',
+      history: { revenue_per_share: [['2025-12', 20]] },
+      financials: { annual: [{ date: '2025-12', revenue_per_share: 20 }] },
+    } })
+    await expect(snapshot.fetchHistory('NYSE:TEST', 'revenue_per_share')).resolves.toEqual([['2025-12', 20]])
+    await expect(snapshot.fetchFinancials('NYSE:TEST')).resolves.toEqual({ annual: [{ date: '2025-12', revenue_per_share: 20 }] })
+  })
 })

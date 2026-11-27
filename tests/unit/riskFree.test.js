@@ -105,10 +105,11 @@ describe('reportingCurrency', () => {
     expect(reportingCurrencySource({ report_currency: 'HKD', currency: 'HK$', exchange_: 'HKSE', symbol: '00005' })).toBe('quote-fallback')
   })
 
-  it('defaults A-share and US markets by exchange, and falls Hong Kong names back to the quote currency without a pair list', () => {
+  it('defaults A-share markets, leaves US reporting currency unknown, and falls Hong Kong names back to the quote currency without a pair list', () => {
     expect(reportingCurrency({ exchange_: 'SHSE', symbol: '601398', currency: '¥' })).toBe('CNY')
     expect(reportingCurrencySource({ exchange_: 'SHSE', symbol: '601398', currency: '¥' })).toBe('market')
-    expect(reportingCurrency({ exchange_: 'NASDAQ', symbol: 'AAPL', currency: '$' })).toBe('USD')
+    expect(reportingCurrency({ exchange_: 'NASDAQ', symbol: 'AAPL', currency: '$' })).toBeNull()
+    expect(reportingCurrencySource({ exchange_: 'NASDAQ', symbol: 'AAPL', currency: '$' })).toBe('missing')
     expect(reportingCurrency({ exchange_: 'HKSE', symbol: '01398', currency: 'HK$', report_currency: 'HKD', fundamentals_currency: 'CNY' })).toBe('HKD')
     expect(reportingCurrencySource({ exchange_: 'HKSE', symbol: '01398', currency: 'HK$' })).toBe('quote-fallback')
     expect(reportingCurrency({ exchange_: 'HKSE', symbol: '00002', currency: 'HK$' })).toBe('HKD')

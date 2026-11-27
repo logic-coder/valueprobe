@@ -35,6 +35,7 @@ export const POLICY_V1 = deepFreeze({
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
+    quoteUnits: 'reporting-and-per-share-currency-with-explicit-fx',
   },
   trialOnlyIndustries: ['reit', 'refining'],
   // Repeatable earning power: five-year normalised EPS. With M≈D, owner
@@ -100,7 +101,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '0617829e85bd3688712568b8c4b7ec193f9d7ff0a69034ae560eb2a781c2f51f'
+export const POLICY_V1_HASH = '12b02760c2229896ce58e80d3828dd2b82de7b4bb1084f1e12f039dc8afed557'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -227,6 +228,8 @@ const emptyInputs = () => ({
   discountRate: null,
   reportingCurrency: null,
   reportingCurrencySource: null,
+  perShareCurrency: null,
+  perShareFxToQuote: null,
   terminalGrowthRate: POLICY_V1.horizon.terminalGrowthRate,
   years: POLICY_V1.horizon.years,
   yearsOfTerminalGrowth: POLICY_V1.horizon.yearsOfTerminalGrowth,
@@ -273,6 +276,8 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   inputs.currency = currency
   inputs.reportingCurrency = reportCurrency
   inputs.reportingCurrencySource = reportingCurrencySource(stock)
+  inputs.perShareCurrency = stock.per_share_currency || null
+  inputs.perShareFxToQuote = num(stock.per_share_fx_to_quote)
 
   // ---- discount rate ------------------------------------------------------
   let rateRow = null

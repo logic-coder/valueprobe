@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test'
-import { mockApi } from './support/api-mock'
+import { mockApi, publishedEntry } from './support/api-mock'
+
+const ICBC_VALUE = publishedEntry('SHSE:601398').value.toFixed(2)
+const AAPL = publishedEntry('NASDAQ:AAPL')
 
 // The route is /stock/:symbol/dcf over a market whitelist.
 test('renders a US ticker from the route', async ({ page }) => {
@@ -30,15 +33,15 @@ test('falls back to the not-found page for an unrelated path', async ({ page }) 
 test('the header lookup navigates to a typed ticker', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('10.68', { timeout: 20000 })
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText(ICBC_VALUE, { timeout: 20000 })
   await page.locator('.symbol-search input').fill('nasdaq:aapl')
   await page.locator('.symbol-search input').press('Enter')
   await expect(page).toHaveURL(/#\/stock\/NASDAQ:AAPL\/dcf$/)
   await expect(page.locator('.stock-head h1')).toHaveText('Apple Inc.', { timeout: 20000 })
   // The old symbol's figures must not survive the swap.
-  await expect(page.locator('.dcf')).toContainText('$ 150.47')
-  await expect(page.locator('.dcf')).toContainText('$ 354.07')
-  await expect(page.locator('.dcf')).not.toContainText('¥ 1.08')
+  await expect(page.locator('.dcf')).toContainText('$ ' + AAPL.value.toFixed(2))
+  await expect(page.locator('.dcf')).toContainText('$ ' + AAPL.price.toFixed(2))
+  await expect(page.locator('.dcf')).not.toContainText('¥ ' + publishedEntry('SHSE:601398').inputs.eps.toFixed(2))
 })
 
 test('the header lookup guesses the market of a bare code', async ({ page }) => {
@@ -65,7 +68,7 @@ test('the slash key jumps to the lookup', async ({ page }) => {
 test('the header lookup reports a bad symbol', async ({ page }) => {
   await mockApi(page)
   await page.goto('/#/stock/SHSE:601398/dcf')
-  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText('10.68', { timeout: 20000 })
+  await expect(page.locator('[data-testid="dcf-fair-value"]')).toContainText(ICBC_VALUE, { timeout: 20000 })
   await page.locator('.symbol-search input').fill('not a code!')
   await page.locator('.symbol-search input').press('Enter')
   await expect(page.locator('text=格式：交易所')).toBeVisible()

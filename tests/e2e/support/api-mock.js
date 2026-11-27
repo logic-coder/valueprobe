@@ -8,6 +8,8 @@ const fixture = (name) => JSON.parse(readFileSync(resolve(here, '../../../src/da
 export const stockFixture = fixture('stock_icbc.json')
 export const financialFixture = fixture('fin_1983.json')
 const indicatorFixture = fixture('indicator_data.json')
+const policyArtifact = JSON.parse(readFileSync(resolve(here, '../../../public/data/intrinsic/v3.json'), 'utf8'))
+export const publishedEntry = symbol => policyArtifact.entries[symbol]
 
 const year = (y, unit, value) => [unit, { end: y + '-09-30', fy: y, fp: 'FY', form: '10-K', val: value }]
 

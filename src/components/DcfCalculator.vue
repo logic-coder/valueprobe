@@ -25,7 +25,7 @@
             :margin-label="marginLabel"
             :reverse-state="reverseState"
             :cash="publishedOfficial ? policyEntry?.cash : null"
-            :cash-unchecked="Boolean(publishedOfficial) && policyEntry?.inputs?.model === 'owner' && !(Number(policyEntry?.inputs?.cashMedian) > 0)"
+            :cash-unchecked="Boolean(publishedOfficial) && policyInputs?.model === 'owner' && !(Number(policyInputs?.cashMedian) > 0)"
             @reset="resetToDefaults"
           />
           <button class="dcf__jump" type="button" :disabled="resultLoading" @click="focusAssumptions">
@@ -352,7 +352,7 @@
           </div>
         </q-card-section>
 
-          <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyEntry.inputs.model === 'residual'"
+          <margin-stress v-if="!resultLoading && stressRows" :rows="stressRows" :bank="policyInputs?.model === 'residual'"
             :quote="moneyIn(stock.currency, stressQuote)" :custom="assumptionsEdited" :currency="stock.currency || '¥'"
             :expectation="priceExpectation" />
           <policy-provenance
@@ -536,7 +536,11 @@ const classificationHint = computed(() => {
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const policyEntry = computed(() => policyStore.entryOf(props.symbol))
-const industryTrialOnly = computed(() => policyEntry.value?.reasons.includes(REASON.INDUSTRY_MODEL_PENDING))
+const policyInputs = computed(() => {
+  const entry = policyEntry.value
+  if (!entry?.inputs || entry.reasons.includes(REASON.UNIT_UNRECONCILED)) return null
+  return entry.inputs
+})
 const assumptionsEdited = ref(false)
 const trialActive = computed(() => isManual.value || assumptionsEdited.value)
 const showPublished = computed(() => !trialActive.value && policyEntry.value?.status === 'ok')
@@ -553,7 +557,7 @@ const officialContext = computed(() => {
 // itself instead of hiding behind help icons. Readers should not need to open a
 // popover to know what the published number is built from.
 const basisLine = computed(() => {
-  const i = policyEntry.value?.inputs
+  const i = policyInputs.value
   if (!i || !Number.isFinite(Number(i.growth))) return ''
   return t('basis_line', {
     base: moneyIn(stock.value.currency, i.eps),
@@ -565,6 +569,7 @@ const trialContext = computed(() => policyEntry.value && !isManual.value
   ? t('official_trial_context', { version: policyStore.metadataOf(props.symbol)?.policyVersion || '' })
   : t('valuation_trial_context'))
 const officialReason = computed(() => (policyEntry.value?.reasons || []).map((code) => t('reason_' + code)).join('、') || t('policy_refused_title'))
+const industryTrialOnly = computed(() => policyEntry.value?.reasons.includes(REASON.INDUSTRY_MODEL_PENDING) === true)
 const publicationNotice = computed(() => {
   if (isManual.value) return ''
   if (policyStore.errorOf(props.symbol)) return t('official_load_failed')
@@ -647,24 +652,24 @@ const headline = computed(() => {
   return { fairValue: null, marginOfSafety: null, fairLow: null, fairHigh: null, reverseGrowthRate: null }
 })
 const defaultDiscount = computed(() => {
-  const n = Number(policyEntry.value?.inputs?.discountRate ?? baseAssumptions.value?.discountRate)
+  const n = Number(policyInputs.value?.discountRate ?? baseAssumptions.value?.discountRate)
   return Number.isFinite(n) ? n : null
 })
 const defaultGrowth = computed(() => {
-  const published = policyEntry.value?.inputs?.growth
+  const published = policyInputs.value?.growth
   const n = Number(published ?? baseAssumptions.value?.growthRate)
   return Number.isFinite(n) ? n : null
 })
 const currentGrowth = computed(() => finiteOrNull(dcfBasedOn.value === 'eps' ? form.growthRate : form.freecashflowGrowthRate))
 const growthOffDefault = computed(() => currentGrowth.value != null && defaultGrowth.value != null && Math.abs(currentGrowth.value - defaultGrowth.value) > 1e-9)
-const growthCeiling = computed(() => growthInputCeiling(policyEntry.value?.inputs?.sustainableGrowth))
+const growthCeiling = computed(() => growthInputCeiling(policyInputs.value?.sustainableGrowth))
 const growthCapDetail = computed(() => {
-  const gStar = finiteOrNull(policyEntry.value?.inputs?.sustainableGrowth)
+  const gStar = finiteOrNull(policyInputs.value?.sustainableGrowth)
   if (gStar != null) return t('growth_cap_company', { cap: percent(growthInputCeiling(gStar)) })
   return t('growth_cap_fifteen')
 })
 const defaultTerminalGrowth = computed(() => {
-  const n = Number(policyEntry.value?.inputs?.terminalGrowthRate ?? baseAssumptions.value?.terminalGrowthRate)
+  const n = Number(policyInputs.value?.terminalGrowthRate ?? baseAssumptions.value?.terminalGrowthRate)
   return Number.isFinite(n) ? n : null
 })
 const stressQuote = computed(() => result.stockPrice)
@@ -675,7 +680,7 @@ const stressRows = computed(() => {
   return rows ? rows.slice(1) : null
 })
 const priceExpectation = computed(() => {
-  const inputs = policyEntry.value?.inputs
+  const inputs = policyInputs.value
   if (assumptionsEdited.value || !inputs || !(stressQuote.value > 0)) return ''
   // Owner implied growth already sits on the left card; repeating it here confuses readers.
   if (inputs.model === 'residual' && inputs.tangibleBook > 0) {
@@ -720,9 +725,9 @@ const initData = async () => {
   // The published policy is the default source of truth for the headline. Its
   // frozen inputs seed a local calculation; edits below change only this page's
   // state and never write back to POLICY_V1 or the committed artifact.
-  const published = isManual.value ? null : policyEntry.value
-  if (published?.inputs) {
-    const input = published.inputs
+  const published = isManual.value ? null : policyInputs.value
+  if (published) {
+    const input = published
     model.value = input.model === 'residual' ? 'residual' : 'owner'
     dcfBasedOn.value = input.basis === 'freecashflow' ? 'freecashflow' : 'eps'
     form.eps = finiteOrNull(input.eps)
@@ -736,9 +741,16 @@ const initData = async () => {
     // Value and margin are a published pair at the artifact's own price/date.
     // Seeding the price too keeps the default headline internally coherent;
     // editing it later recomputes only this page's margin.
-    result.stockPrice = published.price == null ? '' : String(published.price)
+    result.stockPrice = policyEntry.value?.price == null ? '' : String(policyEntry.value.price)
   } else {
     model.value = suggested.value
+  }
+  if (!isManual.value && policyEntry.value?.reasons.includes(REASON.UNIT_UNRECONCILED)) {
+    if (manual?.eps === '' || manual?.eps == null) form.eps = null
+    if (manual?.freecashflow === '' || manual?.freecashflow == null) form.freecashflow = null
+    if (manual?.growthRate === '' || manual?.growthRate == null) form.growthRate = null
+    if (manual?.freecashflowGrowthRate === '' || manual?.freecashflowGrowthRate == null) form.freecashflowGrowthRate = null
+    if (manual?.tangibleBook === '' || manual?.tangibleBook == null) result.tbv = null
   }
   defaultPrice.value = result.stockPrice
   assumptionsEdited.value = false
@@ -1034,5 +1046,10 @@ onMounted(boot)
 // The page unmounts the calculator while a symbol change loads, so one boot per
 // instance is enough; this also covers a payload landing after mount.
 watch(hasStock, (value) => { if (value) boot() })
+watch(() => policyEntry.value?.status, async (status, previous) => {
+  if (inited.value && !seeding && status && status !== previous && !isManual.value && !assumptionsEdited.value) {
+    await initData()
+  }
+})
 </script>
 

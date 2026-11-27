@@ -25,7 +25,7 @@ function published () {
   const meta = JSON.parse(readFileSync(resolve(DIST, 'data/valuation/meta.json'), 'utf8'))
   const detail = JSON.parse(readFileSync(resolve(DIST, 'data/valuation', meta.release, 'SHSE-601398.json'), 'utf8'))
   expect(detail.release).toBe(meta.release)
-  return { release: meta.release, value: Number(detail.entry.value) }
+  return { release: meta.release, value: Number(detail.entry.value), price: Number(detail.entry.price) }
 }
 
 test('boots from the production sub-path and renders the published value', async ({ page }) => {
@@ -66,6 +66,18 @@ test('header search opens a US ticker', async ({ page }) => {
   await expect(page.getByTestId('dcf-fair-value')).toContainText('$', { timeout: 30000 })
 })
 
+test('a late policy release reseeds the untouched calculator defaults', async ({ page }) => {
+  const expected = published()
+  await page.route('**/data/valuation/' + expected.release + '/SHSE-601398.json', async route => {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    await route.continue()
+  })
+  await page.goto(STOCK)
+  await expect(page.getByTestId('dcf-fair-value')).toContainText(expected.value.toFixed(2), { timeout: 30000 })
+  await expect(page.getByRole('button', { name: /^参考报价/ })).toContainText(expected.price.toFixed(2))
+  await expect(page.getByTestId('margin-stress')).toBeVisible()
+})
+
 test('industry trials stay out of published margins and highlighting', async ({ page }) => {
   await page.route('**/data/NYSE-PSX.json', route => route.continue())
   await page.addInitScript(() => localStorage.setItem('fv-watchlist', JSON.stringify(['NYSE:PSX'])))
@@ -88,6 +100,41 @@ test('industry trials stay out of published margins and highlighting', async ({ 
   await page.getByRole('button', { name: '开始试算', exact: true }).click()
   await expect(page.getByTestId('dcf-fair-value')).toContainText('$')
   await expect(page.getByTestId('value-title')).toContainText('试算')
+})
+
+test('refused units never leak an automatic trial value', async ({ page }) => {
+  for (const symbol of ['NYSE:PKX', 'NYSE:SBS']) {
+    await page.goto('/valueprobe/#/stock/' + symbol + '/dcf')
+    await expect(page.getByTestId('official-unavailable')).toContainText('暂无公开估值', { timeout: 30000 })
+    await expect(page.getByTestId('dcf-fair-value')).toHaveText('n/a')
+    await expect(page.getByTestId('dcf-margin-of-safety')).toHaveText('n/a')
+    await expect(page.getByTestId('reverse-growth')).toHaveAttribute('data-state', 'reverse_not_started')
+    await expect(page.getByTestId('margin-stress')).toHaveCount(0)
+    const chart = page.getByTestId('financial-chart')
+    await expect(chart.locator('canvas')).toHaveCount(0)
+    if (await chart.count()) {
+      await expect(chart).toHaveAttribute('data-unit-state', 'unreconciled')
+      await expect(chart).toContainText('暂不展示')
+    }
+    await page.getByRole('button', { name: /每股收益.*点击修改/ }).click()
+    await expect(page.getByRole('spinbutton', { name: '每股收益' })).toHaveValue('')
+    await page.keyboard.press('Escape')
+  }
+})
+
+test('non-unit refusals keep verified inputs for an explicit trial', async ({ page }) => {
+  await page.goto('/valueprobe/#/stock/NASDAQ:CART/dcf')
+  await expect(page.getByTestId('official-unavailable')).toContainText('暂无公开估值', { timeout: 30000 })
+  await expect(page.getByTestId('dcf-fair-value')).toHaveText('n/a')
+  await page.getByRole('button', { name: /每股收益.*点击修改/ }).click()
+  const eps = page.getByRole('spinbutton', { name: '每股收益' })
+  await expect(eps).not.toHaveValue('')
+  const original = Number(await eps.inputValue())
+  expect(original).toBeGreaterThan(0)
+  await eps.fill(String(original + 0.1))
+  await page.getByRole('button', { name: '应用', exact: true }).click()
+  await expect(page.getByTestId('dcf-trial')).toBeVisible()
+  await expect(page.getByTestId('dcf-trial').getByTestId('dcf-fair-value')).not.toHaveText('n/a')
 })
 
 test('the stock page has no serious axe violations', async ({ page }) => {

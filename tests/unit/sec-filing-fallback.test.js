@@ -57,5 +57,11 @@ describe('SEC 10-K fallback fundamentals', () => {
     expect(pack.fields.free_cash_flow_per_share).toBeCloseTo((45_969 - 20_927) * 1e6 / pack.filingShares, 4)
     expect(pack.financials.annual.map(row => row.date)).toEqual(['2024-12', '2025-12'])
     expect(pack.fields.earning_growth_1y).not.toBeNull()
+    expect(pack.fields).toMatchObject({
+      reporting_currency: null,
+      reporting_currency_source: 'edgar-rendered-filing-currency-unverified',
+      per_share_currency: null,
+      unit_unreconciled: true,
+    })
   })
 })

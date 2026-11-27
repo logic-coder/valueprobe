@@ -102,9 +102,20 @@ function latestPerShare (annual, field) {
   return null
 }
 
+const CURRENCY_CODE = { '¥': 'CNY', '￥': 'CNY', '$': 'USD', 'HK$': 'HKD', '€': 'EUR', '£': 'GBP' }
+const currencyCode = value => CURRENCY_CODE[value] || (/^[A-Z]{3}$/.test(value || '') ? value : null)
+
 export function toStock (raw) {
   if (!raw || typeof raw !== 'object') return null
   const stock = { ...raw }
+  const domestic = ['SHSE', 'SZSE', 'HKSE'].includes(raw.exchange_)
+  const quoteCurrency = currencyCode(raw.currency) || currencyCode(String(raw.price || '').trim().match(/^[^\d.-]+/)?.[0])
+  stock.currency = raw.currency || quoteCurrency
+  stock.reporting_currency = raw.reporting_currency || (raw.exchange_ === 'SHSE' || raw.exchange_ === 'SZSE'
+    ? 'CNY' : raw.exchange_ === 'HKSE' ? raw.report_currency : null)
+  stock.per_share_currency = raw.per_share_currency || (domestic ? quoteCurrency : null)
+  if (raw.exchange_ === 'HKSE' && stock.per_share_currency === quoteCurrency) stock.per_share_fx_to_quote = 1
+  stock.unit_unreconciled = raw.unit_unreconciled === true
   applyCleanGrowth(stock, raw.financials?.annual)
   const classification = classify(stock, raw.financials?.annual)
   const annual = raw.financials?.annual
@@ -136,7 +147,7 @@ export function toStock (raw) {
   stock.maintenance_capex_method = official.maintenanceCapexMethod
   stock.base_warnings = official.warnings
   stock.base_refusal = official.refusal
-  if (quoteUnitUnreconciled(raw)) stock.base_refusal = 'UNIT_UNRECONCILED'
+  if (quoteUnitUnreconciled(stock)) stock.base_refusal = 'UNIT_UNRECONCILED'
   stock.persistent_step = official.step?.hit === true
   stock.through_cycle = official.throughCycle?.hit === true
   stock.payout_ratio = official.payoutRatio

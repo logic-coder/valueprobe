@@ -3,8 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { policyValue } from '../../src/lib/policy'
 import { toStock } from '../../src/lib/stockRecord'
 import { REASON } from '../../src/lib/reasons'
-import { quoteUnitUnreconciled, UNRECONCILED_QUOTE_UNITS } from '../../src/lib/unreconciledUnits'
-import { verifiedQuoteFactor } from '../../scripts/lib/verified-earnings.mjs'
+import { quoteUnitReconciliation, quoteUnitUnreconciled } from '../../src/lib/unreconciledUnits'
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'))
 const ratesFile = readJson('public/data/rates.json')
@@ -15,36 +14,49 @@ const rateRows = {
 const load = (symbol) => readJson('public/data/' + symbol.replace(':', '-') + '.json')
 const valueOf = (raw) => policyValue(toStock(raw), { rates: rateRows, generatedAt: '2026-11-26' })
 
-describe('confirmed quote-unit mismatches refuse a default price', () => {
-  it('lists only the three checked names and does not invent an ADR scale for them', () => {
-    expect([...UNRECONCILED_QUOTE_UNITS]).toEqual(['NYSE:PKX', 'NYSE:WF', 'NYSE:BCH'])
-    for (const symbol of UNRECONCILED_QUOTE_UNITS) {
-      expect(verifiedQuoteFactor(symbol)).toBeNull()
-    }
-  })
-
-  it('refuses PKX, WF and BCH with UNIT_UNRECONCILED and no published value', () => {
-    for (const symbol of UNRECONCILED_QUOTE_UNITS) {
+describe('quote units are reconciled from metadata, not symbol names', () => {
+  it('refuses local-currency ADR figures without an explicit conversion', () => {
+    for (const symbol of ['NASDAQ:TCOM', 'NYSE:AMX', 'NYSE:BCH', 'NYSE:IX', 'NYSE:PKX', 'NYSE:SBS', 'NYSE:WF']) {
       const raw = load(symbol)
-      expect(quoteUnitUnreconciled(raw)).toBe(true)
+      expect(quoteUnitReconciliation(raw), symbol).toMatchObject({ ok: false, metadataComplete: true })
       const stock = toStock(raw)
       expect(stock.base_refusal).toBe(REASON.UNIT_UNRECONCILED)
       const value = policyValue(stock, { rates: rateRows, generatedAt: '2026-11-26' })
       expect(value, symbol).toMatchObject({ status: 'refused', value: null, marginOfSafety: null })
-      expect(value.reasons, symbol).toEqual([REASON.UNIT_UNRECONCILED])
+      expect(value.reasons, symbol).toContain(REASON.UNIT_UNRECONCILED)
     }
   })
 
-  it('does not apply the refusal to an unchecked symbol with the same figures', () => {
-    const raw = { ...load('NYSE:PKX'), symbol: 'FAKE' }
-    expect(quoteUnitUnreconciled(raw)).toBe(false)
+  it('does not let renaming a symbol bypass the same unit evidence', () => {
+    const raw = { ...load('NYSE:SBS'), symbol: 'FAKE' }
+    expect(quoteUnitUnreconciled(raw)).toBe(true)
     const value = valueOf(raw)
-    expect(value.reasons).not.toContain(REASON.UNIT_UNRECONCILED)
-    expect(value.status).toBe('ok')
-    expect(value.value).toBeGreaterThan(1000)
+    expect(value.reasons).toContain(REASON.UNIT_UNRECONCILED)
+    expect(value.status).toBe('refused')
+    expect(value.value).toBeNull()
   })
 
-  it('leaves already-mapped TSM and a 1:1 ordinary listing alone', () => {
+  it('fails closed when currency metadata is missing or ambiguous', () => {
+    expect(quoteUnitReconciliation({ currency: '$', exchange_: 'NASDAQ', symbol: 'FAKE' }))
+      .toMatchObject({ ok: false, metadataComplete: false })
+    expect(quoteUnitReconciliation({ currency: '$', reporting_currency: 'BRL', per_share_currency: 'USD', unit_unreconciled: true }))
+      .toMatchObject({ ok: false })
+  })
+
+  it('withholds executable inputs for unit refusals without disabling other manual trials', () => {
+    const artifact = readJson('public/data/intrinsic/v3.json')
+    const unitRefused = artifact.entries['NYSE:SBS']
+    expect(unitRefused.reasons).toContain(REASON.UNIT_UNRECONCILED)
+    expect(unitRefused.inputs).not.toHaveProperty('eps')
+    expect(unitRefused.inputs).not.toHaveProperty('growth')
+    expect(unitRefused.inputs).not.toHaveProperty('tangibleBook')
+
+    const cashRefused = artifact.entries['NASDAQ:CART']
+    expect(cashRefused.reasons).toContain('CASH_UNRECONCILED')
+    expect(cashRefused.inputs.eps).toBeGreaterThan(0)
+  })
+
+  it('leaves a reconciled ordinary listing and a checked ADR scale alone', () => {
     const tsm = valueOf(load('NYSE:TSM'))
     expect(quoteUnitUnreconciled(load('NYSE:TSM'))).toBe(false)
     expect(tsm.status).toBe('ok')

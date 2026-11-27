@@ -72,6 +72,13 @@ describe('incremental snapshot refresh', () => {
     // A successful refresh does not carry the flag forward.
     expect(recoverRecord(prior, quote, { market: 'NYSE', fundamentalError: null, us }).split_unverified).toBeUndefined()
   })
+  it('invalidates quote units when refreshed evidence says the share basis needs verification', () => {
+    const prior = { price: '$12', currency: '$', quote_as_of: '2026-11-18', unit_unreconciled: false }
+    const quote = { price: '$13', currency: '$', asOf: '2026-11-19' }
+    const us = new Set(['NYSE'])
+    expect(recoverRecord(prior, quote, { market: 'NYSE', fundamentalError: 'share basis needs verification', us }))
+      .toMatchObject({ unit_unreconciled: true, split_unverified: true })
+  })
   it('does not assume a split from a share-count discrepancy on a new listing', () => {
     expect(classifyShareBasis(1.04, 1)).toBe('comparable')
     expect(classifyShareBasis(1.6, 1)).toBe('review')

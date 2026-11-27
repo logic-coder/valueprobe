@@ -1,38 +1,29 @@
-// Explicit names whose filed per-share figures were checked against the quoted
-// unit (USD / ADS) and could not be converted. This is not a universe-wide
-// currency or unit gate, and it does not change SHARE_BASIS_UNVERIFIED from
-// disclose-only. Do not guess FX, and do not scale a local-currency series by
-// an ADR ratio while still labeling it as USD.
-export const UNRECONCILED_QUOTE_UNITS = Object.freeze([
-  // NYSE:PKX POSCO Holdings. 20-F: statements in KRW; 1 ADS = 1/4 common share.
-  // FY2023 diluted EPS is KRW 22,383 per ordinary share, matching the snapshot.
-  // Company Facts DilutedEarningsLossPerShare USD/shares copies the KRW figures
-  // (85,240 / 39,296 / 22,383) and is not a usable USD series. No book series.
-  'NYSE:PKX',
-  // NYSE:WF Woori Financial Group. 20-F: statements in KRW; 1 ADS = 3 common
-  // shares. FY2018-2020 USD/shares (2.512 / 2.36 / 1.604) look like real USD
-  // per ordinary share, but FY2023-2024 USD/shares (2,502 / 2,673) are about
-  // 1,000x too large and are what the snapshot stores. Book (~30) and
-  // operating income per share (~3-4) are a different magnitude, so units
-  // inside the snapshot are already mixed. No complete trustworthy USD/ADS
-  // series.
-  'NYSE:WF',
-  // NYSE:BCH Banco de Chile. Different mechanism from PKX: not simply local
-  // EPS versus a USD quote. 20-F: functional/presentation currency CLP;
-  // 1 ADS = 200 common shares. Snapshot EPS 3.98 is CLP per ordinary (the
-  // FY2020 USD/shares tag copies that CLP figure). Book ~0.0547 is USD equity
-  // divided by ordinary shares (USD per ordinary, not per ADS). Residual
-  // income combined the two. Continuing-operations USD/shares of 0.01 is a
-  // one-cent rounding, not a per-ADS series. Data stop in 2020.
-  'NYSE:BCH',
-])
+import { cashflowCurrency, reportingCurrency } from './riskFree.js'
 
-const UNRECONCILED_SET = new Set(UNRECONCILED_QUOTE_UNITS)
+const codeOf = currency => /^[A-Z]{3}$/.test(currency || '') ? currency : null
+
+/**
+ * The published value is per quoted security. Stored EPS/book/FCF are only
+ * executable in that unit when their own currency matches the quote, or an
+ * explicit finite conversion is present. Reporting currency is checked
+ * separately because the discount-rate basis must also be known.
+ */
+export function quoteUnitReconciliation (record) {
+  const quote = cashflowCurrency(record)
+  const reporting = reportingCurrency(record)
+  const perShare = codeOf(record?.per_share_currency)
+  const fx = Number(record?.per_share_fx_to_quote)
+  const missing = [!quote && 'quote currency', !reporting && 'reporting currency', !perShare && 'per-share currency'].filter(Boolean)
+  if (record?.unit_unreconciled === true) {
+    return { ok: false, metadataComplete: !missing.length, reason: 'source unit conflict' }
+  }
+  if (missing.length) return { ok: false, metadataComplete: false, reason: 'missing ' + missing.join(', ') }
+  if (perShare !== quote && !(fx > 0 && Number.isFinite(fx))) {
+    return { ok: false, metadataComplete: true, reason: perShare + ' per-share figures versus ' + quote + ' quote without FX' }
+  }
+  return { ok: true, metadataComplete: true, reason: null }
+}
 
 export function quoteUnitUnreconciled (record) {
-  if (!record || typeof record !== 'object') return false
-  const symbol = record.exchange_ && record.symbol
-    ? record.exchange_ + ':' + record.symbol
-    : record.symbol
-  return UNRECONCILED_SET.has(symbol)
+  return !quoteUnitReconciliation(record).ok
 }

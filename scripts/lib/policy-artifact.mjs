@@ -6,8 +6,9 @@ import { createHash } from 'node:crypto'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { POLICY_VERSION, POLICY_V1, POLICY_V1_HASH, policyValue } from '../../src/lib/policy.js'
-import { WARNING_ORDER, REASON_ORDER, isKnownReason, isKnownWarning } from '../../src/lib/reasons.js'
+import { WARNING_ORDER, REASON_ORDER, REASON, isKnownReason, isKnownWarning } from '../../src/lib/reasons.js'
 import { toStock } from '../../src/lib/stockRecord.js'
+import { quoteUnitReconciliation } from '../../src/lib/unreconciledUnits.js'
 import { LISTING_GROUPS } from '../../src/data/listingGroups.js'
 
 export const DATA_DIR = 'public/data'
@@ -53,26 +54,33 @@ export function readRates (root, dataDir = DATA_DIR) {
 }
 
 /** Public look of one entry: numbers rounded once, fixed key order. */
-const entryOf = (symbol, stock, value) => ({
-  symbol,
-  name: stock.company || symbol,
-  status: value.status,
-  value: value.value,
-  band: value.band,
-  terminalShare: value.terminalShare,
-  cash: value.cash,
-  price: value.price,
-  priceDate: value.priceDate,
-  marginOfSafety: value.marginOfSafety,
-  reasons: value.reasons,
-  warnings: value.warnings,
-  inputs: value.inputs,
-  asOf: value.asOf,
-  earningsDate: value.earningsDate,
-  earningsPeriod: value.earningsPeriod,
-  earningsSource: value.earningsSource,
-  ratesAsOf: value.ratesAsOf,
-})
+const entryOf = (symbol, stock, value) => {
+  const unitUnreconciled = value.reasons.includes(REASON.UNIT_UNRECONCILED)
+  const inputs = value.status === 'refused' && unitUnreconciled
+    ? Object.fromEntries(['model', 'currency', 'reportingCurrency', 'reportingCurrencySource', 'perShareCurrency', 'perShareFxToQuote', 'rate']
+      .filter((key) => value.inputs[key] != null).map((key) => [key, value.inputs[key]]))
+    : value.inputs
+  return {
+    symbol,
+    name: stock.company || symbol,
+    status: value.status,
+    value: value.value,
+    band: value.band,
+    terminalShare: value.terminalShare,
+    cash: value.cash,
+    price: value.price,
+    priceDate: value.priceDate,
+    marginOfSafety: value.marginOfSafety,
+    reasons: value.reasons,
+    warnings: value.warnings,
+    inputs,
+    asOf: value.asOf,
+    earningsDate: value.earningsDate,
+    earningsPeriod: value.earningsPeriod,
+    earningsSource: value.earningsSource,
+    ratesAsOf: value.ratesAsOf,
+  }
+}
 
 const pctGap = (a, hInA) => a != null && hInA != null && a !== 0
   ? round2((hInA / a - 1) * 100)
@@ -155,7 +163,10 @@ export function buildArtifacts ({ root = process.cwd(), dataDir = DATA_DIR, gene
     rawBySymbol[symbol] = raw
     if (name !== symbol.replace(':', '-') + '.json') problems.push('snapshot identity mismatch: ' + name)
     if (!Array.isArray(raw.financials?.annual)) problems.push('snapshot annual data missing: ' + name)
+    const unit = quoteUnitReconciliation(stock)
+    if (!unit.metadataComplete) problems.push('snapshot unit metadata incomplete: ' + symbol + ' (' + unit.reason + ')')
     const value = policyValue(stock, { rates: rates.rates, generatedAt })
+    if (value.status === 'ok' && !unit.ok) problems.push('published value has unreconciled quote units: ' + symbol + ' (' + unit.reason + ')')
     entries[symbol] = entryOf(symbol, stock, value)
     if (value.status === 'ok') counts.valued++
     else counts.refused++

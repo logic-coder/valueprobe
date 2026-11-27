@@ -16,7 +16,7 @@ describe('watchlist default view', () => {
   })
 
   it('keeps a value when the price is missing and only drops the margin', () => {
-    const view = defaultView({ earnings_base: 1.08, ttm_eps: 1.08, earning_growth_10y: 3, tangible_book: 11.24 })
+    const view = defaultView({ exchange_: 'NYSE', symbol: 'X', currency: '$', reporting_currency: 'USD', per_share_currency: 'USD', earnings_base: 1.08, ttm_eps: 1.08, earning_growth_10y: 3, tangible_book: 11.24 })
     expect(view.fairValue).toBeGreaterThan(0)
     expect(view.mos).toBeNull()
   })

@@ -7,6 +7,7 @@ import { Coverage } from '../coverage'
 import { notSupported } from '../errors'
 import { POLICY_V1 } from '../../lib/policy'
 import { toStock } from '../../lib/stockRecord'
+import { quoteUnitUnreconciled } from '../../lib/unreconciledUnits'
 
 const http = axios.create({ timeout: 15_000 })
 const inFlight = new Map()
@@ -82,6 +83,7 @@ export const snapshot = {
 
   async fetchHistory (symbol, indicator) {
     const data = await this.load(symbol)
+    if (quoteUnitUnreconciled(toStock(data))) throw notSupported('snapshot', 'unreconciled per-share units for ' + symbol)
     const series = data.history?.[indicator]
     const points = series?.data || series
     if (!Array.isArray(points)) throw notSupported('snapshot', 'indicator ' + indicator)
@@ -90,6 +92,7 @@ export const snapshot = {
 
   async fetchFinancials (symbol) {
     const data = await this.load(symbol)
+    if (quoteUnitUnreconciled(toStock(data))) throw notSupported('snapshot', 'unreconciled per-share units for ' + symbol)
     if (!data.financials?.annual) throw notSupported('snapshot', 'financials for ' + symbol)
     return data.financials
   },

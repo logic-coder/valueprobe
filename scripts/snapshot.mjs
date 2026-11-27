@@ -384,6 +384,11 @@ async function refresh (existing, baseline) {
       eps_period: fields.eps_period || null,
       eps_as_of: fields.eps_as_of || null,
       eps_source: pack?.earningsSource || null,
+      reporting_currency: fields.reporting_currency || (market === 'HKSE' ? note.report_currency : (market === 'SHSE' || market === 'SZSE' ? 'CNY' : null)),
+      reporting_currency_source: fields.reporting_currency_source || (US.has(market) ? null : market === 'HKSE' ? 'eastmoney-report' : 'market'),
+      per_share_currency: fields.per_share_currency || (market === 'HKSE' ? 'HKD' : (market === 'SHSE' || market === 'SZSE' ? 'CNY' : null)),
+      per_share_fx_to_quote: fields.per_share_fx_to_quote ?? (market === 'HKSE' ? 1 : null),
+      unit_unreconciled: fields.unit_unreconciled === true,
       predictability: fields.predictability ?? null,
       financials: pack?.financials || { annual: [], ttm: [], quarter: [] },
       ...note,
@@ -461,12 +466,10 @@ async function refresh (existing, baseline) {
               shareRatio = (seed.marketCap / price) / pack.filingShares
               const checkedOrdinaryShare = /^\d{4}-\d{2}-\d{2}$/.test(seed.checkedSince) && pack.filingShares > 0 &&
                 pack.fields.eps_as_of && pack.fields.eps_as_of >= seed.checkedSince && pack.fields.eps_as_of <= seed.asOf
-              if (!baseline.has(symbol) && !verified && !checkedOrdinaryShare && classifyShareBasis(shareRatio, factor) !== 'comparable') {
-                // A dated fallback quote has no market cap, so the ratio cannot be
-                // computed. Keep the filed per-share basis and disclose that gap
-                // instead of silently dropping an otherwise verified listing.
-                if (!(Number(seed.marketCap) > 0) && pack.filingShares > 0) note.share_basis_unverified = true
-                else throw new Error('share basis needs verification')
+              if (!verified && !checkedOrdinaryShare && classifyShareBasis(shareRatio, factor) !== 'comparable') {
+                if (Number(seed.marketCap) > 0) throw new Error('share basis needs verification')
+                if (baseline.has(symbol)) note.share_basis_unverified = true
+                else note.unit_unreconciled = true
               }
               if (factor !== 1) {
                 pack = scalePerShare(pack, factor)

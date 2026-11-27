@@ -34,26 +34,24 @@ export function cashflowCurrency (stock) {
 
 /**
  * Enterprise reporting currency used for the official required return.
- * The same market-wide rule applies to every name: an explicit ISO
- * `reporting_currency` on the snapshot wins; A-share markets default to CNY
- * and US markets to USD; otherwise the quote currency is used. The East Money
- * Hong Kong `report_currency` flag is ignored, because that feed labels yuan
- * figures as HKD. There is no per-ticker or A/H-pair override.
+ * An explicit ISO `reporting_currency` on the snapshot wins. A-share markets
+ * default to CNY; a US listing venue says nothing about the issuer's reporting
+ * currency, so a missing value stays missing instead of being guessed as USD.
  */
 export function reportingCurrency (stock) {
   const explicit = codeOf(stock?.reporting_currency)
   if (explicit) return explicit
   const market = stock?.exchange_
   if (A_SHARE_MARKETS.has(market)) return 'CNY'
-  if (US_MARKETS.has(market)) return 'USD'
+  if (US_MARKETS.has(market)) return null
   return cashflowCurrency(stock)
 }
 
 /** Why reportingCurrency() chose its code. Disclosure only. */
 export function reportingCurrencySource (stock) {
   if (codeOf(stock?.reporting_currency)) return 'snapshot'
-  const market = stock?.exchange_
-  if (A_SHARE_MARKETS.has(market) || US_MARKETS.has(market)) return 'market'
+  if (A_SHARE_MARKETS.has(stock?.exchange_)) return 'market'
+  if (US_MARKETS.has(stock?.exchange_)) return 'missing'
   return 'quote-fallback'
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, qualityFactsFromFacts, quoteSplitFactor, scalePerShare, scaleSnapshotRecord, trailingTotal } from '../../src/data/providers/edgar-xbrl'
+import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, qualityFactsFromFacts, quoteSplitFactor, reportingCurrencyFromFacts, scalePerShare, scaleSnapshotRecord, trailingTotal } from '../../src/data/providers/edgar-xbrl'
 import { QUALITY, classifyEarningsQuality } from '../../src/lib/valuationBase'
 import interimEps from '../fixtures/edgar-interim-eps.json'
 
@@ -19,6 +19,10 @@ function facts (map) {
   for (const [concept, rows] of Object.entries(map)) {
     const [unit, entries] = rows
     usGaap[concept] = { units: { [unit]: entries } }
+  }
+  const statementConcepts = ['NetIncomeLoss', 'Revenues', 'SalesRevenueNet', 'RevenueFromContractWithCustomerExcludingAssessedTax', 'RevenueFromContractWithCustomerIncludingAssessedTax', 'OperatingIncomeLoss', 'NetCashProvidedByUsedInOperatingActivities', 'StockholdersEquity']
+  if (!statementConcepts.some((concept) => concept in usGaap)) {
+    usGaap.NetIncomeLoss = { units: { USD: [year(2023, 10e9), year(2024, 11e9), year(2025, 12e9)] } }
   }
   return { 'us-gaap': usGaap, entityName: 'Example Inc.' }
 }
@@ -751,6 +755,55 @@ describe('EDGAR depreciation and share-based compensation lines', () => {
 })
 
 
+
+describe('EDGAR statement currency and per-share units', () => {
+  it('uses BRL statements and BRL EPS instead of a copied USD label', () => {
+    const annual20 = (fy, val, extra = {}) => year(fy, val, { form: '20-F', accn: 'sbs-' + fy, ...extra })
+    const payload = {
+      entityName: 'Companhia de Bebidas das Américas',
+      'ifrs-full': {
+        ProfitLoss: { units: { BRL: [annual20(2023, 5.16e9), annual20(2024, 9.58e9)] } },
+        Revenue: { units: { BRL: [annual20(2023, 30e9), annual20(2024, 36e9)] } },
+        DilutedEarningsLossPerShare: { units: {
+          'USD/shares': [annual20(2023, 5.16)],
+          'BRL/shares': [annual20(2023, 5.16), annual20(2024, 14.02)],
+        } },
+      },
+    }
+    expect(reportingCurrencyFromFacts(payload)).toMatchObject({ currency: 'BRL', conflict: false })
+    const { fields, financials } = fundamentalsFromFacts('NYSE:SBS', payload)
+    expect(fields).toMatchObject({ reporting_currency: 'BRL', per_share_currency: 'BRL', unit_unreconciled: false, ttm_eps: 14.02 })
+    expect(financials.annual.map((row) => row.eps_without_nri)).toEqual([5.16, 14.02])
+  })
+
+  it('marks conflicting latest statement currencies as unreconciled', () => {
+    const payload = {
+      'us-gaap': {
+        NetIncomeLoss: { units: {
+          BRL: [year(2024, 50e9), year(2025, 60e9)],
+          EUR: [year(2024, 10e9), year(2025, 12e9)],
+        } },
+        EarningsPerShareDiluted: { units: {
+          'BRL/shares': [year(2024, 5), year(2025, 6)],
+          'EUR/shares': [year(2024, 1), year(2025, 1.2)],
+        } },
+      },
+    }
+    expect(reportingCurrencyFromFacts(payload)).toMatchObject({ currency: null, conflict: true })
+    const table = financialsFromFacts(payload)
+    expect(table.annual).toEqual([])
+  })
+
+  it('does not infer USD merely from a US listing or a USD-labelled EPS tag', () => {
+    const payload = {
+      'us-gaap': {
+        EarningsPerShareDiluted: { units: { 'USD/shares': [year(2024, 5), year(2025, 6)] } },
+      },
+    }
+    expect(reportingCurrencyFromFacts(payload)).toEqual({ currency: null, conflict: false, evidence: null })
+    expect(financialsFromFacts(payload).annual).toEqual([])
+  })
+})
 
 describe('EDGAR quality metadata', () => {
   it('records whitelist totals and leaves a searched miss at zero rather than unknown', () => {

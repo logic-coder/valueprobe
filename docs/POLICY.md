@@ -2,7 +2,7 @@
 
 这份文档说明 `src/lib/policy.js` 里冻结的口径。**代码是唯一事实源**：参数、拒绝码和警告码都从该模块读取；本文的数字若与 `public/data/intrinsic/v3.json` 或 `src/lib/policy.js` 不一致，以代码与发布值文件为准。`public/data/intrinsic/v2.json` 是已冻结的上一版发布值，保留复现。线上 GitHub Pages 交付本文件描述的官方 v3。
 
-修改 `POLICY_V1` 会改变每一个发布数字。必须同时升 `POLICY_VERSION`、重算并更新 `POLICY_V1_HASH`，否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
+修改 `POLICY_V1` 会改变每一个发布数字。必须同时更新 `revision` 修订字段、重算并更新 `POLICY_V1_HASH`，再运行 `npm run intrinsic`；需要破坏性读取旧工件时再升 `POLICY_VERSION`。否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
 ## 1. 口径参数
 
@@ -24,7 +24,7 @@
 | 折现率规则 | 全市场同一条：`max(10%, ceil(该企业报告币种十年期) + 6)`，再夹到 0–50。不按个股定制 WACC、beta 或折现参数 | `discount.rule` / `revision.requiredReturn` |
 | 股权风险溢价 | `EQUITY_PREMIUM` = 6 个百分点 | `discount.spread` |
 | 取整 | `ceil` | `discount.rounding` |
-| 利率币种 | `reporting`：跟随企业报告币种。显式 ISO `reporting_currency` 优先；A 股市场默认人民币、美国上市默认美元，否则回退报价币种。港币代理美元十年期；人民币不用美债。同一企业因输入（报告币种、报表）相同而得到同一折现，不是为某对上市组合写了特例 | `discount.currency` |
+| 利率币种 | `reporting`：跟随企业报告币种。显式 ISO `reporting_currency` 优先；A 股市场默认人民币，美国上市地不代表申报币种、缺失时保持缺失，其他市场回退报价币种。港币代理美元十年期；人民币不用美债。同一企业因输入（报告币种、报表）相同而得到同一折现，不是为某对上市组合写了特例 | `discount.currency` |
 | 港币代理 | `USD`：港币用美元十年期作代理 | `discount.hkdProxy` |
 | 缺失利率 | `fallback`：照常出值，回退值 + `RATE_FALLBACK` | `discount.missing` |
 | 兜底折现率 | `FALLBACK_DISCOUNT_RATE` = 10%；要求回报下限 10% | `discount.fallback` / `discount.floor` |
@@ -40,7 +40,7 @@
 - 折现率：`yieldForStock()` 按 `reportingCurrency()` 取该企业报告币种的十年期（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6，再套 10% 下限）→ 夹到 0–50。取不到该币种利率时 `policyValue()` 用 10% 兜底并加 `RATE_FALLBACK`。港币报告币种代理美元十年期；人民币报告币种只用人民币利率，不用美债。公式全市场同一条，不为单只股票或某一对 A/H 上市写例外参数。
 - 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：两扇窗口都存在时，先各自经过 0% 下限与 15% 上限，取较慢的一扇；再与可持续增速 g* = max(0, RR × ROE) 取更慢者作为发布起点（金融机构不走这条留存硬约束）。RR 为 1 减去最多八年、至少三年完整财年的平均派息率；现有快照的每股分红字段普遍为空，派息不可用时不编造派息率，RR 回退为 1（只保留 15% 帽，这是最松的上限）。ROE 用官方混合后基数除以最近一期每股有形账面；有形账面缺失、近零或为负时 g* 不可用，不强套。g* 绑定后标 `GROWTH_ABOVE_RETENTION`。只有一扇窗口（包括仅有五年历史）时就用那一扇，仍受同一套上限约束。五年单独窗口不再另设 10% 硬上限，只标 `SHORT_HISTORY`，也不再因此把区间向 15% 加宽。十年与五年窗口符号相反，或任一窗为负时，点估计用较慢的已裁剪窗口（负窗口为 0%），标 `REGIME_UNCERTAIN`，区间可含终值 0，但不再把未采用的更快窗口重新纳入。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。发布起点仍为 15% 时标 `CAPPED_GROWTH`；若窗口曾触到 15%、但起点已被 g* 收紧到 15% 以下，只保留留存警告。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
 - 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点，以及围绕已经约束过的发布起点 ±2 个百分点、再裁剪到 [0, min(15%, g*)] 的增速情景（发布起点已在上限上时乐观增速不再抬高；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景；中点规则下对两套基数分别取包络再取并集）。头条 `mid` 是官方点估计，必须等于默认值并落在区间内，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
-- 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。刷新时美股财报链失败但报价成功，会沿用上次每股数据只更新报价并标 `SPLIT_UNVERIFIED`：其间若发生拆股，价格与每股数据可能不同口径。
+- 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。刷新时美股财报链失败但报价成功，会沿用上次每股数据只更新报价并标 `SPLIT_UNVERIFIED`：其间若发生拆股，价格与每股数据可能不同口径；若失败原因明确是股份比例需要核验，还会把该记录标记为 `unit_unreconciled=true`，下一次官方构建必须拒绝，不能继续发布未经核验的报价单位。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
 ## 2. 拒绝码（REASON）
@@ -59,7 +59,7 @@
 | `INDUSTRY_MODEL_PENDING` | REIT 或炼化的行业口径仍待验证，仅供试算，不出公开值。 |
 | `CASH_UNRECONCILED` | 选定官方基数后，盈利估值与现金估值的对称差距大于 200%（更大边超过较小边约 3 倍），拒绝发布。50%–200% 改为取中点并发布。金融机构不走此现金核对。 |
 | `UNSTABLE_BASE_REGIME` | 增速体制不确定（`REGIME_UNCERTAIN`：历史为负或窗口符号相反），且最近一期每股收益不为正，拒绝发布。同向差距不触发此码（如 Fiserv）。最近一期为正（如佳品零件）仍可出值。 |
-| `UNIT_UNRECONCILED` | 已核过的每股数据与报价单位不一致，且没有可信的美元/报价单位序列可换算，因此不出默认价。只用于已确认的显式名单（当前为 `NYSE:PKX`、`NYSE:WF`、`NYSE:BCH`），不是全宇宙币种或单位一致性门禁，也不把 `SHARE_BASIS_UNVERIFIED` 改成拒绝。不得猜测汇率，也不得只按存托比例缩放仍为本币的数字。 |
+| `UNIT_UNRECONCILED` | 全宇宙通用门禁：报价币种、企业申报币种或每股数据币种缺失/冲突；或每股数据币种与报价币种不同且没有正的有限 `per_share_fx_to_quote`；或快照显式标记源单位冲突。此时不出默认价，也不公开可执行估值 inputs，不展示拒绝态的历史每股图表。不得按 symbol 开名单例外，不得猜测汇率，也不得只按存托比例缩放仍为本币的数字。 |
 
 ## 3. 警告码（WARNING）
 
@@ -80,7 +80,7 @@
 | `PRICE_MISSING` | 快照里没有价格，安全边际留空。 |
 | `STALE_PRICE` | 价格已经过期，只标注，不改变内在价值。 |
 | `SPLIT_UNVERIFIED` | 沿用上次每股数据、只更新了报价；其间若发生拆股，两个数字可能不在同一口径。 |
-| `SHARE_BASIS_UNVERIFIED` | 报价源没有市值，申报股数无法与报价单位交叉核对；待有市值源时复核股本总数。已按核验表换算到报价单位的存托凭证，默认价不再停留在申报普通股单位，但股本总数仍未交叉核对。 |
+| `SHARE_BASIS_UNVERIFIED` | 报价源没有市值，申报股数无法与报价单位交叉核对；待有市值源时复核股本总数。它只披露缺少交叉核对，不等于已证明股份比例或币种错配。已按核验表换算到报价单位的存托凭证，默认价不再停留在申报普通股单位，但股本总数仍未交叉核对。新增证券缺少可核验报价单位证据时不会仅靠此警告放行，而是 fail-closed 为 `UNIT_UNRECONCILED`。 |
 | `STALE_DATA` | 估值采用较早的盈利期间。 |
 | `EARNINGS_DATE_UNKNOWN` | 当前快照无法确认盈利期间。 |
 | `QUOTE_DATE_UNKNOWN` | 快照报价的交易日无法确认。 |

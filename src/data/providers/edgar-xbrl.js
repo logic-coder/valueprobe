@@ -99,6 +99,76 @@ function durationDays (item) {
   return (end - start) / 86400000
 }
 
+const CURRENCY_STATEMENT_CONCEPTS = [
+  ['us-gaap', ['NetIncomeLoss', 'Revenues', 'SalesRevenueNet', 'RevenueFromContractWithCustomerExcludingAssessedTax', 'RevenueFromContractWithCustomerIncludingAssessedTax', 'OperatingIncomeLoss', 'NetCashProvidedByUsedInOperatingActivities', 'StockholdersEquity']],
+  ['ifrs-full', ['ProfitLoss', 'Revenue', 'ProfitLossFromOperatingActivities', 'CashFlowsFromUsedInOperatingActivities', 'EquityAttributableToOwnersOfParent']],
+]
+
+/** Latest complete annual statement unit, with enough provenance to audit the choice. */
+export function reportingCurrencyFromFacts (facts) {
+  const candidates = []
+  for (const [taxonomyName, concepts] of CURRENCY_STATEMENT_CONCEPTS) {
+    for (const concept of concepts) {
+      for (const [unit, entries] of Object.entries(taxonomy(facts)[taxonomyName]?.[concept]?.units || {})) {
+        if (!/^[A-Z]{3}$/.test(unit)) continue
+        for (const item of entries) {
+          if (!FORMS.has(item.form) || item.fp !== 'FY' || !Number.isFinite(item.val) || !item.end) continue
+          const days = durationDays(item)
+          if (days != null && (days < 350 || days > 378)) continue
+          candidates.push({ currency: unit, concept, taxonomyName, end: item.end, filed: item.filed || '', accn: item.accn || null })
+        }
+      }
+    }
+  }
+  if (!candidates.length) return { currency: null, conflict: false, evidence: null }
+  const latestEnd = candidates.map((item) => item.end).sort().at(-1)
+  const latest = candidates.filter((item) => item.end === latestEnd)
+  let currencies = [...new Set(latest.map((item) => item.currency))]
+  const epsFor = (currency) => {
+    const gaap = annualSelection(facts, EPS_CONCEPTS, currency + '/shares', 'us-gaap').series
+    if (gaap.length >= 2) return gaap
+    return annualSelection(facts, ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare'], currency + '/shares', 'ifrs-full').series
+  }
+  const eps = new Map(currencies.map((currency) => [currency, epsFor(currency)]))
+  const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
+  const coherent = (currency) => {
+    const income = annualPrefer(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, currency)
+    for (const point of [...eps.get(currency)].reverse()) {
+      const profit = income.find((item) => item.fy === point.fy)?.val
+      const count = shares.find((item) => item.fy === point.fy)?.val
+      if (!(profit > 0 || profit < 0) || !(count > 0)) continue
+      const ratio = Math.abs(point.val * count / profit)
+      return ratio >= 0.2 && ratio <= 5
+    }
+    return null
+  }
+  const coherence = new Map(currencies.map((currency) => [currency, coherent(currency)]))
+  const proven = currencies.filter((currency) => coherence.get(currency) === true)
+  if (proven.length) currencies = proven
+  const supported = currencies.filter((currency) => eps.get(currency).length >= 2)
+  // A dollar tag that repeats the same local-currency numbers is a label copy,
+  // not a translated series. Exclude it only when another statement currency
+  // can carry the per-share data.
+  if (supported.includes('USD') && supported.length > 1) {
+    const usd = new Map(eps.get('USD').map((point) => [point.fy, point.val]))
+    const copied = supported.filter((currency) => currency !== 'USD').some((currency) => {
+      const same = eps.get(currency).filter((point) => usd.has(point.fy) && Math.abs(usd.get(point.fy) - point.val) < 0.000001)
+      return same.length >= 2
+    })
+    if (copied) currencies = currencies.filter((currency) => currency !== 'USD')
+  }
+  const choices = currencies.filter((currency) => eps.get(currency).length >= 2)
+  if (!choices.length && currencies.length === 1) choices.push(currencies[0])
+  if (choices.length > 1 && choices.includes('USD')) choices.splice(0, choices.length, 'USD')
+  if (choices.length !== 1) {
+    return { currency: null, conflict: true, evidence: latest.sort((a, b) => a.concept.localeCompare(b.concept))[0] }
+  }
+  const currency = choices[0]
+  const evidence = latest.filter((item) => item.currency === currency)
+    .sort((a, b) => String(b.filed).localeCompare(String(a.filed)) || a.concept.localeCompare(b.concept))[0]
+  return { currency, conflict: false, evidence }
+}
+
 /** Comparative columns in a 10-K reuse the filing's fy. The period end is the year. */
 function periodYear (item) {
   const end = Number(String(item.end || '').slice(0, 4))
@@ -161,13 +231,13 @@ function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest =
 
 // Some 10-Ks disclose oil and gas additions separately from other PP&E.
 // Use those lines only when both reconcile to the same filing and cash-flow period.
-function sameFilingCapitalSpending (facts, operatingCash, totalConcepts) {
+function sameFilingCapitalSpending (facts, operatingCash, totalConcepts, currency) {
   const days = durationDays(operatingCash)
-  if (!operatingCash.accn || days == null || days < 300) return null
+  if (!operatingCash.accn || days == null || days < 300 || !currency) return null
 
   const gaap = taxonomy(facts)['us-gaap']
   const matchingPayment = (concept) => {
-    const entries = gaap?.[concept]?.units?.USD || []
+    const entries = gaap?.[concept]?.units?.[currency] || []
     const payments = new Set(entries.filter((item) =>
       item.accn === operatingCash.accn && item.start === operatingCash.start && item.end === operatingCash.end &&
       FORMS.has(item.form) && item.fp === 'FY' && Number.isFinite(item.val),
@@ -183,26 +253,24 @@ function sameFilingCapitalSpending (facts, operatingCash, totalConcepts) {
   return oilAndGas == null || other == null ? null : oilAndGas + other
 }
 
-// Filers sometimes tag per-share amounts as USD/share (singular). Both units
-// are dollars per share. Companyfacts only includes undimensioned facts: if an
-// issuer (Visa) tags EarningsPerShareDiluted only on a class-of-stock axis,
-// the concept is absent here and must not be invented from net income / shares.
-const EPS_UNITS = ['USD/shares', 'USD/share']
-
-function earningsSeries (facts, concepts, taxonomyName) {
-  for (const unit of EPS_UNITS) {
+// Filers sometimes tag per-share amounts as USD/share (singular). The unit is
+// selected from the statement currency above; a same-named USD tag carrying a
+// local-currency number must never be treated as proof of a dollar series.
+function earningsSeries (facts, concepts, taxonomyName, currency) {
+  if (!currency) return { series: [], points: [] }
+  for (const unit of [currency + '/shares', currency + '/share']) {
     const selected = annualSelection(facts, concepts, unit, taxonomyName)
     if (selected.series.length >= 2) return selected
   }
   return { series: [], points: [] }
 }
 
-/** EPS stays in US dollars per share. Another unit would be mislabeled as dollars. */
-function earningsPerShare (facts) {
-  const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap')
+/** EPS stays in the issuer's reporting currency per ordinary share. */
+function earningsPerShare (facts, currency) {
+  const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap', currency)
   if (direct.series.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  return earningsSeries(facts, ifrsConcepts, 'ifrs-full')
+  return earningsSeries(facts, ifrsConcepts, 'ifrs-full', currency)
 }
 
 // Use the current and comparative YTD figures in the same 10-Q. The 10-K
@@ -318,7 +386,8 @@ export function knownSplitFactor (ratio, tolerance = SHARE_SPLIT_TOLERANCE) {
  * basis; that ratio is the split, and item.fy on the later row is the
  * split-year filing.
  */
-function restatementSplits (facts) {
+function restatementSplits (facts, currency) {
+  if (!currency) return []
   const splits = []
   const seen = new Set()
   const taxonomies = [
@@ -327,7 +396,7 @@ function restatementSplits (facts) {
   ]
   for (const [taxonomyName, concepts] of taxonomies) {
     for (const concept of concepts) {
-      const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.['USD/shares']
+      const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.[currency + '/shares']
       if (!entries) continue
       const byYear = new Map()
       for (const item of entries) {
@@ -640,11 +709,11 @@ function firstPresentEntries (facts, concepts, unit, taxonomies = ['us-gaap', 'i
  * Period totals used by the official quality gate. The whitelist is searched
  * even when it is empty: a missing total is N = 0, not unknown.
  */
-export function qualityFactsFromFacts (facts, { ttmEnd = null, ttmAnnualEnd = null } = {}) {
+export function qualityFactsFromFacts (facts, { ttmEnd = null, ttmAnnualEnd = null, currency = 'USD' } = {}) {
   const searched = true
-  const gainMap = preferAnnualByYear(facts, QUALITY_WHITELIST_CONCEPTS, QUALITY_WHITELIST_CONCEPTS, 'USD')
-  const niMap = preferAnnualByYear(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, 'USD')
-  const oiMap = preferAnnualByYear(facts, OPERATING_INCOME_CONCEPTS, IFRS_OPERATING_INCOME_CONCEPTS, 'USD')
+  const gainMap = preferAnnualByYear(facts, QUALITY_WHITELIST_CONCEPTS, QUALITY_WHITELIST_CONCEPTS, currency)
+  const niMap = preferAnnualByYear(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, currency)
+  const oiMap = preferAnnualByYear(facts, OPERATING_INCOME_CONCEPTS, IFRS_OPERATING_INCOME_CONCEPTS, currency)
   const years = new Set([...gainMap.keys(), ...niMap.keys(), ...oiMap.keys()])
   const annual = [...years].sort((a, b) => a - b).map((fy) => ({
     fy,
@@ -654,9 +723,9 @@ export function qualityFactsFromFacts (facts, { ttmEnd = null, ttmAnnualEnd = nu
     oi: oiMap.get(fy)?.val ?? null,
     searched,
   }))
-  const gainEntries = firstPresentEntries(facts, QUALITY_WHITELIST_CONCEPTS, 'USD').entries
-  const niEntries = firstPresentEntries(facts, [...NET_INCOME_CONCEPTS, ...IFRS_NET_INCOME_CONCEPTS], 'USD').entries
-  const oiEntries = firstPresentEntries(facts, [...OPERATING_INCOME_CONCEPTS, ...IFRS_OPERATING_INCOME_CONCEPTS], 'USD').entries
+  const gainEntries = firstPresentEntries(facts, QUALITY_WHITELIST_CONCEPTS, currency).entries
+  const niEntries = firstPresentEntries(facts, [...NET_INCOME_CONCEPTS, ...IFRS_NET_INCOME_CONCEPTS], currency).entries
+  const oiEntries = firstPresentEntries(facts, [...OPERATING_INCOME_CONCEPTS, ...IFRS_OPERATING_INCOME_CONCEPTS], currency).entries
   const annualEnd = ttmAnnualEnd || annual.at(-1)?.end || null
   const annualPointFor = (entries) => {
     if (!annualEnd) return null
@@ -690,25 +759,27 @@ function attachQuality (row, fy, quality) {
 }
 
 function assemble (facts) {
-  const { series: reportedEps, points: epsFacts } = earningsPerShare(facts)
-  const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], 'USD')
-  const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], 'USD')
-  const equity = annualPrefer(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS, 'USD')
-  const goodwill = annual(facts, ['Goodwill'], 'USD')
-  const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], 'USD')
-  const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], 'USD', 'ifrs-full')
-  const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, 'USD')
-  const da = annualPrefer(facts, DA_CONCEPTS, IFRS_DA_CONCEPTS, 'USD')
-  const sbc = annualPrefer(facts, SBC_CONCEPTS, IFRS_SBC_CONCEPTS, 'USD')
-  const separatesOilAndGas = annualConcept(facts, OIL_AND_GAS_CAPEX, 'USD').length > 0
+  const statement = reportingCurrencyFromFacts(facts)
+  const currency = statement.currency
+  const { series: reportedEps, points: epsFacts } = earningsPerShare(facts, currency)
+  const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], currency)
+  const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], currency)
+  const equity = annualPrefer(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS, currency)
+  const goodwill = annual(facts, ['Goodwill'], currency)
+  const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], currency)
+  const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], currency, 'ifrs-full')
+  const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, currency)
+  const da = annualPrefer(facts, DA_CONCEPTS, IFRS_DA_CONCEPTS, currency)
+  const sbc = annualPrefer(facts, SBC_CONCEPTS, IFRS_SBC_CONCEPTS, currency)
+  const separatesOilAndGas = annualConcept(facts, OIL_AND_GAS_CAPEX, currency).length > 0
   const capexConcepts = separatesOilAndGas ? CAPEX_CONCEPTS.filter((concept) => concept !== OTHER_CAPEX) : CAPEX_CONCEPTS
-  const capex = annualPrefer(facts, capexConcepts, IFRS_CAPEX_CONCEPTS, 'USD')
+  const capex = annualPrefer(facts, capexConcepts, IFRS_CAPEX_CONCEPTS, currency)
   // Later 10-Ks sometimes restate older share counts onto a post-split basis.
   // Keep the original filing so the jump stays in the split year; otherwise
   // the same split is also detected from EPS and applied twice.
   const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
   const { adjusted, splits: shareSplits } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
-  const splits = mergeSplits(shareSplits, restatementSplits(facts))
+  const splits = mergeSplits(shareSplits, restatementSplits(facts, currency))
   const restatedEps = rescaleFiledEps(reportedEps, splits)
   const cliffYears = new Set(restatedEps.map((point) => point.fy))
   for (const point of dropCliffs(restatedEps, [revenue, operating])) cliffYears.delete(point.fy)
@@ -716,7 +787,7 @@ function assemble (facts) {
   const fcf = []
   for (const point of ocf) {
     const total = findYear(capex, point.fy)
-    const spending = total ?? (separatesOilAndGas ? sameFilingCapitalSpending(facts, point, capexConcepts) : null)
+    const spending = total ?? (separatesOilAndGas ? sameFilingCapitalSpending(facts, point, capexConcepts, currency) : null)
     if (spending != null) fcf.push({ fy: point.fy, val: point.val - Math.abs(spending) })
   }
   const years = [...new Set([...keptEps, ...revenue, ...operating, ...equity, ...fcf, ...shares].map((item) => item.fy))].sort((a, b) => a - b)
@@ -758,6 +829,7 @@ function assemble (facts) {
   const quality = qualityFactsFromFacts(facts, {
     ttmEnd: trailingPreview?.end || keptEps.at(-1)?.end || null,
     ttmAnnualEnd: keptEps.at(-1)?.end || null,
+    currency,
   })
   for (const row of rows) {
     const fy = Number(String(row.date || '').slice(0, 4))
@@ -788,6 +860,12 @@ function assemble (facts) {
       quarter: [],
     },
     fields: {
+      reporting_currency: statement.currency,
+      reporting_currency_source: statement.evidence
+        ? [statement.evidence.taxonomyName, statement.evidence.concept, statement.evidence.currency, statement.evidence.end, statement.evidence.accn].filter(Boolean).join(':')
+        : null,
+      per_share_currency: statement.currency,
+      unit_unreconciled: !statement.currency,
       ttm_eps: trailingEps?.val ?? lastAnnualEps?.val ?? null,
       eps_as_of: trailingEps?.end ?? lastAnnualEps?.end ?? null,
       eps_period: trailingEps ? 'TTM' : 'FY',

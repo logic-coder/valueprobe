@@ -243,6 +243,12 @@ export function entryStockFromCompany (company, study) {
   const latest = series.at(-1).val
   return toStock({
     symbol: company.ticker,
+    exchange_: 'NYSE',
+    currency: '$',
+    reporting_currency: 'USD',
+    reporting_currency_source: 'research-panel',
+    per_share_currency: 'USD',
+    per_share_fx_to_quote: 1,
     as_of: study.asOf,
     ttm_eps: latest,
     ttm_eps_nri: latest,

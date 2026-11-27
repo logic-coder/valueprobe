@@ -8,6 +8,7 @@ import { resolve } from 'node:path'
 import { POLICY_V1, POLICY_V1_HASH, policyValue } from '../src/lib/policy.js'
 import { isKnownReason, isKnownWarning } from '../src/lib/reasons.js'
 import { toStock } from '../src/lib/stockRecord.js'
+import { quoteUnitReconciliation } from '../src/lib/unreconciledUnits.js'
 import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts, policyHash, readRates, snapshotFiles } from './lib/policy-artifact.mjs'
 import { PUBLISH_PATH, isPublishReady, latestPeriod, matchesPublishHistory } from './lib/publish-gate.mjs'
 
@@ -130,12 +131,31 @@ policyOk ? ok('entries carry inputs and a rate row') : null
 let schemaOk = true
 for (const name of snapshotFiles(root)) {
   const raw = readJson('public/data/' + name)
-  for (const key of ['as_of', 'symbol', 'exchange_', 'currency', 'price', 'ttm_eps', 'ttm_eps_nri', 'tangible_book', 'earning_growth_10y']) {
+  for (const key of ['as_of', 'symbol', 'exchange_', 'currency', 'price', 'ttm_eps', 'ttm_eps_nri', 'tangible_book', 'earning_growth_10y',
+    'reporting_currency', 'reporting_currency_source', 'per_share_currency', 'per_share_fx_to_quote', 'unit_unreconciled']) {
     if (!(key in raw)) { schemaOk = false; fail('snapshot schema ' + name, 'missing ' + key) }
   }
   if (!Array.isArray(raw.financials?.annual)) { schemaOk = false; fail('snapshot schema ' + name, 'annual missing') }
 }
 schemaOk ? ok('snapshot schema', snapshotFiles(root).length + ' files') : null
+
+let unitsOk = true
+let refusedInputsOk = true
+for (const name of snapshotFiles(root)) {
+  const raw = readJson('public/data/' + name)
+  const symbol = raw.exchange_ + ':' + raw.symbol
+  const unit = quoteUnitReconciliation(toStock(raw))
+  if (!unit.metadataComplete) { unitsOk = false; fail('snapshot unit metadata ' + symbol, unit.reason) }
+  const saved = artifact.entries[symbol]
+  if (saved?.status === 'ok' && !unit.ok) { unitsOk = false; fail('published unit reconciliation ' + symbol, unit.reason) }
+  if (saved?.reasons.includes('UNIT_UNRECONCILED') && ['eps', 'epsLatest', 'epsNormalized', 'cashMedian', 'latestFyEps', 'growth', 'growth10', 'tangibleBook']
+    .some((key) => saved.inputs?.[key] != null)) {
+    refusedInputsOk = false
+    fail('refused unit inputs ' + symbol, 'executable valuation inputs must not be published')
+  }
+}
+unitsOk ? ok('snapshot quote units reconciled') : null
+refusedInputsOk ? ok('refused unit inputs withheld') : null
 
 // Official growth must equal policyGrowth(toStock(snapshot)), not a stale stored g10.
 let growthOk = true
@@ -147,7 +167,11 @@ for (const name of snapshotFiles(root)) {
   const saved = artifact.entries[symbol]
   const recomputed = policyValue(stock, { rates: readRates(root).rates, generatedAt: artifact.generatedAt })
   if (!saved) continue
-  if (saved.inputs?.growth !== recomputed.inputs?.growth || saved.status !== recomputed.status) {
+  if (saved.status !== recomputed.status) {
+    growthOk = false
+    fail('official status ' + symbol, 'artifact ' + saved.status + ' vs policyValue(toStock) ' + recomputed.status)
+  }
+  if (saved.status === 'ok' && saved.inputs?.growth !== recomputed.inputs?.growth) {
     growthOk = false
     fail('official growth ' + symbol, 'artifact growth ' + saved.inputs?.growth + ' vs policyGrowth(toStock) ' + recomputed.inputs?.growth)
   }

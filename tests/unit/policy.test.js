@@ -18,6 +18,7 @@ const rateRows = {
   CNY: { value: ratesFile.CNY.value, asOf: ratesFile.CNY.as_of, source: 'snapshot' },
   USD: { value: ratesFile.USD.value, asOf: ratesFile.USD.as_of, source: 'snapshot' },
 }
+const usdUnits = { currency: '$', reporting_currency: 'USD', per_share_currency: 'USD', unit_unreconciled: false }
 const snapshots = catalog.map((row) => ({ symbol: row.symbol, raw: readJson('public/data/' + row.symbol.replace(':', '-') + '.json') }))
 const stockOf = (raw) => toStock(raw)
 const yieldOf = (stock) => rateForCurrency(rateRows, reportingCurrency(stock) || stock.currency)?.value ?? null
@@ -69,7 +70,7 @@ describe('earnings input boundary', () => {
       // Trailing EPS is display-only. The official form and published path
       // need an official fiscal-year base, including an explicit zero.
       expect(buildDefaults(5, stock, 0).dcfForm.eps).toBeNull()
-      expect(policyValue({ ...stock, earnings_base: 0, currency: '$', earning_growth_10y: 3, price: '$10' }, { rates: rateRows }).reasons).toContain(REASON.NON_POSITIVE_EPS)
+      expect(policyValue({ ...stock, ...usdUnits, earnings_base: 0, earning_growth_10y: 3, price: '$10' }, { rates: rateRows }).reasons).toContain(REASON.NON_POSITIVE_EPS)
       expect(buildDefaults(5, { ...stock, earnings_base: 0 }, 0).dcfForm.eps).toBe(0)
     }
   })
@@ -177,6 +178,7 @@ describe('policyValue semantics', () => {
 
   it('keeps quote freshness and earnings vintage independent of snapshot capture', () => {
     const stock = {
+      ...usdUnits,
       ttm_eps: 4, earning_growth_10y: 5, price: '$60', _as_of: '2026-11-19',
       eps_as_of: '2025-12-31', quote_as_of: '2026-11-06',
     }
@@ -212,6 +214,7 @@ describe('classification evidence is disclosed, never a silent guess', () => {
 
   it('warns when only missing columns produced the route and the other model differs materially', () => {
     const raw = {
+      ...usdUnits,
       exchange_: 'NYSE', symbol: 'X', company: 'Acme', price: '$50', ttm_eps: 1,
       tangible_book: 100, earning_growth_10y: 5, _as_of: '2026-11-18',
       financials: { annual: [{ date: '2025-12', book_value_per_share: 100, eps_without_nri: 1, quality_facts_searched: true, equity_securities_fv_ni_gain_loss: 0 }] },
@@ -309,7 +312,8 @@ describe('centered envelope and regime rules', () => {
 
   it('does not label a normalised earnings base as a midpoint just because cash is close', () => {
     const stock = {
-      exchange_: 'NYSE', symbol: 'X', currency: '$', ttm_eps: 10, earnings_base: 10, eps_normalized: 10, cash_base: 10,
+      ...usdUnits,
+      exchange_: 'NYSE', symbol: 'X', ttm_eps: 10, earnings_base: 10, eps_normalized: 10, cash_base: 10,
       earning_growth_10y: 5, price: '$100', _as_of: '2026-11-18',
     }
     expect(policyValue(stock, { rate: 5.07 }).inputs.baseKind).toBe('normalized')

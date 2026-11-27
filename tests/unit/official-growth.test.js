@@ -124,8 +124,8 @@ describe('officialGrowth window rules', () => {
 describe('policyValue and buildDefaults share officialGrowth', () => {
   it('uses a 0% start and the default 4% terminal for negative history', () => {
     const stock = {
-      exchange_: 'NYSE', symbol: 'GPC', currency: '$', ttm_eps: 5, earnings_base: 5,
-      earning_growth_10y: -22.37, earning_growth_5y: -47.59, price: '$10', _as_of: '2026-11-18',
+      exchange_: 'NYSE', symbol: 'GPC', currency: '$', reporting_currency: 'USD', per_share_currency: 'USD',
+      ttm_eps: 5, earnings_base: 5, earning_growth_10y: -22.37, earning_growth_5y: -47.59, price: '$10', _as_of: '2026-11-18',
     }
     const value = policyValue(stock, { rate: 5.07 })
     expect(value.status).toBe('ok')
@@ -148,7 +148,7 @@ describe('policyValue and buildDefaults share officialGrowth', () => {
     const seed = buildDefaults(4, stock, 1)
     expect(seed.dcfForm.growthRate).toBe(0)
     expect(seed.dcfForm.terminalGrowthRate).toBe(4)
-    const value = policyValue({ exchange_: 'NYSE', symbol: 'X', currency: '$', ...stock, _as_of: '2026-11-18' }, { rate: 5.07 })
+    const value = policyValue({ exchange_: 'NYSE', symbol: 'X', currency: '$', reporting_currency: 'USD', per_share_currency: 'USD', ...stock, _as_of: '2026-11-18' }, { rate: 5.07 })
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBe(0)
     expect(value.inputs.terminalGrowthRate).toBe(4)
@@ -158,7 +158,7 @@ describe('policyValue and buildDefaults share officialGrowth', () => {
   })
 
   it('does not invent a 0% start from a cash-only base with no reported EPS', () => {
-    const stock = { exchange_: 'NYSE', symbol: 'V', currency: '$', earnings_base: 11.49, cash_base: 11.49, price: '$300', _as_of: '2026-11-18' }
+    const stock = { exchange_: 'NYSE', symbol: 'V', currency: '$', reporting_currency: 'USD', per_share_currency: 'USD', earnings_base: 11.49, cash_base: 11.49, price: '$300', _as_of: '2026-11-18' }
     const value = policyValue(stock, { rate: 5.07 })
     expect(value.status).toBe('refused')
     expect(value.inputs.growth).toBeNull()
