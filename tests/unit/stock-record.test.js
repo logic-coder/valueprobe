@@ -2,10 +2,22 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { toStock } from '../../src/lib/stockRecord'
 import { officialGrowth } from '../../src/lib/assumptions'
+import { reportingCurrency, reportingCurrencySource } from '../../src/lib/riskFree'
 import { policyGrowth, policyValue } from '../../src/lib/policy'
 import { REASON } from '../../src/lib/reasons'
 
 const read = (symbol) => JSON.parse(readFileSync('public/data/' + symbol.replace(':', '-') + '.json', 'utf8'))
+
+describe('quote and reporting currency provenance', () => {
+  it('does not turn a Hong Kong vendor report flag into verified reporting currency', () => {
+    const stock = toStock({ exchange_: 'HKSE', symbol: '00700', currency: 'HK$', price: 'HK$373.6', report_currency: 'HKD', reporting_currency: null, reporting_currency_source: null })
+    expect(stock.reporting_currency).toBeNull()
+    expect(reportingCurrency(stock)).toBe('HKD')
+    expect(reportingCurrencySource(stock)).toBe('quote-fallback')
+    expect(stock.per_share_currency).toBe('HKD')
+    expect(stock.per_share_fx_to_quote).toBe(1)
+  })
+})
 
 describe('official growth is recomputed from annual series', () => {
   it('walks HSBC past the 2016 trough and publishes a ten-year rate from the annuals', () => {

@@ -230,24 +230,31 @@ export function residualIncomeValue (tbv, eps, discountRate, growthRate, termina
  * mid is never replaced by the arithmetic middle of an asymmetric envelope.
  */
 export function envelopeScenarios (input) {
-  const spread = Number(input.bandSpread ?? 2)
-  const cap = Number.isFinite(Number(input.growthCap)) ? Number(input.growthCap) : 15
+  const optionalFinite = (value) => {
+    if (value === null || value === undefined || value === '') return null
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  const spread = optionalFinite(input.bandSpread) ?? 2
+  const cap = optionalFinite(input.growthCap) ?? 15
   const officialG = Number(input.growthRate)
   const officialT = Number(input.terminalGrowthRate)
   const regime = input.regimeUncertain === true
   const lowDiscount = Number(input.discountRate) + spread
   const highDiscount = Math.max(Number(input.discountRate) - spread, officialT + 2)
-  const sustainable = Number.isFinite(Number(input.sustainableGrowth)) ? Number(input.sustainableGrowth) : null
+  const sustainable = optionalFinite(input.sustainableGrowth)
   const growth = envelopeGrowth(officialG, {
     cap,
     sustainableGrowth: sustainable,
-    spread: Number.isFinite(Number(input.growthSpread)) ? Number(input.growthSpread) : BAND_GROWTH_SPREAD,
+    spread: optionalFinite(input.growthSpread) ?? BAND_GROWTH_SPREAD,
   })
-  const highGrowth = Number.isFinite(Number(input.highGrowth))
-    ? Math.min(Number(input.highGrowth), growth.cap)
+  const suppliedHighGrowth = optionalFinite(input.highGrowth)
+  const suppliedLowGrowth = optionalFinite(input.lowGrowth)
+  const highGrowth = suppliedHighGrowth != null
+    ? Math.min(suppliedHighGrowth, growth.cap)
     : growth.high
-  const lowGrowth = Number.isFinite(Number(input.lowGrowth))
-    ? Math.max(Number(input.lowGrowth), 0)
+  const lowGrowth = suppliedLowGrowth != null
+    ? Math.max(suppliedLowGrowth, 0)
     : growth.low
 
   const mid = { discount: Number(input.discountRate), growth: officialG, terminal: officialT }

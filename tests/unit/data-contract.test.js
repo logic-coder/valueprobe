@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import { LISTING_GROUPS } from '../../src/data/listingGroups'
 import { POLICY_V1_HASH, POLICY_VERSION } from '../../src/lib/policy'
 import { isKnownReason, isKnownWarning } from '../../src/lib/reasons'
-import { readRates } from '../../scripts/lib/policy-artifact.mjs'
+import { crossListingReview, readRates } from '../../scripts/lib/policy-artifact.mjs'
 
 // Contract for the committed public data a static deploy reads directly with no
 // build step: artifact, manifest, catalog, rates and snapshots must describe one
@@ -27,6 +27,30 @@ const catalog = readJson('public/data/catalog.json')
 const rates = readJson('public/data/rates.json')
 const watchlist = readJson('scripts/watchlist.json')
 const entries = Object.entries(artifact.entries)
+
+describe('cross-listing gap review', () => {
+  const row = (id, gap) => ({ id, valueDiffPct: gap })
+
+  it('requires review only above the material-gap threshold', () => {
+    expect(crossListingReview(row('NEW', 25), '2026-11-27')).toEqual({ required: false, allowed: true, reason: null })
+    expect(crossListingReview(row('NEW', -25.01), '2026-11-27')).toMatchObject({ required: true, allowed: false, reason: 'review-missing' })
+    expect(crossListingReview(row('NEW', null), '2026-11-27').required).toBe(false)
+  })
+
+  it('allows BYD only inside its dated cap and blocks expiry or a wider gap', () => {
+    expect(crossListingReview(row('BYD', -53.36), '2026-11-27')).toMatchObject({ required: true, allowed: true })
+    expect(crossListingReview(row('BYD', -53.36), '2027-02-25')).toMatchObject({ allowed: true })
+    expect(crossListingReview(row('BYD', -53.36), '2027-02-26')).toMatchObject({ allowed: false, reason: 'expired-or-undated' })
+    expect(crossListingReview(row('BYD', -55.01), '2026-11-27')).toMatchObject({ allowed: false, reason: 'gap-over-review-cap' })
+    expect(crossListingReview(row('BYD', -53.36), '2026-11-26')).toMatchObject({ allowed: false, reason: 'expired-or-undated' })
+  })
+
+  it('publishes the material-gap reason for the reviewed pair', () => {
+    const byd = artifact.crossListing.find((row) => row.id === 'BYD')
+    expect(byd.status).toBe('input-mismatch')
+    expect(byd.reasons).toContain('VALUE_GAP')
+  })
+})
 
 describe('policy pin', () => {
   it('is built from the current public policy', () => {

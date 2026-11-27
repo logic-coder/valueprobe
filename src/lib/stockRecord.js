@@ -112,7 +112,7 @@ export function toStock (raw) {
   const quoteCurrency = currencyCode(raw.currency) || currencyCode(String(raw.price || '').trim().match(/^[^\d.-]+/)?.[0])
   stock.currency = raw.currency || quoteCurrency
   stock.reporting_currency = raw.reporting_currency || (raw.exchange_ === 'SHSE' || raw.exchange_ === 'SZSE'
-    ? 'CNY' : raw.exchange_ === 'HKSE' ? raw.report_currency : null)
+    ? 'CNY' : null)
   stock.per_share_currency = raw.per_share_currency || (domestic ? quoteCurrency : null)
   if (raw.exchange_ === 'HKSE' && stock.per_share_currency === quoteCurrency) stock.per_share_fx_to_quote = 1
   stock.unit_unreconciled = raw.unit_unreconciled === true

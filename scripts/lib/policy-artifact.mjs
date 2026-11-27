@@ -16,6 +16,29 @@ export const ARTIFACT_PATH = 'public/data/intrinsic/' + POLICY_VERSION + '.json'
 export const MANIFEST_PATH = 'public/data/manifest.json'
 export const SNAPSHOT_PATTERN = /^[A-Z]{2,}-.+\.json$/
 export const CURRENCY_ORDER = ['CNY', 'USD', 'HKD']
+export const CROSS_LISTING_VALUE_GAP_PCT = POLICY_V1.crossListing.valueGapReviewPct
+export const CROSS_LISTING_REVIEWS = {
+  BYD: { maxAbsGapPct: 55, reviewedAt: '2026-11-27', expiresAt: '2027-02-25' },
+}
+
+export function crossListingReview (row, asOf) {
+  if (row.valueDiffPct == null || Math.abs(row.valueDiffPct) <= CROSS_LISTING_VALUE_GAP_PCT) {
+    return { required: false, allowed: true, reason: null }
+  }
+  const review = CROSS_LISTING_REVIEWS[row.id]
+  const reviewTime = Date.parse(review?.reviewedAt)
+  const expiryTime = Date.parse(review?.expiresAt)
+  const asOfTime = Date.parse(asOf)
+  const withinWindow = Number.isFinite(reviewTime) && Number.isFinite(expiryTime) && Number.isFinite(asOfTime)
+    && asOfTime >= reviewTime && asOfTime <= expiryTime
+  const withinCap = Number.isFinite(review?.maxAbsGapPct) && Math.abs(row.valueDiffPct) <= review.maxAbsGapPct
+  const allowed = Boolean(review) && withinWindow && withinCap
+  return {
+    required: true,
+    allowed,
+    reason: allowed ? null : !review ? 'review-missing' : !withinCap ? 'gap-over-review-cap' : 'expired-or-undated',
+  }
+}
 
 const readJson = (root, path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
@@ -99,6 +122,7 @@ const crossListingOf = (groups, entries, rawBySymbol) => {
     const bookGap = pctGap(a?.inputs?.tangibleBook, inA(h?.inputs?.tangibleBook))
     const rateGap = a?.inputs?.discountRate != null && h?.inputs?.discountRate != null ? round2(a.inputs.discountRate - h.inputs.discountRate) : null
     const valueHInA = h?.value != null && fx > 0 ? round4(h.value / fx) : null
+    const valueDiffPct = pctGap(a?.value, valueHInA)
     const reasons = []
     if (!(fx > 0)) reasons.push('FX_MISSING')
     if (a?.earningsPeriod !== h?.earningsPeriod || a?.earningsDate !== h?.earningsDate) reasons.push('PERIOD')
@@ -112,19 +136,20 @@ const crossListingOf = (groups, entries, rawBySymbol) => {
     else if (Math.abs(bookGap) > 5) reasons.push('BOOK_BASIS')
     if (rateGap == null) reasons.push('RATE_MISSING')
     else if (Math.abs(rateGap) >= 1) reasons.push('RATE_CURRENCY')
+    if (valueDiffPct != null && Math.abs(valueDiffPct) > CROSS_LISTING_VALUE_GAP_PCT) reasons.push('VALUE_GAP')
     const aligned = epsGap != null && growthGap != null && !reasons.includes('PERIOD') && Math.abs(epsGap) <= 5 && Math.abs(growthGap) <= 2
     rows.push({
       id: group.id,
       a: group.a,
       h: group.h,
-      status: a?.status !== 'ok' || h?.status !== 'ok' ? 'not-valued' : aligned ? 'aligned' : 'input-mismatch',
+      status: a?.status !== 'ok' || h?.status !== 'ok' ? 'not-valued' : aligned && !reasons.includes('VALUE_GAP') ? 'aligned' : 'input-mismatch',
       valueA: a?.value ?? null,
       valueH: h?.value ?? null,
       fxToA: fx > 0 ? fx : null,
       valueHInA,
       epsFxDiffPct: epsGap,
       growthDiffPp: growthGap,
-      valueDiffPct: pctGap(a?.value, valueHInA),
+      valueDiffPct,
       bridge: {
         eps: { a: a?.inputs?.eps ?? null, hInA: inA(h?.inputs?.eps), diffPct: epsGap },
         growth: { a: a?.inputs?.growth ?? null, h: h?.inputs?.growth ?? null, diffPp: growthGap },
@@ -191,6 +216,14 @@ export function buildArtifacts ({ root = process.cwd(), dataDir = DATA_DIR, gene
   if (missing.length) problems.push('declared symbols without a snapshot: ' + missing.join(', '))
   if (extra.length) problems.push('snapshots outside the declared universe: ' + extra.join(', '))
 
+  const crossListing = crossListingOf(LISTING_GROUPS, sortedEntries, rawBySymbol)
+  for (const row of crossListing) {
+    const review = crossListingReview(row, generatedAt)
+    if (review.required && !review.allowed) {
+      problems.push('cross-listing value gap requires review: ' + row.id + ' (' + row.valueDiffPct + '%; ' + review.reason + ')')
+    }
+  }
+
   const artifact = {
     schema: 1,
     policyVersion: POLICY_VERSION,
@@ -206,7 +239,7 @@ export function buildArtifacts ({ root = process.cwd(), dataDir = DATA_DIR, gene
       models: Object.fromEntries(Object.entries(counts.models).sort()),
       currencies: Object.fromEntries(CURRENCY_ORDER.filter((code) => counts.currencies[code] != null).map((code) => [code, counts.currencies[code]])),
     },
-    crossListing: crossListingOf(LISTING_GROUPS, sortedEntries, rawBySymbol),
+    crossListing,
     entries: sortedEntries,
   }
 

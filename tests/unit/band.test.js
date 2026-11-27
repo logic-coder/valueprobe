@@ -85,6 +85,22 @@ describe('scenario envelope around a centered mid', () => {
     years: 10, yearsOfTerminalGrowth: 10, addToFairValue: false, bandSpread: 2, growthCap: 15,
   }
 
+  it('treats missing scenario limits as unknown, not as explicit zero', () => {
+    const input = { ...base, sustainableGrowth: null, highGrowth: null, lowGrowth: null }
+    const unknown = valueBand(input)
+    const scenes = envelopeScenarios(input)
+    expect(scenes.high.some((scene) => scene.growth === 12)).toBe(true)
+    expect(scenes.low.some((scene) => scene.growth === 8)).toBe(true)
+    expect(valueBand({ ...input, sustainableGrowth: undefined })).toEqual(unknown)
+    expect(valueBand({ ...input, sustainableGrowth: '' })).toEqual(unknown)
+    expect(valueBand({ ...input, growthCap: undefined })).toEqual(unknown)
+    const explicitZero = valueBand({ ...input, sustainableGrowth: 0, highGrowth: 0, lowGrowth: 0, growthCap: 0 })
+    expect(explicitZero.high).toBeLessThan(unknown.high)
+    expect(envelopeScenarios({ ...input, highGrowth: 0, lowGrowth: 0 }).high[0].growth).toBe(10)
+    expect(envelopeScenarios({ ...input, growthCap: 0 }).high).toHaveLength(1)
+    expect(envelopeScenarios({ ...input, growthCap: 0 }).high[0].growth).toBe(10)
+  })
+
   it('keeps mid equal to the official point estimate, not the arithmetic middle of an asymmetric envelope', () => {
     const input = { ...base, window: '10y', growth5: -4, regimeUncertain: true }
     const mid = presentValue(input.tbv, input.years, 12, 10, 5, 4, 10, false).fairValue

@@ -10,6 +10,8 @@ import {
   buildHistoricalReport, buildOfficialReport, reportText, loadPanel,
   discountFlows, forecastFlows, officialDiscountRate,
   publishedPathValue, realizedPublishedPathValue, officialHorizon,
+  entryAnnualRows, entryStockFromCompany, evaluateOfficialCompany,
+  panelUniverseHash, validateExpansionPanel, summarizeValidation, groupValidation,
 } from '../../scripts/research/forecast-validation-lib.mjs'
 
 const study = loadPanel()
@@ -56,7 +58,9 @@ describe('forecast-validation harness', () => {
     expect(report.yearsOfTerminalGrowth).toBe(10)
     expect(report.asOf).toBe('2006-03-15')
     expect(report.debugSet.tickers).toEqual(['GE', 'UPS', 'BA', 'INTC', 'IBM'])
-    expect(report.debugSet.sample).toBe(5)
+    expect(report.debugSet.sample).toBe(6)
+    expect(report.debugSet.rows).toHaveLength(6)
+    expect(report.debugSet.summary.cash.eligible).toBe(5)
     expect(report.debugSet.pairedCash).toBe(5)
     expect(report.debugSet.pairedOwnerEarnings).toBe(0)
     expect(report.debugSet.universeRule).toMatch(/debug set/)
@@ -162,5 +166,103 @@ describe('forecast-validation harness', () => {
     expect(discountFlows(flows, 4, 4)).toBeNull()
     expect(buildOfficialReport(study).terminalIncluded).toBe(true)
     expect(buildHistoricalReport(study).terminalIncluded).toBe(false)
+  })
+
+  it('filters expansion inputs by disclosure date and rejects undated panels', () => {
+    const fact = (fy, value) => ({ fy, val: value, periodEnd: fy + '-12-31', availableAt: (fy + 1) + '-02-01', source: 'synthetic-test' })
+    const company = {
+      ticker: 'TEST', cik: 1, industry: 'Technology',
+      epsSeries: Array.from({ length: 11 }, (_, index) => fact(2010 + index, 1 + index / 10)),
+      baseYears: [2017, 2018, 2019].map((fy) => ({ fy, periodEnd: fy + '-12-31', availableAt: (fy + 1) + '-02-01', source: 'synthetic-test', ocf: 30, capex: 10, shares: 10 })),
+    }
+    const panel = { asOf: '2020-03-15', universeFrozenAt: '2020-03-15', yieldPct: 4.73, universeRule: 'synthetic', companies: [company] }
+    panel.universeHash = panelUniverseHash(panel.companies)
+    const rows = entryAnnualRows(company, panel)
+    expect(rows.some((row) => row.date === '2020-12')).toBe(false)
+    expect(rows.find((row) => row.date === '2019-12').eps_without_nri).toBe(1.9)
+    expect(entryStockFromCompany(company, panel).ttm_eps).toBe(1.9)
+
+    const undated = structuredClone(panel)
+    delete undated.companies[0].epsSeries[0].availableAt
+    expect(validateExpansionPanel(undated).join(' ')).toMatch(/availableAt/)
+    const wrongHash = structuredClone(panel)
+    wrongHash.universeHash = '0'.repeat(64)
+    expect(validateExpansionPanel(wrongHash).join(' ')).toMatch(/universeHash/)
+
+    for (const [field, value] of [['ocf', null], ['capex', undefined], ['shares', ''], ['fy', null]]) {
+      const missingNumber = structuredClone(panel)
+      missingNumber.companies[0].baseYears[0][field] = value
+      expect(validateExpansionPanel(missingNumber).join(' ')).toMatch(field === 'fy' ? /fiscal year/ : /no finite/)
+    }
+    const missingOutcome = structuredClone(panel)
+    missingOutcome.companies[0].observations = []
+    missingOutcome.companies[0].epsObservations = Array.from({ length: 10 }, (_, index) => ({ fy: 2020 + index, eps: null, periodEnd: (2020 + index) + '-12-31', availableAt: (2021 + index) + '-02-01', source: 'synthetic-test' }))
+    expect(validateExpansionPanel(missingOutcome).join(' ')).toMatch(/no finite eps/)
+  })
+
+  it('scores a dated synthetic panel only when outcomes are the next ten fiscal years', () => {
+    const fact = (fy, value) => ({ fy, val: value, periodEnd: fy + '-12-31', availableAt: (fy + 1) + '-02-01', source: 'synthetic-test' })
+    const company = {
+      ticker: 'TEST', cik: 1, industry: 'Technology',
+      epsSeries: Array.from({ length: 10 }, (_, index) => fact(2010 + index, 1 + index / 10)),
+      baseYears: [2017, 2018, 2019].map((fy) => ({ fy, periodEnd: fy + '-12-31', availableAt: (fy + 1) + '-02-01', source: 'synthetic-test', ocf: 30, capex: 10, shares: 10 })),
+      observations: Array.from({ length: 10 }, (_, index) => ({ fy: 2020 + index, periodEnd: (2020 + index) + '-12-31', availableAt: (2021 + index) + '-02-01', source: 'synthetic-test', ocf: 30, capex: 10, shares: 10 })),
+      epsObservations: Array.from({ length: 10 }, (_, index) => ({ fy: 2020 + index, eps: 2 + index / 10, periodEnd: (2020 + index) + '-12-31', availableAt: (2021 + index) + '-02-01', source: 'synthetic-test' })),
+    }
+    const panel = { asOf: '2020-03-15', universeFrozenAt: '2020-03-15', yieldPct: 4.73, universeRule: 'synthetic', companies: [company] }
+    panel.universeHash = panelUniverseHash(panel.companies)
+    expect(validateExpansionPanel(panel)).toEqual([])
+    const evaluated = evaluateOfficialCompany(company, panel, 11)
+    expect(evaluated.status).toBe('eligible')
+    expect(Number.isFinite(evaluated.realisedCash)).toBe(true)
+    expect(Number.isFinite(evaluated.realisedOwnerEarnings)).toBe(true)
+    expect(evaluated.zeroPrediction.value).toBe(publishedPathValue(evaluated.bases.officialSelected, 0, 11))
+    const wrongOutcome = structuredClone(company)
+    wrongOutcome.observations[0].fy = 2021
+    expect(evaluateOfficialCompany(wrongOutcome, panel, 11).realisedCash).toBeNull()
+  })
+
+  it('reports median, nearest-rank p90, inclusive band coverage and an explicit refusal denominator', () => {
+    const scoreRows = Array.from({ length: 10 }, (_, index) => {
+      const score = index * 10
+      const realised = 100 * (200 - score) / (200 + score)
+      return {
+        excludedAfterSplit: false, prediction: { status: 'ok', value: 100, low: 0, high: 300 },
+        zeroPrediction: { status: 'ok', value: 100, low: 0, high: 300 }, realisedCash: realised,
+      }
+    })
+    const distribution = summarizeValidation(scoreRows, 'realisedCash')
+    expect(distribution.medianSmapePct).toBe(45)
+    expect(distribution.p90SmapePct).toBe(80)
+    expect(distribution.bandCoveragePct).toBe(100)
+
+    const coverage = summarizeValidation([90, 110, 110.01].map((realised) => ({
+      excludedAfterSplit: false, prediction: { status: 'ok', value: 100, low: 90, high: 110 },
+      zeroPrediction: { status: 'ok', value: 100 }, realisedCash: realised,
+    })), 'realisedCash')
+    expect(coverage.bandCoveragePct).toBe(66.6667)
+
+    const denominator = summarizeValidation([
+      { excludedAfterSplit: false, prediction: { status: 'ok', value: 100 }, zeroPrediction: { value: 100 }, realisedCash: 100 },
+      { excludedAfterSplit: false, prediction: { status: 'refused', value: null }, zeroPrediction: null, realisedCash: null },
+      { excludedAfterSplit: false, prediction: { status: 'ok', value: 100 }, zeroPrediction: { value: 100 }, realisedCash: null },
+      { excludedAfterSplit: true, prediction: { status: 'ok', value: 100 }, zeroPrediction: { value: 100 }, realisedCash: 100 },
+    ], 'realisedCash')
+    expect(denominator.eligible).toBe(3)
+    expect(denominator.refusalRatePct).toBe(33.3333)
+    expect(denominator.refusalRateAmongEvaluablePct).toBe(50)
+    expect(denominator.dataBlocked).toBe(1)
+  })
+
+  it('compares zero growth on the same base and groups results by entry year and industry', () => {
+    const rows = [
+      { excludedAfterSplit: false, entryYear: 2020, industry: 'Technology', prediction: { status: 'ok', value: 100, low: 90, high: 110 }, zeroPrediction: { value: 200 }, realisedCash: 100 },
+      { excludedAfterSplit: false, entryYear: 2020, industry: 'Industrials', prediction: { status: 'ok', value: 100, low: 90, high: 110 }, zeroPrediction: { value: 100 }, realisedCash: 200 },
+      { excludedAfterSplit: false, entryYear: 2021, industry: 'Technology', prediction: { status: 'ok', value: 200, low: 90, high: 210 }, zeroPrediction: { value: 100 }, realisedCash: 100 },
+    ]
+    const comparison = summarizeValidation(rows, 'realisedCash').comparisonWithZeroBaseline
+    expect(comparison).toMatchObject({ sameBase: true, wins: 1, losses: 1, ties: 1 })
+    expect(groupValidation(rows, 'entryYear').map((row) => row.entryYear)).toEqual(['2020', '2021'])
+    expect(groupValidation(rows, 'industry').map((row) => row.industry)).toEqual(['Industrials', 'Technology'])
   })
 })

@@ -27,15 +27,15 @@ export const POLICY_V1 = deepFreeze({
   revision: {
     classification: 'industry+ocf+columns',
     terminalBoundary: 'shared-effective-growth',
-    band: 'official-path-plus-minus-2pp',
+    band: 'official-path-plus-minus-2pp-missing-limits-unknown',
     cashCrossCheck: 'midpoint-when-gap-50-to-200',
     earningsBase: 'weighted-step-or-cash-bounded-fallback',
-    publicationGate: 'cash-unreconciled-over-3x',
+    publicationGate: 'cash-unreconciled-over-3x-and-cross-listing-gap-review',
     officialGrowth: 'slower-window-15-and-retention',
     insuranceEvidence: 'underwriting-insurers',
     requiredReturn: 'floor-10-or-reporting-10y-ceil-plus-6',
     baseDisclosure: 'component-list',
-    quoteUnits: 'reporting-and-per-share-currency-with-explicit-fx',
+    quoteUnits: 'verified-reporting-currency-explicit-per-share-fx-hk-quote-fallback',
   },
   trialOnlyIndustries: ['reit', 'refining'],
   // Repeatable earning power: five-year normalised EPS. With M≈D, owner
@@ -96,12 +96,13 @@ export const POLICY_V1 = deepFreeze({
     ratesDays: 10,
   },
   band: { discountSpread: 2, growthSpread: BAND_GROWTH_SPREAD, growthEnvelope: 'official-path' },
+  crossListing: { valueGapReviewPct: 25, review: 'dated-and-capped' },
   terminalShareDisclosed: true,
 })
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '12b02760c2229896ce58e80d3828dd2b82de7b4bb1084f1e12f039dc8afed557'
+export const POLICY_V1_HASH = '3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null

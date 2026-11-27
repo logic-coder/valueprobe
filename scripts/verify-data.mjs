@@ -9,7 +9,7 @@ import { POLICY_V1, POLICY_V1_HASH, policyValue } from '../src/lib/policy.js'
 import { isKnownReason, isKnownWarning } from '../src/lib/reasons.js'
 import { toStock } from '../src/lib/stockRecord.js'
 import { quoteUnitReconciliation } from '../src/lib/unreconciledUnits.js'
-import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts, policyHash, readRates, snapshotFiles } from './lib/policy-artifact.mjs'
+import { ARTIFACT_PATH, MANIFEST_PATH, buildArtifacts, crossListingReview, policyHash, readRates, snapshotFiles } from './lib/policy-artifact.mjs'
 import { PUBLISH_PATH, isPublishReady, latestPeriod, matchesPublishHistory } from './lib/publish-gate.mjs'
 
 // Verify from the repository root even when npm runs the script from a workspace.
@@ -185,17 +185,14 @@ if (missingQuoteDates) {
 // Cross-listing report must cover every curated pair and be honest about mismatches.
 const groups = artifact.crossListing.map((row) => row.id)
 groups.length === 9 ? ok('cross-listing report', groups.length + ' pairs') : fail('cross-listing report', groups.length + ' pairs')
-// Known A-share/H-share input-basis gaps: A files prefer 扣非 EPS while H files carry
-// diluted EPS, so a few percent is expected. Any NEW mismatch (or a resolved one that
-// this list has not been updated for) fails the gate so a data regression cannot hide
-// behind a familiar list.
-const KNOWN_CROSS_LISTING_MISMATCHES = ['BYD']
 const mismatched = artifact.crossListing.filter((row) => row.status === 'input-mismatch').map((row) => row.id).sort()
-const expected = [...KNOWN_CROSS_LISTING_MISMATCHES].sort()
-const sameMismatches = mismatched.length === expected.length && mismatched.every((id, index) => id === expected[index])
-sameMismatches
-  ? ok('cross-listing baseline', mismatched.length + ' known input mismatch(es)')
-  : fail('cross-listing baseline', 'seen ' + (mismatched.join(', ') || 'none') + ' / expected ' + expected.join(', '))
+const unreviewedGaps = artifact.crossListing.filter((row) => {
+  const review = crossListingReview(row, artifact.generatedAt)
+  return review.required && !review.allowed
+})
+unreviewedGaps.length
+  ? fail('cross-listing gap review', unreviewedGaps.map((row) => row.id + ' (' + row.valueDiffPct + '%)').join(', '))
+  : ok('cross-listing gap review', 'no unreviewed value gap over 25%')
 console.log('     cross-listing input mismatches: ' + (mismatched.length ? mismatched.join(', ') : 'none'))
 const notValued = artifact.crossListing.filter((row) => row.status === 'not-valued')
 if (notValued.length) console.log('     cross-listing not valued: ' + notValued.map((row) => row.id).join(', '))

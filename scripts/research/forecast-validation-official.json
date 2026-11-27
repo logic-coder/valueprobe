@@ -1,12 +1,12 @@
 {
   "kind": "official-policy-factor-run",
   "policyVersion": "v3",
-  "policyHash": "12b02760c2229896ce58e80d3828dd2b82de7b4bb1084f1e12f039dc8afed557",
+  "policyHash": "3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d",
   "growthRule": "slower-window-15-and-retention",
   "discountRule": "max(floor, local-10y-ceil+6)",
   "asOf": "2006-03-15",
   "role": "harness-debug",
-  "note": "Maintainer factor experiment on the official v3 published path. Forecast cells call presentValue() (linear fade over the explicit window, finite terminal years, then continuation) with the official discount max(10%, ceil(local 10y)+6) and the official 4% terminal. Discount and terminal are not tuned to this sample. Bases are crossed with growth rules: earnings is toStock() earnings_base (normalised EPS, or the latest fiscal year when the synchronous upshift rule fires); cash is toStock() cash_base; midpoint is the arithmetic mid of the two when both are positive, used only as a factor; officialSelected is blendOfficialBase() (earnings-primary below a 50% gap, midpoint at 50–200%, refuse above 200%; financial residual-income names are not cash-blended). Growth rules are zero, the clipped five-year window, the clipped ten-year window, and officialGrowth() (slower of the two clipped windows). The main growth comparison is officialSelected crossed with those four rates, never a mixed-base table. Realised cash is the observed ten-year after-capex cash path plus the same official terminal tail. Realised owner earnings use the same scorer on post-entry EPS when epsObservations are present (OE=E under M≈D); the frozen 2006 debug panel does not include those EPS outcomes. The 2006-03-15 five-name US industrials set is a harness debug set, not a general acceptance sample. Beating zero growth is not a publication gate and is not a license to change official growth or discount. This is not an official published value.",
+  "note": "Maintainer factor experiment on the official v3 published path. Forecast cells call presentValue() (linear fade over the explicit window, finite terminal years, then continuation) with the official discount max(10%, ceil(local 10y)+6) and the official 4% terminal. Discount and terminal are not tuned to this sample. Bases are crossed with growth rules: earnings is toStock() earnings_base (normalised EPS, or the latest fiscal year when the synchronous upshift rule fires); cash is toStock() cash_base; midpoint is the arithmetic mid of the two when both are positive, used only as a factor; officialSelected is blendOfficialBase() (earnings-primary below a 50% gap, midpoint at 50–200%, refuse above 200%; financial residual-income names are not cash-blended). Growth rules are zero, the clipped five-year window, the clipped ten-year window, and officialGrowth() (slower of the two clipped windows). The main growth comparison is officialSelected crossed with those four rates, never a mixed-base table. Realised cash is the observed ten-year after-capex cash path plus the same official terminal tail. Realised owner earnings use the same scorer on post-entry EPS when epsObservations are present (OE=E under M≈D); the frozen 2006 debug panel does not include those EPS outcomes. The 2006-03-15 six-name entry panel is a harness debug set (VZ is excluded after its 2006 split and has no complete cash path), not a general acceptance sample. Beating zero growth is not a publication gate and is not a license to change official growth or discount. This is not an official published value.",
   "path": {
     "forecast": "src/lib/dcf.js presentValue: linear fade from starting growth to the effective terminal, 10 explicit years, 10 finite terminal years, then a continuation value. addToFairValue is false.",
     "baseSelection": "src/lib/stockRecord.js toStock plus src/lib/dcf.js blendOfficialBase, the same official-selected base policyValue() uses.",
@@ -35,14 +35,22 @@
       "ten": "The ten-year earnings window after the official 0% floor and 15% cap. Null when that window cannot be formed.",
       "slower": "officialGrowth(): slower of the two clipped windows, or the one available window."
     },
-    "cells": "Each cell is the SMAPE between publishedPathValue(base, growth) and the named realised published-path value. Read down a column to compare bases at one growth rule; read across a row to compare growth rules at one base. Do not compare earnings-plus-slower with cash-plus-zero as if that were a growth test."
+    "cells": "Each cell is the SMAPE between publishedPathValue(base, growth) and the named realised published-path value. Read down a column to compare bases at one growth rule; read across a row to compare growth rules at one base. Do not compare earnings-plus-slower with cash-plus-zero as if that were a growth test.",
+    "acceptanceMetrics": {
+      "medianSmapePct": "Median symmetric absolute percentage error on eligible rows with a published prediction and realised outcome.",
+      "p90SmapePct": "Nearest-rank 90th percentile: sorted score at index ceil(0.9*n)-1.",
+      "bandCoveragePct": "Share of scored rows whose realised value lies inside the published scenario band, including both boundaries. This is not a confidence level.",
+      "refusalRatePct": "Policy-refused rows divided by all non-split entry rows. Missing outcomes are counted separately as dataBlocked.",
+      "refusalRateAmongEvaluablePct": "Policy-refused rows divided by policy-refused plus scored rows; excludes missing entry/outcome data.",
+      "zeroBaseline": "Same official-selected base, discount, horizon and terminal as the official forecast, with starting growth set to zero. Paired deltas are official SMAPE minus zero-growth SMAPE."
+    }
   },
   "debugSet": {
     "asOf": "2006-03-15",
     "yieldPct": 4.73,
     "role": "harness-debug",
     "universeRule": "Frozen 2006-03-15 entry-date cash panel from scripts/research/cash-path-inputs.json. Six US names drawn from a period industrial/tech filing set; VZ has no complete cash path. This is a harness debug set, not a general acceptance sample.",
-    "sample": 5,
+    "sample": 6,
     "pairedCash": 5,
     "pairedOwnerEarnings": 0,
     "tickers": [
@@ -52,6 +60,66 @@
       "INTC",
       "IBM"
     ],
+    "summary": {
+      "cash": {
+        "outcome": "realisedCash",
+        "eligible": 5,
+        "scored": 5,
+        "refused": 0,
+        "dataBlocked": 0,
+        "entryBlocked": 0,
+        "outcomeBlocked": 0,
+        "bandAvailable": 5,
+        "medianSmapePct": 51.8355,
+        "p90SmapePct": 69.0108,
+        "bandCoveragePct": 40,
+        "refusalRatePct": 0,
+        "refusalRateAmongEvaluablePct": 0,
+        "zeroBaseline": {
+          "sameBase": true,
+          "medianSmapePct": 36.491,
+          "p90SmapePct": 84.4364
+        },
+        "pairedWithZeroBaseline": 5,
+        "comparisonWithZeroBaseline": {
+          "sameBase": true,
+          "medianDeltaPp": -6.713,
+          "p90DeltaPp": 15.3445,
+          "wins": 3,
+          "losses": 1,
+          "ties": 1
+        }
+      },
+      "ownerEarnings": {
+        "outcome": "realisedOwnerEarnings",
+        "eligible": 5,
+        "scored": 0,
+        "refused": 0,
+        "dataBlocked": 5,
+        "entryBlocked": 0,
+        "outcomeBlocked": 5,
+        "bandAvailable": 0,
+        "medianSmapePct": null,
+        "p90SmapePct": null,
+        "bandCoveragePct": null,
+        "refusalRatePct": 0,
+        "refusalRateAmongEvaluablePct": null,
+        "zeroBaseline": {
+          "sameBase": true,
+          "medianSmapePct": null,
+          "p90SmapePct": null
+        },
+        "pairedWithZeroBaseline": 0,
+        "comparisonWithZeroBaseline": {
+          "sameBase": true,
+          "medianDeltaPp": null,
+          "p90DeltaPp": null,
+          "wins": 0,
+          "losses": 0,
+          "ties": 0
+        }
+      }
+    },
     "cashFactors": {
       "earnings": {
         "zero": 36.491,
@@ -89,7 +157,10 @@
     "rows": [
       {
         "ticker": "GE",
+        "industry": null,
+        "entryYear": 2005,
         "excludedAfterSplit": false,
+        "status": "eligible",
         "blend": "earnings",
         "blendGap": 0.0811,
         "upshift": false,
@@ -114,6 +185,20 @@
         "publishedBaseKind": "cash-confirmed-fallback",
         "publishedGrowth": 3.93,
         "predictedOfficial": 22.81,
+        "prediction": {
+          "status": "ok",
+          "value": 22.81,
+          "low": 16.41,
+          "high": 34.77,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 19.41,
+          "low": 15.2,
+          "high": 26.97,
+          "reasons": []
+        },
         "realisedCash": 13.42,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
@@ -147,7 +232,10 @@
       },
       {
         "ticker": "UPS",
+        "industry": null,
+        "entryYear": 2005,
         "excludedAfterSplit": false,
+        "status": "eligible",
         "blend": "earnings",
         "blendGap": 0,
         "upshift": false,
@@ -172,6 +260,20 @@
         "publishedBaseKind": "cash-confirmed-fallback",
         "publishedGrowth": 6.78,
         "predictedOfficial": 46.87,
+        "prediction": {
+          "status": "ok",
+          "value": 46.87,
+          "low": 33.57,
+          "high": 71.71,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 35.52,
+          "low": 27.82,
+          "high": 49.35,
+          "reasons": []
+        },
         "realisedCash": 49,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
@@ -205,7 +307,10 @@
       },
       {
         "ticker": "BA",
+        "industry": null,
+        "entryYear": 2005,
         "excludedAfterSplit": false,
+        "status": "eligible",
         "blend": "earnings",
         "blendGap": 0,
         "upshift": false,
@@ -230,6 +335,20 @@
         "publishedBaseKind": "cash-confirmed-fallback",
         "publishedGrowth": 5.57,
         "predictedOfficial": 43.99,
+        "prediction": {
+          "status": "ok",
+          "value": 43.99,
+          "low": 31.56,
+          "high": 67.19,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 35.01,
+          "low": 27.42,
+          "high": 48.64,
+          "reasons": []
+        },
         "realisedCash": 86.17,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
@@ -263,7 +382,10 @@
       },
       {
         "ticker": "INTC",
+        "industry": null,
+        "entryYear": 2005,
         "excludedAfterSplit": false,
+        "status": "eligible",
         "blend": "earnings",
         "blendGap": 0.0203,
         "upshift": false,
@@ -288,6 +410,20 @@
         "publishedBaseKind": "cash-confirmed-fallback",
         "publishedGrowth": 0,
         "predictedOfficial": 17.65,
+        "prediction": {
+          "status": "ok",
+          "value": 17.65,
+          "low": 10.77,
+          "high": 24.52,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 17.65,
+          "low": 13.82,
+          "high": 24.52,
+          "reasons": []
+        },
         "realisedCash": 21.21,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
@@ -321,7 +457,10 @@
       },
       {
         "ticker": "IBM",
+        "industry": null,
+        "entryYear": 2005,
         "excludedAfterSplit": false,
+        "status": "eligible",
         "blend": "earnings",
         "blendGap": 0.3208,
         "upshift": false,
@@ -346,6 +485,20 @@
         "publishedBaseKind": "cash-confirmed-fallback",
         "publishedGrowth": 1.87,
         "predictedOfficial": 66.31,
+        "prediction": {
+          "status": "ok",
+          "value": 66.31,
+          "low": 48.07,
+          "high": 100.74,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 61.38,
+          "low": 48.07,
+          "high": 85.29,
+          "reasons": []
+        },
         "realisedCash": 136.18,
         "realisedOwnerEarnings": null,
         "hasOwnerEarningsOutcome": false,
@@ -376,6 +529,56 @@
           }
         },
         "ownerEarningsCells": null
+      },
+      {
+        "ticker": "VZ",
+        "industry": null,
+        "entryYear": 2005,
+        "excludedAfterSplit": true,
+        "status": "excluded",
+        "blend": "earnings",
+        "blendGap": 0.1411,
+        "upshift": false,
+        "bases": {
+          "earnings": 2.65,
+          "cash": 3.024,
+          "midpoint": 2.837,
+          "officialSelected": 2.65,
+          "earningsFiveMedian": 1.49
+        },
+        "growths": {
+          "zero": 0,
+          "five": 0,
+          "ten": 1.99,
+          "slower": 0,
+          "window": "5y",
+          "reason": "zeroed",
+          "historical5": -9.27,
+          "historical10": 1.99
+        },
+        "publishedValue": 33.4,
+        "publishedBaseKind": "cash-confirmed-fallback",
+        "publishedGrowth": 0,
+        "predictedOfficial": 33.4,
+        "prediction": {
+          "status": "ok",
+          "value": 33.4,
+          "low": 20.38,
+          "high": 46.41,
+          "reasons": []
+        },
+        "zeroPrediction": {
+          "status": "ok",
+          "value": 33.4,
+          "low": 26.16,
+          "high": 46.41,
+          "reasons": []
+        },
+        "realisedCash": null,
+        "realisedOwnerEarnings": null,
+        "hasOwnerEarningsOutcome": false,
+        "cashCells": null,
+        "ownerEarningsCells": null
       }
     ]
   },
@@ -389,8 +592,14 @@
       "The 2006 debug panel itself has no post-entry EPS series, so the owner-earnings target cannot be scored until a frozen epsObservations sidecar is added.",
       "Desired coverage once those inputs exist: later entry dates, A/H listings, platforms, and cyclicals, stored as separate labeled expansion results."
     ],
-    "howToAdd": "Add a frozen JSON panel under scripts/research/forecast-validation-panels/ with asOf, yieldPct, universeRule, and companies[{ ticker, epsFrom1995 or epsSeries, baseYears, revenueChecks, observations or cashObservations, epsObservations }]. Then rerun npm run research:forecast. Do not back-cast a universe from later survivors.",
-    "runs": []
+    "howToAdd": "Add a frozen JSON panel under scripts/research/forecast-validation-panels/ with asOf, universeFrozenAt, universeHash, yieldPct, universeRule, and companies[{ ticker, cik, industry, epsSeries, baseYears, revenueChecks?, observations/cashObservations, epsObservations }]. Every fact needs fy, periodEnd, availableAt and source; outcomes need exactly FY+1..+10. Compute universeHash with panelUniverseHash(). Then rerun npm run research:forecast. Do not back-cast a universe from later survivors.",
+    "runs": [],
+    "summary": {
+      "status": "blocked",
+      "combined": null,
+      "byEntryYear": [],
+      "byIndustry": []
+    }
   },
   "legacyConstantGordon": {
     "kind": "retired-constant-explicit-plus-gordon",

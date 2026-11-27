@@ -32,9 +32,10 @@
  *   npm run research:forecast -- --historical
  *   npm run research:forecast -- --historical --check
  */
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { windowGrowth, officialGrowth, MAX_UNDERWRITTEN_GROWTH } from '../../src/lib/assumptions.js'
-import { blendOfficialBase, presentValue, round2 } from '../../src/lib/dcf.js'
+import { blendOfficialBase, presentValue, round2, valueBand } from '../../src/lib/dcf.js'
 import { toStock } from '../../src/lib/stockRecord.js'
 import {
   POLICY_VERSION, POLICY_V1, POLICY_V1_HASH,
@@ -118,10 +119,18 @@ function blendedRate (g5, g10, g1) {
     + RESEARCH_GROWTH_BLEND.oneYear * g1
 }
 
-function epsSeries (company) {
-  return company.epsFrom1995
-    .map((val, i) => ({ fy: 1995 + i, val }))
-    .filter((row) => Number.isFinite(row.val))
+function epsSeries (company, study = null) {
+  const rows = Array.isArray(company.epsSeries)
+    ? company.epsSeries.map((row) => ({ fy: Number(row?.fy), val: Number(row?.val ?? row?.eps), periodEnd: row?.periodEnd, availableAt: row?.availableAt, source: row?.source }))
+    : company.epsFrom1995.map((val, i) => ({ fy: 1995 + i, val }))
+  return rows.filter((row) => Number.isFinite(row.val) && visibleAt(row, study))
+}
+
+function visibleAt (row, study) {
+  if (!row?.periodEnd && !row?.availableAt) return true
+  if (!study || study.role === 'harness-debug') return true
+  return typeof row.periodEnd === 'string' && typeof row.availableAt === 'string'
+    && row.periodEnd <= study.asOf && row.availableAt <= study.asOf
 }
 
 function completePanelCompany (company) {
@@ -222,10 +231,11 @@ export function clipOfficialRate (rate) {
   return Math.max(0, Math.min(MAX_UNDERWRITTEN_GROWTH, rate))
 }
 
-export function entryAnnualRows (company) {
-  const series = epsSeries(company)
-  const cashByFy = new Map((company.baseYears || []).map((row) => [row.fy, cashPerShare(row)]))
-  const revByFy = new Map((company.revenueChecks || []).map((row) => [row.fy, row.revenue / row.shares]))
+export function entryAnnualRows (company, study = null) {
+  const series = epsSeries(company, study)
+  const datedRows = (rows) => (Array.isArray(rows) ? rows : []).filter((row) => visibleAt(row, study))
+  const cashByFy = new Map(datedRows(company.baseYears).map((row) => [Number(row.fy), cashPerShare(row)]))
+  const revByFy = new Map(datedRows(company.revenueChecks).map((row) => [Number(row.fy), Number(row.revenue) / Number(row.shares)]))
   const years = new Set(series.map((row) => row.fy))
   for (const year of cashByFy.keys()) years.add(year)
   for (const year of revByFy.keys()) years.add(year)
@@ -238,7 +248,7 @@ export function entryAnnualRows (company) {
 }
 
 export function entryStockFromCompany (company, study) {
-  const series = epsSeries(company)
+  const series = epsSeries(company, study)
   if (!series.length) return null
   const latest = series.at(-1).val
   return toStock({
@@ -252,7 +262,7 @@ export function entryStockFromCompany (company, study) {
     as_of: study.asOf,
     ttm_eps: latest,
     ttm_eps_nri: latest,
-    financials: { annual: entryAnnualRows(company) },
+    financials: { annual: entryAnnualRows(company, study) },
   })
 }
 
@@ -336,9 +346,11 @@ function medianFactorTable (rows, cellsOf) {
   return table
 }
 
-function observationFlows (observations, field) {
-  if (!Array.isArray(observations) || !observations.length) return null
-  const flows = observations.map((row) => {
+function observationFlows (observations, field, entryFy) {
+  if (!Array.isArray(observations) || observations.length !== 10 || !Number.isFinite(entryFy)) return null
+  const ordered = [...observations].sort((left, right) => Number(left?.fy) - Number(right?.fy))
+  if (!ordered.every((row, index) => Number(row?.fy) === entryFy + index + 1)) return null
+  const flows = ordered.map((row) => {
     if (field === 'cash') return cashPerShare(row)
     const value = Number(row?.eps ?? row?.val ?? row?.earnings)
     return Number.isFinite(value) ? value : null
@@ -346,9 +358,49 @@ function observationFlows (observations, field) {
   return flows.every(Number.isFinite) ? flows : null
 }
 
+function predictionOf (value, band = null, status = 'ok', reasons = []) {
+  return {
+    status,
+    value: Number.isFinite(value) && value > 0 ? round4(value) : null,
+    low: Number.isFinite(band?.low) ? band.low : null,
+    high: Number.isFinite(band?.high) ? band.high : null,
+    reasons,
+  }
+}
+
+function zeroGrowthPrediction (base, discountRate, horizon) {
+  if (!(base > 0)) return null
+  const band = valueBand({
+    tbv: 0, base, discountRate, growthRate: 0, terminalGrowthRate: horizon.terminalGrowthRate,
+    years: horizon.years, yearsOfTerminalGrowth: horizon.yearsOfTerminalGrowth, addToFairValue: false,
+    bandSpread: POLICY_V1.band.discountSpread, growthSpread: POLICY_V1.band.growthSpread,
+    growthCap: POLICY_V1.growth.cap, sustainableGrowth: 0, highGrowth: 0, lowGrowth: 0,
+  })
+  return predictionOf(band.mid, band, band.mid == null ? 'refused' : 'ok', band.mid == null ? ['NO_BASE_VALUE'] : [])
+}
+
 export function evaluateOfficialCompany (company, study, discountRate, horizon = officialHorizon()) {
+  const series = epsSeries(company, study)
+  const meta = {
+    ticker: company.ticker,
+    industry: company.industry || null,
+    entryYear: company.entryYear ?? series.at(-1)?.fy ?? null,
+    excludedAfterSplit: Boolean(company.breakFrom),
+  }
+  const blocked = {
+    ...meta,
+    status: meta.excludedAfterSplit ? 'excluded' : 'data-blocked',
+    blend: 'none', blendGap: null, upshift: false,
+    bases: { earnings: null, cash: null, midpoint: null, officialSelected: null, earningsFiveMedian: null },
+    growths: { zero: 0, five: null, ten: null, slower: null, window: null, reason: null, historical5: null, historical10: null },
+    publishedValue: null, publishedBaseKind: null, publishedGrowth: null, predictedOfficial: null,
+    prediction: predictionOf(null, null, meta.excludedAfterSplit ? 'excluded' : 'data-blocked', ['ENTRY_DATA_MISSING']),
+    zeroPrediction: null,
+    realisedCash: null, realisedOwnerEarnings: null, hasOwnerEarningsOutcome: false,
+    cashCells: null, ownerEarningsCells: null,
+  }
   const stock = entryStockFromCompany(company, study)
-  if (!stock) return null
+  if (!stock) return blocked
   const official = officialGrowth({
     growth10: stock.earning_growth_10y,
     growth5: stock.earning_growth_5y,
@@ -357,8 +409,6 @@ export function evaluateOfficialCompany (company, study, discountRate, horizon =
   const blended = blendOfficialBase(stock.earnings_base, stock.cash_base, {
     financial: stock.financial_institution === true,
   })
-  if (blended.action === 'none') return null
-  const series = epsSeries(company)
   const fiveMedian = series.length ? med(series.slice(-5).map((row) => row.val)) : null
   const bases = {
     earnings: stock.earnings_base > 0 ? stock.earnings_base : null,
@@ -366,7 +416,7 @@ export function evaluateOfficialCompany (company, study, discountRate, horizon =
     midpoint: stock.earnings_base > 0 && stock.cash_base > 0
       ? (stock.earnings_base + stock.cash_base) / 2
       : null,
-    officialSelected: blended.action === 'refuse' ? null : blended.base,
+    officialSelected: blended.action === 'refuse' || blended.action === 'none' ? null : blended.base,
   }
   const growths = {
     zero: 0,
@@ -374,15 +424,19 @@ export function evaluateOfficialCompany (company, study, discountRate, horizon =
     ten: official.historical10 == null ? null : clipOfficialRate(official.historical10),
     slower: official.adopted,
   }
-  const cashFlows = observationFlows(company.observations || company.cashObservations, 'cash')
-  const epsFlows = observationFlows(company.epsObservations, 'eps')
+  const entryFy = series.at(-1)?.fy
+  const cashFlows = observationFlows(company.observations || company.cashObservations, 'cash', entryFy)
+  const epsFlows = observationFlows(company.epsObservations, 'eps', entryFy)
   const realisedCash = cashFlows ? realizedPublishedPathValue(cashFlows, discountRate, horizon) : null
   const realisedEarnings = epsFlows ? realizedPublishedPathValue(epsFlows, discountRate, horizon) : null
   const predictedOfficial = publishedPathValue(bases.officialSelected, growths.slower, discountRate, horizon)
   const published = policyValue(stock, { rate: study.yieldPct, generatedAt: study.asOf })
+  const prediction = published.status === 'ok'
+    ? predictionOf(published.value, published.band)
+    : predictionOf(null, published.band, 'refused', published.reasons)
   return {
-    ticker: company.ticker,
-    excludedAfterSplit: Boolean(company.breakFrom),
+    ...meta,
+    status: meta.excludedAfterSplit ? 'excluded' : published.status === 'ok' ? 'eligible' : 'refused',
     blend: blended.action,
     blendGap: blended.gap == null ? null : round4(blended.gap),
     upshift: stock.base_upshift === true,
@@ -407,6 +461,8 @@ export function evaluateOfficialCompany (company, study, discountRate, horizon =
     publishedBaseKind: published.inputs?.baseKind ?? null,
     publishedGrowth: published.inputs?.growth ?? null,
     predictedOfficial: predictedOfficial == null ? null : round4(predictedOfficial),
+    prediction,
+    zeroPrediction: zeroGrowthPrediction(bases.officialSelected, discountRate, horizon),
     realisedCash: realisedCash == null ? null : round4(realisedCash),
     realisedOwnerEarnings: realisedEarnings == null ? null : round4(realisedEarnings),
     hasOwnerEarningsOutcome: Boolean(epsFlows),
@@ -472,6 +528,138 @@ export function buildLegacyConstantGordonContrast (study, discountRate, horizon 
   }
 }
 
+const isoDate = (value) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && Number.isFinite(Date.parse(value))
+const pct = (numerator, denominator) => denominator ? round4(numerator / denominator * 100) : null
+const nearestRankP90 = (values) => {
+  const sorted = values.filter(Number.isFinite).sort((left, right) => left - right)
+  return sorted.length ? sorted[Math.ceil(sorted.length * 0.9) - 1] : null
+}
+
+export function summarizeValidation (rows, outcome) {
+  const eligible = rows.filter((row) => !row.excludedAfterSplit)
+  const refused = eligible.filter((row) => row.prediction?.status === 'refused')
+  const entryBlocked = eligible.filter((row) => row.prediction?.status !== 'ok' && row.prediction?.status !== 'refused')
+  const outcomeBlocked = eligible.filter((row) => row.prediction?.status === 'ok' && !Number.isFinite(row[outcome]))
+  const scored = eligible.filter((row) => row.prediction?.status === 'ok' && Number.isFinite(row[outcome]))
+  const officialScores = scored.map((row) => scorePublished(row.prediction.value, row[outcome]))
+  const zeroScores = scored.map((row) => scorePublished(row.zeroPrediction?.value, row[outcome]))
+  const bandScored = scored.filter((row) => Number.isFinite(row.prediction.low) && Number.isFinite(row.prediction.high))
+  const covered = bandScored.filter((row) => row[outcome] >= row.prediction.low && row[outcome] <= row.prediction.high)
+  const paired = scored.filter((row) => Number.isFinite(row.zeroPrediction?.value))
+  const deltas = paired.map((row) => scorePublished(row.prediction.value, row[outcome]) - scorePublished(row.zeroPrediction.value, row[outcome]))
+  const evaluable = refused.length + scored.length
+  return {
+    outcome,
+    eligible: eligible.length,
+    scored: scored.length,
+    refused: refused.length,
+    dataBlocked: entryBlocked.length + outcomeBlocked.length,
+    entryBlocked: entryBlocked.length,
+    outcomeBlocked: outcomeBlocked.length,
+    bandAvailable: bandScored.length,
+    medianSmapePct: round4(med(officialScores)),
+    p90SmapePct: round4(nearestRankP90(officialScores)),
+    bandCoveragePct: pct(covered.length, bandScored.length),
+    refusalRatePct: pct(refused.length, eligible.length),
+    refusalRateAmongEvaluablePct: pct(refused.length, evaluable),
+    zeroBaseline: {
+      sameBase: true,
+      medianSmapePct: round4(med(zeroScores)),
+      p90SmapePct: round4(nearestRankP90(zeroScores)),
+    },
+    pairedWithZeroBaseline: paired.length,
+    comparisonWithZeroBaseline: {
+      sameBase: true,
+      medianDeltaPp: round4(med(deltas)),
+      p90DeltaPp: round4(nearestRankP90(deltas)),
+      wins: deltas.filter((delta) => delta < 0).length,
+      losses: deltas.filter((delta) => delta > 0).length,
+      ties: deltas.filter((delta) => delta === 0).length,
+    },
+  }
+}
+
+export function groupValidation (rows, dimension) {
+  const groups = new Map()
+  for (const row of rows) {
+    if (row.excludedAfterSplit) continue
+    const key = dimension === 'entryYear' ? row.entryYear : row.industry
+    const label = key == null || key === '' ? 'unknown' : String(key)
+    if (!groups.has(label)) groups.set(label, [])
+    groups.get(label).push(row)
+  }
+  return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true })).map(([label, grouped]) => ({
+    [dimension]: label,
+    companies: grouped.length,
+    cash: summarizeValidation(grouped, 'realisedCash'),
+    ownerEarnings: summarizeValidation(grouped, 'realisedOwnerEarnings'),
+  }))
+}
+
+export function panelUniverseHash (companies) {
+  const members = companies.map((company) => ({
+    ticker: company.ticker,
+    cik: company.cik ?? null,
+    industry: company.industry ?? null,
+  })).sort((left, right) => String(left.ticker).localeCompare(String(right.ticker)))
+  return createHash('sha256').update(JSON.stringify(members)).digest('hex')
+}
+
+function datedFactProblems (rows, label, company, fields = []) {
+  const problems = []
+  if (!Array.isArray(rows) || !rows.length) return [company.ticker + ': ' + label + ' missing']
+  for (const [index, row] of rows.entries()) {
+    const where = company.ticker + ': ' + label + '[' + index + ']'
+    const fiscalYear = row?.fy
+    if (fiscalYear === null || fiscalYear === undefined || fiscalYear === '' || !Number.isInteger(Number(fiscalYear))) problems.push(where + ' has no fiscal year')
+    if (!isoDate(row?.periodEnd) || !isoDate(row?.availableAt)) problems.push(where + ' needs periodEnd and availableAt dates')
+    else if (row.availableAt < row.periodEnd) problems.push(where + ' is available before period end')
+    if (typeof row?.source !== 'string' || !row.source.trim()) problems.push(where + ' has no source')
+    for (const field of fields) {
+      const raw = row?.[field]
+      if (raw === null || raw === undefined || raw === '' || !Number.isFinite(Number(raw))) problems.push(where + ' has no finite ' + field)
+      if (field === 'shares' && !(Number(raw) > 0)) problems.push(where + ' has non-positive shares')
+    }
+  }
+  return problems
+}
+
+export function validateExpansionPanel (panel) {
+  const problems = []
+  if (!isoDate(panel?.asOf)) problems.push('panel asOf must be an ISO date')
+  if (!isoDate(panel?.universeFrozenAt) || panel.universeFrozenAt > panel.asOf) problems.push('universeFrozenAt must be an ISO date on or before asOf')
+  if (!Array.isArray(panel?.companies) || !panel.companies.length) return [...problems, 'panel has no companies']
+  const expectedHash = panelUniverseHash(panel.companies)
+  if (panel.universeHash !== expectedHash) problems.push('universeHash does not match the frozen member list')
+  const tickers = new Set()
+  for (const company of panel.companies) {
+    if (!company.ticker || tickers.has(company.ticker)) problems.push('missing or duplicate ticker: ' + String(company.ticker))
+    tickers.add(company.ticker)
+    if (typeof company.industry !== 'string' || !company.industry.trim()) problems.push(company.ticker + ': industry missing')
+    if (!Array.isArray(company.epsSeries) || !company.epsSeries.length) problems.push(company.ticker + ': expansion panels require dated epsSeries facts')
+    else problems.push(...datedFactProblems(company.epsSeries, 'epsSeries', company, ['val']))
+    problems.push(...datedFactProblems(company.baseYears, 'baseYears', company, ['ocf', 'capex', 'shares']))
+    if (company.revenueChecks != null) problems.push(...datedFactProblems(company.revenueChecks, 'revenueChecks', company, ['revenue', 'shares']))
+    const outcomes = company.observations || company.cashObservations
+    problems.push(...datedFactProblems(outcomes, 'cash outcomes', company, ['ocf', 'capex', 'shares']))
+    problems.push(...datedFactProblems(company.epsObservations, 'earnings outcomes', company, ['eps']))
+    if (Array.isArray(outcomes) && outcomes.length !== 10) problems.push(company.ticker + ': cash outcomes must contain exactly ten fiscal years')
+    if (Array.isArray(company.epsObservations) && company.epsObservations.length !== 10) problems.push(company.ticker + ': earnings outcomes must contain exactly ten fiscal years')
+    const visibleEps = Array.isArray(company.epsSeries)
+      ? company.epsSeries.filter((row) => isoDate(row?.periodEnd) && isoDate(row?.availableAt) && row.periodEnd <= panel.asOf && row.availableAt <= panel.asOf)
+      : []
+    const entryFy = visibleEps.length ? Math.max(...visibleEps.map((row) => Number(row.fy))) : null
+    if (Number.isFinite(entryFy)) {
+      for (const [label, outcomeRows] of [['cash', outcomes], ['earnings', company.epsObservations]]) {
+        if (!Array.isArray(outcomeRows) || outcomeRows.length !== 10) continue
+        const years = outcomeRows.map((row) => Number(row.fy)).sort((left, right) => left - right)
+        if (!years.every((fy, index) => fy === entryFy + index + 1)) problems.push(company.ticker + ': ' + label + ' outcomes must be exactly FY+1..FY+10')
+      }
+    }
+  }
+  return problems
+}
+
 function panelIdentity (study) {
   return {
     asOf: study.asOf,
@@ -494,37 +682,39 @@ export function loadExpansionPanels (cwd = root) {
 }
 
 export function expansionStatus (panels) {
-  const ready = panels.filter((panel) => Array.isArray(panel.companies) && panel.companies.length)
+  const checked = panels.filter((panel) => Array.isArray(panel.companies) && panel.companies.length).map((panel) => ({
+    panel,
+    problems: validateExpansionPanel(panel),
+  }))
+  const ready = checked.filter((row) => !row.problems.length)
+  const invalid = checked.filter((row) => row.problems.length)
+  const blockers = invalid.flatMap((row) => row.problems.map((problem) => (row.panel.file || row.panel.id || 'panel') + ': ' + problem))
+  if (!checked.length) blockers.push(
+    'No frozen expansion panel is committed under scripts/research/forecast-validation-panels/.',
+    'An honest panel needs an entry-date universe fixed at the time (not today\'s survivors), fundamentals visible on the entry date only (filed and period-end filters, no look-ahead), and ten subsequent fiscal years of both after-capex cash and earnings.',
+    'This repository has no committed SEC as-of facts cache, and no walk-forward cash-and-earnings panels beyond the 2006-03-15 debug set.',
+    'The 2006 debug panel itself has no post-entry EPS series, so the owner-earnings target cannot be scored until a frozen epsObservations sidecar is added.',
+    'Desired coverage once those inputs exist: later entry dates, A/H listings, platforms, and cyclicals, stored as separate labeled expansion results.',
+  )
   return {
-    status: ready.length ? 'present' : 'blocked',
-    panels: ready.map((panel) => ({
+    status: ready.length && !invalid.length ? 'present' : 'blocked',
+    panels: checked.map(({ panel, problems }) => ({
       file: panel.file || null,
       id: panel.id || panel.asOf || null,
       asOf: panel.asOf || null,
       role: panel.role || 'expansion',
       universeRule: panel.universeRule || null,
       companies: panel.companies.length,
+      validation: problems.length ? 'blocked' : 'ready',
+      problems,
     })),
-    blockers: ready.length ? [] : [
-      'No frozen expansion panel is committed under scripts/research/forecast-validation-panels/.',
-      'An honest panel needs an entry-date universe fixed at the time (not today\'s survivors), fundamentals visible on the entry date only (filed and period-end filters, no look-ahead), and ten subsequent fiscal years of both after-capex cash and earnings.',
-      'This repository has no committed SEC as-of facts cache, and no walk-forward cash-and-earnings panels beyond the 2006-03-15 debug set.',
-      'The 2006 debug panel itself has no post-entry EPS series, so the owner-earnings target cannot be scored until a frozen epsObservations sidecar is added.',
-      'Desired coverage once those inputs exist: later entry dates, A/H listings, platforms, and cyclicals, stored as separate labeled expansion results.',
-    ],
-    howToAdd: 'Add a frozen JSON panel under scripts/research/forecast-validation-panels/ with asOf, yieldPct, universeRule, and companies[{ ticker, epsFrom1995 or epsSeries, baseYears, revenueChecks, observations or cashObservations, epsObservations }]. Then rerun npm run research:forecast. Do not back-cast a universe from later survivors.',
+    blockers,
+    howToAdd: 'Add a frozen JSON panel under scripts/research/forecast-validation-panels/ with asOf, universeFrozenAt, universeHash, yieldPct, universeRule, and companies[{ ticker, cik, industry, epsSeries, baseYears, revenueChecks?, observations/cashObservations, epsObservations }]. Every fact needs fy, periodEnd, availableAt and source; outcomes need exactly FY+1..+10. Compute universeHash with panelUniverseHash(). Then rerun npm run research:forecast. Do not back-cast a universe from later survivors.',
   }
 }
 
 function scorePanel (study, discountRate, horizon) {
-  const rows = []
-  for (const company of study.companies) {
-    const cashObs = company.observations || company.cashObservations
-    if (!Array.isArray(cashObs) || !cashObs.length) continue
-    const evaluated = evaluateOfficialCompany({ ...company, observations: cashObs }, study, discountRate, horizon)
-    if (!evaluated) continue
-    rows.push(evaluated)
-  }
+  const rows = study.companies.map((company) => evaluateOfficialCompany(company, study, discountRate, horizon))
   const paired = rows.filter((row) => !row.excludedAfterSplit && row.cashCells)
   const ownerPaired = paired.filter((row) => row.ownerEarningsCells)
   return {
@@ -533,6 +723,10 @@ function scorePanel (study, discountRate, horizon) {
     pairedCash: paired.length,
     pairedOwnerEarnings: ownerPaired.length,
     tickers: paired.map((row) => row.ticker),
+    summary: {
+      cash: summarizeValidation(rows, 'realisedCash'),
+      ownerEarnings: summarizeValidation(rows, 'realisedOwnerEarnings'),
+    },
     cashFactors: medianFactorTable(paired, (row) => row.cashCells),
     ownerEarningsFactors: ownerPaired.length ? medianFactorTable(ownerPaired, (row) => row.ownerEarningsCells) : null,
     growthOnOfficialBaseCash: paired.length
@@ -541,7 +735,7 @@ function scorePanel (study, discountRate, horizon) {
     growthOnOfficialBaseOwnerEarnings: ownerPaired.length
       ? Object.fromEntries(GROWTH_KEYS.map((key) => [key, round4(med(ownerPaired.map((row) => row.ownerEarningsCells.officialSelected[key])))]))
       : null,
-    rows: paired,
+    rows,
   }
 }
 
@@ -551,8 +745,18 @@ export function buildOfficialReport (study, expansionPanels = loadExpansionPanel
   const debug = scorePanel({ ...study, role: 'harness-debug' }, discountRate, horizon)
   const expansion = expansionStatus(expansionPanels)
   const expansionRuns = expansionPanels
-    .filter((panel) => Array.isArray(panel.companies) && panel.companies.length)
+    .filter((panel) => Array.isArray(panel.companies) && panel.companies.length && !validateExpansionPanel(panel).length)
     .map((panel) => scorePanel(panel, officialDiscountRate(panel), horizon))
+  const expansionRows = expansionRuns.flatMap((panel) => panel.rows)
+  const expansionSummary = {
+    status: expansion.status,
+    combined: expansionRuns.length ? {
+      cash: summarizeValidation(expansionRows, 'realisedCash'),
+      ownerEarnings: summarizeValidation(expansionRows, 'realisedOwnerEarnings'),
+    } : null,
+    byEntryYear: groupValidation(expansionRows, 'entryYear'),
+    byIndustry: groupValidation(expansionRows, 'industry'),
+  }
   return {
     kind: 'official-policy-factor-run',
     policyVersion: POLICY_VERSION,
@@ -561,7 +765,7 @@ export function buildOfficialReport (study, expansionPanels = loadExpansionPanel
     discountRule: POLICY_V1.discount.rule,
     asOf: study.asOf,
     role: 'harness-debug',
-    note: 'Maintainer factor experiment on the official v3 published path. Forecast cells call presentValue() (linear fade over the explicit window, finite terminal years, then continuation) with the official discount max(10%, ceil(local 10y)+6) and the official 4% terminal. Discount and terminal are not tuned to this sample. Bases are crossed with growth rules: earnings is toStock() earnings_base (normalised EPS, or the latest fiscal year when the synchronous upshift rule fires); cash is toStock() cash_base; midpoint is the arithmetic mid of the two when both are positive, used only as a factor; officialSelected is blendOfficialBase() (earnings-primary below a 50% gap, midpoint at 50–200%, refuse above 200%; financial residual-income names are not cash-blended). Growth rules are zero, the clipped five-year window, the clipped ten-year window, and officialGrowth() (slower of the two clipped windows). The main growth comparison is officialSelected crossed with those four rates, never a mixed-base table. Realised cash is the observed ten-year after-capex cash path plus the same official terminal tail. Realised owner earnings use the same scorer on post-entry EPS when epsObservations are present (OE=E under M≈D); the frozen 2006 debug panel does not include those EPS outcomes. The 2006-03-15 five-name US industrials set is a harness debug set, not a general acceptance sample. Beating zero growth is not a publication gate and is not a license to change official growth or discount. This is not an official published value.',
+    note: 'Maintainer factor experiment on the official v3 published path. Forecast cells call presentValue() (linear fade over the explicit window, finite terminal years, then continuation) with the official discount max(10%, ceil(local 10y)+6) and the official 4% terminal. Discount and terminal are not tuned to this sample. Bases are crossed with growth rules: earnings is toStock() earnings_base (normalised EPS, or the latest fiscal year when the synchronous upshift rule fires); cash is toStock() cash_base; midpoint is the arithmetic mid of the two when both are positive, used only as a factor; officialSelected is blendOfficialBase() (earnings-primary below a 50% gap, midpoint at 50–200%, refuse above 200%; financial residual-income names are not cash-blended). Growth rules are zero, the clipped five-year window, the clipped ten-year window, and officialGrowth() (slower of the two clipped windows). The main growth comparison is officialSelected crossed with those four rates, never a mixed-base table. Realised cash is the observed ten-year after-capex cash path plus the same official terminal tail. Realised owner earnings use the same scorer on post-entry EPS when epsObservations are present (OE=E under M≈D); the frozen 2006 debug panel does not include those EPS outcomes. The 2006-03-15 six-name entry panel is a harness debug set (VZ is excluded after its 2006 split and has no complete cash path), not a general acceptance sample. Beating zero growth is not a publication gate and is not a license to change official growth or discount. This is not an official published value.',
     path: {
       forecast: 'src/lib/dcf.js presentValue: linear fade from starting growth to the effective terminal, 10 explicit years, 10 finite terminal years, then a continuation value. addToFairValue is false.',
       baseSelection: 'src/lib/stockRecord.js toStock plus src/lib/dcf.js blendOfficialBase, the same official-selected base policyValue() uses.',
@@ -591,11 +795,20 @@ export function buildOfficialReport (study, expansionPanels = loadExpansionPanel
         slower: 'officialGrowth(): slower of the two clipped windows, or the one available window.',
       },
       cells: 'Each cell is the SMAPE between publishedPathValue(base, growth) and the named realised published-path value. Read down a column to compare bases at one growth rule; read across a row to compare growth rules at one base. Do not compare earnings-plus-slower with cash-plus-zero as if that were a growth test.',
+      acceptanceMetrics: {
+        medianSmapePct: 'Median symmetric absolute percentage error on eligible rows with a published prediction and realised outcome.',
+        p90SmapePct: 'Nearest-rank 90th percentile: sorted score at index ceil(0.9*n)-1.',
+        bandCoveragePct: 'Share of scored rows whose realised value lies inside the published scenario band, including both boundaries. This is not a confidence level.',
+        refusalRatePct: 'Policy-refused rows divided by all non-split entry rows. Missing outcomes are counted separately as dataBlocked.',
+        refusalRateAmongEvaluablePct: 'Policy-refused rows divided by policy-refused plus scored rows; excludes missing entry/outcome data.',
+        zeroBaseline: 'Same official-selected base, discount, horizon and terminal as the official forecast, with starting growth set to zero. Paired deltas are official SMAPE minus zero-growth SMAPE.',
+      },
     },
     debugSet: debug,
     expansion: {
       ...expansion,
       runs: expansionRuns,
+      summary: expansionSummary,
     },
     legacyConstantGordon: buildLegacyConstantGordonContrast(study, discountRate, horizon),
   }
@@ -639,11 +852,13 @@ function officialSummary (report) {
     pairedCash: report.debugSet.pairedCash,
     pairedOwnerEarnings: report.debugSet.pairedOwnerEarnings,
     growthOnOfficialBaseCash: report.debugSet.growthOnOfficialBaseCash,
+    summary: report.debugSet.summary,
     cashFactors: report.debugSet.cashFactors,
     expansion: {
       status: report.expansion.status,
       panels: report.expansion.panels,
       runCount: report.expansion.runs.length,
+      summary: report.expansion.summary,
     },
     legacyMedians: report.legacyConstantGordon.medians,
   }

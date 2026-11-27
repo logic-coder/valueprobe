@@ -4,6 +4,8 @@
 
 修改 `POLICY_V1` 会改变每一个发布数字。必须同时更新 `revision` 修订字段、重算并更新 `POLICY_V1_HASH`，再运行 `npm run intrinsic`；需要破坏性读取旧工件时再升 `POLICY_VERSION`。否则 `npm run verify:data` 会以 `policy hash pinned` 失败。拒绝码与警告码只增不改：新增用新代码，不复用、不重编号。
 
+当前修订为 `official-path-plus-minus-2pp-missing-limits-unknown`、`cash-unreconciled-over-3x-and-cross-listing-gap-review`、`verified-reporting-currency-explicit-per-share-fx-hk-quote-fallback`，政策哈希 `3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d`。政策版本仍为 v3，`calGr2fv` 与 v1 / v2 工件冻结。
+
 ## 1. 口径参数
 
 | 参数 | 现行值（官方 v3） | 代码常量 |
@@ -32,14 +34,15 @@
 | 价格过期提示 | 超过 7 天标 `STALE_PRICE`（不改数字） | `price.marginWarningDays` |
 | 基本面过期 | 盈利所属期间距发布日超过 120 天标 `STALE_DATA`（照常出值） | `staleness.fundamentalsDays` |
 | 利率过期 | 超过 10 天在校验提示 | `staleness.ratesDays` |
-| 区间 | 折现率 ±2 个百分点；起始增速围绕已经约束过的发布起点 ±2 个百分点，再裁剪到 [0, min(15%, g*)]。发布起点已在上限上时，乐观增速不再抬高，宽度主要来自折现。若公开值是两套估值的中点，区间取两套折现/增速包络的并集，须覆盖两边且默认值落在区间内。头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthSpread` / `band.growthEnvelope` |
+| 区间 | 折现率 ±2 个百分点；起始增速围绕已经约束过的发布起点 ±2 个百分点，再裁剪到 [0, min(15%, g*)]。g* 缺失时只保留 15% 总上限，显式 0 仍是有效硬上限。发布起点已在上限上时，乐观增速不再抬高，宽度主要来自折现。若公开值是两套估值的中点，区间取两套折现/增速包络的并集，须覆盖两边且默认值落在区间内。头条 `mid` 是居中点估计，不是不对称包络的算术中点 | `band.discountSpread` / `band.growthSpread` / `band.growthEnvelope` |
+| 跨市场复核 | 绝对估值差 >25% 必须有未过期且覆盖当前差距的复核；缺失、超限或过期均阻断发布 | `POLICY_V1.crossListing` |
 | 终值占比 | 披露 | `terminalShareDisclosed` |
 
 实现细节都以代码为准：
 
 - 折现率：`yieldForStock()` 按 `reportingCurrency()` 取该企业报告币种的十年期（`src/lib/riskFree.js`）→ `policyDiscountRate()`（ceil+6，再套 10% 下限）→ 夹到 0–50。取不到该币种利率时 `policyValue()` 用 10% 兜底并加 `RATE_FALLBACK`。港币报告币种代理美元十年期；人民币报告币种只用人民币利率，不用美债。公式全市场同一条，不为单只股票或某一对 A/H 上市写例外参数。
 - 增速：官方值在 `toStock()` 时用同一套 `windowGrowth()`（低谷年向前移，十年窗至少 7 年、五年窗至少 4 年）从年度序列重算，必要时先经过 `cleanGrowth` 后缀；重算失败时为空，不再回退到快照缓存。然后 `officialGrowth()`（`policyValue()`、`buildDefaults()` 与页面播种共用）：两扇窗口都存在时，先各自经过 0% 下限与 15% 上限，取较慢的一扇；再与可持续增速 g* = max(0, RR × ROE) 取更慢者作为发布起点（金融机构不走这条留存硬约束）。RR 为 1 减去最多八年、至少三年完整财年的平均派息率；现有快照的每股分红字段普遍为空，派息不可用时不编造派息率，RR 回退为 1（只保留 15% 帽，这是最松的上限）。ROE 用官方混合后基数除以最近一期每股有形账面；有形账面缺失、近零或为负时 g* 不可用，不强套。g* 绑定后标 `GROWTH_ABOVE_RETENTION`。只有一扇窗口（包括仅有五年历史）时就用那一扇，仍受同一套上限约束。五年单独窗口不再另设 10% 硬上限，只标 `SHORT_HISTORY`，也不再因此把区间向 15% 加宽。十年与五年窗口符号相反，或任一窗为负时，点估计用较慢的已裁剪窗口（负窗口为 0%），标 `REGIME_UNCERTAIN`，区间可含终值 0，但不再把未采用的更快窗口重新纳入。无窗但有报告盈利且基数为正时起点取 0%、终值仍 4%，标 `SHORT_HISTORY` 与 `NO_WINDOW_ZERO_START`。长窗口为负时起点 0%、淡出到默认终值 4%，标 `REGIME_UNCERTAIN`；旧码 `NEGATIVE_HISTORY_ZEROED` 与 `NEGATIVE_HISTORY_GROWTH` 保留定义以读取历史工件，新发布不再发出。一年增速只供对照。不设 5% 楼板。发布起点仍为 15% 时标 `CAPPED_GROWTH`；若窗口曾触到 15%、但起点已被 g* 收紧到 15% 以下，只保留留存警告。没有报告盈利、也无法形成窗口时仍为 `NO_GROWTH`（维萨因缺未加维度的摊薄每股收益走这条，不编造，也不再用现金冒充官方基数）。
-- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点，以及围绕已经约束过的发布起点 ±2 个百分点、再裁剪到 [0, min(15%, g*)] 的增速情景（发布起点已在上限上时乐观增速不再抬高；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景；中点规则下对两套基数分别取包络再取并集）。头条 `mid` 是官方点估计，必须等于默认值并落在区间内，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
+- 模型：`policyModel()` 只读归一化记录上的 `financial_institution` 标记；判定启发式在同一入口 `stockRecord.js` 的 `toStock()` 里执行一次（快照 provider、浏览器与发布值文件构建共用），所以页面与 artifact 不会对同一代码给出不同模型。区间由 `valueBand()` / `residualIncomeBand()` 在同一模型上组合折现率 ±2 个百分点，以及围绕已经约束过的发布起点 ±2 个百分点、再裁剪到 [0, min(15%, g*)] 的增速情景（g* 不可用时回退 15% 总上限，不把 null / undefined / 空串当成 0；显式 0 仍有效。发布起点已在上限上时乐观增速不再抬高；负历史或无窗口不凭空发明 15%；体制不确定时低端再纳入终值 0 的情景；中点规则下对两套基数分别取包络再取并集）。头条 `mid` 是官方点估计，必须等于默认值并落在区间内，不是不对称包络的算术中点。真实无效的一端返回缺项，允许单侧区间。
 - 价格只进入安全边际。价格缺失给 `PRICE_MISSING`，过期给 `STALE_PRICE`，交易日无法确认给 `QUOTE_DATE_UNKNOWN`。使用历史快照报价时，安全边际随报价状态标注。刷新时美股财报链失败但报价成功，会沿用上次每股数据只更新报价并标 `SPLIT_UNVERIFIED`：其间若发生拆股，价格与每股数据可能不同口径；若失败原因明确是股份比例需要核验，还会把该记录标记为 `unit_unreconciled=true`，下一次官方构建必须拒绝，不能继续发布未经核验的报价单位。
 - 快照：`toStock()`（`src/lib/stockRecord.js`）统一做拆股清洗与金融机构标记，浏览器和发布值文件构建走同一条路径。
 
@@ -119,7 +122,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `rates` | `{ asOf, CNY, USD, HKD }`；每行 `{ value, asOf, source, proxy? }`，HKD 为 `usd_proxy`。 |
 | `universe` | `{ declared, snapshots, missing[] }`。 |
 | `coverage` | `{ valued, refused, reasons{}, warnings{}, models{}, currencies{} }`，按稳定顺序排列。 |
-| `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。 |
+| `crossListing` | 9 组 A/H 对照：`{ id, a, h, status: aligned|input-mismatch|not-valued, valueA, valueH, fxToA, valueHInA, epsFxDiffPct, growthDiffPp, valueDiffPct, bridge{eps{a,hInA,diffPct}, growth{a,h,diffPp}, book{a,hInA,diffPct}, discountRate{a,h,diffPp}}, reasons[] }`。H 的 EPS、账面值和估值先按 `fxToA` 折成 A 股币种；`valueDiffPct = (valueHInA / valueA − 1) × 100`，负值表示 H 更低。`aligned` 只表示 EPS 差不超过 5%、增长差不超过 2 个百分点且财报期间相同，不代表折现率或估值相同。只报告差异，不平均、不回写。`abs(valueDiffPct) > 25%` 另加 `VALUE_GAP` 并归为 `input-mismatch`；发布校验要求有未过期且覆盖当前差距的复核记录，否则阻断。当前 BYD 临时复核上限 55%、复核窗口 2026-11-27 至 2027-02-25（含首尾）；它是通用门禁下的限期披露，不是永久按 symbol 放行。 |
 | `entries` | 以 `EXCHANGE:CODE` 为键，值来自 `policyValue()`：`{ symbol, name, status, value, band, terminalShare, cash, price, priceDate, marginOfSafety, reasons[], warnings[], inputs{}, asOf, earningsDate, earningsPeriod, earningsSource, ratesAsOf }`。`cash` 为 `{ value, base, gapPct } | null`，是最近三年每股自由现金流中位数的同参核对，`gapPct` 为正表示现金值更高；不替代 `value`。`inputs` 含 `model, basis, eps, epsLatest, epsNormalized, cashMedian, baseKind, growth, growthWindow, growthCap, growth10, growth5, discountRate, terminalGrowthRate, years, yearsOfTerminalGrowth, tangibleBook, addToFairValue, currency, rate{value,asOf,source,proxy}`。`growthWindow` 为 `10y` / `5y` / `none`；`growthCap` 为当时适用的 15 或 10；`growth10` / `growth5` 是重算后的原始窗口，供对照。`eps` 是官方基数，`epsLatest` 是最近报告每股收益，`epsNormalized` 是五年正常化，`cashMedian` 是三年现金中位数，`baseKind` 是 `midpoint` / `normalized` / `persistent-step` / `short-history` / `median-fallback` / `cash` / `latest` / `repeatable`，只作披露，不改基数定义。`inputs` 另含 `baseMethod`、`baseAsOf`、`cashAsOf`、`ttmAsOf`、`ttmQuality` 及 capex 诊断。估值区间是已披露假设的情景包络。 |
 
 `public/data/manifest.json`（`MANIFEST_PATH`）：
@@ -145,7 +148,7 @@ UI 翻译键约定为 `reason_<CODE>` / `warning_<CODE>`，文案在 `src/i18n/l
 | `generatedAt` / `upstreamCheckedAt` / `latestPeriod` | 工件生成日、上游实际核验时刻、工件内最大报告期。刷新批次的核验时间不早于生成日。离线重算沿用已有核验时间，缺少记录时为 `null`。 |
 | `batch` / `previousBatch` | artifact 与 manifest 对应字节的摘要及 Git 历史中上一不同批次。重复生成同批次保留其前序，回退可恢复原批次链。 |
 
-`npm run snapshot` 在建好暂存工件后判定：所需链路全失败、定向代码失败、估值数低于上一批 90%、拒绝数增加超过 max(5, 声明数 2%)、任一市场失去全部估值、没有可用利率，或存在 artifact 构建问题时为 `blocked`；局部失败保留旧记录与真实期间/日期并记 `partial`；供应商成功而期间未更新记 `verified-unchanged`。失败保留的报价或财报不改变旧行日期。手工 `npm run intrinsic` 写 `rebuilt`。阈值取自上一发布批次的覆盖，不用 120 天统一线。
+`npm run snapshot` 在建好暂存工件后判定：所需链路全失败、定向代码失败、估值数低于上一批 90%、拒绝数增加超过 max(5, 声明数 2%)、任一市场失去全部估值、没有可用利率、存在 artifact 构建问题（含未经有效复核且绝对估值差超过 25% 的跨市场配对），或现金等模型门禁失败时为 `blocked`；局部失败保留旧记录与真实期间/日期并记 `partial`；供应商成功而期间未更新记 `verified-unchanged`。失败保留的报价或财报不改变旧行日期。手工 `npm run intrinsic` 写 `rebuilt`。阈值取自上一发布批次的覆盖，不用 120 天统一线。
 
 ## 5. 刷新、发布与校验
 

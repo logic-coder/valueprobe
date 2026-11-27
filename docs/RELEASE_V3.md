@@ -2,9 +2,20 @@
 
 本文件记录的是本次上线的官方 v3。线上 GitHub Pages 交付本口径。D50–D52 是研究实验，不是本口径。
 
-## 本轮修订（2026-11-27，通用币种与报价单位门禁）
+## 本轮修订（2026-11-27，区间缺失值、跨市场复核与检验扩展）
 
-这是当前工件对应的**最新修订**，不改折现、基数、增速、终值或区间公式。根因不是某一家公司的 EPS 太大，而是快照没有把「报价币种 / 企业申报币种 / 每股数据币种」作为独立契约保存，政策又曾按 symbol 名单拒绝已知错配；SEC Company Facts 中本币数值被复制到 `USD/shares` 标签时，旧路径会把 BRL、KRW、CLP 等数字直接当作美元发布。
+这是当前工件对应的**最新修订**。政策版本仍为 v3，`calGr2fv` 与 v1 / v2 工件冻结；不按 symbol 校准折现、基数、增速或终值。
+
+1. **修复估值区间的缺失值语义。** 可持续增速 g* 缺失时回退 15% 总上限，不再把 null / undefined / 空串当成显式 0；显式 0 仍有效。同一批 1119 条快照离线重算后，点估计和区间下沿变化均为 0，151 条区间上沿提高。Adobe 仍为 263.15 美元，下沿仍为 187.93，上沿由 371.66 修为 403.85。区间仍是假设敏感性包络，不是统计置信区间。
+2. **重大跨市场估值差改为限期复核。** A/H 配对绝对估值差超过 25% 时加入 `VALUE_GAP` 并归为 `input-mismatch`；构建与发布校验要求复核未过期且覆盖当前差距，否则阻断。BYD A 股 194.64 元、H 股 106.82 港元，折合 90.7793 元，差值 -53.36%，当前临时复核上限 55%、窗口 2026-11-27 至 2027-02-25。新的配对、超限或到期不会因旧白名单自动放行。
+3. **撤回港股申报币种的不可靠来源。** 51 个港股快照移除来源为 `eastmoney-report` 的 `reporting_currency` 与 `reporting_currency_source`；原始 `report_currency` 保留供审计，但不作为申报币种。当前回退报价港币并代理美元，点估值未因这项证据清理改变。
+4. **扩展预测检验，但不伪造样本。** harness 增加 as-of 披露过滤、冻结成员哈希、行业、事实日期与 FY+1…FY+10 校验，以及中位 SMAPE、nearest-rank p90、区间覆盖率、拒绝出值率和同基数零增长对比；保留 refused / blocked / excluded，不再静默丢弃。调试集五家的官方中位 SMAPE 51.8355%，同基数零增长 36.491%，p90 69.0108%，区间覆盖率 40%，拒绝率 0%。真实扩大面板仍为 0，状态继续 `blocked`；40% 覆盖率不是置信水平。当前扩展入口仍固定 NYSE/USD，真实 A/H walk-forward 尚未受支持。
+
+`revision.band=official-path-plus-minus-2pp-missing-limits-unknown`、`revision.publicationGate=cash-unreconciled-over-3x-and-cross-listing-gap-review`、`revision.quoteUnits=verified-reporting-currency-explicit-per-share-fx-hk-quote-fallback`。政策哈希 `3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d`，工件 SHA-256 `c21d2ddce9371fa487816514253ea8f2d9aaad4ca3d862d11ff8a70dbbe7a56d`，`generatedAt` 2026-11-27。覆盖 **1119** 条，有值 **907** / 拒绝 **212**；没有刷新报价、改写财务数值或修改 `as_of`。`publish.status` 为 `rebuilt`（`mode=intrinsic`），保留真实 `upstreamCheckedAt` 2026-11-26T04:09:35.563Z（台北时间 12:09:35）。
+
+## 上一轮修订（2026-11-27，通用币种与报价单位门禁）
+
+这是上一轮工件对应的修订，不改折现、基数、增速、终值或区间公式。根因不是某一家公司的 EPS 太大，而是快照没有把「报价币种 / 企业申报币种 / 每股数据币种」作为独立契约保存，政策又曾按 symbol 名单拒绝已知错配；SEC Company Facts 中本币数值被复制到 `USD/shares` 标签时，旧路径会把 BRL、KRW、CLP 等数字直接当作美元发布。
 
 本轮删除 PKX/WF/BCH 名单，改为全宇宙统一门禁：每条快照必须显式携带 `reporting_currency`、`reporting_currency_source`、`per_share_currency`、`per_share_fx_to_quote` 与 `unit_unreconciled`。申报币种由最新完整年度主要财务报表 fact 的 unit、同币种 EPS 序列及 `EPS × shares / net income` 相干性共同判定；多个非美元币种无法唯一判定、元数据缺失、源单位冲突，或每股币种与报价币种不同且没有正的有限汇率时，统一拒绝 `UNIT_UNRECONCILED`。美国上市地不再默认企业申报美元。
 

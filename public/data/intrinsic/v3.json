@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "policyVersion": "v3",
-  "policyHash": "12b02760c2229896ce58e80d3828dd2b82de7b4bb1084f1e12f039dc8afed557",
+  "policyHash": "3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d",
   "generatedAt": "2026-11-27",
   "rates": {
     "asOf": "2026-11-26",
@@ -189,7 +189,8 @@
       "reasons": [
         "EPS_BASIS",
         "GROWTH",
-        "RATE_CURRENCY"
+        "RATE_CURRENCY",
+        "VALUE_GAP"
       ]
     },
     {
@@ -482,7 +483,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -561,7 +562,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -639,7 +640,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -722,7 +723,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -800,7 +801,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -879,7 +880,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -963,7 +964,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1040,7 +1041,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1119,7 +1120,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1201,7 +1202,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1286,7 +1287,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1369,7 +1370,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1452,7 +1453,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1529,7 +1530,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1611,7 +1612,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1689,7 +1690,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1767,7 +1768,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1847,7 +1848,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -1931,7 +1932,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2010,7 +2011,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2089,7 +2090,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2169,7 +2170,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2256,7 +2257,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2334,7 +2335,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2411,7 +2412,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2443,7 +2444,7 @@
       "band": {
         "low": 31.83,
         "mid": 34.36,
-        "high": 37.2
+        "high": 37.41
       },
       "terminalShare": null,
       "cash": null,
@@ -2490,7 +2491,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2570,7 +2571,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2647,7 +2648,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2728,7 +2729,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2808,7 +2809,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2887,7 +2888,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -2968,7 +2969,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3047,7 +3048,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3132,7 +3133,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3210,7 +3211,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3293,7 +3294,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3373,7 +3374,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3451,7 +3452,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3530,7 +3531,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3607,7 +3608,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3688,7 +3689,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3765,7 +3766,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3841,7 +3842,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -3922,7 +3923,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4005,7 +4006,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4085,7 +4086,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4161,7 +4162,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4238,7 +4239,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4314,7 +4315,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4393,7 +4394,7 @@
         "regimeUncertain": true,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4471,7 +4472,7 @@
         "regimeUncertain": false,
         "discountRate": 11,
         "reportingCurrency": "HKD",
-        "reportingCurrencySource": "snapshot",
+        "reportingCurrencySource": "quote-fallback",
         "perShareCurrency": "HKD",
         "perShareFxToQuote": 1,
         "terminalGrowthRate": 4,
@@ -4976,7 +4977,7 @@
       "band": {
         "low": 187.93,
         "mid": 263.15,
-        "high": 371.66
+        "high": 403.85
       },
       "terminalShare": 0.5396,
       "cash": {
@@ -6121,7 +6122,7 @@
       "band": {
         "low": 118.4,
         "mid": 164.42,
-        "high": 229.74
+        "high": 250.2
       },
       "terminalShare": 0.5173,
       "cash": {
@@ -7644,7 +7645,7 @@
       "band": {
         "low": 71.08,
         "mid": 77.09,
-        "high": 83.89
+        "high": 84.14
       },
       "terminalShare": null,
       "cash": null,
@@ -7893,7 +7894,7 @@
       "band": {
         "low": 9.68,
         "mid": 17.88,
-        "high": 31.34
+        "high": 34.06
       },
       "terminalShare": 0.5367,
       "cash": {
@@ -8387,7 +8388,7 @@
       "band": {
         "low": 27.13,
         "mid": 29.31,
-        "high": 31.73
+        "high": 31.95
       },
       "terminalShare": null,
       "cash": null,
@@ -8548,7 +8549,7 @@
       "band": {
         "low": 100.59,
         "mid": 140.7,
-        "high": 198.43
+        "high": 215.69
       },
       "terminalShare": 0.5366,
       "cash": {
@@ -10820,7 +10821,7 @@
       "band": {
         "low": 33.33,
         "mid": 46.47,
-        "high": 65.28
+        "high": 71.02
       },
       "terminalShare": 0.5284,
       "cash": {
@@ -12034,7 +12035,7 @@
       "band": {
         "low": 232.76,
         "mid": 326.6,
-        "high": 462.48
+        "high": 502.25
       },
       "terminalShare": 0.5452,
       "cash": {
@@ -13923,7 +13924,7 @@
       "band": {
         "low": 79.32,
         "mid": 139.91,
-        "high": 239.07
+        "high": 257.51
       },
       "terminalShare": 0.5534,
       "cash": {
@@ -14488,7 +14489,7 @@
       "band": {
         "low": 37.81,
         "mid": 52.97,
-        "high": 74.86
+        "high": 81.33
       },
       "terminalShare": 0.5409,
       "cash": {
@@ -14571,7 +14572,7 @@
       "band": {
         "low": 41.15,
         "mid": 57.68,
-        "high": 81.57
+        "high": 88.61
       },
       "terminalShare": 0.5423,
       "cash": {
@@ -16284,7 +16285,7 @@
       "band": {
         "low": 78.64,
         "mid": 108.34,
-        "high": 151.06
+        "high": 164.58
       },
       "terminalShare": 0.513,
       "cash": {
@@ -16530,7 +16531,7 @@
       "band": {
         "low": 33.1,
         "mid": 43.31,
-        "high": 60.24
+        "high": 65.67
       },
       "terminalShare": 0.508,
       "cash": {
@@ -17970,7 +17971,7 @@
       "band": {
         "low": 18.35,
         "mid": 25.74,
-        "high": 36.44
+        "high": 39.58
       },
       "terminalShare": 0.5445,
       "cash": {
@@ -18453,7 +18454,7 @@
       "band": {
         "low": 56.77,
         "mid": 79.32,
-        "high": 111.7
+        "high": 121.45
       },
       "terminalShare": 0.5336,
       "cash": {
@@ -18784,7 +18785,7 @@
       "band": {
         "low": 204.46,
         "mid": 287.4,
-        "high": 407.9
+        "high": 442.74
       },
       "terminalShare": 0.55,
       "cash": null,
@@ -19168,7 +19169,7 @@
       "band": {
         "low": 181.87,
         "mid": 255.98,
-        "high": 363.93
+        "high": 390.71
       },
       "terminalShare": 0.5537,
       "cash": null,
@@ -19663,7 +19664,7 @@
       "band": {
         "low": 140.24,
         "mid": 197.75,
-        "high": 281.82
+        "high": 283.31
       },
       "terminalShare": 0.5588,
       "cash": {
@@ -20727,7 +20728,7 @@
       "band": {
         "low": 106.48,
         "mid": 149.31,
-        "high": 211.24
+        "high": 229.45
       },
       "terminalShare": 0.5434,
       "cash": {
@@ -21216,7 +21217,7 @@
       "band": {
         "low": 31,
         "mid": 43.5,
-        "high": 61.59
+        "high": 66.89
       },
       "terminalShare": 0.5451,
       "cash": {
@@ -21629,7 +21630,7 @@
       "band": {
         "low": 32.76,
         "mid": 45.93,
-        "high": 64.98
+        "high": 70.58
       },
       "terminalShare": 0.5432,
       "cash": {
@@ -21712,7 +21713,7 @@
       "band": {
         "low": 99.7,
         "mid": 139.19,
-        "high": 195.82
+        "high": 212.96
       },
       "terminalShare": 0.5314,
       "cash": {
@@ -21873,7 +21874,7 @@
       "band": {
         "low": 93.61,
         "mid": 131.94,
-        "high": 187.92
+        "high": 191.94
       },
       "terminalShare": 0.5576,
       "cash": {
@@ -22514,7 +22515,7 @@
       "band": {
         "low": 93.92,
         "mid": 130.39,
-        "high": 182.11
+        "high": 198.35
       },
       "terminalShare": 0.5165,
       "cash": {
@@ -23421,7 +23422,7 @@
       "band": {
         "low": 59.59,
         "mid": 83.43,
-        "high": 117.79
+        "high": 128
       },
       "terminalShare": 0.5389,
       "cash": {
@@ -25685,7 +25686,7 @@
       "band": {
         "low": 229.51,
         "mid": 321.44,
-        "high": 454.09
+        "high": 493.4
       },
       "terminalShare": 0.5401,
       "cash": null,
@@ -26078,7 +26079,7 @@
       "band": {
         "low": 106.52,
         "mid": 149.44,
-        "high": 211.57
+        "high": 229.78
       },
       "terminalShare": 0.5448,
       "cash": {
@@ -27362,7 +27363,7 @@
       "band": {
         "low": 143.5,
         "mid": 202.03,
-        "high": 287.34
+        "high": 305.59
       },
       "terminalShare": 0.5544,
       "cash": {
@@ -27687,7 +27688,7 @@
       "band": {
         "low": 34.4,
         "mid": 66.18,
-        "high": 118.56
+        "high": 128.97
       },
       "terminalShare": 0.5289,
       "cash": {
@@ -28779,7 +28780,7 @@
       "band": {
         "low": 54.02,
         "mid": 107.5,
-        "high": 197.77
+        "high": 202.58
       },
       "terminalShare": 0.5573,
       "cash": {
@@ -29766,7 +29767,7 @@
       "band": {
         "low": 20.33,
         "mid": 28.66,
-        "high": 40.83
+        "high": 41.37
       },
       "terminalShare": 0.5583,
       "cash": {
@@ -30649,7 +30650,7 @@
       "band": {
         "low": 69.56,
         "mid": 75.52,
-        "high": 82.27
+        "high": 82.61
       },
       "terminalShare": null,
       "cash": null,
@@ -30891,7 +30892,7 @@
       "band": {
         "low": 47.37,
         "mid": 66.17,
-        "high": 93.17
+        "high": 101.31
       },
       "terminalShare": 0.5332,
       "cash": {
@@ -31380,7 +31381,7 @@
       "band": {
         "low": 74.89,
         "mid": 104.62,
-        "high": 147.31
+        "high": 160.18
       },
       "terminalShare": 0.5333,
       "cash": {
@@ -31462,7 +31463,7 @@
       "band": {
         "low": 78.67,
         "mid": 109.82,
-        "high": 154.47
+        "high": 168
       },
       "terminalShare": 0.5312,
       "cash": {
@@ -32348,7 +32349,7 @@
       "band": {
         "low": 42.05,
         "mid": 58.4,
-        "high": 81.63
+        "high": 88.9
       },
       "terminalShare": 0.518,
       "cash": null,
@@ -33382,7 +33383,7 @@
       "band": {
         "low": 26.29,
         "mid": 50.52,
-        "high": 92.58
+        "high": 100.91
       },
       "terminalShare": 0.5083,
       "cash": {
@@ -34102,7 +34103,7 @@
       "band": {
         "low": 56.78,
         "mid": 60.85,
-        "high": 65.43
+        "high": 65.83
       },
       "terminalShare": null,
       "cash": null,
@@ -34659,7 +34660,7 @@
       "band": {
         "low": 64.85,
         "mid": 90.5,
-        "high": 127.25
+        "high": 138.41
       },
       "terminalShare": 0.5304,
       "cash": null,
@@ -34976,7 +34977,7 @@
       "band": {
         "low": 108.8,
         "mid": 153.2,
-        "high": 217.92
+        "high": 230.63
       },
       "terminalShare": 0.5548,
       "cash": {
@@ -35384,7 +35385,7 @@
       "band": {
         "low": 81.9,
         "mid": 114.99,
-        "high": 162.95
+        "high": 176.93
       },
       "terminalShare": 0.5468,
       "cash": {
@@ -35798,7 +35799,7 @@
       "band": {
         "low": 52.9,
         "mid": 104.2,
-        "high": 189.4
+        "high": 205.93
       },
       "terminalShare": 0.5336,
       "cash": {
@@ -36164,7 +36165,7 @@
       "band": {
         "low": 213.96,
         "mid": 301.47,
-        "high": 429.19
+        "high": 443.77
       },
       "terminalShare": 0.5566,
       "cash": {
@@ -36969,7 +36970,7 @@
       "band": {
         "low": 12.07,
         "mid": 16.78,
-        "high": 23.48
+        "high": 25.56
       },
       "terminalShare": 0.5206,
       "cash": {
@@ -37537,7 +37538,7 @@
       "band": {
         "low": 115.36,
         "mid": 161.86,
-        "high": 229.18
+        "high": 248.89
       },
       "terminalShare": 0.545,
       "cash": {
@@ -37865,7 +37866,7 @@
       "band": {
         "low": 73.64,
         "mid": 80.11,
-        "high": 87.42
+        "high": 87.59
       },
       "terminalShare": null,
       "cash": null,
@@ -38027,7 +38028,7 @@
       "band": {
         "low": 1947.54,
         "mid": 2730.03,
-        "high": 3860.93
+        "high": 4194.12
       },
       "terminalShare": 0.5425,
       "cash": {
@@ -38265,7 +38266,7 @@
       "band": {
         "low": 28.04,
         "mid": 30.55,
-        "high": 33.37
+        "high": 33.39
       },
       "terminalShare": null,
       "cash": null,
@@ -38343,7 +38344,7 @@
       "band": {
         "low": 88.07,
         "mid": 123.4,
-        "high": 174.43
+        "high": 189.5
       },
       "terminalShare": 0.5414,
       "cash": {
@@ -39664,7 +39665,7 @@
       "band": {
         "low": 110.87,
         "mid": 155.02,
-        "high": 218.52
+        "high": 237.55
       },
       "terminalShare": 0.5356,
       "cash": {
@@ -39988,7 +39989,7 @@
       "band": {
         "low": 38.52,
         "mid": 41.86,
-        "high": 45.5
+        "high": 45.89
       },
       "terminalShare": null,
       "cash": null,
@@ -40230,7 +40231,7 @@
       "band": {
         "low": 83.97,
         "mid": 117.98,
-        "high": 167.36
+        "high": 181.67
       },
       "terminalShare": 0.5489,
       "cash": {
@@ -40316,7 +40317,7 @@
       "band": {
         "low": 49.75,
         "mid": 70.03,
-        "high": 99.58
+        "high": 106.6
       },
       "terminalShare": 0.5539,
       "cash": {
@@ -40398,7 +40399,7 @@
       "band": {
         "low": 9.28,
         "mid": 9.99,
-        "high": 10.79
+        "high": 10.83
       },
       "terminalShare": null,
       "cash": null,
@@ -41207,7 +41208,7 @@
       "band": {
         "low": 258.43,
         "mid": 360.29,
-        "high": 505.95
+        "high": 550.45
       },
       "terminalShare": 0.5277,
       "cash": {
@@ -41374,7 +41375,7 @@
       "band": {
         "low": 75.33,
         "mid": 161.73,
-        "high": 307.1
+        "high": 333.99
       },
       "terminalShare": 0.5313,
       "cash": {
@@ -41696,7 +41697,7 @@
       "band": {
         "low": 155.81,
         "mid": 169.91,
-        "high": 185.32
+        "high": 186.95
       },
       "terminalShare": null,
       "cash": null,
@@ -41773,7 +41774,7 @@
       "band": {
         "low": 48.93,
         "mid": 68.56,
-        "high": 96.92
+        "high": 105.29
       },
       "terminalShare": 0.5414,
       "cash": {
@@ -41938,7 +41939,7 @@
       "band": {
         "low": 51.51,
         "mid": 90.72,
-        "high": 154.08
+        "high": 167.57
       },
       "terminalShare": 0.5313,
       "cash": {
@@ -44302,7 +44303,7 @@
       "band": {
         "low": 208.39,
         "mid": 409.65,
-        "high": 747.72
+        "high": 808.02
       },
       "terminalShare": 0.5532,
       "cash": {
@@ -45043,7 +45044,7 @@
       "band": {
         "low": 98.88,
         "mid": 201.54,
-        "high": 374.84
+        "high": 406.84
       },
       "terminalShare": 0.5503,
       "cash": {
@@ -46770,7 +46771,7 @@
       "band": {
         "low": 61.52,
         "mid": 80.69,
-        "high": 112.25
+        "high": 122.35
       },
       "terminalShare": 0.5082,
       "cash": {
@@ -47901,7 +47902,7 @@
       "band": {
         "low": 127.86,
         "mid": 244.15,
-        "high": 436.86
+        "high": 474.67
       },
       "terminalShare": 0.5404,
       "cash": {
@@ -48067,7 +48068,7 @@
       "band": {
         "low": 41.25,
         "mid": 93.54,
-        "high": 182.35
+        "high": 198.25
       },
       "terminalShare": 0.5347,
       "cash": {
@@ -48234,7 +48235,7 @@
       "band": {
         "low": 81.15,
         "mid": 113.26,
-        "high": 159.26
+        "high": 173.22
       },
       "terminalShare": 0.5305,
       "cash": {
@@ -48475,7 +48476,7 @@
       "band": {
         "low": 52.59,
         "mid": 73.05,
-        "high": 102.1
+        "high": 111.18
       },
       "terminalShare": 0.5179,
       "cash": {
@@ -48557,7 +48558,7 @@
       "band": {
         "low": 331.46,
         "mid": 358.18,
-        "high": 388.34
+        "high": 388.98
       },
       "terminalShare": null,
       "cash": null,
@@ -50586,7 +50587,7 @@
       "band": {
         "low": 134.75,
         "mid": 189.07,
-        "high": 267.72
+        "high": 290.74
       },
       "terminalShare": 0.5451,
       "cash": {
@@ -51569,7 +51570,7 @@
       "band": {
         "low": 169.51,
         "mid": 236.76,
-        "high": 333.26
+        "high": 362.39
       },
       "terminalShare": 0.5326,
       "cash": {
@@ -52708,7 +52709,7 @@
       "band": {
         "low": 11.11,
         "mid": 12.03,
-        "high": 13.08
+        "high": 13.14
       },
       "terminalShare": null,
       "cash": null,
@@ -52952,7 +52953,7 @@
       "band": {
         "low": 18.56,
         "mid": 20.02,
-        "high": 21.66
+        "high": 21.7
       },
       "terminalShare": null,
       "cash": null,
@@ -55667,7 +55668,7 @@
       "band": {
         "low": 157.57,
         "mid": 219.01,
-        "high": 306.37
+        "high": 333.57
       },
       "terminalShare": 0.5197,
       "cash": {
@@ -55916,7 +55917,7 @@
       "band": {
         "low": 67.84,
         "mid": 74.07,
-        "high": 80.73
+        "high": 81.58
       },
       "terminalShare": null,
       "cash": null,
@@ -56319,7 +56320,7 @@
       "band": {
         "low": 15.17,
         "mid": 16.42,
-        "high": 17.81
+        "high": 17.93
       },
       "terminalShare": null,
       "cash": null,
@@ -56482,7 +56483,7 @@
       "band": {
         "low": 34.83,
         "mid": 48.57,
-        "high": 68.21
+        "high": 74.21
       },
       "terminalShare": 0.528,
       "cash": {
@@ -56640,7 +56641,7 @@
       "band": {
         "low": 74.98,
         "mid": 105.49,
-        "high": 149.88
+        "high": 162.64
       },
       "terminalShare": 0.5523,
       "cash": {
@@ -56885,7 +56886,7 @@
       "band": {
         "low": 238.72,
         "mid": 336.13,
-        "high": 478.15
+        "high": 505.82
       },
       "terminalShare": 0.5548,
       "cash": null,
@@ -57622,7 +57623,7 @@
       "band": {
         "low": 62.82,
         "mid": 110.01,
-        "high": 186.48
+        "high": 202.65
       },
       "terminalShare": 0.539,
       "cash": {
@@ -57782,7 +57783,7 @@
       "band": {
         "low": 77.7,
         "mid": 108.27,
-        "high": 151.94
+        "high": 165.32
       },
       "terminalShare": 0.5264,
       "cash": {
@@ -58495,7 +58496,7 @@
       "band": {
         "low": 81.43,
         "mid": 142.15,
-        "high": 239.45
+        "high": 260.67
       },
       "terminalShare": 0.5212,
       "cash": {
@@ -58578,7 +58579,7 @@
       "band": {
         "low": 16.76,
         "mid": 32.17,
-        "high": 57.7
+        "high": 62.86
       },
       "terminalShare": 0.5124,
       "cash": {
@@ -58898,7 +58899,7 @@
       "band": {
         "low": 125.47,
         "mid": 175.22,
-        "high": 246.62
+        "high": 268.19
       },
       "terminalShare": 0.5324,
       "cash": {
@@ -59267,7 +59268,7 @@
       "band": {
         "low": 56.68,
         "mid": 79.64,
-        "high": 112.98
+        "high": 122.64
       },
       "terminalShare": 0.5491,
       "cash": null,
@@ -59502,7 +59503,7 @@
       "band": {
         "low": 137.42,
         "mid": 193.1,
-        "high": 273.94
+        "high": 297.37
       },
       "terminalShare": 0.5491,
       "cash": {
@@ -59585,7 +59586,7 @@
       "band": {
         "low": 125.03,
         "mid": 136.64,
-        "high": 149.23
+        "high": 149.99
       },
       "terminalShare": null,
       "cash": null,
@@ -61967,7 +61968,7 @@
       "band": {
         "low": 57.23,
         "mid": 61.52,
-        "high": 66.22
+        "high": 66.73
       },
       "terminalShare": null,
       "cash": null,
@@ -62214,7 +62215,7 @@
       "band": {
         "low": 155.15,
         "mid": 217.21,
-        "high": 306.67
+        "high": 333.26
       },
       "terminalShare": 0.539,
       "cash": {
@@ -63271,7 +63272,7 @@
       "band": {
         "low": 145.13,
         "mid": 203.25,
-        "high": 287.09
+        "high": 311.95
       },
       "terminalShare": 0.5399,
       "cash": {
@@ -63352,7 +63353,7 @@
       "band": {
         "low": 322.84,
         "mid": 573.98,
-        "high": 980.27
+        "high": 1066.38
       },
       "terminalShare": 0.5287,
       "cash": {
@@ -63434,7 +63435,7 @@
       "band": {
         "low": 149.3,
         "mid": 208.73,
-        "high": 294.18
+        "high": 319.81
       },
       "terminalShare": 0.5352,
       "cash": {
@@ -63517,7 +63518,7 @@
       "band": {
         "low": 36.06,
         "mid": 50.07,
-        "high": 69.96
+        "high": 76.19
       },
       "terminalShare": 0.5171,
       "cash": {
@@ -64010,7 +64011,7 @@
       "band": {
         "low": 28.21,
         "mid": 37.64,
-        "high": 52.41
+        "high": 57.11
       },
       "terminalShare": 0.5098,
       "cash": {
@@ -65149,7 +65150,7 @@
       "band": {
         "low": 113.67,
         "mid": 159.49,
-        "high": 225.85
+        "high": 245.27
       },
       "terminalShare": 0.5452,
       "cash": {
@@ -65231,7 +65232,7 @@
       "band": {
         "low": 58.68,
         "mid": 63.69,
-        "high": 69.27
+        "high": 69.75
       },
       "terminalShare": null,
       "cash": null,
@@ -65798,7 +65799,7 @@
       "band": {
         "low": 123.23,
         "mid": 133.74,
-        "high": 145.62
+        "high": 146.22
       },
       "terminalShare": null,
       "cash": null,
@@ -65875,7 +65876,7 @@
       "band": {
         "low": 552.36,
         "mid": 775.39,
-        "high": 1098.61
+        "high": 1192.92
       },
       "terminalShare": 0.5464,
       "cash": {
@@ -67086,7 +67087,7 @@
       "band": {
         "low": 229.78,
         "mid": 405.4,
-        "high": 690.56
+        "high": 750.43
       },
       "terminalShare": 0.5389,
       "cash": {
@@ -67336,7 +67337,7 @@
       "band": {
         "low": 59.02,
         "mid": 83.15,
-        "high": 118.37
+        "high": 122.59
       },
       "terminalShare": 0.5565,
       "cash": null,
@@ -68225,7 +68226,7 @@
       "band": {
         "low": 28.6,
         "mid": 31.22,
-        "high": 33.69
+        "high": 34.39
       },
       "terminalShare": null,
       "cash": null,
@@ -68469,7 +68470,7 @@
       "band": {
         "low": 55.51,
         "mid": 77.32,
-        "high": 108.45
+        "high": 118.02
       },
       "terminalShare": 0.5253,
       "cash": null,
@@ -68546,7 +68547,7 @@
       "band": {
         "low": 23.58,
         "mid": 25.6,
-        "high": 27.85
+        "high": 28.04
       },
       "terminalShare": null,
       "cash": null,
@@ -68784,7 +68785,7 @@
       "band": {
         "low": 41.46,
         "mid": 57.77,
-        "high": 81.09
+        "high": 88.23
       },
       "terminalShare": 0.5266,
       "cash": {
@@ -69696,7 +69697,7 @@
       "band": {
         "low": 41.76,
         "mid": 44.75,
-        "high": 48.12
+        "high": 48.32
       },
       "terminalShare": null,
       "cash": null,
@@ -70344,7 +70345,7 @@
       "band": {
         "low": 31.57,
         "mid": 69.7,
-        "high": 134.65
+        "high": 146.23
       },
       "terminalShare": 0.5446,
       "cash": {
@@ -70427,7 +70428,7 @@
       "band": {
         "low": 62.39,
         "mid": 86.17,
-        "high": 120.16
+        "high": 130.91
       },
       "terminalShare": 0.5132,
       "cash": {
@@ -71105,7 +71106,7 @@
       "band": {
         "low": 65.66,
         "mid": 91.52,
-        "high": 128.47
+        "high": 139.78
       },
       "terminalShare": 0.527,
       "cash": {
@@ -71345,7 +71346,7 @@
       "band": {
         "low": 38.82,
         "mid": 53.96,
-        "high": 75.51
+        "high": 82.21
       },
       "terminalShare": 0.5203,
       "cash": {
@@ -71503,7 +71504,7 @@
       "band": {
         "low": 72.3,
         "mid": 101.19,
-        "high": 142.84
+        "high": 155.23
       },
       "terminalShare": 0.5385,
       "cash": {
@@ -72313,7 +72314,7 @@
       "band": {
         "low": 33.96,
         "mid": 47.33,
-        "high": 66.45
+        "high": 72.3
       },
       "terminalShare": 0.5269,
       "cash": {
@@ -72636,7 +72637,7 @@
       "band": {
         "low": 21.35,
         "mid": 45.61,
-        "high": 86.33
+        "high": 93.91
       },
       "terminalShare": 0.528,
       "cash": {
@@ -72720,7 +72721,7 @@
       "band": {
         "low": 125.07,
         "mid": 176.03,
-        "high": 250.25
+        "high": 269
       },
       "terminalShare": 0.5536,
       "cash": null,
@@ -74065,7 +74066,7 @@
       "band": {
         "low": 98.77,
         "mid": 134.79,
-        "high": 187.86
+        "high": 204.69
       },
       "terminalShare": 0.5121,
       "cash": {
@@ -74144,7 +74145,7 @@
       "band": {
         "low": 13.07,
         "mid": 18.29,
-        "high": 25.82
+        "high": 28.06
       },
       "terminalShare": 0.5385,
       "cash": {
@@ -75320,7 +75321,7 @@
       "band": {
         "low": 42.25,
         "mid": 58.9,
-        "high": 82.71
+        "high": 89.98
       },
       "terminalShare": 0.5277,
       "cash": {
@@ -75567,7 +75568,7 @@
       "band": {
         "low": 21.47,
         "mid": 29.79,
-        "high": 41.57
+        "high": 45.28
       },
       "terminalShare": 0.5149,
       "cash": {
@@ -75650,7 +75651,7 @@
       "band": {
         "low": 121.81,
         "mid": 170.08,
-        "high": 239.33
+        "high": 260.26
       },
       "terminalShare": 0.5319,
       "cash": {
@@ -76768,7 +76769,7 @@
       "band": {
         "low": 144.72,
         "mid": 202.12,
-        "high": 284.5
+        "high": 309.37
       },
       "terminalShare": 0.5326,
       "cash": {
@@ -77094,7 +77095,7 @@
       "band": {
         "low": 54.8,
         "mid": 59.25,
-        "high": 64.29
+        "high": 64.64
       },
       "terminalShare": null,
       "cash": null,
@@ -77906,7 +77907,7 @@
       "band": {
         "low": 49.6,
         "mid": 54.33,
-        "high": 59.24
+        "high": 59.37
       },
       "terminalShare": null,
       "cash": null,
@@ -77983,7 +77984,7 @@
       "band": {
         "low": 100.36,
         "mid": 140.26,
-        "high": 197.61
+        "high": 214.85
       },
       "terminalShare": 0.5345,
       "cash": {
@@ -78065,7 +78066,7 @@
       "band": {
         "low": 42.76,
         "mid": 59.67,
-        "high": 83.91
+        "high": 91.26
       },
       "terminalShare": 0.5305,
       "cash": {
@@ -78633,7 +78634,7 @@
       "band": {
         "low": 46.72,
         "mid": 63.83,
-        "high": 88.97
+        "high": 96.94
       },
       "terminalShare": 0.5121,
       "cash": {
@@ -79543,7 +79544,7 @@
       "band": {
         "low": 169.33,
         "mid": 234.86,
-        "high": 327.67
+        "high": 356.96
       },
       "terminalShare": 0.5142,
       "cash": {
@@ -79865,7 +79866,7 @@
       "band": {
         "low": 66.24,
         "mid": 93.4,
-        "high": 133.1
+        "high": 133.86
       },
       "terminalShare": 0.5588,
       "cash": {
@@ -80110,7 +80111,7 @@
       "band": {
         "low": 18.12,
         "mid": 33.21,
-        "high": 57.79
+        "high": 62.88
       },
       "terminalShare": 0.5263,
       "cash": {
@@ -80194,7 +80195,7 @@
       "band": {
         "low": 139.85,
         "mid": 152.33,
-        "high": 165.88
+        "high": 167.39
       },
       "terminalShare": null,
       "cash": null,
@@ -80518,7 +80519,7 @@
       "band": {
         "low": 156.01,
         "mid": 218.63,
-        "high": 309.1
+        "high": 335.8
       },
       "terminalShare": 0.5418,
       "cash": {
@@ -82135,7 +82136,7 @@
       "band": {
         "low": 30.96,
         "mid": 33.33,
-        "high": 36.01
+        "high": 36.2
       },
       "terminalShare": null,
       "cash": null,
@@ -82212,7 +82213,7 @@
       "band": {
         "low": 25.76,
         "mid": 49.12,
-        "high": 87.79
+        "high": 95.4
       },
       "terminalShare": 0.5395,
       "cash": {
@@ -82944,7 +82945,7 @@
       "band": {
         "low": 34.69,
         "mid": 47.74,
-        "high": 66.56
+        "high": 72.52
       },
       "terminalShare": 0.5129,
       "cash": {
@@ -83351,7 +83352,7 @@
       "band": {
         "low": 26.7,
         "mid": 37.07,
-        "high": 51.77
+        "high": 56.39
       },
       "terminalShare": 0.5163,
       "cash": {
@@ -83592,7 +83593,7 @@
       "band": {
         "low": 56.18,
         "mid": 78.85,
-        "high": 111.69
+        "high": 121.28
       },
       "terminalShare": 0.5458,
       "cash": null,
@@ -83990,7 +83991,7 @@
       "band": {
         "low": 78.07,
         "mid": 109.21,
-        "high": 154.04
+        "high": 167.43
       },
       "terminalShare": 0.5369,
       "cash": {
@@ -84073,7 +84074,7 @@
       "band": {
         "low": 62.57,
         "mid": 68.12,
-        "high": 74.39
+        "high": 74.56
       },
       "terminalShare": null,
       "cash": null,
@@ -84234,7 +84235,7 @@
       "band": {
         "low": 118.83,
         "mid": 226.67,
-        "high": 406.87
+        "high": 430.94
       },
       "terminalShare": 0.5547,
       "cash": {
@@ -84558,7 +84559,7 @@
       "band": {
         "low": 108.38,
         "mid": 152.11,
-        "high": 215.46
+        "high": 233.98
       },
       "terminalShare": 0.5458,
       "cash": null,
@@ -84679,7 +84680,7 @@
       "band": {
         "low": 44.78,
         "mid": 48.35,
-        "high": 52.38
+        "high": 52.51
       },
       "terminalShare": null,
       "cash": null,
@@ -85006,7 +85007,7 @@
       "band": {
         "low": 91.61,
         "mid": 128.58,
-        "high": 182.12
+        "high": 197.77
       },
       "terminalShare": 0.5458,
       "cash": {
@@ -86301,7 +86302,7 @@
       "band": {
         "low": 55.51,
         "mid": 77.14,
-        "high": 107.88
+        "high": 117.47
       },
       "terminalShare": 0.5191,
       "cash": {
@@ -86383,7 +86384,7 @@
       "band": {
         "low": 54.8,
         "mid": 76.83,
-        "high": 108.66
+        "high": 118.04
       },
       "terminalShare": 0.5428,
       "cash": null,
@@ -86621,7 +86622,7 @@
       "band": {
         "low": 82.72,
         "mid": 116.25,
-        "high": 164.95
+        "high": 179.06
       },
       "terminalShare": 0.5495,
       "cash": {
@@ -87096,7 +87097,7 @@
       "band": {
         "low": 46.51,
         "mid": 50.51,
-        "high": 55.04
+        "high": 55.35
       },
       "terminalShare": null,
       "cash": null,
@@ -87976,7 +87977,7 @@
       "band": {
         "low": 35.8,
         "mid": 38.6,
-        "high": 41.77
+        "high": 41.83
       },
       "terminalShare": null,
       "cash": null,
@@ -88220,7 +88221,7 @@
       "band": {
         "low": 7.34,
         "mid": 7.93,
-        "high": 8.6
+        "high": 8.61
       },
       "terminalShare": null,
       "cash": null,
@@ -88297,7 +88298,7 @@
       "band": {
         "low": 56.94,
         "mid": 61.13,
-        "high": 65.88
+        "high": 66.19
       },
       "terminalShare": null,
       "cash": null,
@@ -88374,7 +88375,7 @@
       "band": {
         "low": 11.67,
         "mid": 12.58,
-        "high": 13.61
+        "high": 13.62
       },
       "terminalShare": null,
       "cash": null,
@@ -88530,7 +88531,7 @@
       "band": {
         "low": 9.89,
         "mid": 10.68,
-        "high": 11.57
+        "high": 11.58
       },
       "terminalShare": null,
       "cash": null,
@@ -89175,7 +89176,7 @@
       "band": {
         "low": 12.6,
         "mid": 13.62,
-        "high": 14.77
+        "high": 14.79
       },
       "terminalShare": null,
       "cash": null,
@@ -89252,7 +89253,7 @@
       "band": {
         "low": 7.54,
         "mid": 8.15,
-        "high": 8.84
+        "high": 8.85
       },
       "terminalShare": null,
       "cash": null,
@@ -89567,7 +89568,7 @@
       "band": {
         "low": 21.38,
         "mid": 23.19,
-        "high": 25.25
+        "high": 25.28
       },
       "terminalShare": null,
       "cash": null,
