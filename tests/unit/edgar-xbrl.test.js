@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, qualityFactsFromFacts, quoteSplitFactor, scalePerShare, trailingTotal } from '../../src/data/providers/edgar-xbrl'
+import { financialsFromFacts, fundamentalsFromFacts, growthWindow, knownSplitFactor, profileFromFacts, qualityFactsFromFacts, quoteSplitFactor, scalePerShare, scaleSnapshotRecord, trailingTotal } from '../../src/data/providers/edgar-xbrl'
 import { QUALITY, classifyEarningsQuality } from '../../src/lib/valuationBase'
 import interimEps from '../fixtures/edgar-interim-eps.json'
 
@@ -655,6 +655,18 @@ describe('IFRS 20-F book value and free cash flow', () => {
     expect(adr.fields.tangible_book).toBeCloseTo(((125e9 - 1e9) / 25e9) / 0.2, 3)
     expect(adr.fields.free_cash_flow_per_share).toBeCloseTo(((50e9 - 29e9) / 25e9) / 0.2, 3)
     expect(adr.fields.ttm_eps).toBeCloseTo(1.36 / 0.2, 3)
+    const already = { ttm_eps: 0.12, ttm_eps_nri: 0.12, tangible_book: 0.8911, share_basis_unverified: true,
+      net_income: 1500000000, earning_growth_5y: -12.3,
+      financials: { annual: [{ date: '2024-12', eps_without_nri: 0.12, ebitda_per_share: 0.3, dividends_per_share: null, net_income: 1500000000 }] } }
+    const scaled = scaleSnapshotRecord(already, 0.2)
+    expect(scaled.ttm_eps).toBe(0.6)
+    expect(scaled.ttm_eps_nri).toBe(0.6)
+    expect(scaled.tangible_book).toBe(4.4555)
+    expect(scaled.financials.annual[0].ebitda_per_share).toBe(1.5)
+    expect(scaled.financials.annual[0].dividends_per_share).toBeNull()
+    expect(scaled.financials.annual[0].net_income).toBe(1500000000)
+    expect(scaled.earning_growth_5y).toBe(-12.3)
+    expect(scaled.share_basis_unverified).toBe(true)
   })
 
   it('does not let an IFRS alias override a US 10-K equity series', () => {

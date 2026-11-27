@@ -4,6 +4,7 @@
   <div class="dcf__provenance" data-testid="valuation-provenance">
     <span>{{ earningsLabel }}</span>
     <span>{{ quoteLabel }}</span>
+    <span v-if="shareBasisLabel">{{ shareBasisLabel }}</span>
   </div>
   <details v-if="showExplanation" class="dcf__provenance dcf__explanation">
     <summary>{{ t('valuation_explanation') }}</summary>
@@ -63,6 +64,7 @@ const props = defineProps({
   currency: { type: String, default: '' },
   earningsLabel: { type: String, default: '' },
   quoteLabel: { type: String, default: '' },
+  shareBasisLabel: { type: String, default: '' },
   showExplanation: { type: Boolean, default: false },
 })
 const { t } = useI18n()

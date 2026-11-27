@@ -479,31 +479,44 @@ export function quoteSplitFactor (price, marketCap, filingShares) {
 
 const scaleValue = (value, factor) => (value == null || factor === 1 ? value : Number((value / factor).toFixed(4)))
 
+const isScaledPerShareKey = (key) => key === 'ttm_eps' || key === 'ttm_eps_nri' || key === 'tangible_book' ||
+  key === 'eps_without_nri' || key.endsWith('_per_share')
+
+/** Scale every per-share field on a flat object. Totals and growth rates are left alone. */
+export function scalePerShareFields (object, factor) {
+  if (!object || typeof object !== 'object' || !(factor > 0) || Math.abs(factor - 1) < 1e-9) return object
+  const next = { ...object }
+  for (const [key, value] of Object.entries(next)) {
+    if (isScaledPerShareKey(key) && typeof value === 'number' && Number.isFinite(value)) next[key] = scaleValue(value, factor)
+  }
+  return next
+}
+
 /** Divide every per-share figure by a post-filing split. A factor below 1 scales an ADR up. */
 export function scalePerShare (pack, factor) {
   if (!(factor > 0) || Math.abs(factor - 1) < 1e-9) return pack
-  const scaleRow = (row) => ({
-    ...row,
-    eps_without_nri: scaleValue(row.eps_without_nri, factor),
-    revenue_per_share: scaleValue(row.revenue_per_share, factor),
-    operating_income_per_share: scaleValue(row.operating_income_per_share, factor),
-    free_cash_flow_per_share: scaleValue(row.free_cash_flow_per_share, factor),
-    book_value_per_share: scaleValue(row.book_value_per_share, factor),
-    operating_cash_flow_per_share: scaleValue(row.operating_cash_flow_per_share, factor),
-    capex_per_share: scaleValue(row.capex_per_share, factor),
-  })
   return {
     ...pack,
-    fields: {
-      ...pack.fields,
-      ttm_eps: scaleValue(pack.fields.ttm_eps, factor),
-      free_cash_flow_per_share: scaleValue(pack.fields.free_cash_flow_per_share, factor),
-      tangible_book: scaleValue(pack.fields.tangible_book, factor),
-    },
+    fields: scalePerShareFields(pack.fields, factor),
     financials: {
-      annual: (pack.financials?.annual || []).map(scaleRow),
-      ttm: (pack.financials?.ttm || []).map(scaleRow),
+      annual: (pack.financials?.annual || []).map((row) => scalePerShareFields(row, factor)),
+      ttm: (pack.financials?.ttm || []).map((row) => scalePerShareFields(row, factor)),
       quarter: pack.financials?.quarter || [],
+    },
+  }
+}
+
+/** Same scaling as scalePerShare, for an already-written snapshot record. */
+export function scaleSnapshotRecord (record, factor) {
+  if (!(factor > 0) || Math.abs(factor - 1) < 1e-9) return record
+  const financials = record.financials || {}
+  return {
+    ...scalePerShareFields(record, factor),
+    financials: {
+      ...financials,
+      annual: (financials.annual || []).map((row) => scalePerShareFields(row, factor)),
+      ttm: (financials.ttm || []).map((row) => scalePerShareFields(row, factor)),
+      quarter: financials.quarter || [],
     },
   }
 }

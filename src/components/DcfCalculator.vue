@@ -361,6 +361,7 @@
             :currency="stock.currency || '¥'"
             :earnings-label="earningsDateLabel"
             :quote-label="quoteDateLabel"
+            :share-basis-label="shareBasisLabel"
             :show-explanation="showPublished"
           />
 
@@ -580,6 +581,13 @@ const earningsDateLabel = computed(() => {
   const entry = policyEntry.value
   if (!entry?.earningsDate) return t('valuation_earnings_unknown')
   return t(entry.earningsPeriod === 'FY' ? 'valuation_earnings_fy' : 'valuation_earnings_ttm', { date: entry.earningsDate })
+})
+const shareBasisLabel = computed(() => {
+  const factor = Number(stock.value?.split_to_quote)
+  if (!(factor > 0) || Math.abs(factor - 1) < 1e-9) return ''
+  const shares = 1 / factor
+  const rounded = Number.isInteger(shares) ? String(shares) : String(Math.round(shares * 1000) / 1000)
+  return t('valuation_depositary_ratio', { shares: rounded })
 })
 const quoteDateLabel = computed(() => {
   const entry = policyEntry.value
