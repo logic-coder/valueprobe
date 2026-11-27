@@ -7,6 +7,7 @@ export const STOCK = Object.freeze({
   discount: '[data-testid="field-discount"]',
   growth: '[data-testid="field-growth"]',
   growthYears: '[data-testid="field-growth-years"]',
+  terminalGrowth: '[data-testid="field-terminal-growth"]',
   peers: '[data-testid="peers"]',
   banner: '[data-testid="data-banner"]',
   chart: '[data-testid="chart-panel"]',

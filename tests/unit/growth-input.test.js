@@ -66,6 +66,7 @@ describe('calculator growth controls', () => {
       source.indexOf("t('terminal_growth_short')"),
       source.indexOf('default_terminal_growth_note'),
     )
+    expect(row).toContain('data-testid="field-terminal-growth"')
     expect(row).toContain(":aria-label=\"t('terminal_growth_short')\"")
     expect(row).not.toContain('terminal_growth_rate')
   })

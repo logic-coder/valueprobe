@@ -15,14 +15,14 @@
 
 | 文档 | 内容 | 主要读者 |
 | --- | --- | --- |
-| [POLICY.md](POLICY.md) | 公开口径 v3（本仓库尚未推送；线上 Pages 仍为冻结的 v2）：参数、拒绝/警告码、发布值文件与 manifest 结构、刷新与数据校验、覆盖清单替换 | 改发布值的人 |
+| [POLICY.md](POLICY.md) | 公开口径 v3（线上 GitHub Pages 现行口径）：参数、拒绝/警告码、发布值文件与 manifest 结构、刷新与数据校验、覆盖清单替换 | 改发布值的人 |
 | [CALCULATION.md](CALCULATION.md) | 模型、度量口径与计算边界（含公开口径对计算的影响） | 改公式/度量的实现者 |
 | [DATA_SOURCES.md](DATA_SOURCES.md) | 数据源、传输模式、利率、快照与发布值生成 | 改数据层的实现者 |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | 分层、依赖方向、数据流与词汇表 | 第一次读代码的人 |
 | [DESIGN.md](DESIGN.md) | 界面与交互的设计原则、实现约束、已知取舍 | 改 UI/视觉的人 |
 | [DEVIATIONS.md](DEVIATIONS.md) | 每条用户可见的行为差异与理由（编号不复用） | 评审可见变更的人 |
 | [RELEASE_V2.md](RELEASE_V2.md) | v2 相对冻结 v1 的发布决定、全量差异、审计证据与回滚 | 发布与复核 v2 的人 |
-| [RELEASE_V3.md](RELEASE_V3.md) | 尚未推送的官方 v3：相对冻结 v2 的发布决定、全量差异、审计证据与回滚 | 发布与复核 v3 的人 |
+| [RELEASE_V3.md](RELEASE_V3.md) | 官方 v3：相对冻结 v2 的发布决定、全量差异、审计证据与回滚 | 发布与复核 v3 的人 |
 | [FORECAST_VALIDATION.md](FORECAST_VALIDATION.md) | 维护者用的预测检验工具：怎么跑、历史研究跑数与官方口径跑数如何区分；n=4、不含终值的结果不能当作改官方口径的依据 | 复核或改官方口径的人 |
 
 ## 术语表

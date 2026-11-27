@@ -159,7 +159,7 @@
                 <div class="stepper stepper--sm">
                   <q-btn class="stepper__btn" unelevated dense icon="remove" :aria-label="t('decrease')" @click="form.terminalGrowthRate--" />
                   <q-skeleton v-if="loading" type="rect" height="15px" width="50px" />
-                  <input v-else v-model="form.terminalGrowthRate" class="input-section" type="number" :aria-label="t('terminal_growth_short')" outlined />
+                  <input v-else v-model="form.terminalGrowthRate" class="input-section" data-testid="field-terminal-growth" type="number" :aria-label="t('terminal_growth_short')" outlined />
                   <q-btn class="stepper__btn" unelevated dense icon="add" :aria-label="t('increase')" @click="form.terminalGrowthRate++" />
                   <span class="stepper__unit">%</span>
                 </div>
