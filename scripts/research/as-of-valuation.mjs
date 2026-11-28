@@ -46,7 +46,7 @@ function historicalRoe (facts, years) {
 }
 
 export function estimateAt ({ symbol, facts, row, splitInfo, yieldRate, entryYield, excludeFinancial }) {
-  const { fields, financials } = fundamentalsFromFacts(symbol, facts)
+  const { fields, financials } = fundamentalsFromFacts(symbol, facts, { replayV1: true })
   const { date, price, splitFromStart } = row
   const stock = toStock({ ...fields, financials, price, as_of: date, quote_as_of: date })
   const annual = financials.annual.filter(r => r.eps_without_nri != null)

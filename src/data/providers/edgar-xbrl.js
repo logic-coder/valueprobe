@@ -105,7 +105,7 @@ const CURRENCY_STATEMENT_CONCEPTS = [
 ]
 
 /** Latest complete annual statement unit, with enough provenance to audit the choice. */
-export function reportingCurrencyFromFacts (facts, verifiedCurrency = null) {
+export function reportingCurrencyFromFacts (facts, verifiedCurrency = null, replayV1 = false) {
   const candidates = []
   for (const [taxonomyName, concepts] of CURRENCY_STATEMENT_CONCEPTS) {
     for (const concept of concepts) {
@@ -133,9 +133,9 @@ export function reportingCurrencyFromFacts (facts, verifiedCurrency = null) {
     return annualSelection(facts, ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare'], currency + '/shares', 'ifrs-full').series
   }
   const eps = new Map(currencies.map((currency) => [currency, epsFor(currency)]))
-  const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
+  const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true, replayV1))
   const coherent = (currency) => {
-    const income = annualPrefer(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, currency)
+    const income = annualPrefer(facts, NET_INCOME_CONCEPTS, IFRS_NET_INCOME_CONCEPTS, currency, false, replayV1)
     for (const point of [...eps.get(currency)].reverse()) {
       const profit = income.find((item) => item.fy === point.fy)?.val
       const count = shares.find((item) => item.fy === point.fy)?.val
@@ -225,8 +225,9 @@ function annualSelection (facts, concepts, unit, taxonomyName, preferEarliest = 
 }
 
 /** Prefer the most recent compatible series. Keep one taxonomy per history. */
-function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest = false) {
+function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest = false, replayV1 = false) {
   const gaap = annual(facts, gaapConcepts, unit, 'us-gaap', preferEarliest)
+  if (replayV1 && gaap.length >= 2) return gaap
   const ifrs = ifrsConcepts?.length ? annual(facts, ifrsConcepts, unit, 'ifrs-full', preferEarliest) : []
   return seriesPeriod(ifrs) > seriesPeriod(gaap) ? ifrs : gaap
 }
@@ -260,18 +261,20 @@ function sameFilingCapitalSpending (facts, operatingCash, totalConcepts, currenc
 // Filers sometimes tag per-share amounts as USD/share (singular). The unit is
 // selected from the statement currency above; a same-named USD tag carrying a
 // local-currency number must never be treated as proof of a dollar series.
-function earningsSeries (facts, concepts, taxonomyName, currency) {
+function earningsSeries (facts, concepts, taxonomyName, currency, replayV1) {
   if (!currency) return { series: [], points: [] }
-  const plural = annualSelection(facts, concepts, currency + '/shares', taxonomyName, false, true)
-  const singular = annualSelection(facts, concepts, currency + '/share', taxonomyName, false, true)
+  const plural = annualSelection(facts, concepts, currency + '/shares', taxonomyName, false, !replayV1)
+  if (replayV1 && plural.series.length >= 2) return plural
+  const singular = annualSelection(facts, concepts, currency + '/share', taxonomyName, false, !replayV1)
   return seriesPeriod(singular.series) > seriesPeriod(plural.series) ? singular : plural
 }
 
 /** EPS stays in the issuer's reporting currency per ordinary share. */
-function earningsPerShare (facts, currency) {
-  const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap', currency)
+function earningsPerShare (facts, currency, replayV1) {
+  const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap', currency, replayV1)
+  if (replayV1 && direct.series.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  const ifrs = earningsSeries(facts, ifrsConcepts, 'ifrs-full', currency)
+  const ifrs = earningsSeries(facts, ifrsConcepts, 'ifrs-full', currency, replayV1)
   return seriesPeriod(ifrs.series) > seriesPeriod(direct.series) ? ifrs : direct
 }
 
@@ -761,29 +764,32 @@ function attachQuality (row, fy, quality) {
 }
 
 function assemble (facts, units) {
-  const statement = reportingCurrencyFromFacts(facts, units?.reportingCurrency)
+  // Archived v1 studies keep the selector that generated their frozen inputs.
+  const replayV1 = units?.replayV1 === true
+  const statement = reportingCurrencyFromFacts(facts, units?.reportingCurrency, replayV1)
   const unitsConfirmed = units && statement.currency === units.reportingCurrency
   // Some issuers publish a USD translation of their per-share numbers. Use
   // that series only when verified for the listing and keep the report currency
   // independent for the required return.
   const currency = unitsConfirmed ? units.perShareCurrency : statement.currency
-  const { series: reportedEps, points: epsFacts } = earningsPerShare(facts, currency)
-  const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], currency)
-  const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], currency)
-  const equity = annualPrefer(facts, ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS, currency)
+  const selectAnnual = (gaap, ifrs, unit = currency, preferEarliest = false) => annualPrefer(facts, gaap, ifrs, unit, preferEarliest, replayV1)
+  const { series: reportedEps, points: epsFacts } = earningsPerShare(facts, currency, replayV1)
+  const revenue = selectAnnual(REVENUE_CONCEPTS, ['Revenue'])
+  const operating = selectAnnual(['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'])
+  const equity = selectAnnual(['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'], IFRS_EQUITY_CONCEPTS)
   const goodwill = annual(facts, ['Goodwill'], currency)
   const intangibles = annual(facts, ['IntangibleAssetsNetExcludingGoodwill', 'FiniteLivedIntangibleAssetsNet'], currency)
   const ifrsIntangibles = annual(facts, ['IntangibleAssetsAndGoodwill'], currency, 'ifrs-full')
-  const ocf = annualPrefer(facts, ['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS, currency)
-  const da = annualPrefer(facts, DA_CONCEPTS, IFRS_DA_CONCEPTS, currency)
-  const sbc = annualPrefer(facts, SBC_CONCEPTS, IFRS_SBC_CONCEPTS, currency)
+  const ocf = selectAnnual(['NetCashProvidedByUsedInOperatingActivities'], IFRS_OCF_CONCEPTS)
+  const da = selectAnnual(DA_CONCEPTS, IFRS_DA_CONCEPTS)
+  const sbc = selectAnnual(SBC_CONCEPTS, IFRS_SBC_CONCEPTS)
   const separatesOilAndGas = annualConcept(facts, OIL_AND_GAS_CAPEX, currency).length > 0
   const capexConcepts = separatesOilAndGas ? CAPEX_CONCEPTS.filter((concept) => concept !== OTHER_CAPEX) : CAPEX_CONCEPTS
-  const capex = annualPrefer(facts, capexConcepts, IFRS_CAPEX_CONCEPTS, currency)
+  const capex = selectAnnual(capexConcepts, IFRS_CAPEX_CONCEPTS)
   // Later 10-Ks sometimes restate older share counts onto a post-split basis.
   // Keep the original filing so the jump stays in the split year; otherwise
   // the same split is also detected from EPS and applied twice.
-  const shares = normalizeShareUnits(annualPrefer(facts, SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
+  const shares = normalizeShareUnits(selectAnnual(SHARE_CONCEPTS, IFRS_SHARE_CONCEPTS, 'shares', true))
   const { adjusted, splits: shareSplits } = splitAdjustedShares(shares, new Map(revenue.map((item) => [item.fy, item.val])))
   const splits = mergeSplits(shareSplits, restatementSplits(facts, currency))
   const restatedEps = rescaleFiledEps(reportedEps, splits)

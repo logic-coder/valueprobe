@@ -56,13 +56,13 @@ function company (ticker, cik) {
   const facts = availableFacts(raw, start)
   const initial = estimateAt({ facts, symbol, row: { date: start, price, splitFromStart: 1 }, yieldRate: 2.27, entryYield: 2.27, excludeFinancial: false })
   const result = { ticker, cik, fund: anchor.fund, rank: anchor.rank, factsSha256: createHash('sha256').update(bytes).digest('hex'),
-    initial, burden: capitalBurden(facts, fundamentalsFromFacts(symbol, facts).financials.annual, ticker) }
+    initial, burden: capitalBurden(facts, fundamentalsFromFacts(symbol, facts, { replayV1: true }).financials.annual, ticker) }
   const latest = result.burden?.items.at(-1)
   result.initialCashProxy = initial.fcf ?? (latest?.dilutedShares > 0
     ? round((latest.cfo - latest.capex) / latest.dilutedShares) : null)
   const basis = shareAudit[ticker]
   if (!basis || !(basis.factor > 0)) return { ...result, outcomeStatus: basis?.reason || 'unverifiedShareBasis' }
-  const later = fundamentalsFromFacts(symbol, availableFacts(raw, end))
+  const later = fundamentalsFromFacts(symbol, availableFacts(raw, end), { replayV1: true })
   const last = later.financials.annual.filter(r => r.eps_without_nri != null).at(-1)
   const f = later.fields
   const epsOK = Number.isFinite(f.ttm_eps) && initial.epsPeriod === f.eps_period && periodsMatch(initial.epsDate, f.eps_as_of)

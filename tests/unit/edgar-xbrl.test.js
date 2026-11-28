@@ -770,6 +770,7 @@ describe('EDGAR statement currency and per-share units', () => {
     const { fields, financials } = fundamentalsFromFacts('NYSE:ALC', payload)
     expect(fields).toMatchObject({ ttm_eps: 1.98, eps_as_of: '2025-12-31', eps_period: 'FY' })
     expect(financials.annual.filter(row => row.eps_without_nri != null).map(row => row.eps_without_nri)).toEqual([2.05, 1.98])
+    expect(fundamentalsFromFacts('NYSE:ALC', payload, { replayV1: true }).fields.eps_as_of).toBe('2010-12-31')
   })
 
   it('uses BRL statements and BRL EPS instead of a copied USD label', () => {
