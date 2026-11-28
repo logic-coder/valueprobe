@@ -10,7 +10,7 @@
           <div class="dcf__label">
             <a-popover placement="top">
               <h3 class="dcf__label-text">
-                {{ t('default_price') }}
+                {{ t(comparisonStatus === 'cash_scenario' ? 'comparison_short_cash_scenario' : comparisonStatus === 'historical' ? 'comparison_short_historical' : 'default_price') }}
                 <q-icon class="faint" name="help" size="14px" />
               </h3>
               <template #content>{{ t('fair_value_desc') }}</template>
@@ -29,7 +29,7 @@
             <b class="dcf__range-values">{{ officialBandText }}</b>
           </div>
           <div v-if="!trialActive && basisLine" class="dcf__basis-line" data-testid="value-basis-line">{{ basisLine }}</div>
-          <p v-if="trialActive" class="dcf__band-stay">{{ t('default_price_unchanged') }}</p>
+          <p v-if="trialActive && !comparisonStatus" class="dcf__band-stay">{{ t('default_price_unchanged') }}</p>
         </div>
       </div>
       <div v-if="officialCash" class="dcf__cash" data-testid="dcf-cash-check">
@@ -43,7 +43,8 @@
       <div v-else-if="cashUnchecked" class="dcf__cash dcf__cash--missing" data-testid="dcf-cash-missing">
         <span>{{ t('cash_cross_missing') }}</span>
       </div>
-      <div class="dcf__band-metrics">
+      <p v-if="comparisonStatus" class="dcf__trial-note" data-testid="comparison-note">{{ t('comparison_note_' + comparisonStatus) }}</p>
+      <div v-else class="dcf__band-metrics">
         <div class="dcf__block dcf__mos">
           <div class="dcf__label">
             <a-popover placement="top">
@@ -106,7 +107,7 @@
           <div v-if="trialHasBand && !officialPresent" class="dcf__range">{{ trialBandText }}</div>
         </div>
       </div>
-      <p v-if="officialPresent" class="dcf__trial-note">{{ t('trial_not_default_price') }}</p>
+      <p v-if="officialPresent && !comparisonStatus" class="dcf__trial-note">{{ t('trial_not_default_price') }}</p>
       <button
         v-if="!unavailable"
         type="button"
@@ -116,23 +117,23 @@
       >
         {{ t('restore_default_assumptions') }}
       </button>
-      <div v-if="!officialPresent" class="dcf__band-metrics">
-        <div v-if="!officialPresent" class="dcf__block dcf__mos">
+      <div v-if="comparisonEnabled" class="dcf__band-metrics">
+        <div class="dcf__block dcf__mos">
           <div class="dcf__label">
             <a-popover placement="top">
               <h3 class="dcf__label-text">
-                {{ t(marginLabel) }}
+                {{ t(officialPresent ? 'trial_margin_of_safety' : marginLabel) }}
                 <q-icon class="faint" name="help" size="14px" />
               </h3>
               <template #content>{{ t('margin_of_safety_desc') }}</template>
             </a-popover>
           </div>
           <q-skeleton v-if="loading" type="rect" height="22px" width="50px" />
-          <div v-else class="button-font-weight" data-testid="dcf-margin-of-safety" :style="{ color: trialSafetyColor }">
+          <div v-else class="button-font-weight" :data-testid="officialPresent ? 'dcf-trial-margin-of-safety' : 'dcf-margin-of-safety'" :style="{ color: trialSafetyColor }">
             <animated-amount :value="trialResult.marginOfSafety" :format="percent" />
           </div>
         </div>
-        <div v-if="showImplied" class="dcf__block dcf__implied">
+        <div v-if="!officialPresent && showImplied" class="dcf__block dcf__implied">
           <div class="dcf__label">
             <a-popover placement="top">
               <h3 class="dcf__label-text">
@@ -224,6 +225,8 @@ const props = defineProps({
   reverseState: { type: String, required: true },
   cash: { type: Object, default: null },
   cashUnchecked: { type: Boolean, default: false },
+  comparisonEnabled: { type: Boolean, default: true },
+  comparisonStatus: { type: String, default: '' },
 })
 const emit = defineEmits(['reset'])
 const { t } = useI18n()

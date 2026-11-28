@@ -33,12 +33,16 @@ test('shows the published value by default and only edits this page', async ({ p
   await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
   await expect(page.getByTestId('dcf-trial-value')).toBeVisible()
   await expect(page.getByTestId('dcf-trial-value')).not.toContainText(ICBC_VALUE)
+  const baseMargin = await page.getByTestId('dcf-margin-of-safety').innerText()
+  await expect(page.getByTestId('dcf-trial-margin-of-safety')).toContainText('%')
+  await expect(page.getByTestId('dcf-trial-margin-of-safety')).not.toHaveText(baseMargin)
 
   // Reset returns to the published inputs; the artifact itself is untouched.
   await page.locator('.q-btn:has-text("more_vert")').first().click()
   await page.locator('.q-menu .q-item:has-text("恢复默认值")').click()
   await expect(page.getByTestId('value-title')).toContainText('ValueProbe 公允价')
   await expect(page.locator(FAIR)).toContainText(ICBC_VALUE)
+  await expect(page.getByTestId('dcf-trial-margin-of-safety')).toHaveCount(0)
 })
 
 test('renders the calculator with the live defaults', async ({ page }) => {

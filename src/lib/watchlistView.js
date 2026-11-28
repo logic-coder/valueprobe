@@ -26,8 +26,9 @@ export function publishedRow (row, entry, translate, unavailable = false) {
     quoteNote: status === 'dated' ? '' : translate('quote_' + status),
     pe: sameQuote ? row.pe : null,
     pb: sameQuote ? row.pb : null,
-    fairValue: entry.value,
+    fairValue: entry.comparisonStatus === 'cash_scenario' ? null : entry.value,
     mos: entry.marginOfSafety,
+    comparisonLabel: entry.comparisonStatus ? translate('comparison_short_' + entry.comparisonStatus) : '',
     trialOnly: entry.reasons.includes(REASON.INDUSTRY_MODEL_PENDING),
     policyNote: entry.reasons.map((reason) => translate('reason_' + reason)).join(' · '),
   }

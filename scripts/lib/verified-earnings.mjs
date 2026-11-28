@@ -24,6 +24,17 @@ const verified = {
       source: 'https://www.sec.gov/Archives/edgar/data/1737806/000110465926050727/pdd-20251231x20f.htm',
     },
   },
+  'NYSE:BEKE': {
+    date: '2025-12-31',
+    eps: 0.37,
+    source: 'https://ir.ke.com/news-releases/news-release-details/ke-holdings-inc-announces-fourth-quarter-and-fiscal-year-2025',
+    ordinarySharesPerAdr: 3,
+    units: {
+      reportingCurrency: 'CNY',
+      perShareCurrency: 'USD',
+      source: 'https://www.sec.gov/Archives/edgar/data/1809587/000110465926048109/beke-20251231x20f.htm',
+    },
+  },
   // The fiscal 2026 10-K and the next year's 9-month comparison in the
   // November 17 8-K give comparable diluted EPS on the same share basis.
   'NASDAQ:NVDA': {

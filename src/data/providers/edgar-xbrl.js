@@ -179,13 +179,14 @@ function periodYear (item) {
 }
 
 /** One concept, one unit. A full fiscal year beats a later stub with the same period end. */
-function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEarliest = false) {
+function annualConcept (facts, concept, unit, taxonomyName = 'us-gaap', preferEarliest = false, completeOnly = false) {
   const entries = taxonomy(facts)[taxonomyName]?.[concept]?.units?.[unit]
   if (!entries) return []
   const byYear = new Map()
   for (const item of entries) {
     if (!FORMS.has(item.form) || item.fp !== 'FY' || !Number.isFinite(item.val)) continue
     const days = durationDays(item)
+    if (completeOnly && days != null && (days < 350 || days > 378)) continue
     const full = days == null || days >= 300
     const filed = String(item.filed || item.end || '')
     const year = periodYear(item)
@@ -207,11 +208,11 @@ function annual (facts, concepts, unit, taxonomyName = 'us-gaap', preferEarliest
   return annualSelection(facts, concepts, unit, taxonomyName, preferEarliest).series
 }
 
-function annualSelection (facts, concepts, unit, taxonomyName, preferEarliest = false) {
+function annualSelection (facts, concepts, unit, taxonomyName, preferEarliest = false, completeOnly = false) {
   let best = []
   let chosen = null
   for (const concept of concepts) {
-    const series = annualConcept(facts, concept, unit, taxonomyName, preferEarliest)
+    const series = annualConcept(facts, concept, unit, taxonomyName, preferEarliest, completeOnly)
     if (series.length < 2) continue
     const newer = (series.at(-1)?.fy || 0) > (best.at(-1)?.fy || 0)
     const longer = (series.at(-1)?.fy || 0) === (best.at(-1)?.fy || 0) && series.length > best.length
@@ -223,13 +224,14 @@ function annualSelection (facts, concepts, unit, taxonomyName, preferEarliest = 
   return { series: best.slice(-YEAR_LIMIT), points: taxonomy(facts)[taxonomyName]?.[chosen]?.units?.[unit] || [] }
 }
 
-/** Prefer a US-GAAP series when it can support a history; otherwise IFRS/20-F. */
+/** Prefer the most recent compatible series. Keep one taxonomy per history. */
 function annualPrefer (facts, gaapConcepts, ifrsConcepts, unit, preferEarliest = false) {
   const gaap = annual(facts, gaapConcepts, unit, 'us-gaap', preferEarliest)
-  if (gaap.length >= 2) return gaap
-  if (ifrsConcepts?.length) return annual(facts, ifrsConcepts, unit, 'ifrs-full', preferEarliest)
-  return gaap
+  const ifrs = ifrsConcepts?.length ? annual(facts, ifrsConcepts, unit, 'ifrs-full', preferEarliest) : []
+  return seriesPeriod(ifrs) > seriesPeriod(gaap) ? ifrs : gaap
 }
+
+const seriesPeriod = series => series.at(-1)?.end || String(series.at(-1)?.fy || '')
 
 // Some 10-Ks disclose oil and gas additions separately from other PP&E.
 // Use those lines only when both reconcile to the same filing and cash-flow period.
@@ -260,19 +262,17 @@ function sameFilingCapitalSpending (facts, operatingCash, totalConcepts, currenc
 // local-currency number must never be treated as proof of a dollar series.
 function earningsSeries (facts, concepts, taxonomyName, currency) {
   if (!currency) return { series: [], points: [] }
-  for (const unit of [currency + '/shares', currency + '/share']) {
-    const selected = annualSelection(facts, concepts, unit, taxonomyName)
-    if (selected.series.length >= 2) return selected
-  }
-  return { series: [], points: [] }
+  const plural = annualSelection(facts, concepts, currency + '/shares', taxonomyName, false, true)
+  const singular = annualSelection(facts, concepts, currency + '/share', taxonomyName, false, true)
+  return seriesPeriod(singular.series) > seriesPeriod(plural.series) ? singular : plural
 }
 
 /** EPS stays in the issuer's reporting currency per ordinary share. */
 function earningsPerShare (facts, currency) {
   const direct = earningsSeries(facts, EPS_CONCEPTS, 'us-gaap', currency)
-  if (direct.series.length >= 2) return direct
   const ifrsConcepts = ['DilutedEarningsLossPerShare', 'BasicEarningsLossPerShare']
-  return earningsSeries(facts, ifrsConcepts, 'ifrs-full', currency)
+  const ifrs = earningsSeries(facts, ifrsConcepts, 'ifrs-full', currency)
+  return seriesPeriod(ifrs.series) > seriesPeriod(direct.series) ? ifrs : direct
 }
 
 // Use the current and comparative YTD figures in the same 10-Q. The 10-K

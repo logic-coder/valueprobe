@@ -398,6 +398,19 @@ describe('centered envelope and regime rules', () => {
 })
 
 describe('the committed artifact is what the policy produces', () => {
+  it('publishes fresh EPS and reconciled ADS units and keeps non-comparable valuations out of margins', () => {
+    const e = artifact.entries
+    expect(e['NYSE:ALC']).toMatchObject({ earningsDate: '2025-12-31', inputs: { epsLatest: 1.98 } })
+    expect(e['NYSE:B']).toMatchObject({ earningsDate: '2025-12-31', inputs: { epsLatest: 2.93 } })
+    expect(e['NYSE:BEKE']).toMatchObject({ status: 'ok', inputs: { reportingCurrency: 'CNY', perShareCurrency: 'USD', epsLatest: 0.37 } })
+    expect(e['NYSE:BEKE'].warnings).not.toContain('SHARE_BASIS_UNVERIFIED')
+    expect(e['NYSE:BRK.B']).toMatchObject({ comparisonStatus: 'cash_scenario', marginOfSafety: null })
+    expect(e['NASDAQ:MNST']).toMatchObject({ comparisonStatus: 'historical', marginOfSafety: null })
+    const unverified = Object.values(e).filter(entry => entry.warnings.includes('SHARE_BASIS_UNVERIFIED'))
+    expect(unverified.length).toBeGreaterThan(0)
+    expect(unverified.every(entry => entry.marginOfSafety === null)).toBe(true)
+  })
+
   it('covers the whole declared universe with the expected shape', () => {
     expect(artifact.policyVersion).toBe(POLICY_VERSION)
     expect(artifact.policyHash).toBe(POLICY_V1_HASH)

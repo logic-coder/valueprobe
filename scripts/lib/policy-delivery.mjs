@@ -28,9 +28,9 @@ export function policyDelivery (root = process.cwd()) {
       const file = symbol.replace(':', '-') + '.json'
       const stock = JSON.parse(readFileSync(resolve(root, 'public/data', file), 'utf8'))
       const ratios = peerRow(stock, symbol)
-      const { name, status, value, price, priceDate, marginOfSafety, reasons, asOf, inputs: { currency } } = entry
-      const sameSnapshot = ratios.price === price && stock.as_of === asOf
-      const row = { name, status, value, price, priceDate, marginOfSafety, reasons, asOf, inputs: { currency },
+      const { name, status, value, price, priceDate, marginOfSafety, comparisonStatus, reasons, asOf, inputs: { currency } } = entry
+      const sameSnapshot = !comparisonStatus && ratios.price === price && stock.as_of === asOf
+      const row = { name, status, value, price, priceDate, marginOfSafety, comparisonStatus, reasons, asOf, inputs: { currency },
         pe: sameSnapshot ? ratios.pe : null, pb: sameSnapshot ? ratios.pb : null }
       summaries[symbol] = row
       details[symbol] = { ...entry, pe: row.pe, pb: row.pb }

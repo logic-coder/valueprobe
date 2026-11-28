@@ -18,7 +18,9 @@
             :trial-result="result"
             :live-summary="liveSummary"
             :basis-line="publishedOfficial ? basisLine : ''"
-            :show-implied="!residualIncome"
+            :show-implied="comparisonEnabled && !residualIncome"
+            :comparison-enabled="comparisonEnabled"
+            :comparison-status="policyEntry?.comparisonStatus || ''"
             :official-context="officialContext"
             :trial-context="trialContext"
             :unavailable="!trialActive && !publishedOfficial"
@@ -370,12 +372,12 @@
             class="dcf__sens"
             :grid="sensitivityGrid"
             :currency="stock.currency || '¥'"
-            :price="result.stockPrice"
+            :price="comparisonEnabled ? result.stockPrice : null"
           />
 
           <div class="dcf__evidence">
           <multiple-check-panel
-            v-if="!loading"
+            v-if="!loading && comparisonEnabled"
             class="dcf__mcheck"
             :bases="{ eps: form.eps, freecashflow: firmClaim ? null : form.freecashflow, tbv: result.tbv }"
             :price="result.stockPrice"
@@ -536,6 +538,7 @@ const classificationHint = computed(() => {
 const firmClaim = computed(() => firmFreeCashFlow(stock.value))
 const model = ref('owner')
 const policyEntry = computed(() => policyStore.entryOf(props.symbol))
+const comparisonEnabled = computed(() => isManual.value || !policyEntry.value?.comparisonStatus)
 const policyInputs = computed(() => {
   const entry = policyEntry.value
   if (!entry?.inputs || entry.reasons.includes(REASON.UNIT_UNRECONCILED)) return null
@@ -631,7 +634,7 @@ const publishedOfficial = computed(() => {
   if (entry?.status !== 'ok') return null
   return {
     fairValue: entry.value,
-    marginOfSafety: quoteEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
+    marginOfSafety: !comparisonEnabled.value ? null : quoteEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
     fairLow: entry.band?.low ?? null,
     fairHigh: entry.band?.high ?? null,
     reverseGrowthRate: showPublished.value ? result.reverseGrowthRate : null,
@@ -643,7 +646,7 @@ const headline = computed(() => {
     return {
       ...result,
       fairValue: entry.value,
-      marginOfSafety: quoteEdited.value ? marginOfSafety(result.stockPrice, entry.value) : entry.marginOfSafety,
+      marginOfSafety: publishedOfficial.value.marginOfSafety,
       fairLow: entry.band?.low ?? null,
       fairHigh: entry.band?.high ?? null,
     }
@@ -674,7 +677,7 @@ const defaultTerminalGrowth = computed(() => {
 })
 const stressQuote = computed(() => result.stockPrice)
 const stressRows = computed(() => {
-  if (isManual.value) return null
+  if (isManual.value || !comparisonEnabled.value) return null
   const rows = calculateMarginStress(policyEntry.value, stressQuote.value)
   // The default case is already the page's published intrinsic value; show only stricter cases.
   return rows ? rows.slice(1) : null
@@ -819,7 +822,7 @@ const calculate = () => {
     result.terminalValue = null
     result.finiteTerminalValue = null
     result.continuationValue = null
-    result.marginOfSafety = result.fairValue == null ? 'n/a' : marginOfSafety(result.stockPrice, result.fairValue)
+    result.marginOfSafety = !comparisonEnabled.value || result.fairValue == null ? 'n/a' : marginOfSafety(result.stockPrice, result.fairValue)
     result.reverseGrowthRate = null
     return
   }
@@ -829,7 +832,7 @@ const calculate = () => {
   result.terminalValue = computedValues.terminalValue
   result.finiteTerminalValue = computedValues.finiteTerminalValue
   result.continuationValue = computedValues.continuationValue
-  result.marginOfSafety = marginOfSafety(result.stockPrice, result.fairValue)
+  result.marginOfSafety = comparisonEnabled.value ? marginOfSafety(result.stockPrice, result.fairValue) : 'n/a'
   result.reverseGrowthRate = impliedGrowth(
     result.tbv, form.years, form.discountRate, base, result.stockPrice,
     form.terminalGrowthRate, result.stockPrice, form.yearsOfTerminalGrowth, result.addToFairValue,

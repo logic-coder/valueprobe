@@ -89,10 +89,12 @@ export const POLICY_V1 = deepFreeze({
     // safety and the sort order. A stale price is disclosed, not silently used.
     marginWarningDays: 7,
   },
+  comparison: { cashFlowScenarios: ['NYSE:BRK.A', 'NYSE:BRK.B'], verifiedShareBasis: true },
   staleness: {
     // A stale snapshot keeps its value and carries a STALE_DATA warning; the data
     // gate fails separately so the refresh cannot slip past a release.
     fundamentalsDays: 120,
+    historicalComparisonDays: 548,
     ratesDays: 10,
   },
   band: { discountSpread: 2, growthSpread: BAND_GROWTH_SPREAD, growthEnvelope: 'official-path' },
@@ -102,7 +104,7 @@ export const POLICY_V1 = deepFreeze({
 
 // sha256(JSON.stringify(POLICY_V1)); pinned by tests/unit/policy.test.js so an
 // unversioned policy edit cannot ship.
-export const POLICY_V1_HASH = '3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d'
+export const POLICY_V1_HASH = 'cc7d56ebb03fc87f58a104d7d0c299fa61b6a5c0e59c749206815adf56261d78'
 
 const num = (value) => {
   if (value === null || value === undefined || value === '') return null
@@ -519,7 +521,13 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
   if (band.mid != null) value = band.mid
 
   // ---- price is a separate fact: it only feeds the margin of safety --------
-  const margin = Number(marginOfSafety(price, value))
+  const holdingCompany = POLICY_V1.comparison.cashFlowScenarios.includes(stock.exchange_ + ':' + stock.symbol)
+  const periodAge = date => generatedAt && date ? daysBetween(generatedAt, date) : null
+  const isHistorical = [earningsDate, inputs.baseAsOf].some(date => periodAge(date) > POLICY_V1.staleness.historicalComparisonDays)
+  const comparisonStatus = holdingCompany ? 'cash_scenario'
+    : isHistorical ? 'historical'
+      : warnings.includes(WARNING.SHARE_BASIS_UNVERIFIED) || warnings.includes(WARNING.SPLIT_UNVERIFIED) ? 'unit_unverified' : null
+  const margin = comparisonStatus ? null : Number(marginOfSafety(price, value))
 
   return finish({
     ...base,
@@ -527,6 +535,7 @@ export function policyValue (stock, { rates = null, rate, generatedAt = null } =
     band: band.low === null && band.high === null ? null : { low: band.low, mid: band.mid, high: band.high },
     terminalShare,
     cash,
+    ...(comparisonStatus ? { comparisonStatus } : {}),
     marginOfSafety: Number.isFinite(margin) ? margin : null,
   }, reasons, warnings)
 }

@@ -757,6 +757,21 @@ describe('EDGAR depreciation and share-based compensation lines', () => {
 
 
 describe('EDGAR statement currency and per-share units', () => {
+  it('chooses the recent complete IFRS history over obsolete US GAAP and skips stubs', () => {
+    const eps = (fy, val, start = fy + '-01-01') => year(fy, val, { start, form: '20-F' })
+    const payload = facts({
+      EarningsPerShareDiluted: ['USD/shares', [eps(2009, 6.66), eps(2010, 7.27)]],
+    })
+    payload['ifrs-full'] = {
+      DilutedEarningsLossPerShare: { units: { 'USD/share': [
+        eps(2024, 2.05), eps(2025, 1.98), eps(2026, 0.2, '2026-10-01'),
+      ] } },
+    }
+    const { fields, financials } = fundamentalsFromFacts('NYSE:ALC', payload)
+    expect(fields).toMatchObject({ ttm_eps: 1.98, eps_as_of: '2025-12-31', eps_period: 'FY' })
+    expect(financials.annual.filter(row => row.eps_without_nri != null).map(row => row.eps_without_nri)).toEqual([2.05, 1.98])
+  })
+
   it('uses BRL statements and BRL EPS instead of a copied USD label', () => {
     const annual20 = (fy, val, extra = {}) => year(fy, val, { form: '20-F', accn: 'sbs-' + fy, ...extra })
     const payload = {

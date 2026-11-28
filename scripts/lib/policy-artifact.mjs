@@ -93,6 +93,7 @@ const entryOf = (symbol, stock, value) => {
     cash: value.cash,
     price: value.price,
     priceDate: value.priceDate,
+    ...(value.comparisonStatus ? { comparisonStatus: value.comparisonStatus } : {}),
     marginOfSafety: value.marginOfSafety,
     reasons: value.reasons,
     warnings: value.warnings,
