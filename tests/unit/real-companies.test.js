@@ -52,7 +52,13 @@ describe('US listings keep a published value', () => {
       expect(value.value).toBeGreaterThan(0)
       expect(value.value).toBe(published(symbol).value)
       expect(value.inputs.currency).toBe('USD')
-      expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.USD.value))
+      if (symbol === 'NYSE:TSM') {
+        expect(value.inputs.reportingCurrency).toBe('TWD')
+        expect(value.inputs.rate.source).toBe('fallback')
+        expect(value.warnings).toContain(WARNING.RATE_FALLBACK)
+      } else {
+        expect(value.inputs.discountRate).toBe(policyDiscountRate(rates.USD.value))
+      }
     })
   }
 })
@@ -65,7 +71,8 @@ describe('NASDAQ:NVDA is published on a confirmed persistent step, not the singl
     expect(value.value).toBeCloseTo(83.71, 2)
     expect(value.value).toBe(published('NASDAQ:NVDA').value)
     expect(value.inputs.eps).toBeCloseTo(3.6283, 4)
-    expect(value.inputs.epsLatest).toBeCloseTo(7.91, 2)
+    expect(value.inputs.epsLatest).toBeCloseTo(9.31, 2)
+    expect(value.earningsDate).toBe('2026-10-25')
     expect(value.warnings).toContain(WARNING.PERSISTENT_STEP_BASE)
     expect(value.warnings).not.toContain(WARNING.LATEST_FY_BASE)
     expect(value.reasons).not.toContain(REASON.CASH_UNRECONCILED)

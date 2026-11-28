@@ -105,7 +105,7 @@ const CURRENCY_STATEMENT_CONCEPTS = [
 ]
 
 /** Latest complete annual statement unit, with enough provenance to audit the choice. */
-export function reportingCurrencyFromFacts (facts) {
+export function reportingCurrencyFromFacts (facts, verifiedCurrency = null) {
   const candidates = []
   for (const [taxonomyName, concepts] of CURRENCY_STATEMENT_CONCEPTS) {
     for (const concept of concepts) {
@@ -123,6 +123,9 @@ export function reportingCurrencyFromFacts (facts) {
   if (!candidates.length) return { currency: null, conflict: false, evidence: null }
   const latestEnd = candidates.map((item) => item.end).sort().at(-1)
   const latest = candidates.filter((item) => item.end === latestEnd)
+  const verified = verifiedCurrency && latest.find((item) => item.currency === verifiedCurrency)
+  if (verified) return { currency: verifiedCurrency, conflict: false, evidence: verified }
+  if (verifiedCurrency) return { currency: null, conflict: true, evidence: latest[0] }
   let currencies = [...new Set(latest.map((item) => item.currency))]
   const epsFor = (currency) => {
     const gaap = annualSelection(facts, EPS_CONCEPTS, currency + '/shares', 'us-gaap').series
@@ -159,7 +162,6 @@ export function reportingCurrencyFromFacts (facts) {
   }
   const choices = currencies.filter((currency) => eps.get(currency).length >= 2)
   if (!choices.length && currencies.length === 1) choices.push(currencies[0])
-  if (choices.length > 1 && choices.includes('USD')) choices.splice(0, choices.length, 'USD')
   if (choices.length !== 1) {
     return { currency: null, conflict: true, evidence: latest.sort((a, b) => a.concept.localeCompare(b.concept))[0] }
   }
@@ -570,7 +572,7 @@ export function scalePerShare (pack, factor) {
     financials: {
       annual: (pack.financials?.annual || []).map((row) => scalePerShareFields(row, factor)),
       ttm: (pack.financials?.ttm || []).map((row) => scalePerShareFields(row, factor)),
-      quarter: pack.financials?.quarter || [],
+      quarter: (pack.financials?.quarter || []).map((row) => scalePerShareFields(row, factor)),
     },
   }
 }
@@ -585,7 +587,7 @@ export function scaleSnapshotRecord (record, factor) {
       ...financials,
       annual: (financials.annual || []).map((row) => scalePerShareFields(row, factor)),
       ttm: (financials.ttm || []).map((row) => scalePerShareFields(row, factor)),
-      quarter: financials.quarter || [],
+      quarter: (financials.quarter || []).map((row) => scalePerShareFields(row, factor)),
     },
   }
 }
@@ -758,9 +760,13 @@ function attachQuality (row, fy, quality) {
   return row
 }
 
-function assemble (facts) {
-  const statement = reportingCurrencyFromFacts(facts)
-  const currency = statement.currency
+function assemble (facts, units) {
+  const statement = reportingCurrencyFromFacts(facts, units?.reportingCurrency)
+  const unitsConfirmed = units && statement.currency === units.reportingCurrency
+  // Some issuers publish a USD translation of their per-share numbers. Use
+  // that series only when verified for the listing and keep the report currency
+  // independent for the required return.
+  const currency = unitsConfirmed ? units.perShareCurrency : statement.currency
   const { series: reportedEps, points: epsFacts } = earningsPerShare(facts, currency)
   const revenue = annualPrefer(facts, REVENUE_CONCEPTS, ['Revenue'], currency)
   const operating = annualPrefer(facts, ['OperatingIncomeLoss'], ['ProfitLossFromOperatingActivities'], currency)
@@ -861,10 +867,10 @@ function assemble (facts) {
     },
     fields: {
       reporting_currency: statement.currency,
-      reporting_currency_source: statement.evidence
+      reporting_currency_source: unitsConfirmed ? units.source : statement.evidence
         ? [statement.evidence.taxonomyName, statement.evidence.concept, statement.evidence.currency, statement.evidence.end, statement.evidence.accn].filter(Boolean).join(':')
         : null,
-      per_share_currency: statement.currency,
+      per_share_currency: currency,
       unit_unreconciled: !statement.currency,
       ttm_eps: trailingEps?.val ?? lastAnnualEps?.val ?? null,
       eps_as_of: trailingEps?.end ?? lastAnnualEps?.end ?? null,
@@ -892,9 +898,9 @@ export function financialsFromFacts (facts) {
   return assemble(facts).financials
 }
 
-export function fundamentalsFromFacts (symbol, facts) {
+export function fundamentalsFromFacts (symbol, facts, units) {
   const [market, code] = String(symbol).split(':')
-  const built = assemble(facts)
+  const built = assemble(facts, units)
   const fields = {
     symbol: code,
     exchange_: market,

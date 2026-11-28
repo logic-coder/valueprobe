@@ -8,6 +8,29 @@ const verified = {
     eps: 10.65,
     source: 'https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf',
     ordinarySharesPerAdr: 5,
+    units: {
+      reportingCurrency: 'TWD',
+      perShareCurrency: 'USD',
+      source: 'https://www.sec.gov/Archives/edgar/data/1046179/000162828026025362/tsm-20251231.htm',
+    },
+  },
+  // The 20-F tags USD 2.36 for FY2025 per ordinary share. The quoted ADS
+  // represents four shares. USD is a convenience translation of CNY.
+  'NASDAQ:PDD': {
+    ordinarySharesPerAdr: 4,
+    units: {
+      reportingCurrency: 'CNY',
+      perShareCurrency: 'USD',
+      source: 'https://www.sec.gov/Archives/edgar/data/1737806/000110465926050727/pdd-20251231x20f.htm',
+    },
+  },
+  // The fiscal 2026 10-K and the next year's 9-month comparison in the
+  // November 17 8-K give comparable diluted EPS on the same share basis.
+  'NASDAQ:NVDA': {
+    date: '2026-10-25',
+    period: 'TTM',
+    eps: Number((4.90 + 7.55 - 3.14).toFixed(2)),
+    source: 'https://www.sec.gov/Archives/edgar/data/1045810/000104581026000088/supplementalfinancialinfor.htm',
   },
   // Class B EPS is read directly from the 10-K's Equivalent Class B column;
   // ratio 1 records that no ADR-style scaling is needed for the quote.
@@ -68,6 +91,8 @@ export const verifiedQuoteFactor = (symbol) => {
   return shareBasisVerified.has(symbol) ? 1 : null
 }
 
+export const verifiedReportingUnits = symbol => verified[symbol]?.units
+
 /** Refresh from a checked filing when the machine-readable feed is behind. */
 export function applyVerifiedEarnings (record) {
   const filing = verified[record.exchange_ + ':' + record.symbol]
@@ -76,6 +101,28 @@ export function applyVerifiedEarnings (record) {
   if (!filing || filing.date == null || filing.eps == null || (record.eps_as_of || '') > filing.date) return record
 
   const month = filing.date.slice(0, 7)
+  if (filing.period === 'TTM') {
+    if (record.eps_as_of === filing.date || record.reporting_currency !== 'USD' || record.split_to_quote) return record
+    return {
+      ...record,
+      ttm_eps: filing.eps,
+      ttm_eps_nri: filing.eps,
+      eps_period: 'TTM',
+      eps_as_of: filing.date,
+      eps_source: filing.source,
+      // Do not carry the older quarter's quality totals into a new TTM.
+      ttm_nonoperating_gain: null,
+      ttm_net_income: null,
+      ttm_operating_income: null,
+      ttm_quality_as_of: filing.date,
+      ttm_quality_facts_searched: false,
+      financials: {
+        ...record.financials,
+        ttm: [{ date: month, eps_without_nri: filing.eps }],
+      },
+    }
+  }
+
   const annual = record.financials.annual.filter((row) => row.date !== month)
   const existing = record.financials.annual.find((row) => row.date === month)
   annual.push({ ...existing, date: month, eps_without_nri: filing.eps })

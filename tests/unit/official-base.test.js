@@ -74,7 +74,7 @@ describe('named companies follow the stacked official rules', () => {
     expect(value.status).toBe('ok')
     expect(value.inputs.growth).toBe(15)
     expect(value.inputs.eps).toBeCloseTo(3.6283, 4)
-    expect(value.inputs.epsLatest).toBeCloseTo(7.91, 2)
+    expect(value.inputs.epsLatest).toBeCloseTo(9.31, 2)
     expect(value.value).toBeCloseTo(83.71, 2)
     expect(value.warnings).toContain(WARNING.PERSISTENT_STEP_BASE)
     expect(value.warnings).not.toContain(WARNING.LATEST_FY_BASE)

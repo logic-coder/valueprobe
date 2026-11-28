@@ -16,7 +16,7 @@ import { fundamentalsFromFacts, quoteSplitFactor, scalePerShare } from '../src/d
 import { parseEastMoneyYields } from '../src/lib/riskFree.js'
 import { ARTIFACT_PATH, DATA_DIR, buildArtifacts, snapshotFiles } from './lib/policy-artifact.mjs'
 import { atomicWrite, classifyShareBasis, readOptionalJson, recoverRecord, transport, useQuote } from './lib/snapshot-transport.mjs'
-import { applyVerifiedEarnings, verifiedQuoteFactor } from './lib/verified-earnings.mjs'
+import { applyVerifiedEarnings, verifiedQuoteFactor, verifiedReportingUnits } from './lib/verified-earnings.mjs'
 import { parseSymbol } from '../src/config/markets.js'
 import { recoverInstall, installSnapshots } from './lib/snapshot-install.mjs'
 import { tencentKlineQuote, tencentKlineSymbol } from './lib/snapshot-quotes.mjs'
@@ -323,7 +323,8 @@ async function refresh (existing, baseline) {
       if (!built) throw new Error('SEC 10-K fallback produced no fundamentals')
     } else {
       try {
-        built = fundamentalsFromFacts(market + ':' + code, facts)
+        const symbol = market + ':' + code
+        built = fundamentalsFromFacts(symbol, facts, verifiedReportingUnits(symbol))
       } catch (error) {
         // Some issuers tag EPS dimensionally or stop updating Company Facts.
         // Use their own 10-K statements before giving up on the listing.

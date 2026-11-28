@@ -794,6 +794,31 @@ describe('EDGAR statement currency and per-share units', () => {
     expect(table.annual).toEqual([])
   })
 
+  it('separates a primary reporting currency from an explicitly verified USD translation', () => {
+    const annual = (fy, val) => year(fy, val, { form: '20-F' })
+    const payload = { 'us-gaap': {
+      NetIncomeLoss: { units: {
+        CNY: [annual(2024, 112e9), annual(2025, 97.8e9)],
+        USD: [annual(2024, 15.4e9), annual(2025, 14e9)],
+      } },
+      EarningsPerShareDiluted: { units: {
+        'CNY/shares': [annual(2024, 19), annual(2025, 16.50)],
+        'USD/shares': [annual(2024, 2.60), annual(2025, 2.36)],
+      } },
+      WeightedAverageNumberOfDilutedSharesOutstanding: { units: { shares: [
+        annual(2024, 5.9e9), annual(2025, 5.93e9),
+      ] } },
+    } }
+    expect(reportingCurrencyFromFacts(payload)).toMatchObject({ currency: null, conflict: true })
+    expect(reportingCurrencyFromFacts(payload, 'TWD')).toMatchObject({ currency: null, conflict: true })
+    const units = { reportingCurrency: 'CNY', perShareCurrency: 'USD', source: 'filing' }
+    const pack = fundamentalsFromFacts('NASDAQ:PDD', payload, units)
+    expect(pack.fields).toMatchObject({
+      reporting_currency: 'CNY', reporting_currency_source: 'filing', per_share_currency: 'USD', ttm_eps: 2.36,
+    })
+    expect(scalePerShare(pack, 0.25).fields.ttm_eps).toBe(9.44)
+  })
+
   it('does not infer USD merely from a US listing or a USD-labelled EPS tag', () => {
     const payload = {
       'us-gaap': {

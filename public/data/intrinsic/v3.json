@@ -2,7 +2,7 @@
   "schema": 1,
   "policyVersion": "v3",
   "policyHash": "3b33fdcb0bcdb4c10fff4c5bb0949a589c386729792df3035daa539ee332682d",
-  "generatedAt": "2026-11-27",
+  "generatedAt": "2026-11-28",
   "rates": {
     "asOf": "2026-11-26",
     "CNY": {
@@ -45,8 +45,9 @@
       "SHORT_HISTORY": 219,
       "NO_WINDOW_ZERO_START": 151,
       "GROWTH_ABOVE_RETENTION": 53,
-      "RATE_FALLBACK": 6,
-      "STALE_DATA": 201,
+      "RATE_FALLBACK": 7,
+      "STALE_PRICE": 28,
+      "STALE_DATA": 200,
       "EARNINGS_DATE_UNKNOWN": 16,
       "CLASSIFICATION_UNVERIFIED": 25,
       "MODEL_CAVEAT": 3,
@@ -59,7 +60,7 @@
       "SHARE_BASIS_UNVERIFIED": 596,
       "PERSISTENT_STEP_BASE": 290,
       "TTM_NONOPERATING": 14,
-      "TTM_QUALITY_UNKNOWN": 18,
+      "TTM_QUALITY_UNKNOWN": 19,
       "CASH_PERIOD_LAG": 753,
       "BASE_HISTORY_SHORT": 4,
       "BASE_QUALITY_REDUCED": 75,
@@ -7495,6 +7496,7 @@
         "NO_GROWTH"
       ],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "TTM_NONOPERATING",
         "BASE_QUALITY_REDUCED"
@@ -9772,6 +9774,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "TTM_NONOPERATING",
         "CASH_PERIOD_LAG",
@@ -12790,6 +12793,7 @@
       "reasons": [],
       "warnings": [
         "GROWTH_ABOVE_RETENTION",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -19022,6 +19026,7 @@
       "marginOfSafety": -62.4,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA"
       ],
       "inputs": {
@@ -20827,6 +20832,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "STALE_DATA",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
@@ -21726,6 +21732,7 @@
       "marginOfSafety": -120.72,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "CASH_PERIOD_LAG"
       ],
@@ -22366,16 +22373,18 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
-        "STALE_DATA",
         "CASH_DIVERGENCE",
         "NORMALIZED_EPS",
-        "PERSISTENT_STEP_BASE"
+        "SHARE_BASIS_UNVERIFIED",
+        "PERSISTENT_STEP_BASE",
+        "TTM_QUALITY_UNKNOWN",
+        "CASH_PERIOD_LAG"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
         "eps": 3.6283,
-        "epsLatest": 7.91,
+        "epsLatest": 9.31,
         "epsNormalized": 2.7037,
         "cashMedian": 2.4534,
         "latestFyEps": 4.9,
@@ -22384,8 +22393,8 @@
         "baseMethod": "persistent-step",
         "baseAsOf": "2026-01-31",
         "cashAsOf": "2026-01-31",
-        "ttmAsOf": "2026-07-26",
-        "ttmQuality": "clean",
+        "ttmAsOf": "2026-10-25",
+        "ttmQuality": "unknown",
         "capexToOcf": 0.058827740919287864,
         "capexToRevenue": 0.02798338025610753,
         "maintenanceCapexMethod": "da-proxy",
@@ -22423,10 +22432,10 @@
         "classification": "none",
         "industry": null
       },
-      "asOf": "2026-11-25",
-      "earningsDate": "2026-07-26",
+      "asOf": "2026-11-28",
+      "earningsDate": "2026-10-25",
       "earningsPeriod": "TTM",
-      "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
+      "earningsSource": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000088/supplementalfinancialinfor.htm",
       "ratesAsOf": "2026-11-25"
     },
     "NASDAQ:NWSA": {
@@ -22945,6 +22954,7 @@
       "marginOfSafety": -74.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -23739,33 +23749,32 @@
       "symbol": "NASDAQ:PDD",
       "name": "PDD Holdings Inc.",
       "status": "ok",
-      "value": 28.84,
+      "value": 134.1,
       "band": {
-        "low": 22.59,
-        "mid": 28.84,
-        "high": 40.07
+        "low": 101.3,
+        "mid": 134.1,
+        "high": 199.55
       },
-      "terminalShare": 0.5055,
+      "terminalShare": 0.5556,
       "cash": null,
       "price": 87.42,
       "priceDate": "2026-11-25",
-      "marginOfSafety": -203.12,
+      "marginOfSafety": 34.81,
       "reasons": [],
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
         "STALE_DATA",
-        "SHARE_BASIS_UNVERIFIED",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
         "model": "owner",
         "basis": "repeatable-earnings",
-        "eps": 2.2883,
-        "epsLatest": 2.36,
-        "epsNormalized": 1.8893,
+        "eps": 9.1533,
+        "epsLatest": 9.44,
+        "epsNormalized": 7.5573,
         "cashMedian": null,
-        "latestFyEps": 2.36,
+        "latestFyEps": 9.44,
         "latestFyFcf": 0,
         "baseUpshift": false,
         "baseMethod": "persistent-step",
@@ -23776,9 +23785,9 @@
         "capexToOcf": null,
         "capexToRevenue": null,
         "maintenanceCapexMethod": "da-proxy",
-        "daPerShare": 0.0145,
-        "maintenanceCapexProxy": 0.0145,
-        "sbcPerShare": 0.1914,
+        "daPerShare": 0.058,
+        "maintenanceCapexProxy": 0.058,
+        "sbcPerShare": 0.7656,
         "ownerBaseGap": false,
         "baseKind": "persistent-step",
         "growth": 0,
@@ -23786,23 +23795,23 @@
         "growthCap": null,
         "growth10": null,
         "growth5": null,
-        "sustainableGrowth": 22.9544,
+        "sustainableGrowth": 22.9546,
         "payoutRatio": null,
         "retentionBound": false,
         "regimeUncertain": false,
-        "discountRate": 11,
-        "reportingCurrency": "USD",
+        "discountRate": 10,
+        "reportingCurrency": "CNY",
         "reportingCurrencySource": "snapshot",
         "perShareCurrency": "USD",
         "perShareFxToQuote": null,
         "terminalGrowthRate": 4,
         "years": 10,
         "yearsOfTerminalGrowth": 10,
-        "tangibleBook": 9.9689,
+        "tangibleBook": 39.8756,
         "addToFairValue": false,
         "currency": "USD",
         "rate": {
-          "value": 4.85,
+          "value": 1.5914,
           "asOf": "2026-11-25",
           "source": "snapshot",
           "proxy": null
@@ -23810,7 +23819,7 @@
         "classification": "none",
         "industry": null
       },
-      "asOf": "2026-11-26",
+      "asOf": "2026-11-28",
       "earningsDate": "2025-12-31",
       "earningsPeriod": "FY",
       "earningsSource": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001737806.json",
@@ -27376,6 +27385,7 @@
       "marginOfSafety": -96.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -30582,6 +30592,7 @@
       "marginOfSafety": -34.39,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -33639,6 +33650,7 @@
       "marginOfSafety": -22.1,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_DIVERGENCE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -38678,6 +38690,7 @@
       "marginOfSafety": -42.53,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -39920,6 +39933,7 @@
         "CASH_UNRECONCILED"
       ],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -46784,6 +46798,7 @@
       "marginOfSafety": -173.09,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -47433,6 +47448,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -48966,6 +48982,7 @@
       "warnings": [
         "SHORT_HISTORY",
         "NO_WINDOW_ZERO_START",
+        "STALE_PRICE",
         "NORMALIZED_EPS"
       ],
       "inputs": {
@@ -52231,6 +52248,7 @@
       "marginOfSafety": -206.04,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
@@ -56496,6 +56514,7 @@
       "marginOfSafety": 42.43,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -57146,6 +57165,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -58509,6 +58529,7 @@
       "marginOfSafety": -72.93,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
@@ -61899,6 +61920,7 @@
       "marginOfSafety": -94.83,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "REGIME_UNCERTAIN",
         "CASH_PERIOD_LAG"
       ],
@@ -62958,6 +62980,7 @@
       "marginOfSafety": -78.66,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "STALE_DATA",
         "NORMALIZED_EPS",
         "BASE_QUALITY_REDUCED"
@@ -70598,6 +70621,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE"
       ],
       "inputs": {
@@ -70920,6 +70944,7 @@
       "marginOfSafety": -56.43,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "CASH_PERIOD_LAG"
       ],
       "inputs": {
@@ -72158,6 +72183,7 @@
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "STALE_PRICE",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
         "PERSISTENT_STEP_BASE",
@@ -77997,6 +78023,7 @@
       "marginOfSafety": -121.02,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -80346,28 +80373,28 @@
       "symbol": "NYSE:TSM",
       "name": "Taiwan Semiconductor Manufacturing Company Limited",
       "status": "ok",
-      "value": 113.23,
+      "value": 133.27,
       "band": {
-        "low": 54.2,
-        "mid": 113.23,
-        "high": 213.86
+        "low": 61.38,
+        "mid": 133.27,
+        "high": 269.89
       },
-      "terminalShare": 0.5592,
+      "terminalShare": 0.6068,
       "cash": {
-        "value": 76.43,
+        "value": 89.96,
         "base": 3.313,
-        "gapPct": -49.0569
+        "gapPct": -49.0571
       },
       "price": 349.2,
       "priceDate": "2026-11-24",
-      "marginOfSafety": -208.4,
+      "marginOfSafety": -162.02,
       "reasons": [],
       "warnings": [
         "CAPPED_GROWTH",
+        "RATE_FALLBACK",
         "STALE_DATA",
         "CASH_MIDPOINT",
         "NORMALIZED_EPS",
-        "CASH_PERIOD_LAG",
         "BASE_QUALITY_REDUCED"
       ],
       "inputs": {
@@ -80383,13 +80410,13 @@
         "baseMethod": "weighted",
         "baseAsOf": "2025-12-31",
         "cashAsOf": "2024-12-31",
-        "ttmAsOf": "2025-12-31",
+        "ttmAsOf": "2024-12-31",
         "ttmQuality": "clean",
         "capexToOcf": null,
         "capexToRevenue": null,
         "maintenanceCapexMethod": "da-proxy",
-        "daPerShare": 0.7688,
-        "maintenanceCapexProxy": 0.7688,
+        "daPerShare": 3.844,
+        "maintenanceCapexProxy": 3.844,
         "sbcPerShare": null,
         "ownerBaseGap": false,
         "baseKind": "midpoint",
@@ -80402,8 +80429,8 @@
         "payoutRatio": null,
         "retentionBound": false,
         "regimeUncertain": false,
-        "discountRate": 11,
-        "reportingCurrency": "USD",
+        "discountRate": 10,
+        "reportingCurrency": "TWD",
         "reportingCurrencySource": "snapshot",
         "perShareCurrency": "USD",
         "perShareFxToQuote": null,
@@ -80414,19 +80441,19 @@
         "addToFairValue": false,
         "currency": "USD",
         "rate": {
-          "value": 4.85,
-          "asOf": "2026-11-25",
-          "source": "snapshot",
+          "value": 10,
+          "asOf": null,
+          "source": "fallback",
           "proxy": null
         },
         "classification": "none",
         "industry": null
       },
-      "asOf": "2026-11-25",
+      "asOf": "2026-11-28",
       "earningsDate": "2025-12-31",
       "earningsPeriod": "FY",
       "earningsSource": "https://investor.tsmc.com/english/encrypt/files/encrypt_file/reports/2026-02/cb73d5f4e019a8f6d7a494a0f8f6c6da2dfc4ee2/FS.pdf",
-      "ratesAsOf": "2026-11-25"
+      "ratesAsOf": null
     },
     "NYSE:TSN": {
       "symbol": "NYSE:TSN",
@@ -80532,6 +80559,7 @@
       "marginOfSafety": -76.69,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],
@@ -84166,6 +84194,7 @@
       "marginOfSafety": -158.75,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "NORMALIZED_EPS",
         "CASH_PERIOD_LAG"
       ],
@@ -85020,6 +85049,7 @@
       "marginOfSafety": -86.37,
       "reasons": [],
       "warnings": [
+        "STALE_PRICE",
         "PERSISTENT_STEP_BASE",
         "CASH_PERIOD_LAG"
       ],

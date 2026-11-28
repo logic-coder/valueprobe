@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyVerifiedEarnings, verifiedQuoteFactor } from '../../scripts/lib/verified-earnings.mjs'
+import { applyVerifiedEarnings, verifiedQuoteFactor, verifiedReportingUnits } from '../../scripts/lib/verified-earnings.mjs'
 import { scaleSnapshotRecord } from '../../src/data/providers/edgar-xbrl.js'
 
 describe('verified depositary ratios', () => {
@@ -15,8 +15,31 @@ describe('verified depositary ratios', () => {
     expect(verifiedQuoteFactor('NYSE:CHT')).toBe(0.1)
     expect(verifiedQuoteFactor('NYSE:CX')).toBeCloseTo(1 / 30, 10)
     expect(verifiedQuoteFactor('NASDAQ:BZ')).toBe(0.5)
+    expect(verifiedQuoteFactor('NASDAQ:PDD')).toBe(0.25)
     expect(verifiedQuoteFactor('NYSE:VIPS')).toBe(5)
     expect(verifiedQuoteFactor('NYSE:TS')).toBe(0.5)
+  })
+
+  it('takes the PDD and TSM reporting currencies from checked filings, independently of the USD quote', () => {
+    expect(verifiedReportingUnits('NASDAQ:PDD')).toMatchObject({ reportingCurrency: 'CNY', perShareCurrency: 'USD' })
+    expect(verifiedReportingUnits('NYSE:TSM')).toMatchObject({ reportingCurrency: 'TWD', perShareCurrency: 'USD' })
+  })
+
+  it('uses the checked NVDA interim report without rewriting full-year earnings or overriding newer data', () => {
+    const annual = [{ date: '2026-01', eps_without_nri: 4.9 }]
+    const record = {
+      exchange_: 'NASDAQ', symbol: 'NVDA', reporting_currency: 'USD', eps_as_of: '2026-07-26',
+      ttm_net_income: 192880000000, financials: { annual },
+    }
+    const next = applyVerifiedEarnings(record)
+    expect(next).toMatchObject({
+      ttm_eps: 9.31, eps_as_of: '2026-10-25', eps_period: 'TTM', ttm_net_income: null,
+      ttm_quality_as_of: '2026-10-25', ttm_quality_facts_searched: false,
+      financials: { ttm: [{ date: '2026-10', eps_without_nri: 9.31 }] },
+    })
+    expect(next.financials.annual).toBe(annual)
+    const newer = { ...record, eps_as_of: '2027-01-31' }
+    expect(applyVerifiedEarnings(newer)).toBe(newer)
   })
 
   it('does not invent a ratio for 1:1 names, non-ADRs, or unchecked tickers', () => {

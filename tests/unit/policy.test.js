@@ -414,7 +414,14 @@ describe('the committed artifact is what the policy produces', () => {
     expect(entry('SHSE:601398')).toMatchObject({ status: 'ok', value: 10.68 })
     expect(entry('SHSE:601398').inputs.model).toBe('residual')
     expect(entry('NASDAQ:AAPL').value).toBe(150.47)
-    expect(entry('NYSE:TSM')).toMatchObject({ value: 113.23, earningsDate: '2025-12-31', earningsPeriod: 'FY', inputs: { eps: 4.90815 } })
+    expect(entry('NYSE:TSM')).toMatchObject({
+      value: 133.27, earningsDate: '2025-12-31', earningsPeriod: 'FY',
+      inputs: { eps: 4.90815, epsLatest: 10.65, reportingCurrency: 'TWD', perShareCurrency: 'USD' },
+    })
+    expect(entry('NASDAQ:PDD')).toMatchObject({
+      status: 'ok', value: 134.1, price: 87.42, marginOfSafety: 34.81,
+      inputs: { epsLatest: 9.44, reportingCurrency: 'CNY', perShareCurrency: 'USD', discountRate: 10 },
+    })
     expect(entry('HKSE:00700')).toMatchObject({ status: 'ok', value: 314.46, warnings: expect.arrayContaining(['CASH_MIDPOINT']) })
     expect(entry('NASDAQ:INTC')).toMatchObject({ status: 'refused', value: null })
     expect(entry('NASDAQ:INTC').reasons).toEqual(expect.arrayContaining(['NON_POSITIVE_EPS', 'NO_GROWTH']))

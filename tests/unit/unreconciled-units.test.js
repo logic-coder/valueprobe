@@ -60,7 +60,7 @@ describe('quote units are reconciled from metadata, not symbol names', () => {
     const tsm = valueOf(load('NYSE:TSM'))
     expect(quoteUnitUnreconciled(load('NYSE:TSM'))).toBe(false)
     expect(tsm.status).toBe('ok')
-    expect(tsm.value).toBe(113.23)
+    expect(tsm.value).toBe(133.27)
     expect(tsm.reasons).not.toContain(REASON.UNIT_UNRECONCILED)
     const aapl = valueOf(load('NASDAQ:AAPL'))
     expect(aapl.status).toBe('ok')

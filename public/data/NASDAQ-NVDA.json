@@ -1,18 +1,19 @@
 {
-  "as_of": "2026-11-25",
+  "as_of": "2026-11-28",
   "symbol": "NVDA",
   "exchange_": "NASDAQ",
   "company": "NVIDIA CORP",
   "currency": "$",
   "price": "$155.38",
   "quote_as_of": "2026-11-24",
-  "ttm_eps": 7.91,
-  "ttm_eps_nri": 7.91,
+  "quote_source": "tencent-kline",
+  "ttm_eps": 9.31,
+  "ttm_eps_nri": 9.31,
   "ttm_nonoperating_gain": null,
-  "ttm_net_income": 192880000000,
-  "ttm_operating_income": 197579000000,
-  "ttm_quality_as_of": "2026-07-26",
-  "ttm_quality_facts_searched": true,
+  "ttm_net_income": null,
+  "ttm_operating_income": null,
+  "ttm_quality_as_of": "2026-10-25",
+  "ttm_quality_facts_searched": false,
   "free_cash_flow_per_share": 3.9437,
   "tangible_book": 5.4318,
   "earning_growth_10y": 61.85,
@@ -26,8 +27,13 @@
   "ebit_growth_10y": null,
   "cashflow_basis": null,
   "eps_period": "TTM",
-  "eps_as_of": "2026-07-26",
-  "eps_source": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001045810.json",
+  "eps_as_of": "2026-10-25",
+  "eps_source": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000088/supplementalfinancialinfor.htm",
+  "reporting_currency": "USD",
+  "reporting_currency_source": "us-gaap:NetCashProvidedByUsedInOperatingActivities:USD:2026-01-25:0001045810-26-000021",
+  "per_share_currency": "USD",
+  "per_share_fx_to_quote": null,
+  "unit_unreconciled": false,
   "predictability": 5,
   "financials": {
     "annual": [
@@ -232,14 +238,13 @@
     ],
     "ttm": [
       {
-        "date": "2026-01",
-        "eps_without_nri": 4.9,
-        "free_cash_flow_per_share": 3.9437,
-        "book_value_per_share": 5.4318
+        "date": "2026-10",
+        "eps_without_nri": 9.31
       }
     ],
     "quarter": []
   },
+  "share_basis_unverified": true,
   "history": {
     "revenue_per_share": [
       [
@@ -763,11 +768,5 @@
         0.2465
       ]
     ]
-  },
-  "quote_source": "tencent-kline",
-  "reporting_currency": "USD",
-  "reporting_currency_source": "us-gaap:NetCashProvidedByUsedInOperatingActivities:USD:2026-01-25:0001045810-26-000021",
-  "per_share_currency": "USD",
-  "per_share_fx_to_quote": null,
-  "unit_unreconciled": false
+  }
 }
