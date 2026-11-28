@@ -2,7 +2,7 @@
   <div class="dcf__strip" data-testid="dcf-result" :data-mode="bandMode">
     <div v-if="officialPresent" class="dcf__band-official">
       <div class="dcf__strip-head">
-        <div class="dcf__strip-title" data-testid="value-title">{{ t('official_title') }}</div>
+        <div v-if="!comparisonStatus" class="dcf__strip-title" data-testid="value-title">{{ t('official_title') }}</div>
         <div v-if="!trialActive" class="dcf__strip-context" data-testid="value-context">{{ officialContext }}</div>
       </div>
       <div class="dcf__band-main">
